@@ -345,3 +345,12 @@ function Item({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function SummaryRow({ label, value, color }: { label: string; value: number; color?: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className={`text-sm font-semibold ${color || "text-foreground"}`}>{value}</p>
+    </div>
+  );
+}
