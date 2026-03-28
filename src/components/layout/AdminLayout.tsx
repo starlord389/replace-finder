@@ -1,8 +1,9 @@
 import { Navigate, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 import Navbar from "./Navbar";
 import { cn } from "@/lib/utils";
-
 const adminLinks = [
   { to: "/admin/requests", label: "Requests" },
   { to: "/admin/inventory", label: "Inventory" },
@@ -12,6 +13,13 @@ const adminLinks = [
 export default function AdminLayout() {
   const { user, hasRole, loading } = useAuth();
   const location = useLocation();
+  const isUnauthorized = !loading && (!user || !hasRole("admin"));
+
+  useEffect(() => {
+    if (isUnauthorized) {
+      toast({ title: "You don't have admin access.", variant: "destructive" });
+    }
+  }, [isUnauthorized]);
 
   if (loading) {
     return (
@@ -21,8 +29,8 @@ export default function AdminLayout() {
     );
   }
 
-  if (!user || !hasRole("admin")) {
-    return <Navigate to="/" replace />;
+  if (isUnauthorized) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
