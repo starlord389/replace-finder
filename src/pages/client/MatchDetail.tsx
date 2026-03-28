@@ -63,8 +63,12 @@ export default function MatchDetail() {
       .from("match_results")
       .update({ client_viewed_at: new Date().toISOString() })
       .eq("id", matchResult.id)
-      .then(() => {
-        setMatchResult((prev: any) => prev ? { ...prev, client_viewed_at: new Date().toISOString() } : prev);
+      .select()
+      .then(({ data, error }) => {
+        console.log("View tracking result:", { data, error });
+        if (data && data.length > 0) {
+          setMatchResult((prev: any) => prev ? { ...prev, client_viewed_at: new Date().toISOString() } : prev);
+        }
       });
   }, [matchResult]);
 
