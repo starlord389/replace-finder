@@ -60,6 +60,7 @@ const App = () => (
               <Route path="/admin/matches/:id" element={<MatchRunDetail />} />
             </Route>
 
+            <Route path="/debug-role" element={<DebugRole />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
