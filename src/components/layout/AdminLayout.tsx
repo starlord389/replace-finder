@@ -22,8 +22,16 @@ export default function AdminLayout() {
     );
   }
 
-  if (!user || !hasRole("admin")) {
-    return <Navigate to="/" replace />;
+  const isUnauthorized = !user || !hasRole("admin");
+
+  useEffect(() => {
+    if (!loading && isUnauthorized) {
+      toast({ title: "You don't have admin access.", variant: "destructive" });
+    }
+  }, [loading, isUnauthorized]);
+
+  if (isUnauthorized) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
