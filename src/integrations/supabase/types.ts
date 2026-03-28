@@ -14,6 +14,217 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notes: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          request_id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          request_id: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exchange_request_preferences: {
+        Row: {
+          additional_notes: string | null
+          created_at: string
+          id: string
+          request_id: string
+          target_asset_types: Database["public"]["Enums"]["asset_type"][] | null
+          target_cap_rate_max: number | null
+          target_cap_rate_min: number | null
+          target_metros: string[] | null
+          target_price_max: number | null
+          target_price_min: number | null
+          target_states: string[] | null
+          target_strategies:
+            | Database["public"]["Enums"]["strategy_type"][]
+            | null
+          updated_at: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          created_at?: string
+          id?: string
+          request_id: string
+          target_asset_types?:
+            | Database["public"]["Enums"]["asset_type"][]
+            | null
+          target_cap_rate_max?: number | null
+          target_cap_rate_min?: number | null
+          target_metros?: string[] | null
+          target_price_max?: number | null
+          target_price_min?: number | null
+          target_states?: string[] | null
+          target_strategies?:
+            | Database["public"]["Enums"]["strategy_type"][]
+            | null
+          updated_at?: string
+        }
+        Update: {
+          additional_notes?: string | null
+          created_at?: string
+          id?: string
+          request_id?: string
+          target_asset_types?:
+            | Database["public"]["Enums"]["asset_type"][]
+            | null
+          target_cap_rate_max?: number | null
+          target_cap_rate_min?: number | null
+          target_metros?: string[] | null
+          target_price_max?: number | null
+          target_price_min?: number | null
+          target_states?: string[] | null
+          target_strategies?:
+            | Database["public"]["Enums"]["strategy_type"][]
+            | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exchange_request_preferences_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exchange_request_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: Database["public"]["Enums"]["request_status"]
+          note: string | null
+          old_status: Database["public"]["Enums"]["request_status"] | null
+          request_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: Database["public"]["Enums"]["request_status"]
+          note?: string | null
+          old_status?: Database["public"]["Enums"]["request_status"] | null
+          request_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["request_status"]
+          note?: string | null
+          old_status?: Database["public"]["Enums"]["request_status"] | null
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exchange_request_status_history_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exchange_requests: {
+        Row: {
+          close_deadline: string | null
+          created_at: string
+          estimated_basis: number | null
+          estimated_debt: number | null
+          estimated_equity: number | null
+          exchange_proceeds: number | null
+          id: string
+          identification_deadline: string | null
+          relinquished_address: string | null
+          relinquished_asset_type:
+            | Database["public"]["Enums"]["asset_type"]
+            | null
+          relinquished_city: string | null
+          relinquished_description: string | null
+          relinquished_estimated_value: number | null
+          relinquished_state: string | null
+          relinquished_zip: string | null
+          sale_timeline: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          updated_at: string
+          urgency: string | null
+          user_id: string
+        }
+        Insert: {
+          close_deadline?: string | null
+          created_at?: string
+          estimated_basis?: number | null
+          estimated_debt?: number | null
+          estimated_equity?: number | null
+          exchange_proceeds?: number | null
+          id?: string
+          identification_deadline?: string | null
+          relinquished_address?: string | null
+          relinquished_asset_type?:
+            | Database["public"]["Enums"]["asset_type"]
+            | null
+          relinquished_city?: string | null
+          relinquished_description?: string | null
+          relinquished_estimated_value?: number | null
+          relinquished_state?: string | null
+          relinquished_zip?: string | null
+          sale_timeline?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          urgency?: string | null
+          user_id: string
+        }
+        Update: {
+          close_deadline?: string | null
+          created_at?: string
+          estimated_basis?: number | null
+          estimated_debt?: number | null
+          estimated_equity?: number | null
+          exchange_proceeds?: number | null
+          id?: string
+          identification_deadline?: string | null
+          relinquished_address?: string | null
+          relinquished_asset_type?:
+            | Database["public"]["Enums"]["asset_type"]
+            | null
+          relinquished_city?: string | null
+          relinquished_description?: string | null
+          relinquished_estimated_value?: number | null
+          relinquished_state?: string | null
+          relinquished_zip?: string | null
+          sale_timeline?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          urgency?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company: string | null
@@ -80,6 +291,27 @@ export type Database = {
     }
     Enums: {
       app_role: "client" | "broker" | "admin"
+      asset_type:
+        | "multifamily"
+        | "office"
+        | "retail"
+        | "industrial"
+        | "medical_office"
+        | "self_storage"
+        | "hospitality"
+        | "mixed_use"
+        | "land"
+        | "net_lease"
+        | "other"
+      request_status: "submitted" | "under_review" | "active" | "closed"
+      strategy_type:
+        | "core"
+        | "core_plus"
+        | "value_add"
+        | "opportunistic"
+        | "development"
+        | "nnn"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -208,6 +440,29 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["client", "broker", "admin"],
+      asset_type: [
+        "multifamily",
+        "office",
+        "retail",
+        "industrial",
+        "medical_office",
+        "self_storage",
+        "hospitality",
+        "mixed_use",
+        "land",
+        "net_lease",
+        "other",
+      ],
+      request_status: ["submitted", "under_review", "active", "closed"],
+      strategy_type: [
+        "core",
+        "core_plus",
+        "value_add",
+        "opportunistic",
+        "development",
+        "nnn",
+        "other",
+      ],
     },
   },
 } as const

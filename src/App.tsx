@@ -14,7 +14,9 @@ import HowItWorks from "@/pages/HowItWorks";
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import Dashboard from "@/pages/client/Dashboard";
+import NewRequest from "@/pages/client/NewRequest";
 import RequestQueue from "@/pages/admin/RequestQueue";
+import RequestDetail from "@/pages/admin/RequestDetail";
 import InventoryList from "@/pages/admin/InventoryList";
 import MatchReview from "@/pages/admin/MatchReview";
 import NotFound from "@/pages/NotFound";
@@ -40,11 +42,13 @@ const App = () => (
             {/* Client (auth required) */}
             <Route element={<ClientLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/new-request" element={<NewRequest />} />
             </Route>
 
             {/* Admin (admin role required) */}
             <Route element={<AdminLayout />}>
               <Route path="/admin/requests" element={<RequestQueue />} />
+              <Route path="/admin/requests/:id" element={<RequestDetail />} />
               <Route path="/admin/inventory" element={<InventoryList />} />
               <Route path="/admin/matches" element={<MatchReview />} />
             </Route>
