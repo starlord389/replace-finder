@@ -1,23 +1,19 @@
 
 
-# Seed Test Data Migration
+# Fix: Admin Routes Returning 404
 
-Run a single migration with a `DO $$` block that inserts 2 exchange requests, preferences, 4 inventory properties with financials, a completed match run, 3 approved match results, 3 matched_property_access rows, and status history — all referencing the first user in `profiles`.
+## Changes
 
-All inserts use `ON CONFLICT DO NOTHING` for re-run safety. Enum values confirmed from schema: `multifamily`, `net_lease`, `industrial`, `self_storage`, `core`, `core_plus`, `active`, `submitted`, `approved`, `completed`.
+### 1. Database — Assign admin role to first user
+Insert the `admin` role for the first user in `profiles` (uses `ON CONFLICT DO NOTHING` for safety).
 
-### Single migration file
+### 2. `src/components/layout/AdminLayout.tsx` — Improve redirect behavior
+Current line 24-26 redirects to `/` when user lacks admin role. Change to:
+- Redirect to `/dashboard` instead of `/`
+- Show a toast: "You don't have admin access."
+- The loading check on line 16 already handles waiting for auth state — this is correct
 
-One `DO $$` block with variables for all UUIDs. Steps:
-1. Select first profile user into `test_user_id`
-2. Insert 2 `exchange_requests` (one `active`, one `submitted`)
-3. Insert `exchange_request_preferences` for request 1
-4. Insert 4 `inventory_properties`
-5. Insert 4 `inventory_financials`
-6. Insert 1 `match_runs` (completed)
-7. Insert 3 `match_results` (all approved, no client response)
-8. Insert 3 `matched_property_access` rows
-9. Insert 2 `exchange_request_status_history` rows
+Only change: line 24-26, redirect target from `"/"` to `"/dashboard"` and add toast effect.
 
-No code changes needed — migration only.
+Implementation: Use `useEffect` + `useNavigate` pattern instead of `<Navigate>` so we can fire the toast before redirecting. Or simpler: keep `<Navigate to="/dashboard">` and add a `useEffect` that fires the toast when `!loading && (!user || !hasRole("admin"))`.
 
