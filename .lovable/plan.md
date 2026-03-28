@@ -1,12 +1,22 @@
 
 
-# Add Debug Role Page
+# Fix: useAuth Race Condition + Remove Debug Page
 
-Two file changes:
+## Problem
+`useAuth` sets `loading = false` after session resolves, but roles are fetched asynchronously after that — creating a window where `AdminLayout` sees `loading=false` + empty `roles` and redirects.
 
-1. **Create `src/pages/DebugRole.tsx`** — the debug component from the user's spec, showing auth user ID, email, `hasRole("admin")`, roles from `useAuth()`, direct DB query of `user_roles`, and profile data.
+## Changes
 
-2. **`src/App.tsx`** — import `DebugRole` and add `<Route path="/debug-role" element={<DebugRole />} />` as a standalone route outside any layout wrapper (before the catch-all `*` route).
+### 1. `src/hooks/useAuth.tsx` — Split loading into `authLoading` + `rolesLoading`
+- Add `authLoading` (default `true`) and `rolesLoading` (default `true`) states
+- Remove the single `loading` state, replace with `const loading = authLoading || rolesLoading`
+- In `onAuthStateChange`: set `authLoading = false` after setting session/user. If no user, also set `rolesLoading = false`. If user exists, fetch roles then set `rolesLoading = false`.
+- In `getSession().then(...)`: same pattern — set `authLoading = false`, and `rolesLoading = false` after roles query completes (or immediately if no user).
+- Remove the `setTimeout` wrapper around the role fetch in `onAuthStateChange` — fetch directly and set `rolesLoading = false` in the `.then()`.
 
-No other changes. No layout, no auth guard, no RLS modifications.
+### 2. Delete `src/pages/DebugRole.tsx`
+
+### 3. `src/App.tsx` — Remove debug route
+- Remove the `import DebugRole` line
+- Remove `<Route path="/debug-role" element={<DebugRole />} />`
 
