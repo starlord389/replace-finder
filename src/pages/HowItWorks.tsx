@@ -4,14 +4,14 @@ import { ArrowRight, FileText, Search, ShieldCheck, Bell, Eye } from "lucide-rea
 import { useHead } from "@/hooks/useHead";
 
 export default function HowItWorks() {
+  useHead({
+    title: "How It Works — 1031ExchangeUp",
+    description: "Learn how 1031ExchangeUp matches your exchange goals with curated replacement properties from our private inventory in 5 simple steps.",
+    canonical: "https://1031exchangeup.com/how-it-works",
+  });
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20">
-      <Helmet>
-        <title>How It Works — 1031ExchangeUp</title>
-        <meta name="description" content="Learn how 1031ExchangeUp matches your exchange goals with curated replacement properties from our private inventory in 5 simple steps." />
-        <link rel="canonical" href="https://1031exchangeup.com/how-it-works" />
-      </Helmet>
-
       <header className="text-center">
         <h1 className="text-3xl font-bold text-foreground sm:text-4xl md:text-5xl">How 1031ExchangeUp Works</h1>
         <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
