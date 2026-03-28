@@ -225,6 +225,236 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_documents: {
+        Row: {
+          created_at: string
+          document_type: string | null
+          file_name: string | null
+          id: string
+          property_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          document_type?: string | null
+          file_name?: string | null
+          id?: string
+          property_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string | null
+          file_name?: string | null
+          id?: string
+          property_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_documents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_financials: {
+        Row: {
+          annual_expenses: number | null
+          annual_revenue: number | null
+          asking_price: number | null
+          cap_rate: number | null
+          cash_on_cash: number | null
+          created_at: string
+          debt_amount: number | null
+          debt_rate: number | null
+          id: string
+          noi: number | null
+          notes: string | null
+          occupancy_rate: number | null
+          property_id: string
+          updated_at: string
+        }
+        Insert: {
+          annual_expenses?: number | null
+          annual_revenue?: number | null
+          asking_price?: number | null
+          cap_rate?: number | null
+          cash_on_cash?: number | null
+          created_at?: string
+          debt_amount?: number | null
+          debt_rate?: number | null
+          id?: string
+          noi?: number | null
+          notes?: string | null
+          occupancy_rate?: number | null
+          property_id: string
+          updated_at?: string
+        }
+        Update: {
+          annual_expenses?: number | null
+          annual_revenue?: number | null
+          asking_price?: number | null
+          cap_rate?: number | null
+          cash_on_cash?: number | null
+          created_at?: string
+          debt_amount?: number | null
+          debt_rate?: number | null
+          id?: string
+          noi?: number | null
+          notes?: string | null
+          occupancy_rate?: number | null
+          property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_financials_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "inventory_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_images: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          id: string
+          property_id: string
+          sort_order: number | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          id?: string
+          property_id: string
+          sort_order?: number | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          id?: string
+          property_id?: string
+          sort_order?: number | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_images_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_properties: {
+        Row: {
+          address: string | null
+          asset_type: Database["public"]["Enums"]["asset_type"] | null
+          city: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string | null
+          square_footage: number | null
+          state: string | null
+          status: Database["public"]["Enums"]["inventory_status"]
+          strategy_type: Database["public"]["Enums"]["strategy_type"] | null
+          units: number | null
+          updated_at: string
+          year_built: number | null
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          asset_type?: Database["public"]["Enums"]["asset_type"] | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          square_footage?: number | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["inventory_status"]
+          strategy_type?: Database["public"]["Enums"]["strategy_type"] | null
+          units?: number | null
+          updated_at?: string
+          year_built?: number | null
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          asset_type?: Database["public"]["Enums"]["asset_type"] | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string | null
+          square_footage?: number | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["inventory_status"]
+          strategy_type?: Database["public"]["Enums"]["strategy_type"] | null
+          units?: number | null
+          updated_at?: string
+          year_built?: number | null
+          zip?: string | null
+        }
+        Relationships: []
+      }
+      inventory_source_metadata: {
+        Row: {
+          created_at: string
+          date_sourced: string | null
+          id: string
+          notes: string | null
+          property_id: string
+          source_contact: string | null
+          source_email: string | null
+          source_phone: string | null
+          source_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_sourced?: string | null
+          id?: string
+          notes?: string | null
+          property_id: string
+          source_contact?: string | null
+          source_email?: string | null
+          source_phone?: string | null
+          source_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_sourced?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string
+          source_contact?: string | null
+          source_email?: string | null
+          source_phone?: string | null
+          source_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_source_metadata_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "inventory_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company: string | null
@@ -303,6 +533,12 @@ export type Database = {
         | "land"
         | "net_lease"
         | "other"
+      inventory_status:
+        | "draft"
+        | "active"
+        | "under_contract"
+        | "closed"
+        | "archived"
       request_status: "submitted" | "under_review" | "active" | "closed"
       strategy_type:
         | "core"
@@ -452,6 +688,13 @@ export const Constants = {
         "land",
         "net_lease",
         "other",
+      ],
+      inventory_status: [
+        "draft",
+        "active",
+        "under_contract",
+        "closed",
+        "archived",
       ],
       request_status: ["submitted", "under_review", "active", "closed"],
       strategy_type: [

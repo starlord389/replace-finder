@@ -18,6 +18,7 @@ import NewRequest from "@/pages/client/NewRequest";
 import RequestQueue from "@/pages/admin/RequestQueue";
 import RequestDetail from "@/pages/admin/RequestDetail";
 import InventoryList from "@/pages/admin/InventoryList";
+import InventoryDetail from "@/pages/admin/InventoryDetail";
 import MatchReview from "@/pages/admin/MatchReview";
 import NotFound from "@/pages/NotFound";
 
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/admin/requests" element={<RequestQueue />} />
               <Route path="/admin/requests/:id" element={<RequestDetail />} />
               <Route path="/admin/inventory" element={<InventoryList />} />
+              <Route path="/admin/inventory/:id" element={<InventoryDetail />} />
               <Route path="/admin/matches" element={<MatchReview />} />
             </Route>
 

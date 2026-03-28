@@ -45,3 +45,19 @@ export const US_STATES = [
   "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
   "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
 ];
+
+export const INVENTORY_STATUS_LABELS: Record<string, string> = {
+  draft: "Draft",
+  active: "Active",
+  under_contract: "Under Contract",
+  closed: "Closed",
+  archived: "Archived",
+};
+
+export const INVENTORY_STATUS_COLORS: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground",
+  active: "bg-primary/10 text-primary",
+  under_contract: "bg-yellow-100 text-yellow-800",
+  closed: "bg-muted text-muted-foreground",
+  archived: "bg-muted text-muted-foreground",
+};
