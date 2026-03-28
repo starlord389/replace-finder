@@ -1,18 +1,25 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, FileText, Search, ShieldCheck, Bell, Eye } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 export default function HowItWorks() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-foreground sm:text-5xl">How 1031ExchangeUp Works</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+    <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20">
+      <Helmet>
+        <title>How It Works — 1031ExchangeUp</title>
+        <meta name="description" content="Learn how 1031ExchangeUp matches your exchange goals with curated replacement properties from our private inventory in 5 simple steps." />
+        <link rel="canonical" href="https://1031exchangeup.com/how-it-works" />
+      </Helmet>
+
+      <header className="text-center">
+        <h1 className="text-3xl font-bold text-foreground sm:text-4xl md:text-5xl">How 1031ExchangeUp Works</h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
           A private, guided experience to help you find the right replacement property for your 1031 exchange.
         </p>
-      </div>
+      </header>
 
-      <div className="mt-16 space-y-12">
+      <ol className="mt-12 space-y-10 sm:mt-16 sm:space-y-12" aria-label="How it works steps">
         {[
           {
             icon: FileText,
@@ -45,23 +52,23 @@ export default function HowItWorks() {
             description: "When an approved match is ready, you'll be notified. Log in to your dashboard to review property details, financials, documents, and a clear explanation of why each property matched your goals.",
           },
         ].map((item) => (
-          <div key={item.step} className="flex gap-6">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <li key={item.step} className="flex gap-4 sm:gap-6">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 sm:h-12 sm:w-12" aria-hidden="true">
               <item.icon className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-xs font-semibold text-primary">Step {item.step}</p>
-              <h3 className="mt-1 text-xl font-semibold text-foreground">{item.title}</h3>
-              <p className="mt-2 leading-relaxed text-muted-foreground">{item.description}</p>
+              <h2 className="mt-1 text-lg font-semibold text-foreground sm:text-xl">{item.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">{item.description}</p>
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ol>
 
       {/* FAQ */}
-      <div className="mt-20 border-t pt-16">
-        <h2 className="text-2xl font-semibold text-foreground">Frequently Asked Questions</h2>
-        <div className="mt-8 space-y-8">
+      <section className="mt-16 border-t pt-12 sm:mt-20 sm:pt-16" aria-labelledby="faq-heading">
+        <h2 id="faq-heading" className="text-xl font-semibold text-foreground sm:text-2xl">Frequently Asked Questions</h2>
+        <dl className="mt-6 space-y-6 sm:mt-8 sm:space-y-8">
           {[
             {
               q: "Is this a public marketplace?",
@@ -85,27 +92,27 @@ export default function HowItWorks() {
             },
           ].map((faq) => (
             <div key={faq.q}>
-              <h3 className="font-semibold text-foreground">{faq.q}</h3>
-              <p className="mt-1.5 leading-relaxed text-muted-foreground">{faq.a}</p>
+              <dt className="font-semibold text-foreground">{faq.q}</dt>
+              <dd className="mt-1.5 leading-relaxed text-muted-foreground">{faq.a}</dd>
             </div>
           ))}
-        </div>
-      </div>
+        </dl>
+      </section>
 
       {/* CTA */}
-      <div className="mt-20 rounded-xl border bg-card p-10 text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+      <div className="mt-16 rounded-xl border bg-card p-8 text-center sm:mt-20 sm:p-10">
+        <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
           Ready to get started?
         </h2>
         <p className="mt-2 text-muted-foreground">
           Submit your 1031 exchange goals and start receiving curated matches.
         </p>
-        <Link to="/signup" className="mt-6 inline-block">
+        <Link to="/signup" className="mt-5 inline-block sm:mt-6">
           <Button size="lg" className="gap-2 px-8">
-            Start Your Search <ArrowRight className="h-4 w-4" />
+            Start Your Search <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </Link>
       </div>
-    </div>
+    </main>
   );
 }
