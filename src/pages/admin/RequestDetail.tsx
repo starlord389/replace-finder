@@ -257,7 +257,19 @@ export default function RequestDetail() {
             )}
           </div>
 
-          {/* Admin notes */}
+          {/* Match Response Summary */}
+          {responseSummary.total > 0 && (
+            <div className="rounded-xl border bg-card p-5">
+              <h3 className="font-semibold text-foreground">Match Response Summary</h3>
+              <div className="mt-3 space-y-2">
+                <SummaryRow label="Total Approved" value={responseSummary.total} />
+                <SummaryRow label="Interested" value={responseSummary.interested} color="text-green-700" />
+                <SummaryRow label="Passed" value={responseSummary.passed} color="text-red-700" />
+                <SummaryRow label="Awaiting Response" value={responseSummary.awaiting} color="text-amber-700" />
+              </div>
+            </div>
+          )}
+
           <div className="rounded-xl border bg-card p-5">
             <h3 className="font-semibold text-foreground">Admin Notes</h3>
             <div className="mt-4 space-y-2">
