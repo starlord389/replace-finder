@@ -27,32 +27,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [rolesLoading, setRolesLoading] = useState(true);
+
+  const loading = authLoading || rolesLoading;
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        setAuthLoading(false);
         if (session?.user) {
-          // Defer role fetch to avoid blocking
-          setTimeout(async () => {
-            const { data } = await supabase
-              .from("user_roles")
-              .select("role")
-              .eq("user_id", session.user.id);
-            setRoles(data?.map((r) => r.role) ?? []);
-          }, 0);
+          const { data } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", session.user.id);
+          setRoles(data?.map((r) => r.role) ?? []);
+          setRolesLoading(false);
         } else {
           setRoles([]);
+          setRolesLoading(false);
         }
-        setLoading(false);
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setAuthLoading(false);
       if (session?.user) {
         supabase
           .from("user_roles")
@@ -60,10 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq("user_id", session.user.id)
           .then(({ data }) => {
             setRoles(data?.map((r) => r.role) ?? []);
-            setLoading(false);
+            setRolesLoading(false);
           });
       } else {
-        setLoading(false);
+        setRolesLoading(false);
       }
     });
 
