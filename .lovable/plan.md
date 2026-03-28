@@ -1,183 +1,98 @@
 
 
-# 1031ExchangeUp.com — Implementation Plan
+# Phase 1: Post-Match Client Response System
 
-## Overview
+## Summary
+Add Express Interest / Pass buttons on client match detail pages, track views, show response badges on dashboard, and give admins full visibility into client responses with filtering.
 
-Build a private 1031 replacement-property matching platform with a premium, minimalist UI. The build follows 6 rounds, each delivering a testable increment.
+## Database Migration
 
----
+Single migration adding 4 columns + check constraint + RLS policy:
 
-## Round 1: Foundation — Design System, Auth, Roles, Public Shell
+```sql
+-- Add response columns to match_results
+ALTER TABLE public.match_results
+  ADD COLUMN client_response text,
+  ADD COLUMN client_response_at timestamptz,
+  ADD COLUMN client_viewed_at timestamptz,
+  ADD COLUMN client_response_note text;
 
-**What we build:**
-- Design system: color tokens, typography scale (Inter body, SF Pro-inspired headings), spacing, card/panel components, button variants — all premium/minimal
-- Tailwind theme configuration with brand palette (neutral base, single restrained accent)
-- Supabase project setup via Lovable Cloud: Auth (email/password), `profiles` table with trigger on signup, `user_roles` table with `app_role` enum (`client`, `broker`, `admin`)
-- RLS policies + `has_role()` security-definer function
-- Route structure: public routes (`/`, `/how-it-works`), auth routes (`/login`, `/signup`), client routes (`/dashboard/*`), admin routes (`/admin/*`)
-- Auth-guarded layout wrappers for client and admin sections
-- Homepage: hero with headline + CTA, 3-step "How It Works", trust/credibility section, product preview mockup, final CTA
-- Simple responsive nav (logo, Login, "Start Your Search" CTA)
+-- Validate response values
+ALTER TABLE public.match_results
+  ADD CONSTRAINT match_results_client_response_check
+  CHECK (client_response IN ('interested', 'passed'));
 
-**Files created/modified (~15 files):**
-- `tailwind.config.ts` — theme tokens
-- `src/index.css` — typography, base styles
-- `src/components/layout/PublicLayout.tsx`
-- `src/components/layout/ClientLayout.tsx`
-- `src/components/layout/AdminLayout.tsx`
-- `src/components/layout/Navbar.tsx`
-- `src/components/layout/Footer.tsx`
-- `src/pages/Index.tsx` — homepage
-- `src/pages/HowItWorks.tsx`
-- `src/pages/auth/Login.tsx`
-- `src/pages/auth/Signup.tsx`
-- `src/App.tsx` — all routes
-- Supabase migrations for `profiles`, `user_roles`, RLS
+-- Allow clients to update ONLY response columns on rows they have access to
+CREATE POLICY "Clients can update response on accessible matches"
+ON public.match_results
+FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.matched_property_access mpa
+    WHERE mpa.match_result_id = match_results.id
+      AND mpa.user_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.matched_property_access mpa
+    WHERE mpa.match_result_id = match_results.id
+      AND mpa.user_id = auth.uid()
+  )
+);
 
----
+-- Allow clients to read their own match results
+CREATE POLICY "Clients can view accessible match results"
+ON public.match_results
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.matched_property_access mpa
+    WHERE mpa.match_result_id = match_results.id
+      AND mpa.user_id = auth.uid()
+  )
+);
+```
 
-## Round 2: Request Intake + Admin Request Queue
+Note: Column-level security isn't native to Postgres RLS. The policy allows UPDATE on the row, but client code will only send the 4 response columns. Admin-only columns (status, scores, approved_by) are protected by the fact that client code never writes them and admin actions are separate.
 
-**What we build:**
-- Multi-step intake form for exchange clients:
-  - Step 1: Relinquished property (address, type, estimated value)
-  - Step 2: Economics (equity, debt, exchange proceeds, basis)
-  - Step 3: Replacement goals (target price range, asset types, strategies)
-  - Step 4: Geography preferences (states, metros, radius)
-  - Step 5: Timing (45-day ID deadline, 180-day close, urgency)
-  - Step 6: Review & submit
-- Database tables: `exchange_requests`, `exchange_request_preferences`, `exchange_request_status_history`
-- RLS: clients see only their own requests
-- Admin request queue page (`/admin/requests`): list all requests, filter by status, click into detail
-- Admin request detail: view full submission, add `admin_notes`, change status (submitted → under_review → active → closed)
-- Status history tracking on every transition
+## File Changes
 
-**Files created/modified (~12 files):**
-- `src/pages/client/NewRequest.tsx` — multi-step form
-- `src/components/request/*` — step components
-- `src/pages/client/MyRequest.tsx` — request status view
-- `src/pages/admin/RequestQueue.tsx`
-- `src/pages/admin/RequestDetail.tsx`
-- Supabase migrations for request tables, status enum, RLS policies
+### 1. `src/pages/client/MatchDetail.tsx` — Response buttons + view tracking
 
----
+- Load `match_result` data via the `access.match_result_id` (query `match_results` where id = access.match_result_id and join via matched_property_access)
+- **View tracking**: `useEffect` on mount — if `matchResult.client_viewed_at` is null, update it to `now()` (fire once, no UI)
+- **Top of hero section** (right-aligned next to property name): Show Express Interest / Pass buttons OR response badge
+- **Bottom of page**: Mirror the same buttons/badge after all content
+- **Confirmation dialogs**: Use `AlertDialog` from shadcn. Each has optional `Textarea` for note.
+- **Post-response state**: Badge with response type, timestamp, note if present, and "Change your response" link
 
-## Round 3: Internal Inventory Management (Admin Only)
+### 2. `src/pages/client/Dashboard.tsx` — Response badges + awaiting banner
 
-**What we build:**
-- Admin inventory CRUD (`/admin/inventory`):
-  - Add/edit property: address, city, state, zip, asset type, strategy type, status, description
-  - Financials tab: price, cap rate, NOI, cash-on-cash, debt terms, occupancy
-  - Media tab: upload images + documents to Supabase Storage
-  - Source tab: source type, source contact, date added, notes
-- Database tables: `inventory_properties`, `inventory_financials`, `inventory_images`, `inventory_documents`, `inventory_source_metadata`
-- RLS: only admins can read/write inventory tables (no client access to raw inventory)
-- Admin inventory list with filters (state, asset type, strategy, price range, status)
+- Extend data loading: join `match_results` data for each `matched_property_access` row to get `client_response`, `client_viewed_at`
+- **Match cards**: Add badge — "New" (amber, if not viewed), "Interested" (green), "Passed" (gray), "Awaiting your response" (if viewed but no response)
+- **Top banner**: If any matches have null `client_response`, show "You have X matches awaiting your response" with link to first one
 
-**Files created/modified (~10 files):**
-- `src/pages/admin/InventoryList.tsx`
-- `src/pages/admin/InventoryDetail.tsx`
-- `src/components/inventory/*` — form sections
-- Supabase migrations for inventory tables, storage bucket, RLS
+### 3. `src/pages/admin/MatchRunDetail.tsx` — Response visibility + filtering
 
----
+- **Summary stats row** at top: Total, Interested, Passed, Awaiting Response, Not Yet Approved (color-coded counts)
+- **Each result card**: Add client response badge + note icon (tooltip/popover for note text) + response timestamp
+- **Filter bar**: Tabs — All | Interested | Passed | Awaiting Response — filters the results list
 
-## Round 4: Matching Engine + Admin Match Workflow
+### 4. `src/pages/admin/RequestDetail.tsx` — Response summary in sidebar
 
-**What we build:**
-- Supabase Edge Function: `run-matching`
-  - Input: `exchange_request_id`
-  - Loads request + preferences, loads all active inventory
-  - Scores each property across 6 dimensions:
-    - Price/Scale fit (25%) — proceeds vs. property price
-    - Geography fit (20%) — state/metro match, distance
-    - Asset type fit (20%) — type alignment
-    - Strategy fit (15%) — strategy alignment
-    - Financial fit (10%) — cap rate, cash flow vs. goals
-    - Timing fit (10%) — availability vs. deadline
-  - Produces `match_runs` record + `exchange_matches` rows with component scores, overall score, admin explanation, user explanation
-- Admin match review page (`/admin/matches`):
-  - View match run results per request
-  - See scoring breakdown per match
-  - Approve or dismiss each match
-  - On approval: create `matched_property_access` record → user can now see this property
-- Database tables: `match_runs`, `exchange_matches`, `matched_property_access`
-- RLS: matches visible to admin; `matched_property_access` gates client visibility
+- Load approved match results for this request (query `match_results` where `request_id = id` and `status = 'approved'`)
+- **New sidebar card "Match Response Summary"**: Total approved, Interested count, Passed count, Awaiting count
 
-**Files created/modified (~8 files):**
-- `supabase/functions/run-matching/index.ts` — Edge Function
-- `src/pages/admin/MatchReview.tsx`
-- `src/components/admin/MatchScoreCard.tsx`
-- Supabase migrations for match tables, access table, RLS
+## Implementation Order
 
----
+1. Database migration (4 columns + constraint + 2 RLS policies)
+2. `MatchDetail.tsx` — view tracking, response buttons, dialogs, post-response state, bottom CTA
+3. `Dashboard.tsx` — badges on match cards, awaiting response banner
+4. `MatchRunDetail.tsx` — summary stats, response column on cards, filter tabs
+5. `RequestDetail.tsx` — response summary sidebar card
 
-## Round 5: Client Dashboard + Private Match Experience
-
-**What we build:**
-- Client dashboard (`/dashboard`):
-  - Request status card with timeline/progress indicator
-  - Approved matches section with polished match cards (property summary, match score label like "Strong Match", thumbnail)
-  - Notifications list
-- Private matched-property detail page (`/dashboard/match/:id`):
-  - Property header with images
-  - Key financials panel
-  - "Why This Matched" explanation section (user-facing)
-  - Documents section (downloadable)
-  - Location info
-  - Clear "Express Interest" CTA button
-- Notification system:
-  - `notifications` table with type enum (request_submitted, under_review, request_active, no_matches, new_match)
-  - In-app notification badge + list
-  - Admin can trigger notifications on status changes and match approvals
-- RLS: clients only see notifications and matches tied to their user ID via `matched_property_access`
-
-**Files created/modified (~10 files):**
-- `src/pages/client/Dashboard.tsx`
-- `src/components/client/RequestStatusCard.tsx`
-- `src/components/client/MatchCard.tsx`
-- `src/pages/client/MatchDetail.tsx`
-- `src/components/client/NotificationList.tsx`
-- Supabase migrations for notifications table, RLS
-
----
-
-## Round 6: Polish, Security Audit, SEO
-
-**What we build:**
-- Full RLS audit: verify no client can access raw inventory, only approved matches
-- Loading states, error boundaries, empty states for all views
-- SEO meta tags on public pages
-- Responsive polish across all breakpoints
-- 404 page styling
-- Form validation refinement
-- Accessibility pass (focus states, aria labels, contrast)
-- Favicon and OG image
-
----
-
-## Technical Decisions (using defaults unless you override)
-
-| Decision | Default |
-|---|---|
-| Accent color | `#2563EB` (blue-600) — trust, premium |
-| Auth method | Email/password only (Phase 1) |
-| Match score display | Qualitative labels ("Strong Match", "Good Fit") |
-| Express Interest action | Simple flag saved to DB + admin notified |
-| Request form length | Full 6-step (comprehensive upfront) |
-| Broker role | Deferred to Phase 2 |
-| Email notifications | Deferred (in-app only Phase 1) |
-
----
-
-## Founder Decisions Needed Before Starting
-
-Before I begin Round 1, please confirm or override:
-
-1. **Accent color** — go with blue-600 or provide brand colors?
-2. **Match score display** — qualitative labels or numeric (82/100)?
-3. **Request form** — 6 steps comprehensive, or shorter 3-step initial version?
-4. **"Express Interest" action** — simple flag, or something more?
-5. **Auth** — email/password only, or add Google OAuth now?
+No new files needed beyond the migration. All changes are within existing pages using existing shadcn components (AlertDialog, Badge, Tabs, Tooltip).
 
