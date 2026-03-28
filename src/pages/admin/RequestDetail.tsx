@@ -29,6 +29,7 @@ export default function RequestDetail() {
   const [loading, setLoading] = useState(true);
   const [runningMatch, setRunningMatch] = useState(false);
   const [matchRuns, setMatchRuns] = useState<any[]>([]);
+  const [responseSummary, setResponseSummary] = useState<{ total: number; interested: number; passed: number; awaiting: number }>({ total: 0, interested: 0, passed: 0, awaiting: 0 });
 
   useEffect(() => {
     if (!id) return;
