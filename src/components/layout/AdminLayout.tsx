@@ -13,6 +13,13 @@ const adminLinks = [
 export default function AdminLayout() {
   const { user, hasRole, loading } = useAuth();
   const location = useLocation();
+  const isUnauthorized = !loading && (!user || !hasRole("admin"));
+
+  useEffect(() => {
+    if (isUnauthorized) {
+      toast({ title: "You don't have admin access.", variant: "destructive" });
+    }
+  }, [isUnauthorized]);
 
   if (loading) {
     return (
@@ -21,14 +28,6 @@ export default function AdminLayout() {
       </div>
     );
   }
-
-  const isUnauthorized = !user || !hasRole("admin");
-
-  useEffect(() => {
-    if (!loading && isUnauthorized) {
-      toast({ title: "You don't have admin access.", variant: "destructive" });
-    }
-  }, [loading, isUnauthorized]);
 
   if (isUnauthorized) {
     return <Navigate to="/dashboard" replace />;
