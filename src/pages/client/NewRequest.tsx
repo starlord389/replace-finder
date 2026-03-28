@@ -37,7 +37,7 @@ export interface RequestFormData {
   additional_notes: string;
   // Geography
   target_states: string[];
-  target_metros: string[];
+  target_metros: string;
   // Timing
   sale_timeline: string;
   identification_deadline: string;
