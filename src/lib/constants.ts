@@ -61,3 +61,24 @@ export const INVENTORY_STATUS_COLORS: Record<string, string> = {
   closed: "bg-muted text-muted-foreground",
   archived: "bg-muted text-muted-foreground",
 };
+
+export const MATCH_RESULT_STATUS_LABELS: Record<string, string> = {
+  pending: "Pending Review",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+export const MATCH_RESULT_STATUS_COLORS: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-800",
+  approved: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-800",
+};
+
+export const SCORE_DIMENSIONS = [
+  { key: "price_score", label: "Price", weight: "25%" },
+  { key: "geo_score", label: "Geography", weight: "20%" },
+  { key: "asset_score", label: "Asset Type", weight: "20%" },
+  { key: "strategy_score", label: "Strategy", weight: "15%" },
+  { key: "financial_score", label: "Financial", weight: "10%" },
+  { key: "timing_score", label: "Timing", weight: "10%" },
+] as const;
