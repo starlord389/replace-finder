@@ -1,8 +1,9 @@
 import { Navigate, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 import Navbar from "./Navbar";
 import { cn } from "@/lib/utils";
-
 const adminLinks = [
   { to: "/admin/requests", label: "Requests" },
   { to: "/admin/inventory", label: "Inventory" },
