@@ -39,7 +39,7 @@ export default function RequestDetail() {
       supabase.from("exchange_request_status_history").select("*").eq("request_id", id).order("created_at", { ascending: false }),
       supabase.from("admin_notes").select("*").eq("request_id", id).order("created_at", { ascending: false }),
       supabase.from("match_runs").select("*").eq("request_id", id).order("created_at", { ascending: false }),
-    ]).then(([reqRes, prefRes, histRes, noteRes, runsRes]) => {
+    ]).then(async ([reqRes, prefRes, histRes, noteRes, runsRes]) => {
       setRequest(reqRes.data);
       setPrefs(prefRes.data);
       setHistory(histRes.data ?? []);
