@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Search, CheckCircle, Building2, TrendingUp, Clock } from "lucide-react";
-import { Helmet } from "react-helmet-async";
+import { useHead } from "@/hooks/useHead";
 
 export default function Index() {
   return (

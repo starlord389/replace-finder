@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, FileText, Search, ShieldCheck, Bell, Eye } from "lucide-react";
-import { Helmet } from "react-helmet-async";
+import { useHead } from "@/hooks/useHead";
 
 export default function HowItWorks() {
   return (
