@@ -20,6 +20,7 @@ import RequestDetail from "@/pages/admin/RequestDetail";
 import InventoryList from "@/pages/admin/InventoryList";
 import InventoryDetail from "@/pages/admin/InventoryDetail";
 import MatchReview from "@/pages/admin/MatchReview";
+import MatchRunDetail from "@/pages/admin/MatchRunDetail";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
