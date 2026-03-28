@@ -1,17 +1,17 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Search, CheckCircle, Building2, TrendingUp, Clock } from "lucide-react";
-import { Helmet } from "react-helmet-async";
+import { useHead } from "@/hooks/useHead";
 
 export default function Index() {
+  useHead({
+    title: "1031ExchangeUp — Private Replacement Property Matching",
+    description: "Find your 1031 exchange replacement property before you sell. Submit your exchange goals and receive curated matches from our private inventory.",
+    canonical: "https://1031exchangeup.com",
+  });
+
   return (
     <>
-      <Helmet>
-        <title>1031ExchangeUp — Private Replacement Property Matching</title>
-        <meta name="description" content="Find your 1031 exchange replacement property before you sell. Submit your exchange goals and receive curated matches from our private inventory." />
-        <link rel="canonical" href="https://1031exchangeup.com" />
-      </Helmet>
-
       {/* Hero */}
       <section className="relative overflow-hidden" aria-labelledby="hero-heading">
         <div className="mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-32">
