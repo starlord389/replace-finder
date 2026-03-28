@@ -1,36 +1,23 @@
 
 
-# Fix: Express Interest / Pass Not Saving Client Response
+# Seed Test Data Migration
 
-## Problem
-The `submitResponse` function in `MatchDetail.tsx` doesn't use `.select()`, so when the RLS policy silently blocks the update (0 rows affected), no error is raised and the UI falsely shows success.
+Run a single migration with a `DO $$` block that inserts 2 exchange requests, preferences, 4 inventory properties with financials, a completed match run, 3 approved match results, 3 matched_property_access rows, and status history — all referencing the first user in `profiles`.
 
-Note: The `matched_property_access.match_result_id` column is `NOT NULL` per the schema, so the backfill migration is unlikely to find rows to update — but we'll run it defensively. No conflicting RESTRICTIVE RLS policies exist on `match_results`.
+All inserts use `ON CONFLICT DO NOTHING` for re-run safety. Enum values confirmed from schema: `multifamily`, `net_lease`, `industrial`, `self_storage`, `core`, `core_plus`, `active`, `submitted`, `approved`, `completed`.
 
-## Changes
+### Single migration file
 
-### 1. Backfill migration (defensive)
-Run a data migration to backfill any `matched_property_access` rows missing `match_result_id`:
-```sql
-UPDATE public.matched_property_access mpa
-SET match_result_id = mr.id
-FROM public.match_results mr
-WHERE mpa.match_result_id IS NULL
-  AND mpa.request_id = mr.request_id
-  AND mpa.property_id = mr.property_id
-  AND mr.status = 'approved';
-```
+One `DO $$` block with variables for all UUIDs. Steps:
+1. Select first profile user into `test_user_id`
+2. Insert 2 `exchange_requests` (one `active`, one `submitted`)
+3. Insert `exchange_request_preferences` for request 1
+4. Insert 4 `inventory_properties`
+5. Insert 4 `inventory_financials`
+6. Insert 1 `match_runs` (completed)
+7. Insert 3 `match_results` (all approved, no client response)
+8. Insert 3 `matched_property_access` rows
+9. Insert 2 `exchange_request_status_history` rows
 
-### 2. `src/pages/client/MatchDetail.tsx` — Add error visibility
-
-**submitResponse function (~line 107):**
-- Add `.select()` to the update call
-- Check for empty `data` array (0 rows updated = RLS blocked) and show error toast
-- Log result for debugging
-
-**View tracking useEffect (~line 65):**
-- Add `.select()` to the update call
-- Log result for debugging
-
-No other files changed. No new features. Bug fix only.
+No code changes needed — migration only.
 
