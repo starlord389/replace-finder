@@ -27,26 +27,30 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/20">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg">
+        Skip to content
+      </a>
       <Navbar />
       <div className="border-b bg-background">
-        <div className="mx-auto flex max-w-6xl gap-1 px-4 sm:px-6">
+        <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 sm:px-6" aria-label="Admin navigation">
           {adminLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
               className={cn(
-                "border-b-2 px-4 py-3 text-sm font-medium transition-colors",
+                "shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors",
                 location.pathname.startsWith(link.to)
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               )}
+              aria-current={location.pathname.startsWith(link.to) ? "page" : undefined}
             >
               {link.label}
             </Link>
           ))}
-        </div>
+        </nav>
       </div>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
         <Outlet />
       </main>
     </div>
