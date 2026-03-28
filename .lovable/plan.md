@@ -1,19 +1,12 @@
 
 
-# Fix: Admin Routes Returning 404
+# Add Debug Role Page
 
-## Changes
+Two file changes:
 
-### 1. Database — Assign admin role to first user
-Insert the `admin` role for the first user in `profiles` (uses `ON CONFLICT DO NOTHING` for safety).
+1. **Create `src/pages/DebugRole.tsx`** — the debug component from the user's spec, showing auth user ID, email, `hasRole("admin")`, roles from `useAuth()`, direct DB query of `user_roles`, and profile data.
 
-### 2. `src/components/layout/AdminLayout.tsx` — Improve redirect behavior
-Current line 24-26 redirects to `/` when user lacks admin role. Change to:
-- Redirect to `/dashboard` instead of `/`
-- Show a toast: "You don't have admin access."
-- The loading check on line 16 already handles waiting for auth state — this is correct
+2. **`src/App.tsx`** — import `DebugRole` and add `<Route path="/debug-role" element={<DebugRole />} />` as a standalone route outside any layout wrapper (before the catch-all `*` route).
 
-Only change: line 24-26, redirect target from `"/"` to `"/dashboard"` and add toast effect.
-
-Implementation: Use `useEffect` + `useNavigate` pattern instead of `<Navigate>` so we can fire the toast before redirecting. Or simpler: keep `<Navigate to="/dashboard">` and add a `useEffect` that fires the toast when `!loading && (!user || !hasRole("admin"))`.
+No other changes. No layout, no auth guard, no RLS modifications.
 
