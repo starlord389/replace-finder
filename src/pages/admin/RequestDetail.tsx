@@ -27,6 +27,8 @@ export default function RequestDetail() {
   const [notes, setNotes] = useState<Tables<"admin_notes">[]>([]);
   const [newNote, setNewNote] = useState("");
   const [loading, setLoading] = useState(true);
+  const [runningMatch, setRunningMatch] = useState(false);
+  const [matchRuns, setMatchRuns] = useState<any[]>([]);
 
   useEffect(() => {
     if (!id) return;
