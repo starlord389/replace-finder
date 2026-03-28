@@ -18,6 +18,7 @@ import NewRequest from "@/pages/client/NewRequest";
 import RequestQueue from "@/pages/admin/RequestQueue";
 import RequestDetail from "@/pages/admin/RequestDetail";
 import InventoryList from "@/pages/admin/InventoryList";
+import InventoryDetail from "@/pages/admin/InventoryDetail";
 import MatchReview from "@/pages/admin/MatchReview";
 import NotFound from "@/pages/NotFound";
 
