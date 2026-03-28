@@ -20,6 +20,7 @@ import RequestDetail from "@/pages/admin/RequestDetail";
 import InventoryList from "@/pages/admin/InventoryList";
 import InventoryDetail from "@/pages/admin/InventoryDetail";
 import MatchReview from "@/pages/admin/MatchReview";
+import MatchRunDetail from "@/pages/admin/MatchRunDetail";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/admin/inventory" element={<InventoryList />} />
               <Route path="/admin/inventory/:id" element={<InventoryDetail />} />
               <Route path="/admin/matches" element={<MatchReview />} />
+              <Route path="/admin/matches/:id" element={<MatchRunDetail />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

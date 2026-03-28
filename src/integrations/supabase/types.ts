@@ -455,6 +455,172 @@ export type Database = {
           },
         ]
       }
+      match_results: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          asset_score: number
+          created_at: string
+          financial_score: number
+          geo_score: number
+          id: string
+          match_run_id: string
+          price_score: number
+          property_id: string
+          request_id: string
+          status: Database["public"]["Enums"]["match_result_status"]
+          strategy_score: number
+          timing_score: number
+          total_score: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          asset_score?: number
+          created_at?: string
+          financial_score?: number
+          geo_score?: number
+          id?: string
+          match_run_id: string
+          price_score?: number
+          property_id: string
+          request_id: string
+          status?: Database["public"]["Enums"]["match_result_status"]
+          strategy_score?: number
+          timing_score?: number
+          total_score?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          asset_score?: number
+          created_at?: string
+          financial_score?: number
+          geo_score?: number
+          id?: string
+          match_run_id?: string
+          price_score?: number
+          property_id?: string
+          request_id?: string
+          status?: Database["public"]["Enums"]["match_result_status"]
+          strategy_score?: number
+          timing_score?: number
+          total_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_results_match_run_id_fkey"
+            columns: ["match_run_id"]
+            isOneToOne: false
+            referencedRelation: "match_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_results_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_results_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          request_id: string
+          status: Database["public"]["Enums"]["match_run_status"]
+          total_properties_scored: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          request_id: string
+          status?: Database["public"]["Enums"]["match_run_status"]
+          total_properties_scored?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          request_id?: string
+          status?: Database["public"]["Enums"]["match_run_status"]
+          total_properties_scored?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_runs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matched_property_access: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          id: string
+          match_result_id: string
+          property_id: string
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          match_result_id: string
+          property_id: string
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          match_result_id?: string
+          property_id?: string
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matched_property_access_match_result_id_fkey"
+            columns: ["match_result_id"]
+            isOneToOne: false
+            referencedRelation: "match_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matched_property_access_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matched_property_access_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company: string | null
@@ -539,6 +705,8 @@ export type Database = {
         | "under_contract"
         | "closed"
         | "archived"
+      match_result_status: "pending" | "approved" | "rejected"
+      match_run_status: "pending" | "completed" | "failed"
       request_status: "submitted" | "under_review" | "active" | "closed"
       strategy_type:
         | "core"
@@ -696,6 +864,8 @@ export const Constants = {
         "closed",
         "archived",
       ],
+      match_result_status: ["pending", "approved", "rejected"],
+      match_run_status: ["pending", "completed", "failed"],
       request_status: ["submitted", "under_review", "active", "closed"],
       strategy_type: [
         "core",

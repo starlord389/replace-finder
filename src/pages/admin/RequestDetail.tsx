@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Zap } from "lucide-react";
 import {
   REQUEST_STATUS_LABELS,
   REQUEST_STATUS_COLORS,
@@ -27,6 +27,8 @@ export default function RequestDetail() {
   const [notes, setNotes] = useState<Tables<"admin_notes">[]>([]);
   const [newNote, setNewNote] = useState("");
   const [loading, setLoading] = useState(true);
+  const [runningMatch, setRunningMatch] = useState(false);
+  const [matchRuns, setMatchRuns] = useState<any[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -35,14 +37,36 @@ export default function RequestDetail() {
       supabase.from("exchange_request_preferences").select("*").eq("request_id", id).maybeSingle(),
       supabase.from("exchange_request_status_history").select("*").eq("request_id", id).order("created_at", { ascending: false }),
       supabase.from("admin_notes").select("*").eq("request_id", id).order("created_at", { ascending: false }),
-    ]).then(([reqRes, prefRes, histRes, noteRes]) => {
+      supabase.from("match_runs").select("*").eq("request_id", id).order("created_at", { ascending: false }),
+    ]).then(([reqRes, prefRes, histRes, noteRes, runsRes]) => {
       setRequest(reqRes.data);
       setPrefs(prefRes.data);
       setHistory(histRes.data ?? []);
       setNotes(noteRes.data ?? []);
+      setMatchRuns(runsRes.data ?? []);
       setLoading(false);
     });
   }, [id]);
+
+  const runMatching = async () => {
+    if (!id || !user) return;
+    setRunningMatch(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("run-matching", {
+        body: { request_id: id },
+      });
+      if (res.error) throw res.error;
+      toast({ title: "Matching complete", description: `Scored ${res.data.total_scored} properties` });
+      // Refresh match runs
+      const { data: runs } = await supabase.from("match_runs").select("*").eq("request_id", id).order("created_at", { ascending: false });
+      setMatchRuns(runs ?? []);
+    } catch (err: any) {
+      toast({ title: "Matching failed", description: err.message, variant: "destructive" });
+    } finally {
+      setRunningMatch(false);
+    }
+  };
 
   const changeStatus = async (newStatus: Enums<"request_status">) => {
     if (!request || !user || !id) return;
@@ -177,6 +201,46 @@ export default function RequestDetail() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Matching */}
+          <div className="rounded-xl border bg-card p-5">
+            <h3 className="font-semibold text-foreground">Property Matching</h3>
+            <Button
+              className="mt-3 w-full"
+              onClick={runMatching}
+              disabled={runningMatch}
+            >
+              <Zap className="mr-2 h-4 w-4" />
+              {runningMatch ? "Running…" : "Run Matching Engine"}
+            </Button>
+            {matchRuns.length > 0 && (
+              <div className="mt-4 space-y-2 border-t pt-3">
+                {matchRuns.map((run: any) => (
+                  <button
+                    key={run.id}
+                    onClick={() => navigate(`/admin/matches/${run.id}`)}
+                    className="flex w-full items-center justify-between rounded-lg border p-3 text-left text-sm transition-colors hover:bg-muted"
+                  >
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {run.total_properties_scored ?? 0} properties scored
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(run.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      run.status === "completed" ? "bg-green-100 text-green-800" :
+                      run.status === "failed" ? "bg-red-100 text-red-800" :
+                      "bg-yellow-100 text-yellow-800"
+                    }`}>
+                      {run.status}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Admin notes */}
           <div className="rounded-xl border bg-card p-5">
             <h3 className="font-semibold text-foreground">Admin Notes</h3>
