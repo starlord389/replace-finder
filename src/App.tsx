@@ -15,6 +15,7 @@ import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import Dashboard from "@/pages/client/Dashboard";
 import NewRequest from "@/pages/client/NewRequest";
+import MatchDetail from "@/pages/client/MatchDetail";
 import RequestQueue from "@/pages/admin/RequestQueue";
 import RequestDetail from "@/pages/admin/RequestDetail";
 import InventoryList from "@/pages/admin/InventoryList";
@@ -45,6 +46,7 @@ const App = () => (
             <Route element={<ClientLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/new-request" element={<NewRequest />} />
+              <Route path="/dashboard/match/:id" element={<MatchDetail />} />
             </Route>
 
             {/* Admin (admin role required) */}
