@@ -37,14 +37,36 @@ export default function RequestDetail() {
       supabase.from("exchange_request_preferences").select("*").eq("request_id", id).maybeSingle(),
       supabase.from("exchange_request_status_history").select("*").eq("request_id", id).order("created_at", { ascending: false }),
       supabase.from("admin_notes").select("*").eq("request_id", id).order("created_at", { ascending: false }),
-    ]).then(([reqRes, prefRes, histRes, noteRes]) => {
+      supabase.from("match_runs").select("*").eq("request_id", id).order("created_at", { ascending: false }),
+    ]).then(([reqRes, prefRes, histRes, noteRes, runsRes]) => {
       setRequest(reqRes.data);
       setPrefs(prefRes.data);
       setHistory(histRes.data ?? []);
       setNotes(noteRes.data ?? []);
+      setMatchRuns(runsRes.data ?? []);
       setLoading(false);
     });
   }, [id]);
+
+  const runMatching = async () => {
+    if (!id || !user) return;
+    setRunningMatch(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("run-matching", {
+        body: { request_id: id },
+      });
+      if (res.error) throw res.error;
+      toast({ title: "Matching complete", description: `Scored ${res.data.total_scored} properties` });
+      // Refresh match runs
+      const { data: runs } = await supabase.from("match_runs").select("*").eq("request_id", id).order("created_at", { ascending: false });
+      setMatchRuns(runs ?? []);
+    } catch (err: any) {
+      toast({ title: "Matching failed", description: err.message, variant: "destructive" });
+    } finally {
+      setRunningMatch(false);
+    }
+  };
 
   const changeStatus = async (newStatus: Enums<"request_status">) => {
     if (!request || !user || !id) return;
