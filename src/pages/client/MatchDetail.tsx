@@ -63,8 +63,12 @@ export default function MatchDetail() {
       .from("match_results")
       .update({ client_viewed_at: new Date().toISOString() })
       .eq("id", matchResult.id)
-      .then(() => {
-        setMatchResult((prev: any) => prev ? { ...prev, client_viewed_at: new Date().toISOString() } : prev);
+      .select()
+      .then(({ data, error }) => {
+        console.log("View tracking result:", { data, error });
+        if (data && data.length > 0) {
+          setMatchResult((prev: any) => prev ? { ...prev, client_viewed_at: new Date().toISOString() } : prev);
+        }
       });
   }, [matchResult]);
 
@@ -104,13 +108,18 @@ export default function MatchDetail() {
       client_response_at: new Date().toISOString(),
       client_response_note: responseNote.trim() || null,
     };
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("match_results")
       .update(updates)
-      .eq("id", matchResult.id);
+      .eq("id", matchResult.id)
+      .select();
+
+    console.log("Response update result:", { data, error });
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else if (!data || data.length === 0) {
+      toast({ title: "Error", description: "Unable to save response. Please try again or contact support.", variant: "destructive" });
     } else {
       setMatchResult((prev: any) => ({ ...prev, ...updates }));
       setShowChangeResponse(false);
