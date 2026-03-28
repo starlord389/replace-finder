@@ -46,6 +46,7 @@ const App = () => (
             <Route element={<ClientLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/new-request" element={<NewRequest />} />
+              <Route path="/dashboard/match/:id" element={<MatchDetail />} />
             </Route>
 
             {/* Admin (admin role required) */}
