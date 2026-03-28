@@ -201,6 +201,46 @@ export default function RequestDetail() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Matching */}
+          <div className="rounded-xl border bg-card p-5">
+            <h3 className="font-semibold text-foreground">Property Matching</h3>
+            <Button
+              className="mt-3 w-full"
+              onClick={runMatching}
+              disabled={runningMatch}
+            >
+              <Zap className="mr-2 h-4 w-4" />
+              {runningMatch ? "Running…" : "Run Matching Engine"}
+            </Button>
+            {matchRuns.length > 0 && (
+              <div className="mt-4 space-y-2 border-t pt-3">
+                {matchRuns.map((run: any) => (
+                  <button
+                    key={run.id}
+                    onClick={() => navigate(`/admin/matches/${run.id}`)}
+                    className="flex w-full items-center justify-between rounded-lg border p-3 text-left text-sm transition-colors hover:bg-muted"
+                  >
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {run.total_properties_scored ?? 0} properties scored
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(run.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      run.status === "completed" ? "bg-green-100 text-green-800" :
+                      run.status === "failed" ? "bg-red-100 text-red-800" :
+                      "bg-yellow-100 text-yellow-800"
+                    }`}>
+                      {run.status}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Admin notes */}
           <div className="rounded-xl border bg-card p-5">
             <h3 className="font-semibold text-foreground">Admin Notes</h3>
