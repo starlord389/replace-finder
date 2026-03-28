@@ -42,6 +42,7 @@ const App = () => (
             {/* Client (auth required) */}
             <Route element={<ClientLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/new-request" element={<NewRequest />} />
             </Route>
 
             {/* Admin (admin role required) */}
