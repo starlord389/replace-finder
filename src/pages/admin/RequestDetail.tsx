@@ -45,6 +45,21 @@ export default function RequestDetail() {
       setHistory(histRes.data ?? []);
       setNotes(noteRes.data ?? []);
       setMatchRuns(runsRes.data ?? []);
+
+      // Load response summary for approved matches
+      const { data: matchResultsData } = await supabase
+        .from("match_results")
+        .select("id, status, client_response")
+        .eq("request_id", id)
+        .eq("status", "approved");
+      const mr = matchResultsData ?? [];
+      setResponseSummary({
+        total: mr.length,
+        interested: mr.filter((r) => r.client_response === "interested").length,
+        passed: mr.filter((r) => r.client_response === "passed").length,
+        awaiting: mr.filter((r) => !r.client_response).length,
+      });
+
       setLoading(false);
     });
   }, [id]);
