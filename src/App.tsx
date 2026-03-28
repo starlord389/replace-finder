@@ -54,6 +54,7 @@ const App = () => (
               <Route path="/admin/inventory" element={<InventoryList />} />
               <Route path="/admin/inventory/:id" element={<InventoryDetail />} />
               <Route path="/admin/matches" element={<MatchReview />} />
+              <Route path="/admin/matches/:id" element={<MatchRunDetail />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
