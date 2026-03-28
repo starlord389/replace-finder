@@ -460,6 +460,10 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           asset_score: number
+          client_response: string | null
+          client_response_at: string | null
+          client_response_note: string | null
+          client_viewed_at: string | null
           created_at: string
           financial_score: number
           geo_score: number
@@ -477,6 +481,10 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           asset_score?: number
+          client_response?: string | null
+          client_response_at?: string | null
+          client_response_note?: string | null
+          client_viewed_at?: string | null
           created_at?: string
           financial_score?: number
           geo_score?: number
@@ -494,6 +502,10 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           asset_score?: number
+          client_response?: string | null
+          client_response_at?: string | null
+          client_response_note?: string | null
+          client_viewed_at?: string | null
           created_at?: string
           financial_score?: number
           geo_score?: number

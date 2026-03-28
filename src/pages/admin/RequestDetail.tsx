@@ -29,6 +29,7 @@ export default function RequestDetail() {
   const [loading, setLoading] = useState(true);
   const [runningMatch, setRunningMatch] = useState(false);
   const [matchRuns, setMatchRuns] = useState<any[]>([]);
+  const [responseSummary, setResponseSummary] = useState<{ total: number; interested: number; passed: number; awaiting: number }>({ total: 0, interested: 0, passed: 0, awaiting: 0 });
 
   useEffect(() => {
     if (!id) return;
@@ -38,12 +39,27 @@ export default function RequestDetail() {
       supabase.from("exchange_request_status_history").select("*").eq("request_id", id).order("created_at", { ascending: false }),
       supabase.from("admin_notes").select("*").eq("request_id", id).order("created_at", { ascending: false }),
       supabase.from("match_runs").select("*").eq("request_id", id).order("created_at", { ascending: false }),
-    ]).then(([reqRes, prefRes, histRes, noteRes, runsRes]) => {
+    ]).then(async ([reqRes, prefRes, histRes, noteRes, runsRes]) => {
       setRequest(reqRes.data);
       setPrefs(prefRes.data);
       setHistory(histRes.data ?? []);
       setNotes(noteRes.data ?? []);
       setMatchRuns(runsRes.data ?? []);
+
+      // Load response summary for approved matches
+      const { data: matchResultsData } = await supabase
+        .from("match_results")
+        .select("id, status, client_response")
+        .eq("request_id", id)
+        .eq("status", "approved");
+      const mr = matchResultsData ?? [];
+      setResponseSummary({
+        total: mr.length,
+        interested: mr.filter((r) => r.client_response === "interested").length,
+        passed: mr.filter((r) => r.client_response === "passed").length,
+        awaiting: mr.filter((r) => !r.client_response).length,
+      });
+
       setLoading(false);
     });
   }, [id]);
@@ -241,7 +257,19 @@ export default function RequestDetail() {
             )}
           </div>
 
-          {/* Admin notes */}
+          {/* Match Response Summary */}
+          {responseSummary.total > 0 && (
+            <div className="rounded-xl border bg-card p-5">
+              <h3 className="font-semibold text-foreground">Match Response Summary</h3>
+              <div className="mt-3 space-y-2">
+                <SummaryRow label="Total Approved" value={responseSummary.total} />
+                <SummaryRow label="Interested" value={responseSummary.interested} color="text-green-700" />
+                <SummaryRow label="Passed" value={responseSummary.passed} color="text-red-700" />
+                <SummaryRow label="Awaiting Response" value={responseSummary.awaiting} color="text-amber-700" />
+              </div>
+            </div>
+          )}
+
           <div className="rounded-xl border bg-card p-5">
             <h3 className="font-semibold text-foreground">Admin Notes</h3>
             <div className="mt-4 space-y-2">
@@ -314,6 +342,15 @@ function Item({ label, value }: { label: string; value: string }) {
     <div>
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-sm font-medium text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value, color }: { label: string; value: number; color?: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className={`text-sm font-semibold ${color || "text-foreground"}`}>{value}</p>
     </div>
   );
 }
