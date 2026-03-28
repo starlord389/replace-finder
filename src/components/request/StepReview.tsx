@@ -77,7 +77,7 @@ export default function StepReview({ form }: Props) {
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Geography</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Target States" value={form.target_states.join(", ")} />
-          <Field label="Target Metros" value={form.target_metros} />
+          <Field label="Target Metros" value={typeof form.target_metros === 'string' ? form.target_metros : (form.target_metros as string[])?.join(', ') || ''} />
         </div>
       </div>
 

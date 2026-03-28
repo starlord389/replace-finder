@@ -134,7 +134,7 @@ export default function NewRequest() {
       target_asset_types: form.target_asset_types.length ? form.target_asset_types : null,
       target_strategies: form.target_strategies.length ? form.target_strategies : null,
       target_states: form.target_states.length ? form.target_states : null,
-      target_metros: form.target_metros ? form.target_metros.split(",").map((s) => s.trim()).filter(Boolean) : null,
+      target_metros: form.target_metros ? form.target_metros.split(",").map((s: string) => s.trim()).filter(Boolean) : null,
       target_cap_rate_min: toNum(form.target_cap_rate_min),
       target_cap_rate_max: toNum(form.target_cap_rate_max),
       additional_notes: form.additional_notes || null,

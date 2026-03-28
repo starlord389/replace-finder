@@ -51,8 +51,8 @@ export default function StepGeography({ form, update }: Props) {
         <Input
           id="metros"
           placeholder="Dallas, Phoenix, Nashville"
-          value={form.target_metros}
-          onChange={(e) => update({ target_metros: e.target.value })}
+          value={form.target_metros as string}
+          onChange={(e) => update({ target_metros: e.target.value as any })}
         />
         <p className="text-xs text-muted-foreground">Comma-separated metro areas or cities.</p>
       </div>
