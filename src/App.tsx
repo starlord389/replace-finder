@@ -48,6 +48,7 @@ const App = () => (
             {/* Admin (admin role required) */}
             <Route element={<AdminLayout />}>
               <Route path="/admin/requests" element={<RequestQueue />} />
+              <Route path="/admin/requests/:id" element={<RequestDetail />} />
               <Route path="/admin/inventory" element={<InventoryList />} />
               <Route path="/admin/matches" element={<MatchReview />} />
             </Route>
