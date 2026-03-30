@@ -14,6 +14,20 @@ export const ASSET_TYPE_LABELS: Record<Enums<"asset_type">, string> = {
   other: "Other",
 };
 
+export const ASSET_SUBTYPE_MAP: Record<string, string[]> = {
+  multifamily: ["Garden", "Mid-Rise", "High-Rise", "Townhome", "Student Housing", "Senior Living", "Affordable/Section 8"],
+  office: ["Class A", "Class B", "Class C", "Medical", "Co-Working", "Flex"],
+  retail: ["Strip Mall", "Anchored Center", "Unanchored", "Single Tenant NNN", "Restaurant", "Auto Service"],
+  industrial: ["Warehouse", "Distribution", "Manufacturing", "Flex", "Cold Storage", "Data Center"],
+  self_storage: ["Climate Controlled", "Drive-Up", "Boat/RV"],
+  hospitality: ["Full Service", "Limited Service", "Extended Stay", "Boutique"],
+  medical_office: ["Other"],
+  mixed_use: ["Other"],
+  land: ["Other"],
+  net_lease: ["Other"],
+  other: ["Other"],
+};
+
 export const STRATEGY_TYPE_LABELS: Record<Enums<"strategy_type">, string> = {
   core: "Core",
   core_plus: "Core Plus",
@@ -46,6 +60,36 @@ export const US_STATES = [
   "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
   "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
   "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
+];
+
+export const PROPERTY_CLASS_OPTIONS = ["Class A", "Class B", "Class C", "Class D"];
+
+export const PARKING_TYPE_OPTIONS = ["Surface", "Garage", "Underground", "Street", "None"];
+
+export const CONSTRUCTION_TYPE_OPTIONS = ["Wood Frame", "Steel Frame", "Concrete", "Masonry", "Mixed"];
+
+export const ROOF_TYPE_OPTIONS = ["Flat", "Pitched", "Metal", "Membrane", "Tile"];
+
+export const HVAC_TYPE_OPTIONS = ["Central", "Individual", "Window", "PTAC", "VRF"];
+
+export const PROPERTY_CONDITION_OPTIONS = ["Excellent", "Good", "Fair", "Poor"];
+
+export const AMENITY_OPTIONS = [
+  "Pool", "Fitness Center", "Clubhouse", "Business Center", "Laundry",
+  "Dog Park", "EV Charging", "Elevator", "Security", "Gated",
+  "On-Site Management", "Covered Parking", "Balconies/Patios",
+  "In-Unit Washer/Dryer", "Playground", "Outdoor Space", "Storage Units",
+];
+
+export const LOAN_TYPE_OPTIONS = [
+  "Fixed", "Variable", "Interest Only", "Bridge", "CMBS",
+  "Agency", "FHA/HUD", "Life Company", "Bank",
+];
+
+export const URGENCY_OPTIONS = [
+  { value: "immediate", label: "Immediate — need to close ASAP" },
+  { value: "standard", label: "Standard — within 180 days" },
+  { value: "flexible", label: "Flexible — exploring options" },
 ];
 
 export const INVENTORY_STATUS_LABELS: Record<string, string> = {
