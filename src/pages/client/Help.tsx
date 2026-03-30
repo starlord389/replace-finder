@@ -497,10 +497,6 @@ export default function Help() {
                     <span>support@1031exchangeup.com</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4 text-primary" />
-                    <span>(555) 123-4567</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 text-primary" />
                     <span>Mon–Fri, 9am–5pm PT</span>
                   </div>
