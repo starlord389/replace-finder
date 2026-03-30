@@ -75,7 +75,16 @@ export default function ExchangeDetail() {
               {request.relinquished_address ? ` · ${request.relinquished_address}` : ""}
             </p>
           </div>
-          <p className="text-xs text-muted-foreground">{new Date(request.created_at).toLocaleDateString()}</p>
+          <div className="flex flex-col items-end gap-2">
+            <p className="text-xs text-muted-foreground">{new Date(request.created_at).toLocaleDateString()}</p>
+            {(request.status === "draft" || request.status === "submitted" || request.status === "active") && (
+              <Link to={`/dashboard/exchanges/${request.id}/edit`}>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Pencil className="h-3.5 w-3.5" /> Edit
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Financials */}

@@ -59,6 +59,7 @@ const App = () => (
               <Route path="/dashboard/exchanges" element={<ExchangeList />} />
               <Route path="/dashboard/exchanges/new" element={<NewRequest />} />
               <Route path="/dashboard/exchanges/:id" element={<ExchangeDetail />} />
+              <Route path="/dashboard/exchanges/:id/edit" element={<NewRequest />} />
               <Route path="/dashboard/matches" element={<MatchList />} />
               <Route path="/dashboard/matches/:id" element={<MatchDetail />} />
               <Route path="/dashboard/settings" element={<Profile />} />

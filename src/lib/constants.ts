@@ -33,6 +33,7 @@ export const REQUEST_STATUS_LABELS: Record<Enums<"request_status">, string> = {
 };
 
 export const REQUEST_STATUS_COLORS: Record<Enums<"request_status">, string> = {
+  draft: "bg-muted text-muted-foreground",
   submitted: "bg-muted text-muted-foreground",
   under_review: "bg-yellow-100 text-yellow-800",
   active: "bg-primary/10 text-primary",
