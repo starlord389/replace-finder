@@ -24,6 +24,7 @@ import MatchList from "@/pages/client/MatchList";
 import MatchDetail from "@/pages/client/MatchDetail";
 import Profile from "@/pages/client/Profile";
 import Help from "@/pages/client/Help";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 import RequestQueue from "@/pages/admin/RequestQueue";
 import RequestDetail from "@/pages/admin/RequestDetail";
 import InventoryList from "@/pages/admin/InventoryList";
@@ -31,6 +32,7 @@ import InventoryDetail from "@/pages/admin/InventoryDetail";
 import MatchReview from "@/pages/admin/MatchReview";
 import MatchRunDetail from "@/pages/admin/MatchRunDetail";
 import SupportTickets from "@/pages/admin/SupportTickets";
+import ClientList from "@/pages/admin/ClientList";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
