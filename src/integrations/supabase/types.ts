@@ -51,23 +51,30 @@ export type Database = {
           additional_notes: string | null
           created_at: string
           id: string
+          open_to_dsts: boolean | null
+          open_to_tics: boolean | null
           request_id: string
           target_asset_types: Database["public"]["Enums"]["asset_type"][] | null
           target_cap_rate_max: number | null
           target_cap_rate_min: number | null
           target_metros: string[] | null
+          target_occupancy_min: number | null
           target_price_max: number | null
           target_price_min: number | null
+          target_property_classes: string[] | null
           target_states: string[] | null
           target_strategies:
             | Database["public"]["Enums"]["strategy_type"][]
             | null
+          target_year_built_min: number | null
           updated_at: string
         }
         Insert: {
           additional_notes?: string | null
           created_at?: string
           id?: string
+          open_to_dsts?: boolean | null
+          open_to_tics?: boolean | null
           request_id: string
           target_asset_types?:
             | Database["public"]["Enums"]["asset_type"][]
@@ -75,18 +82,23 @@ export type Database = {
           target_cap_rate_max?: number | null
           target_cap_rate_min?: number | null
           target_metros?: string[] | null
+          target_occupancy_min?: number | null
           target_price_max?: number | null
           target_price_min?: number | null
+          target_property_classes?: string[] | null
           target_states?: string[] | null
           target_strategies?:
             | Database["public"]["Enums"]["strategy_type"][]
             | null
+          target_year_built_min?: number | null
           updated_at?: string
         }
         Update: {
           additional_notes?: string | null
           created_at?: string
           id?: string
+          open_to_dsts?: boolean | null
+          open_to_tics?: boolean | null
           request_id?: string
           target_asset_types?:
             | Database["public"]["Enums"]["asset_type"][]
@@ -94,12 +106,15 @@ export type Database = {
           target_cap_rate_max?: number | null
           target_cap_rate_min?: number | null
           target_metros?: string[] | null
+          target_occupancy_min?: number | null
           target_price_max?: number | null
           target_price_min?: number | null
+          target_property_classes?: string[] | null
           target_states?: string[] | null
           target_strategies?:
             | Database["public"]["Enums"]["strategy_type"][]
             | null
+          target_year_built_min?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -152,14 +167,48 @@ export type Database = {
       }
       exchange_requests: {
         Row: {
+          amenities: string[] | null
+          annual_debt_service: number | null
+          asset_subtype: string | null
+          average_rent_per_unit: number | null
+          building_square_footage: number | null
+          capex_reserves: number | null
           close_deadline: string | null
+          construction_type: string | null
+          county: string | null
           created_at: string
+          current_cap_rate: number | null
+          current_interest_rate: number | null
+          current_loan_balance: number | null
+          current_noi: number | null
+          current_occupancy_rate: number | null
+          effective_gross_income: number | null
           estimated_basis: number | null
           estimated_debt: number | null
           estimated_equity: number | null
           exchange_proceeds: number | null
+          gross_scheduled_income: number | null
+          has_prepayment_penalty: boolean | null
+          hvac_type: string | null
           id: string
           identification_deadline: string | null
+          insurance: number | null
+          land_area_acres: number | null
+          loan_maturity_date: string | null
+          loan_type: string | null
+          maintenance_repairs: number | null
+          management_fee: number | null
+          num_buildings: number | null
+          num_stories: number | null
+          other_expenses: number | null
+          parking_spaces: number | null
+          parking_type: string | null
+          prepayment_penalty_details: string | null
+          property_class: string | null
+          property_condition: string | null
+          property_name: string | null
+          real_estate_taxes: number | null
+          recent_renovations: string | null
           relinquished_address: string | null
           relinquished_asset_type:
             | Database["public"]["Enums"]["asset_type"]
@@ -169,21 +218,59 @@ export type Database = {
           relinquished_estimated_value: number | null
           relinquished_state: string | null
           relinquished_zip: string | null
+          roof_type: string | null
           sale_timeline: string | null
           status: Database["public"]["Enums"]["request_status"]
+          unit_suite: string | null
           updated_at: string
           urgency: string | null
           user_id: string
+          utilities: number | null
+          zoning: string | null
         }
         Insert: {
+          amenities?: string[] | null
+          annual_debt_service?: number | null
+          asset_subtype?: string | null
+          average_rent_per_unit?: number | null
+          building_square_footage?: number | null
+          capex_reserves?: number | null
           close_deadline?: string | null
+          construction_type?: string | null
+          county?: string | null
           created_at?: string
+          current_cap_rate?: number | null
+          current_interest_rate?: number | null
+          current_loan_balance?: number | null
+          current_noi?: number | null
+          current_occupancy_rate?: number | null
+          effective_gross_income?: number | null
           estimated_basis?: number | null
           estimated_debt?: number | null
           estimated_equity?: number | null
           exchange_proceeds?: number | null
+          gross_scheduled_income?: number | null
+          has_prepayment_penalty?: boolean | null
+          hvac_type?: string | null
           id?: string
           identification_deadline?: string | null
+          insurance?: number | null
+          land_area_acres?: number | null
+          loan_maturity_date?: string | null
+          loan_type?: string | null
+          maintenance_repairs?: number | null
+          management_fee?: number | null
+          num_buildings?: number | null
+          num_stories?: number | null
+          other_expenses?: number | null
+          parking_spaces?: number | null
+          parking_type?: string | null
+          prepayment_penalty_details?: string | null
+          property_class?: string | null
+          property_condition?: string | null
+          property_name?: string | null
+          real_estate_taxes?: number | null
+          recent_renovations?: string | null
           relinquished_address?: string | null
           relinquished_asset_type?:
             | Database["public"]["Enums"]["asset_type"]
@@ -193,21 +280,59 @@ export type Database = {
           relinquished_estimated_value?: number | null
           relinquished_state?: string | null
           relinquished_zip?: string | null
+          roof_type?: string | null
           sale_timeline?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          unit_suite?: string | null
           updated_at?: string
           urgency?: string | null
           user_id: string
+          utilities?: number | null
+          zoning?: string | null
         }
         Update: {
+          amenities?: string[] | null
+          annual_debt_service?: number | null
+          asset_subtype?: string | null
+          average_rent_per_unit?: number | null
+          building_square_footage?: number | null
+          capex_reserves?: number | null
           close_deadline?: string | null
+          construction_type?: string | null
+          county?: string | null
           created_at?: string
+          current_cap_rate?: number | null
+          current_interest_rate?: number | null
+          current_loan_balance?: number | null
+          current_noi?: number | null
+          current_occupancy_rate?: number | null
+          effective_gross_income?: number | null
           estimated_basis?: number | null
           estimated_debt?: number | null
           estimated_equity?: number | null
           exchange_proceeds?: number | null
+          gross_scheduled_income?: number | null
+          has_prepayment_penalty?: boolean | null
+          hvac_type?: string | null
           id?: string
           identification_deadline?: string | null
+          insurance?: number | null
+          land_area_acres?: number | null
+          loan_maturity_date?: string | null
+          loan_type?: string | null
+          maintenance_repairs?: number | null
+          management_fee?: number | null
+          num_buildings?: number | null
+          num_stories?: number | null
+          other_expenses?: number | null
+          parking_spaces?: number | null
+          parking_type?: string | null
+          prepayment_penalty_details?: string | null
+          property_class?: string | null
+          property_condition?: string | null
+          property_name?: string | null
+          real_estate_taxes?: number | null
+          recent_renovations?: string | null
           relinquished_address?: string | null
           relinquished_asset_type?:
             | Database["public"]["Enums"]["asset_type"]
@@ -217,11 +342,15 @@ export type Database = {
           relinquished_estimated_value?: number | null
           relinquished_state?: string | null
           relinquished_zip?: string | null
+          roof_type?: string | null
           sale_timeline?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          unit_suite?: string | null
           updated_at?: string
           urgency?: string | null
           user_id?: string
+          utilities?: number | null
+          zoning?: string | null
         }
         Relationships: []
       }
@@ -262,52 +391,97 @@ export type Database = {
       }
       inventory_financials: {
         Row: {
+          annual_debt_service: number | null
           annual_expenses: number | null
           annual_revenue: number | null
           asking_price: number | null
+          average_rent_per_unit: number | null
           cap_rate: number | null
+          capex_reserves: number | null
           cash_on_cash: number | null
           created_at: string
           debt_amount: number | null
           debt_rate: number | null
+          effective_gross_income: number | null
+          gross_scheduled_income: number | null
           id: string
+          insurance: number | null
+          loan_amount: number | null
+          loan_rate: number | null
+          maintenance_repairs: number | null
+          management_fee: number | null
           noi: number | null
           notes: string | null
           occupancy_rate: number | null
+          other_expenses: number | null
+          other_income: number | null
           property_id: string
+          real_estate_taxes: number | null
           updated_at: string
+          utilities: number | null
+          vacancy_rate: number | null
         }
         Insert: {
+          annual_debt_service?: number | null
           annual_expenses?: number | null
           annual_revenue?: number | null
           asking_price?: number | null
+          average_rent_per_unit?: number | null
           cap_rate?: number | null
+          capex_reserves?: number | null
           cash_on_cash?: number | null
           created_at?: string
           debt_amount?: number | null
           debt_rate?: number | null
+          effective_gross_income?: number | null
+          gross_scheduled_income?: number | null
           id?: string
+          insurance?: number | null
+          loan_amount?: number | null
+          loan_rate?: number | null
+          maintenance_repairs?: number | null
+          management_fee?: number | null
           noi?: number | null
           notes?: string | null
           occupancy_rate?: number | null
+          other_expenses?: number | null
+          other_income?: number | null
           property_id: string
+          real_estate_taxes?: number | null
           updated_at?: string
+          utilities?: number | null
+          vacancy_rate?: number | null
         }
         Update: {
+          annual_debt_service?: number | null
           annual_expenses?: number | null
           annual_revenue?: number | null
           asking_price?: number | null
+          average_rent_per_unit?: number | null
           cap_rate?: number | null
+          capex_reserves?: number | null
           cash_on_cash?: number | null
           created_at?: string
           debt_amount?: number | null
           debt_rate?: number | null
+          effective_gross_income?: number | null
+          gross_scheduled_income?: number | null
           id?: string
+          insurance?: number | null
+          loan_amount?: number | null
+          loan_rate?: number | null
+          maintenance_repairs?: number | null
+          management_fee?: number | null
           noi?: number | null
           notes?: string | null
           occupancy_rate?: number | null
+          other_expenses?: number | null
+          other_income?: number | null
           property_id?: string
+          real_estate_taxes?: number | null
           updated_at?: string
+          utilities?: number | null
+          vacancy_rate?: number | null
         }
         Relationships: [
           {
@@ -357,12 +531,25 @@ export type Database = {
       inventory_properties: {
         Row: {
           address: string | null
+          amenities: string[] | null
+          asset_subtype: string | null
           asset_type: Database["public"]["Enums"]["asset_type"] | null
           city: string | null
+          construction_type: string | null
           created_at: string
           description: string | null
+          hvac_type: string | null
           id: string
+          land_area_acres: number | null
           name: string | null
+          num_buildings: number | null
+          num_stories: number | null
+          parking_spaces: number | null
+          parking_type: string | null
+          property_class: string | null
+          property_condition: string | null
+          recent_renovations: string | null
+          roof_type: string | null
           square_footage: number | null
           state: string | null
           status: Database["public"]["Enums"]["inventory_status"]
@@ -371,15 +558,29 @@ export type Database = {
           updated_at: string
           year_built: number | null
           zip: string | null
+          zoning: string | null
         }
         Insert: {
           address?: string | null
+          amenities?: string[] | null
+          asset_subtype?: string | null
           asset_type?: Database["public"]["Enums"]["asset_type"] | null
           city?: string | null
+          construction_type?: string | null
           created_at?: string
           description?: string | null
+          hvac_type?: string | null
           id?: string
+          land_area_acres?: number | null
           name?: string | null
+          num_buildings?: number | null
+          num_stories?: number | null
+          parking_spaces?: number | null
+          parking_type?: string | null
+          property_class?: string | null
+          property_condition?: string | null
+          recent_renovations?: string | null
+          roof_type?: string | null
           square_footage?: number | null
           state?: string | null
           status?: Database["public"]["Enums"]["inventory_status"]
@@ -388,15 +589,29 @@ export type Database = {
           updated_at?: string
           year_built?: number | null
           zip?: string | null
+          zoning?: string | null
         }
         Update: {
           address?: string | null
+          amenities?: string[] | null
+          asset_subtype?: string | null
           asset_type?: Database["public"]["Enums"]["asset_type"] | null
           city?: string | null
+          construction_type?: string | null
           created_at?: string
           description?: string | null
+          hvac_type?: string | null
           id?: string
+          land_area_acres?: number | null
           name?: string | null
+          num_buildings?: number | null
+          num_stories?: number | null
+          parking_spaces?: number | null
+          parking_type?: string | null
+          property_class?: string | null
+          property_condition?: string | null
+          recent_renovations?: string | null
+          roof_type?: string | null
           square_footage?: number | null
           state?: string | null
           status?: Database["public"]["Enums"]["inventory_status"]
@@ -405,6 +620,7 @@ export type Database = {
           updated_at?: string
           year_built?: number | null
           zip?: string | null
+          zoning?: string | null
         }
         Relationships: []
       }
@@ -662,6 +878,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      request_images: {
+        Row: {
+          created_at: string | null
+          file_name: string | null
+          id: string
+          request_id: string
+          sort_order: number | null
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name?: string | null
+          id?: string
+          request_id: string
+          sort_order?: number | null
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string | null
+          id?: string
+          request_id?: string
+          sort_order?: number | null
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_images_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
