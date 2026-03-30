@@ -423,8 +423,14 @@ export default function MatchDetail() {
                 const theirUnits = property.units;
                 const yourSf = reqMetrics?.sf;
                 const theirSf = property.square_footage;
-                if (yourUnits && theirUnits) return { text: `${yourUnits} units → ${theirUnits} units`, color: (theirUnits >= yourUnits ? "green" : "amber") as const };
-                if (yourSf && theirSf) return { text: `${num(yourSf)} SF → ${num(theirSf)} SF`, color: (theirSf >= yourSf ? "green" : "amber") as const };
+                if (yourUnits && theirUnits) {
+                  const c: "green" | "amber" = theirUnits >= yourUnits ? "green" : "amber";
+                  return { text: `${yourUnits} units → ${theirUnits} units`, color: c };
+                }
+                if (yourSf && theirSf) {
+                  const c: "green" | "amber" = theirSf >= yourSf ? "green" : "amber";
+                  return { text: `${num(yourSf)} SF → ${num(theirSf)} SF`, color: c };
+                }
                 return { text: "Scale data not available", color: "muted" as const };
               })()}
             />
