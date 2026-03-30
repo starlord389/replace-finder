@@ -1,69 +1,59 @@
 
 
-# Redesign Launchpad as Onboarding Guide
+# Redesign Overview as CRM-Style Dashboard
 
-## Concept
-Transform the Launchpad from a stats/quick-actions page into a guided onboarding checklist — helping new users understand the 1031 exchange process on the platform. Inspired by GoHighLevel's approach: a centered list of actionable steps, each with a description and a CTA button, that guide the user through key platform features.
+## What
+Transform the plain list-of-requests Overview into a proper CRM dashboard with summary stat cards at the top, deadline alerts, and a cleaner request table — giving users an at-a-glance view of their exchange portfolio.
 
-## Design
-A centered card-based checklist with a welcoming heading like "Let's get your 1031 exchange started". Each step is a horizontal row with an icon, title, description, and action button. Steps are contextually aware — completed steps show a green checkmark instead of a CTA.
+## Layout
 
 ```text
-┌─────────────────────────────────────────────────────┐
-│  Let's get your 1031 exchange started               │
-│  Complete these steps to make the most of the       │
-│  platform.                                          │
-│                                                     │
-│  ┌─────────────────────────────────────────────┐    │
-│  │ 👤  Complete your profile                   │    │
-│  │     Add your name, phone, and company so    │    │
-│  │     we can reach you about your exchange.   │    │
-│  │                              [Complete] ✓   │    │
-│  ├─────────────────────────────────────────────┤    │
-│  │ 📋  Submit your first exchange request      │    │
-│  │     Tell us about the property you're       │    │
-│  │     selling and what you're looking for.    │    │
-│  │                          [Start Exchange]   │    │
-│  ├─────────────────────────────────────────────┤    │
-│  │ 🔍  Review your matches                     │    │
-│  │     Once we find matching properties,       │    │
-│  │     you'll review and respond here.         │    │
-│  │                          [View Matches]     │    │
-│  ├─────────────────────────────────────────────┤    │
-│  │ 📊  Track your exchange progress            │    │
-│  │     Monitor deadlines, status updates,      │    │
-│  │     and timelines from the Overview page.   │    │
-│  │                          [Go to Overview]   │    │
-│  ├─────────────────────────────────────────────┤    │
-│  │ ❓  Need help?                              │    │
-│  │     Learn how 1031 exchanges work and       │    │
-│  │     get answers to common questions.        │    │
-│  │                          [Visit Help]       │    │
-│  └─────────────────────────────────────────────┘    │
-│                                                     │
-│  Progress: ██░░░░░░░░ 1 of 5 complete               │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  Overview                                                │
+│  Your exchange portfolio at a glance.                    │
+│                                                          │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────┐│
+│  │ Active     │ │ Total      │ │ Matches    │ │ Next   ││
+│  │ Exchanges  │ │ Proceeds   │ │ Received   │ │Deadline││
+│  │    2       │ │  $1.2M     │ │    5       │ │ 12 days││
+│  └────────────┘ └────────────┘ └────────────┘ └────────┘│
+│                                                          │
+│  ┌─ Upcoming Deadlines ─────────────────────────────────┐│
+│  │ ⚠ Austin, TX — ID Deadline in 8 days (Apr 7)        ││
+│  │ 🕐 Denver, CO — Close Deadline in 34 days (Apr 30)  ││
+│  └──────────────────────────────────────────────────────┘│
+│                                                          │
+│  ┌─ My Exchanges ───────────────────────────────────────┐│
+│  │ Property    │ Status  │ Value    │ Proceeds │ Date   ││
+│  │ Austin, TX  │ Active  │ $800K   │ $750K    │ 03/15  ││
+│  │ Denver, CO  │ Review  │ $450K   │ $420K    │ 03/10  ││
+│  │                          [View →]                    ││
+│  └──────────────────────────────────────────────────────┘│
+│                                                          │
+│  ┌─ Recent Activity ────────────────────────────────────┐│
+│  │ • Austin, TX moved to Active — Mar 20               ││
+│  │ • Denver, CO submitted — Mar 10                      ││
+│  └──────────────────────────────────────────────────────┘│
+└──────────────────────────────────────────────────────────┘
 ```
 
-## Steps (with completion logic)
+## Sections
 
-1. **Complete your profile** — Check if `profiles` has `full_name` and `phone` filled → links to `/dashboard/settings`
-2. **Submit your first exchange request** — Check if user has any `exchange_requests` → links to `/dashboard/exchanges/new`
-3. **Review your matches** — Check if user has any `matched_property_access` rows → links to `/dashboard/matches`
-4. **Track your exchange progress** — Check if user has visited Overview (or just always available) → links to `/dashboard/overview`
-5. **Need help?** — Always available → links to `/dashboard/help`
+1. **KPI Cards** (top row, 4 cards) — Active exchanges count, total exchange proceeds sum, matches received count (from `matched_property_access`), days until nearest deadline
+2. **Upcoming Deadlines** — Alert-style cards for any ID or close deadlines within next 60 days, sorted soonest first. Color-coded: red if ≤14 days, yellow if ≤30, neutral otherwise
+3. **My Exchanges Table** — Clean table with columns: Property (city/state), Status badge, Asset Type, Est. Value, Proceeds, Date. Each row links to `/dashboard/exchanges/:id`
+4. **Recent Activity** — Last 10 status history entries across all requests, shown as a simple timeline list
 
 ## Technical Changes
 
-### 1. Rewrite `src/pages/client/Launchpad.tsx`
-- Fetch profile data (full_name, phone) and exchange_requests count and matched_property_access count on mount
-- Compute completion state for each step
-- Render centered card with step rows — each row: icon, title, description, and either a "Complete ✓" badge or a CTA button (Link)
-- Show a progress bar at the bottom with "X of 5 complete"
-- Clean, premium design matching the app's style (no bright green GoHighLevel buttons — use the existing primary blue)
+### 1. Rewrite `src/pages/client/Overview.tsx`
+- Fetch `exchange_requests`, `exchange_request_status_history`, and `matched_property_access` count
+- Compute KPI values from fetched data
+- Render 4 sections using Card components
+- Use Table component for exchanges list
+- Link rows to exchange detail page
+- Uses existing shadcn Card, Table, Badge, and Progress components — no new dependencies
 
 ### No other files change
-- No database changes
-- No routing changes
-- No new components needed — all self-contained in Launchpad.tsx
+- No database changes, no new components, no routing changes
 
