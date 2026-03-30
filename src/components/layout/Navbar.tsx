@@ -90,6 +90,13 @@ export default function Navbar() {
                 >
                   Dashboard
                 </Link>
+                <Link
+                  to="/dashboard/profile"
+                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Profile
+                </Link>
                 <div className="mt-2 border-t pt-2">
                   <Button variant="outline" size="sm" className="w-full" onClick={() => { signOut(); setMobileOpen(false); }}>
                     Sign Out
