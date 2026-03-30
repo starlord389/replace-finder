@@ -30,6 +30,9 @@ export default function Navbar() {
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm">Dashboard</Button>
               </Link>
+              <Link to="/dashboard/profile">
+                <Button variant="ghost" size="sm">Profile</Button>
+              </Link>
               <Button variant="outline" size="sm" onClick={signOut}>
                 Sign Out
               </Button>
