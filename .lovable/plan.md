@@ -1,81 +1,103 @@
 
 
-# Redesign Match Detail Page — Full Investment Memo
+# Expanded Help & Support Page + Support Ticket System
 
 ## Overview
-Rewrite `src/pages/client/MatchDetail.tsx` (~616 lines) into a comprehensive investment analysis page with 6 sections following progressive disclosure. Also fetch exchange_request_preferences for match score explanations.
+Two changes: (1) expand the Help page with comprehensive FAQs, how-tos, and platform explainers using an accordion layout, plus a support contact form that creates tickets in the database, and (2) add an admin Support Tickets page to view and manage submitted tickets.
 
-## Data Loading Changes
-Add one new fetch to `loadData()`:
-- `exchange_request_preferences` where `request_id = access.request_id` — needed for Section 5 score explanations
+## Database Changes
 
-Everything else is already loaded (access, property, financials, images, matchResult, exchangeReq).
+### Migration: Create `support_tickets` table
+```sql
+CREATE TYPE public.ticket_status AS ENUM ('open', 'in_progress', 'resolved', 'closed');
 
-## Page Layout (Top to Bottom)
+CREATE TABLE public.support_tickets (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  subject text NOT NULL,
+  message text NOT NULL,
+  category text NOT NULL DEFAULT 'general',
+  status ticket_status NOT NULL DEFAULT 'open',
+  admin_notes text,
+  resolved_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
 
-### Context Banner
-- Subtle muted bar below header: "Match for: [address, city, state] — [asset type] Exchange"
-- Falls back to "Match for: Exchange Request #[short id]" if no address
-- Clickable → navigates to `/dashboard`
-- Becomes sticky when scrolling past hero
+ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
 
-### Section 1: Property Hero (existing — enhanced)
-- Photo gallery: 60/40 split (large left + 2-4 grid right), lightbox — **already built**, keep as-is with minor cleanup
-- Property header: name, address, badges for asset type + strategy
-- Key metrics row: Asking Price (large bold), Cap Rate, NOI, Units/SF, Year Built, Occupancy — as horizontal stat pills
-- Match Score badge (color-coded) + Express Interest / Pass buttons right-aligned
-- Largely exists, reorganize layout slightly
+-- Users can insert their own tickets
+CREATE POLICY "Users can insert own tickets" ON public.support_tickets
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
-### Section 2: Exchange Comparison (NEW — replaces old Exchange Fit)
-- Title: "Exchange Comparison" with subtitle
-- Two-column comparison table: Your Property | → | This Property
-- Rows: Value/Price, NOI, Cap Rate, Units, Year Built, Occupancy, Asset Type, Strategy, Price/Unit, NOI/Unit
-- Delta column with green ↑ / red ↓ arrows + percentage change text
-- Smart color logic (lower price/unit = green, lower cap rate = red)
-- **3 Exchange Position Summary Cards** below table:
-  1. Equity Position: equity vs price, "Covered" or "Gap: $X" badge
-  2. Cash Flow Shift: NOI change +/- with %
-  3. Scale Change: "X units → Y units"
-- Cards use green/amber/red backgrounds
+-- Users can view their own tickets
+CREATE POLICY "Users can view own tickets" ON public.support_tickets
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
-### Section 3: Detailed Exchange Analysis (NEW — collapsed by default)
-- Accordion: "Show Detailed Analysis"
-- **3A**: Side-by-side operating income comparison table (gross revenue through pre-tax cash flow with all expense line items)
-- **3B**: Exchange Economics — proceeds, equity, boot estimate, debt replacement requirement
-- **3C**: Charts (Recharts):
-  - Chart 1: NOI comparison bars (yours vs theirs)
-  - Chart 2: Revenue & expense breakdown donut/stacked bar for replacement property
-  - Chart 3: Return profile comparison (cap rate, CoC, expense ratio — side by side bars)
-  - Chart 4: Exchange position waterfall (property value → proceeds → replacement price → gap/surplus)
-  - Each chart only renders if sufficient data exists
+-- Admins full access
+CREATE POLICY "Admins can view all tickets" ON public.support_tickets
+  FOR SELECT TO authenticated USING (has_role(auth.uid(), 'admin'));
 
-### Section 4: Property Deep Dive (reorganized from existing sections)
-- **4A**: Calculated metrics grid with colored health dots (cap rate, GRM, expense ratio, NOI/unit, price/unit, price/SF, break-even occ, DSCR, CoC) — exists, enhance with color dots
-- **4B**: Physical property details grid — exists, keep as-is
-- **4C**: Operating statement table — exists, keep as-is
+CREATE POLICY "Admins can update tickets" ON public.support_tickets
+  FOR UPDATE TO authenticated USING (has_role(auth.uid(), 'admin'));
 
-### Section 5: Match Score Breakdown (moved + enhanced)
-- Title: "Why This Property Was Matched"
-- 6 horizontal bars with scores — exists
-- **NEW**: Dynamic text explanations below each bar generated from exchange_request_preferences + property data (e.g., "Asking price of $5.2M is within your target range of $3.5M–$6M")
+-- Updated_at trigger
+CREATE TRIGGER update_support_tickets_updated_at
+  BEFORE UPDATE ON public.support_tickets
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+```
 
-### Section 6: Bottom CTA
-- Repeat Interest/Pass buttons — exists, keep as-is
+## File Changes
 
-### Sticky Action Bar
-- Already exists — enhance to include match score badge alongside property name + price
+### 1. `src/pages/client/Help.tsx` — Full rewrite
 
-## Technical Approach
-- Single file rewrite of `src/pages/client/MatchDetail.tsx`
-- Extract helper components inline (ExchangeComparison, DetailedAnalysis, PropertyDeepDive, ScoreBreakdown)
-- All charts use Recharts (already imported)
-- Color palette: blue-600 primary, green-500 positive, red-500 negative, slate for neutral
-- Currency: `$X,XXX,XXX` no cents. Percentages: one decimal.
-- Missing data: show "—" or "Not provided", hide empty sections, charts only render with sufficient data
-- Responsive: comparison table stacks on mobile
+Restructure into sections:
 
-## Files Changed
-1. `src/pages/client/MatchDetail.tsx` — full rewrite (~800-900 lines)
+**Section A: FAQ Accordion** — Organized by category using shadcn Accordion:
+- **Getting Started** (4-5 items): What is 1031ExchangeUp, how to create account, how to submit first request, what info do I need, how long does review take
+- **Exchange Requests** (4-5 items): Can I have multiple requests, can I edit after submitting, what statuses mean, what happens when request expires, how are deadlines tracked
+- **Matching & Properties** (4-5 items): How matching works, what the scores mean, why some matches score higher, how often is matching run, what if no matches found
+- **Reviewing Matches** (3-4 items): What happens after expressing interest, can I pass and change mind later, who do I contact about a property, how to read the financial analysis
+- **Account & Privacy** (3-4 items): Is my data confidential, how to update profile, can I delete account, who sees my information
 
-No database changes needed. No new dependencies.
+**Section B: How-To Guides** — Card grid with brief guides:
+- How to submit your first exchange request
+- How to review and respond to matches
+- Understanding your match scores
+- Reading the financial analysis page
+
+Each card links to the relevant page or shows inline content.
+
+**Section C: Contact & Support Form**
+- Category dropdown (General Question, Technical Issue, Match Question, Account Issue, Other)
+- Subject text input
+- Message textarea
+- Submit button → inserts into `support_tickets` with user_id
+- Success toast on submit
+- Below the form: show list of user's past tickets with status badges
+
+### 2. `src/pages/admin/SupportTickets.tsx` — New page
+
+Admin view of all support tickets:
+- Table with columns: Date, User Email (fetch from profiles), Category, Subject, Status, Actions
+- Filter by status (open/in_progress/resolved/closed)
+- Click row to expand inline or open detail:
+  - View full message
+  - Update status dropdown
+  - Admin notes textarea (save on blur/button)
+- Badge colors: open=blue, in_progress=amber, resolved=green, closed=gray
+
+### 3. `src/components/layout/AdminLayout.tsx` — Add nav link
+Add `{ to: "/admin/support", label: "Support" }` to `adminLinks` array.
+
+### 4. `src/App.tsx` — Add routes
+- Import `SupportTickets` from `@/pages/admin/SupportTickets`
+- Add route: `<Route path="/admin/support" element={<SupportTickets />} />`
+
+## Technical Details
+- FAQ content is hardcoded (no DB needed for static content)
+- Support form uses react-hook-form + zod validation
+- Tickets query uses `supabase.from('support_tickets')` with appropriate filters
+- Admin page joins with `profiles` table to show user email
+- All existing UI patterns maintained (shadcn Card, Badge, Table, Accordion)
 
