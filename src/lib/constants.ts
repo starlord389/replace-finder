@@ -25,6 +25,7 @@ export const STRATEGY_TYPE_LABELS: Record<Enums<"strategy_type">, string> = {
 };
 
 export const REQUEST_STATUS_LABELS: Record<Enums<"request_status">, string> = {
+  draft: "Draft",
   submitted: "Submitted",
   under_review: "Under Review",
   active: "Active",
@@ -32,6 +33,7 @@ export const REQUEST_STATUS_LABELS: Record<Enums<"request_status">, string> = {
 };
 
 export const REQUEST_STATUS_COLORS: Record<Enums<"request_status">, string> = {
+  draft: "bg-muted text-muted-foreground",
   submitted: "bg-muted text-muted-foreground",
   under_review: "bg-yellow-100 text-yellow-800",
   active: "bg-primary/10 text-primary",
