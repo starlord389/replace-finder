@@ -1,59 +1,51 @@
 
 
-# Redesign Overview as CRM-Style Dashboard
+# Add Draft & Edit Capability to Exchange Requests
 
-## What
-Transform the plain list-of-requests Overview into a proper CRM dashboard with summary stat cards at the top, deadline alerts, and a cleaner request table — giving users an at-a-glance view of their exchange portfolio.
+## Overview
+Allow users to save exchange requests as drafts, edit drafts/submitted/active requests, and re-submit edited active requests (which resets status to "submitted").
 
-## Layout
+## Database Changes
 
-```text
-┌──────────────────────────────────────────────────────────┐
-│  Overview                                                │
-│  Your exchange portfolio at a glance.                    │
-│                                                          │
-│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────┐│
-│  │ Active     │ │ Total      │ │ Matches    │ │ Next   ││
-│  │ Exchanges  │ │ Proceeds   │ │ Received   │ │Deadline││
-│  │    2       │ │  $1.2M     │ │    5       │ │ 12 days││
-│  └────────────┘ └────────────┘ └────────────┘ └────────┘│
-│                                                          │
-│  ┌─ Upcoming Deadlines ─────────────────────────────────┐│
-│  │ ⚠ Austin, TX — ID Deadline in 8 days (Apr 7)        ││
-│  │ 🕐 Denver, CO — Close Deadline in 34 days (Apr 30)  ││
-│  └──────────────────────────────────────────────────────┘│
-│                                                          │
-│  ┌─ My Exchanges ───────────────────────────────────────┐│
-│  │ Property    │ Status  │ Value    │ Proceeds │ Date   ││
-│  │ Austin, TX  │ Active  │ $800K   │ $750K    │ 03/15  ││
-│  │ Denver, CO  │ Review  │ $450K   │ $420K    │ 03/10  ││
-│  │                          [View →]                    ││
-│  └──────────────────────────────────────────────────────┘│
-│                                                          │
-│  ┌─ Recent Activity ────────────────────────────────────┐│
-│  │ • Austin, TX moved to Active — Mar 20               ││
-│  │ • Denver, CO submitted — Mar 10                      ││
-│  └──────────────────────────────────────────────────────┘│
-└──────────────────────────────────────────────────────────┘
+### 1. Add "draft" to `request_status` enum
+Migration to add the new enum value:
+```sql
+ALTER TYPE public.request_status ADD VALUE 'draft';
 ```
 
-## Sections
+## Code Changes
 
-1. **KPI Cards** (top row, 4 cards) — Active exchanges count, total exchange proceeds sum, matches received count (from `matched_property_access`), days until nearest deadline
-2. **Upcoming Deadlines** — Alert-style cards for any ID or close deadlines within next 60 days, sorted soonest first. Color-coded: red if ≤14 days, yellow if ≤30, neutral otherwise
-3. **My Exchanges Table** — Clean table with columns: Property (city/state), Status badge, Asset Type, Est. Value, Proceeds, Date. Each row links to `/dashboard/exchanges/:id`
-4. **Recent Activity** — Last 10 status history entries across all requests, shown as a simple timeline list
+### 2. `src/lib/constants.ts` — Add draft status label/color
+- Add `draft: "Draft"` to `REQUEST_STATUS_LABELS`
+- Add `draft: "bg-muted text-muted-foreground"` to `REQUEST_STATUS_COLORS`
 
-## Technical Changes
+### 3. `src/pages/client/NewRequest.tsx` — Support draft saving + editing existing requests
+- Accept an optional `requestId` prop (or read from URL param like `/dashboard/exchanges/:id/edit`)
+- On mount, if editing: fetch the existing `exchange_requests` + `exchange_request_preferences` data and populate the form
+- Add a "Save as Draft" button alongside the existing "Submit" button on every step
+- Save as Draft: upserts the request with `status: 'draft'`
+- Submit: upserts with `status: 'submitted'`
+- When editing an `active` request and re-submitting, set status back to `submitted`
+- For existing requests, use `update` instead of `insert`; for preferences use `upsert` (on `request_id`)
 
-### 1. Rewrite `src/pages/client/Overview.tsx`
-- Fetch `exchange_requests`, `exchange_request_status_history`, and `matched_property_access` count
-- Compute KPI values from fetched data
-- Render 4 sections using Card components
-- Use Table component for exchanges list
-- Link rows to exchange detail page
-- Uses existing shadcn Card, Table, Badge, and Progress components — no new dependencies
+### 4. `src/App.tsx` — Add edit route
+- Add route: `/dashboard/exchanges/:id/edit` → `NewRequest` component
 
-### No other files change
-- No database changes, no new components, no routing changes
+### 5. `src/pages/client/ExchangeDetail.tsx` — Add Edit button
+- Show an "Edit" button when status is `draft`, `submitted`, or `active`
+- Links to `/dashboard/exchanges/:id/edit`
+
+### 6. `src/pages/client/ExchangeList.tsx` — Show draft badge, edit action
+- Draft requests show a "Draft" badge (already handled by constants)
+- Clicking a draft row goes to the detail page (same as now); edit is available from there
+
+## Flow
+1. User starts new request → can "Save as Draft" at any step or "Submit" at step 6
+2. User opens a draft → clicks Edit → resumes the wizard with all fields pre-filled → submits
+3. User opens a submitted/active request → clicks Edit → modifies fields → re-submits → status resets to "submitted"
+
+## What stays the same
+- Admin pages untouched
+- RLS policies already allow users to update their own requests
+- No new tables needed
 
