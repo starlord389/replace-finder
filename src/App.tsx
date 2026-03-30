@@ -13,9 +13,12 @@ import Index from "@/pages/Index";
 import HowItWorks from "@/pages/HowItWorks";
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
 import Dashboard from "@/pages/client/Dashboard";
 import NewRequest from "@/pages/client/NewRequest";
 import MatchDetail from "@/pages/client/MatchDetail";
+import Profile from "@/pages/client/Profile";
 import RequestQueue from "@/pages/admin/RequestQueue";
 import RequestDetail from "@/pages/admin/RequestDetail";
 import InventoryList from "@/pages/admin/InventoryList";
@@ -23,7 +26,6 @@ import InventoryDetail from "@/pages/admin/InventoryDetail";
 import MatchReview from "@/pages/admin/MatchReview";
 import MatchRunDetail from "@/pages/admin/MatchRunDetail";
 import NotFound from "@/pages/NotFound";
-
 
 const queryClient = new QueryClient();
 
@@ -41,6 +43,8 @@ const App = () => (
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
 
             {/* Client (auth required) */}
@@ -48,6 +52,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/new-request" element={<NewRequest />} />
               <Route path="/dashboard/match/:id" element={<MatchDetail />} />
+              <Route path="/dashboard/profile" element={<Profile />} />
             </Route>
 
             {/* Admin (admin role required) */}
@@ -60,7 +65,6 @@ const App = () => (
               <Route path="/admin/matches/:id" element={<MatchRunDetail />} />
             </Route>
 
-            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
