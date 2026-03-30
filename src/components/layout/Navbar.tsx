@@ -30,9 +30,6 @@ export default function Navbar() {
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm">Dashboard</Button>
               </Link>
-              <Link to="/dashboard/profile">
-                <Button variant="ghost" size="sm">Profile</Button>
-              </Link>
               <Button variant="outline" size="sm" onClick={signOut}>
                 Sign Out
               </Button>
@@ -89,13 +86,6 @@ export default function Navbar() {
                   onClick={() => setMobileOpen(false)}
                 >
                   Dashboard
-                </Link>
-                <Link
-                  to="/dashboard/profile"
-                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Profile
                 </Link>
                 <div className="mt-2 border-t pt-2">
                   <Button variant="outline" size="sm" className="w-full" onClick={() => { signOut(); setMobileOpen(false); }}>

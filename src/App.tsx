@@ -15,10 +15,15 @@ import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
-import Dashboard from "@/pages/client/Dashboard";
+import Launchpad from "@/pages/client/Launchpad";
+import Overview from "@/pages/client/Overview";
+import ExchangeList from "@/pages/client/ExchangeList";
+import ExchangeDetail from "@/pages/client/ExchangeDetail";
 import NewRequest from "@/pages/client/NewRequest";
+import MatchList from "@/pages/client/MatchList";
 import MatchDetail from "@/pages/client/MatchDetail";
 import Profile from "@/pages/client/Profile";
+import Help from "@/pages/client/Help";
 import RequestQueue from "@/pages/admin/RequestQueue";
 import RequestDetail from "@/pages/admin/RequestDetail";
 import InventoryList from "@/pages/admin/InventoryList";
@@ -49,10 +54,15 @@ const App = () => (
 
             {/* Client (auth required) */}
             <Route element={<ClientLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/dashboard/new-request" element={<NewRequest />} />
-              <Route path="/dashboard/match/:id" element={<MatchDetail />} />
-              <Route path="/dashboard/profile" element={<Profile />} />
+              <Route path="/dashboard" element={<Launchpad />} />
+              <Route path="/dashboard/overview" element={<Overview />} />
+              <Route path="/dashboard/exchanges" element={<ExchangeList />} />
+              <Route path="/dashboard/exchanges/new" element={<NewRequest />} />
+              <Route path="/dashboard/exchanges/:id" element={<ExchangeDetail />} />
+              <Route path="/dashboard/matches" element={<MatchList />} />
+              <Route path="/dashboard/matches/:id" element={<MatchDetail />} />
+              <Route path="/dashboard/settings" element={<Profile />} />
+              <Route path="/dashboard/help" element={<Help />} />
             </Route>
 
             {/* Admin (admin role required) */}

@@ -142,7 +142,7 @@ export default function NewRequest() {
 
     setSubmitting(false);
     toast({ title: "Request submitted", description: "We'll review your exchange request and begin matching." });
-    navigate("/dashboard");
+    navigate("/dashboard/exchanges");
   };
 
   return (
