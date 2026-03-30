@@ -12,9 +12,7 @@ import {
   HourglassIcon,
   Plus,
   ArrowRight,
-  ChevronRight,
 } from "lucide-react";
-import type { Tables, Enums } from "@/integrations/supabase/types";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Draft",

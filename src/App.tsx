@@ -71,6 +71,7 @@ const App = () => (
 
             {/* Admin (admin role required) */}
             <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/requests" element={<RequestQueue />} />
               <Route path="/admin/requests/:id" element={<RequestDetail />} />
               <Route path="/admin/inventory" element={<InventoryList />} />
@@ -78,6 +79,7 @@ const App = () => (
               <Route path="/admin/matches" element={<MatchReview />} />
               <Route path="/admin/matches/:id" element={<MatchRunDetail />} />
               <Route path="/admin/support" element={<SupportTickets />} />
+              <Route path="/admin/clients" element={<ClientList />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
