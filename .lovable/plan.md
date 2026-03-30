@@ -1,118 +1,81 @@
 
 
-# Part 1 of 3: Database Migrations + MLS-Level Intake Form
+# Redesign Match Detail Page — Full Investment Memo
 
-This is the first of three rounds. This round handles all database schema changes and rebuilds the exchange request intake form with MLS-level data collection across 8 steps.
+## Overview
+Rewrite `src/pages/client/MatchDetail.tsx` (~616 lines) into a comprehensive investment analysis page with 6 sections following progressive disclosure. Also fetch exchange_request_preferences for match score explanations.
 
-## Database Changes
+## Data Loading Changes
+Add one new fetch to `loadData()`:
+- `exchange_request_preferences` where `request_id = access.request_id` — needed for Section 5 score explanations
 
-### Migration 1: Expand `exchange_requests` table
-Add columns for the new property detail fields:
-- `property_name` text — e.g. "Riverside Apartments"
-- `unit_suite` text
-- `county` text
-- `asset_subtype` text
-- `property_class` text — Class A/B/C/D
-- `building_square_footage` numeric
-- `land_area_acres` numeric
-- `num_buildings` integer
-- `num_stories` integer
-- `parking_spaces` integer
-- `parking_type` text
-- `zoning` text
-- `construction_type` text
-- `roof_type` text
-- `hvac_type` text
-- `property_condition` text
-- `recent_renovations` text
-- `amenities` text[]
-- `gross_scheduled_income` numeric
-- `effective_gross_income` numeric
-- `real_estate_taxes` numeric
-- `insurance` numeric
-- `utilities` numeric
-- `management_fee` numeric
-- `maintenance_repairs` numeric
-- `capex_reserves` numeric
-- `other_expenses` numeric
-- `average_rent_per_unit` numeric
-- `current_noi` numeric
-- `current_occupancy_rate` numeric
-- `current_cap_rate` numeric
-- `current_loan_balance` numeric
-- `current_interest_rate` numeric
-- `annual_debt_service` numeric
-- `loan_type` text
-- `loan_maturity_date` date
-- `has_prepayment_penalty` boolean default false
-- `prepayment_penalty_details` text
+Everything else is already loaded (access, property, financials, images, matchResult, exchangeReq).
 
-### Migration 2: Expand `exchange_request_preferences` table
-- `target_occupancy_min` numeric
-- `target_year_built_min` integer
-- `target_property_classes` text[]
-- `open_to_dsts` boolean default false
-- `open_to_tics` boolean default false
+## Page Layout (Top to Bottom)
 
-### Migration 3: Create `request_images` table + storage bucket
-```sql
-CREATE TABLE public.request_images (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  request_id uuid NOT NULL REFERENCES exchange_requests(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL,
-  storage_path text NOT NULL,
-  file_name text,
-  sort_order integer DEFAULT 0,
-  created_at timestamptz DEFAULT now()
-);
-ALTER TABLE public.request_images ENABLE ROW LEVEL SECURITY;
--- Users CRUD own, admins read all
-INSERT INTO storage.buckets (id, name, public) VALUES ('request-images', 'request-images', true);
--- Storage RLS policies for authenticated uploads
-```
+### Context Banner
+- Subtle muted bar below header: "Match for: [address, city, state] — [asset type] Exchange"
+- Falls back to "Match for: Exchange Request #[short id]" if no address
+- Clickable → navigates to `/dashboard`
+- Becomes sticky when scrolling past hero
 
-### Migration 4: Expand `inventory_properties` and `inventory_financials`
-Add columns to inventory tables (for Part 3 match detail page to use later):
-- `inventory_properties`: asset_subtype, property_class, land_area_acres, num_buildings, num_stories, parking_spaces, parking_type, zoning, construction_type, roof_type, hvac_type, property_condition, recent_renovations, amenities
-- `inventory_financials`: gross_scheduled_income, effective_gross_income, vacancy_rate, real_estate_taxes, insurance, utilities, management_fee, maintenance_repairs, capex_reserves, other_expenses, other_income, loan_amount, loan_rate, annual_debt_service, average_rent_per_unit
+### Section 1: Property Hero (existing — enhanced)
+- Photo gallery: 60/40 split (large left + 2-4 grid right), lightbox — **already built**, keep as-is with minor cleanup
+- Property header: name, address, badges for asset type + strategy
+- Key metrics row: Asking Price (large bold), Cap Rate, NOI, Units/SF, Year Built, Occupancy — as horizontal stat pills
+- Match Score badge (color-coded) + Express Interest / Pass buttons right-aligned
+- Largely exists, reorganize layout slightly
 
-## Code Changes
+### Section 2: Exchange Comparison (NEW — replaces old Exchange Fit)
+- Title: "Exchange Comparison" with subtitle
+- Two-column comparison table: Your Property | → | This Property
+- Rows: Value/Price, NOI, Cap Rate, Units, Year Built, Occupancy, Asset Type, Strategy, Price/Unit, NOI/Unit
+- Delta column with green ↑ / red ↓ arrows + percentage change text
+- Smart color logic (lower price/unit = green, lower cap rate = red)
+- **3 Exchange Position Summary Cards** below table:
+  1. Equity Position: equity vs price, "Covered" or "Gap: $X" badge
+  2. Cash Flow Shift: NOI change +/- with %
+  3. Scale Change: "X units → Y units"
+- Cards use green/amber/red backgrounds
 
-### Rewrite intake form: `src/pages/client/NewRequest.tsx`
-- Expand `RequestFormData` interface with all new fields
-- Update `INITIAL` defaults
-- Change `STEPS` from 6 to 8: Location, Classification, Physical Description, Financials, Debt & Equity, Replacement Criteria, Photos, Review
-- Update `buildRequestPayload()` and `buildPrefsPayload()` to include all new columns
-- Add unsaved-changes browser prompt (`beforeunload` event)
-- Validate required fields per step before allowing Next
+### Section 3: Detailed Exchange Analysis (NEW — collapsed by default)
+- Accordion: "Show Detailed Analysis"
+- **3A**: Side-by-side operating income comparison table (gross revenue through pre-tax cash flow with all expense line items)
+- **3B**: Exchange Economics — proceeds, equity, boot estimate, debt replacement requirement
+- **3C**: Charts (Recharts):
+  - Chart 1: NOI comparison bars (yours vs theirs)
+  - Chart 2: Revenue & expense breakdown donut/stacked bar for replacement property
+  - Chart 3: Return profile comparison (cap rate, CoC, expense ratio — side by side bars)
+  - Chart 4: Exchange position waterfall (property value → proceeds → replacement price → gap/surplus)
+  - Each chart only renders if sufficient data exists
 
-### New step components (replace existing 6 with 8):
-1. **`StepLocation.tsx`** — Property name, address, unit/suite, city, state (dropdown), ZIP, county
-2. **`StepClassification.tsx`** — Asset type, asset subtype (dynamic based on type), strategy, property class dropdown
-3. **`StepPhysical.tsx`** — Units/SF (conditional on asset type), year built, building SF, lot size, buildings, stories, parking, zoning, construction, roof, HVAC, condition, renovations textarea, amenities multi-select chips
-4. **`StepFinancials.tsx`** — Estimated value, NOI, occupancy rate (required). Gross income, expenses breakdown, auto-calculate cap rate, avg rent per unit (optional with encouragement note)
-5. **`StepDebtEquity.tsx`** — Exchange proceeds, estimated equity (required). Loan balance, rate, type, maturity, debt service, prepayment penalty toggle + details (optional)
-6. **`StepCriteria.tsx`** — Target asset types, target states, price range (required). Metros tags input, target strategies, cap rate range, occupancy min, year built min, property classes, ID deadline, close deadline, DST/TIC toggles, urgency dropdown, additional notes
-7. **`StepPhotos.tsx`** — Drag-and-drop / click-to-browse image uploader. Shows thumbnail grid with remove buttons. Upload to `request-images` bucket. Max 20 photos. Drag-to-reorder for sort_order.
-8. **`StepReview.tsx`** — Full summary organized by section. Red indicators for missing required fields. Conditional submit button.
+### Section 4: Property Deep Dive (reorganized from existing sections)
+- **4A**: Calculated metrics grid with colored health dots (cap rate, GRM, expense ratio, NOI/unit, price/unit, price/SF, break-even occ, DSCR, CoC) — exists, enhance with color dots
+- **4B**: Physical property details grid — exists, keep as-is
+- **4C**: Operating statement table — exists, keep as-is
 
-### Delete old step components:
-Remove StepRelinquished, StepEconomics, StepGoals, StepGeography, StepTiming (replaced by the 8 new ones)
+### Section 5: Match Score Breakdown (moved + enhanced)
+- Title: "Why This Property Was Matched"
+- 6 horizontal bars with scores — exists
+- **NEW**: Dynamic text explanations below each bar generated from exchange_request_preferences + property data (e.g., "Asking price of $5.2M is within your target range of $3.5M–$6M")
 
-### Update `src/lib/constants.ts`
-- Add `ASSET_SUBTYPE_MAP` — keyed by asset_type, value is array of subtype labels
-- Add `PROPERTY_CLASS_OPTIONS`, `PARKING_TYPE_OPTIONS`, `CONSTRUCTION_TYPE_OPTIONS`, etc.
-- Add `AMENITY_OPTIONS` array
-- Add `LOAN_TYPE_OPTIONS`
-- Add `URGENCY_OPTIONS`
+### Section 6: Bottom CTA
+- Repeat Interest/Pass buttons — exists, keep as-is
 
-## What stays the same
-- Routing (same `/dashboard/exchanges/new` and `/:id/edit` paths)
-- Draft/edit/re-submit logic already built
-- Admin pages untouched
-- Match pages untouched (Parts 2 and 3 later)
+### Sticky Action Bar
+- Already exists — enhance to include match score badge alongside property name + price
 
-## What's next (future rounds)
-- **Part 2**: Zillow-style match cards on MatchList page
-- **Part 3**: Full investment analysis match detail page with charts
+## Technical Approach
+- Single file rewrite of `src/pages/client/MatchDetail.tsx`
+- Extract helper components inline (ExchangeComparison, DetailedAnalysis, PropertyDeepDive, ScoreBreakdown)
+- All charts use Recharts (already imported)
+- Color palette: blue-600 primary, green-500 positive, red-500 negative, slate for neutral
+- Currency: `$X,XXX,XXX` no cents. Percentages: one decimal.
+- Missing data: show "—" or "Not provided", hide empty sections, charts only render with sufficient data
+- Responsive: comparison table stacks on mobile
+
+## Files Changed
+1. `src/pages/client/MatchDetail.tsx` — full rewrite (~800-900 lines)
+
+No database changes needed. No new dependencies.
 
