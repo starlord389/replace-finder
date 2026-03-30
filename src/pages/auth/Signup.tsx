@@ -22,7 +22,7 @@ export default function Signup() {
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: { full_name: fullName, phone },
         emailRedirectTo: window.location.origin,
       },
     });
