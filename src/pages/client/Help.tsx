@@ -13,7 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  HelpCircle, Mail, Phone, FileText, ArrowRight,
+  HelpCircle, Mail, FileText, ArrowRight,
   BarChart3, Search, Shield, Send, Clock, CheckCircle2,
   AlertCircle, Loader2, Settings, Handshake, ArrowLeftRight,
   MessageSquare,
@@ -495,10 +495,6 @@ export default function Help() {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4 text-primary" />
                     <span>support@1031exchangeup.com</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4 text-primary" />
-                    <span>(555) 123-4567</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 text-primary" />
