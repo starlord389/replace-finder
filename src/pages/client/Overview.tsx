@@ -1,47 +1,48 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Clock } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { REQUEST_STATUS_LABELS, REQUEST_STATUS_COLORS, ASSET_TYPE_LABELS } from "@/lib/constants";
+import { ArrowRight, AlertTriangle, Clock, TrendingUp, Users, CalendarClock } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 export default function Overview() {
   const { user } = useAuth();
   const [requests, setRequests] = useState<Tables<"exchange_requests">[]>([]);
-  const [statusHistory, setStatusHistory] = useState<Record<string, Tables<"exchange_request_status_history">[]>>({});
+  const [history, setHistory] = useState<(Tables<"exchange_request_status_history"> & { reqLabel?: string })[]>([]);
+  const [matchCount, setMatchCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: reqs } = await supabase
-        .from("exchange_requests")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+      const [reqRes, matchRes] = await Promise.all([
+        supabase.from("exchange_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("matched_property_access").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      ]);
 
-      const reqData = reqs ?? [];
-      setRequests(reqData);
+      const reqs = reqRes.data ?? [];
+      setRequests(reqs);
+      setMatchCount(matchRes.count ?? 0);
 
-      if (reqData.length > 0) {
-        const reqIds = reqData.map((r) => r.id);
-        const { data: histData } = await supabase
+      if (reqs.length > 0) {
+        const ids = reqs.map((r) => r.id);
+        const { data: hist } = await supabase
           .from("exchange_request_status_history")
           .select("*")
-          .in("request_id", reqIds)
-          .order("created_at", { ascending: true });
-        const histMap: Record<string, Tables<"exchange_request_status_history">[]> = {};
-        (histData ?? []).forEach((h) => {
-          if (!histMap[h.request_id]) histMap[h.request_id] = [];
-          histMap[h.request_id].push(h);
-        });
-        setStatusHistory(histMap);
+          .in("request_id", ids)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        const labelMap = Object.fromEntries(reqs.map((r) => [r.id, r.relinquished_city && r.relinquished_state ? `${r.relinquished_city}, ${r.relinquished_state}` : "Exchange"]));
+        setHistory((hist ?? []).map((h) => ({ ...h, reqLabel: labelMap[h.request_id] })));
       }
       setLoading(false);
     })();
   }, [user]);
-
-  const currency = (v: number | null) => (v ? `$${Number(v).toLocaleString()}` : "—");
 
   if (loading) {
     return (
@@ -51,100 +52,198 @@ export default function Overview() {
     );
   }
 
-  return (
-    <div className="max-w-4xl">
-      <h1 className="text-2xl font-bold text-foreground">Overview</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Track all your exchange requests and their current status.</p>
+  const currency = (v: number | null) => (v ? `$${Number(v).toLocaleString()}` : "—");
 
-      {requests.length === 0 ? (
-        <div className="mt-8 rounded-xl border bg-card p-12 text-center">
-          <p className="text-muted-foreground">No exchange requests yet.</p>
-        </div>
-      ) : (
-        <div className="mt-6 space-y-4">
-          {requests.map((req) => {
-            const timeline = statusHistory[req.id] ?? [];
-            return (
-              <div key={req.id} className="rounded-xl border bg-card p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {req.relinquished_city && req.relinquished_state
-                          ? `${req.relinquished_city}, ${req.relinquished_state}`
-                          : "Exchange Request"}
-                      </h3>
+  const activeCount = requests.filter((r) => r.status === "active" || r.status === "under_review").length;
+  const totalProceeds = requests.reduce((s, r) => s + (Number(r.exchange_proceeds) || 0), 0);
+
+  // Deadlines within 60 days
+  const now = new Date();
+  const deadlines: { label: string; type: string; date: Date; reqId: string }[] = [];
+  requests.forEach((r) => {
+    const label = r.relinquished_city && r.relinquished_state ? `${r.relinquished_city}, ${r.relinquished_state}` : "Exchange";
+    if (r.identification_deadline) {
+      const d = new Date(r.identification_deadline);
+      if (d > now && (d.getTime() - now.getTime()) / 86400000 <= 60) deadlines.push({ label, type: "ID Deadline", date: d, reqId: r.id });
+    }
+    if (r.close_deadline) {
+      const d = new Date(r.close_deadline);
+      if (d > now && (d.getTime() - now.getTime()) / 86400000 <= 60) deadlines.push({ label, type: "Close Deadline", date: d, reqId: r.id });
+    }
+  });
+  deadlines.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  const daysUntilNext = deadlines.length > 0 ? Math.ceil((deadlines[0].date.getTime() - now.getTime()) / 86400000) : null;
+
+  const daysUntil = (d: Date) => Math.ceil((d.getTime() - now.getTime()) / 86400000);
+
+  return (
+    <div className="max-w-5xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Overview</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Your exchange portfolio at a glance.</p>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Card>
+          <CardContent className="flex items-center gap-3 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Active Exchanges</p>
+              <p className="text-2xl font-bold text-foreground">{activeCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <span className="text-lg font-bold text-primary">$</span>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Total Proceeds</p>
+              <p className="text-2xl font-bold text-foreground">{totalProceeds ? `$${(totalProceeds / 1000).toFixed(0)}K` : "—"}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Matches Received</p>
+              <p className="text-2xl font-bold text-foreground">{matchCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <CalendarClock className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Next Deadline</p>
+              <p className="text-2xl font-bold text-foreground">{daysUntilNext !== null ? `${daysUntilNext}d` : "—"}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Upcoming Deadlines */}
+      {deadlines.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              Upcoming Deadlines
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {deadlines.map((dl, i) => {
+              const days = daysUntil(dl.date);
+              const urgency = days <= 14 ? "text-destructive bg-destructive/10" : days <= 30 ? "text-yellow-600 bg-yellow-50 dark:text-yellow-400 dark:bg-yellow-900/20" : "text-muted-foreground bg-muted";
+              return (
+                <div key={i} className="flex items-center justify-between rounded-lg border px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${urgency}`}>
+                      {days}d
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{dl.label}</p>
+                      <p className="text-xs text-muted-foreground">{dl.type}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{dl.date.toLocaleDateString()}</p>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* My Exchanges Table */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">My Exchanges</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {requests.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">No exchange requests yet.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Property</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead className="text-right">Est. Value</TableHead>
+                  <TableHead className="text-right">Proceeds</TableHead>
+                  <TableHead className="text-right">Date</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {requests.map((req) => (
+                  <TableRow key={req.id}>
+                    <TableCell className="font-medium">
+                      {req.relinquished_city && req.relinquished_state
+                        ? `${req.relinquished_city}, ${req.relinquished_state}`
+                        : "—"}
+                    </TableCell>
+                    <TableCell>
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${REQUEST_STATUS_COLORS[req.status]}`}>
                         {REQUEST_STATUS_LABELS[req.status]}
                       </span>
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {req.relinquished_asset_type ? ASSET_TYPE_LABELS[req.relinquished_asset_type] : ""}
-                      {req.relinquished_estimated_value ? ` · ${currency(req.relinquished_estimated_value)}` : ""}
-                    </p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{new Date(req.created_at).toLocaleDateString()}</p>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {req.relinquished_asset_type ? ASSET_TYPE_LABELS[req.relinquished_asset_type] : "—"}
+                    </TableCell>
+                    <TableCell className="text-right text-sm">{currency(req.relinquished_estimated_value)}</TableCell>
+                    <TableCell className="text-right text-sm">{currency(req.exchange_proceeds)}</TableCell>
+                    <TableCell className="text-right text-sm text-muted-foreground">
+                      {new Date(req.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link to={`/dashboard/exchanges/${req.id}`} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        View <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      {history.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {history.map((h) => (
+                <div key={h.id} className="flex items-center justify-between">
+                  <p className="text-sm text-foreground">
+                    <span className="font-medium">{h.reqLabel}</span>
+                    {" moved to "}
+                    <span className="font-medium">{REQUEST_STATUS_LABELS[h.new_status]}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">{new Date(h.created_at).toLocaleDateString()}</p>
                 </div>
-
-                {req.exchange_proceeds && (
-                  <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Proceeds</p>
-                      <p className="text-sm font-semibold text-foreground">{currency(req.exchange_proceeds)}</p>
-                    </div>
-                    {req.estimated_equity && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Equity</p>
-                        <p className="text-sm font-semibold text-foreground">{currency(req.estimated_equity)}</p>
-                      </div>
-                    )}
-                    {req.identification_deadline && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">ID Deadline</p>
-                        <p className="text-sm font-semibold text-foreground">{new Date(req.identification_deadline).toLocaleDateString()}</p>
-                      </div>
-                    )}
-                    {req.close_deadline && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Close Deadline</p>
-                        <p className="text-sm font-semibold text-foreground">{new Date(req.close_deadline).toLocaleDateString()}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {timeline.length > 0 && (
-                  <div className="mt-5 border-t pt-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Timeline</p>
-                    </div>
-                    <div className="flex items-center gap-1 overflow-x-auto">
-                      <TimelineStep label="Submitted" date={new Date(req.created_at).toLocaleDateString()} active />
-                      {timeline.map((h, i) => (
-                        <TimelineStep key={h.id} label={REQUEST_STATUS_LABELS[h.new_status]} date={new Date(h.created_at).toLocaleDateString()} active={i === timeline.length - 1} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
-  );
-}
-
-function TimelineStep({ label, date, active }: { label: string; date: string; active: boolean }) {
-  return (
-    <>
-      <div className="flex flex-col items-center min-w-[80px]">
-        <div className={`h-2.5 w-2.5 rounded-full ${active ? "bg-primary" : "bg-muted-foreground/30"}`} />
-        <p className={`mt-1.5 text-xs font-medium ${active ? "text-foreground" : "text-muted-foreground"}`}>{label}</p>
-        <p className="text-[10px] text-muted-foreground">{date}</p>
-      </div>
-      <div className="h-px w-6 bg-border last:hidden" />
-    </>
   );
 }
