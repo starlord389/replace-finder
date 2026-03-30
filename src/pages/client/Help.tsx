@@ -13,7 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  HelpCircle, Mail, Phone, FileText, ArrowRight,
+  HelpCircle, Mail, FileText, ArrowRight,
   BarChart3, Search, Shield, Send, Clock, CheckCircle2,
   AlertCircle, Loader2, Settings, Handshake, ArrowLeftRight,
   MessageSquare,
