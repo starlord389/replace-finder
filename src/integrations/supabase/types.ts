@@ -719,7 +719,12 @@ export type Database = {
         | "archived"
       match_result_status: "pending" | "approved" | "rejected"
       match_run_status: "pending" | "completed" | "failed"
-      request_status: "submitted" | "under_review" | "active" | "closed"
+      request_status:
+        | "submitted"
+        | "under_review"
+        | "active"
+        | "closed"
+        | "draft"
       strategy_type:
         | "core"
         | "core_plus"
@@ -878,7 +883,13 @@ export const Constants = {
       ],
       match_result_status: ["pending", "approved", "rejected"],
       match_run_status: ["pending", "completed", "failed"],
-      request_status: ["submitted", "under_review", "active", "closed"],
+      request_status: [
+        "submitted",
+        "under_review",
+        "active",
+        "closed",
+        "draft",
+      ],
       strategy_type: [
         "core",
         "core_plus",
