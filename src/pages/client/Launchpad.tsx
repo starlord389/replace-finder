@@ -3,57 +3,36 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeftRight, Handshake, Settings, Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { User, FileText, Search, BarChart3, HelpCircle, Check } from "lucide-react";
+
+interface StepState {
+  profileComplete: boolean;
+  hasExchange: boolean;
+  hasMatches: boolean;
+}
 
 export default function Launchpad() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({ exchanges: 0, pendingMatches: 0, nextDeadline: null as string | null });
+  const [state, setState] = useState<StepState>({ profileComplete: false, hasExchange: false, hasMatches: false });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      const [reqRes, matchRes] = await Promise.all([
-        supabase.from("exchange_requests").select("id, identification_deadline, status").eq("user_id", user.id),
-        supabase
-          .from("matched_property_access")
-          .select("id, match_result_id")
-          .eq("user_id", user.id),
-      ]);
-
-      const reqs = reqRes.data ?? [];
-      const activeExchanges = reqs.filter((r) => r.status !== "closed").length;
-
-      // Find nearest deadline
-      const deadlines = reqs
-        .map((r) => r.identification_deadline)
-        .filter(Boolean)
-        .map((d) => new Date(d!))
-        .filter((d) => d > new Date())
-        .sort((a, b) => a.getTime() - b.getTime());
-
-      // Get pending matches count
-      const matchData = matchRes.data ?? [];
-      let pendingCount = 0;
-      if (matchData.length > 0) {
-        const mrIds = matchData.map((m) => m.match_result_id).filter(Boolean);
-        if (mrIds.length > 0) {
-          const { data: mrData } = await supabase
-            .from("match_results")
-            .select("id, client_response")
-            .in("id", mrIds);
-          pendingCount = (mrData ?? []).filter((r) => !r.client_response).length;
-        }
-      }
-
-      setStats({
-        exchanges: activeExchanges,
-        pendingMatches: pendingCount,
-        nextDeadline: deadlines[0]?.toLocaleDateString() ?? null,
+    Promise.all([
+      supabase.from("profiles").select("full_name, phone").eq("id", user.id).single(),
+      supabase.from("exchange_requests").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("matched_property_access").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    ]).then(([profileRes, exchRes, matchRes]) => {
+      const p = profileRes.data;
+      setState({
+        profileComplete: !!(p?.full_name && p?.phone),
+        hasExchange: (exchRes.count ?? 0) > 0,
+        hasMatches: (matchRes.count ?? 0) > 0,
       });
       setLoading(false);
-    })();
+    });
   }, [user]);
 
   if (loading) {
@@ -64,80 +43,111 @@ export default function Launchpad() {
     );
   }
 
-  return (
-    <div className="max-w-4xl">
-      <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Here's a quick overview and actions to get started.
-      </p>
+  const steps = [
+    {
+      icon: User,
+      title: "Complete your profile",
+      description: "Add your name, phone, and company so we can reach you about your exchange.",
+      done: state.profileComplete,
+      cta: "Complete Profile",
+      to: "/dashboard/settings",
+    },
+    {
+      icon: FileText,
+      title: "Submit your first exchange request",
+      description: "Tell us about the property you're selling and what you're looking for.",
+      done: state.hasExchange,
+      cta: "Start Exchange",
+      to: "/dashboard/exchanges/new",
+    },
+    {
+      icon: Search,
+      title: "Review your matches",
+      description: "Once we find matching properties, you'll review and respond here.",
+      done: state.hasMatches,
+      cta: "View Matches",
+      to: "/dashboard/matches",
+    },
+    {
+      icon: BarChart3,
+      title: "Track your exchange progress",
+      description: "Monitor deadlines, status updates, and timelines from the Overview page.",
+      done: false,
+      cta: "Go to Overview",
+      to: "/dashboard/overview",
+    },
+    {
+      icon: HelpCircle,
+      title: "Need help?",
+      description: "Learn how 1031 exchanges work and get answers to common questions.",
+      done: false,
+      cta: "Visit Help",
+      to: "/dashboard/help",
+    },
+  ];
 
-      {/* Stats */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="flex items-center gap-3 p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <ArrowLeftRight className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{stats.exchanges}</p>
-              <p className="text-xs text-muted-foreground">Active Exchanges</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Handshake className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{stats.pendingMatches}</p>
-              <p className="text-xs text-muted-foreground">Pending Matches</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Clock className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-foreground">{stats.nextDeadline ?? "None"}</p>
-              <p className="text-xs text-muted-foreground">Next Deadline</p>
-            </div>
-          </CardContent>
-        </Card>
+  const completed = steps.filter((s) => s.done).length;
+  const progress = Math.round((completed / steps.length) * 100);
+
+  return (
+    <div className="mx-auto max-w-2xl py-4">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Let's get your 1031 exchange started
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Complete these steps to make the most of the platform.
+        </p>
       </div>
 
-      {/* Quick Actions */}
-      <h2 className="mt-8 text-lg font-semibold text-foreground">Quick Actions</h2>
-      <div className="mt-3 grid gap-4 sm:grid-cols-3">
-        <Link to="/dashboard/exchanges/new">
-          <Card className="group cursor-pointer transition-all hover:border-primary/30 hover:shadow-md">
-            <CardContent className="flex flex-col items-center gap-2 p-6 text-center">
-              <Plus className="h-8 w-8 text-primary" />
-              <p className="font-semibold text-foreground group-hover:text-primary transition-colors">Start New Exchange</p>
-              <p className="text-xs text-muted-foreground">Submit a 1031 exchange request</p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link to="/dashboard/matches">
-          <Card className="group cursor-pointer transition-all hover:border-primary/30 hover:shadow-md">
-            <CardContent className="flex flex-col items-center gap-2 p-6 text-center">
-              <Handshake className="h-8 w-8 text-primary" />
-              <p className="font-semibold text-foreground group-hover:text-primary transition-colors">Review Matches</p>
-              <p className="text-xs text-muted-foreground">View matched properties</p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link to="/dashboard/settings">
-          <Card className="group cursor-pointer transition-all hover:border-primary/30 hover:shadow-md">
-            <CardContent className="flex flex-col items-center gap-2 p-6 text-center">
-              <Settings className="h-8 w-8 text-primary" />
-              <p className="font-semibold text-foreground group-hover:text-primary transition-colors">Edit Profile</p>
-              <p className="text-xs text-muted-foreground">Update your settings</p>
-            </CardContent>
-          </Card>
-        </Link>
+      <Card>
+        <CardContent className="divide-y divide-border p-0">
+          {steps.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <div key={i} className="flex items-start gap-4 p-5">
+                <div
+                  className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                    step.done ? "bg-green-500/10" : "bg-primary/10"
+                  }`}
+                >
+                  {step.done ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Icon className="h-4 w-4 text-primary" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-semibold ${step.done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                    {step.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+                <div className="shrink-0 self-center">
+                  {step.done ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600">
+                      <Check className="h-3 w-3" /> Done
+                    </span>
+                  ) : (
+                    <Button asChild size="sm" variant="outline" className="text-xs">
+                      <Link to={step.to}>{step.cta}</Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      <div className="mt-6 space-y-2">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>Progress</span>
+          <span>{completed} of {steps.length} complete</span>
+        </div>
+        <Progress value={progress} className="h-2" />
       </div>
     </div>
   );
