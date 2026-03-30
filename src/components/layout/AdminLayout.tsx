@@ -8,6 +8,7 @@ const adminLinks = [
   { to: "/admin/requests", label: "Requests" },
   { to: "/admin/inventory", label: "Inventory" },
   { to: "/admin/matches", label: "Matches" },
+  { to: "/admin/support", label: "Support" },
 ];
 
 export default function AdminLayout() {

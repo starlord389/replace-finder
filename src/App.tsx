@@ -30,6 +30,7 @@ import InventoryList from "@/pages/admin/InventoryList";
 import InventoryDetail from "@/pages/admin/InventoryDetail";
 import MatchReview from "@/pages/admin/MatchReview";
 import MatchRunDetail from "@/pages/admin/MatchRunDetail";
+import SupportTickets from "@/pages/admin/SupportTickets";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
