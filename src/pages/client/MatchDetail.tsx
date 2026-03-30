@@ -161,10 +161,10 @@ export default function MatchDetail() {
   return (
     <div>
       <button
-        onClick={() => navigate("/dashboard")}
+        onClick={() => navigate("/dashboard/matches")}
         className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+        <ArrowLeft className="h-4 w-4" /> Back to Matches
       </button>
 
       {/* Hero */}
