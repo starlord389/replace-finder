@@ -1,81 +1,59 @@
 
 
-# Admin Request Detail: Complete Data View + Pipeline Status Management
+# Admin Panel CRM Overhaul: Sidebar Layout + Dashboard
 
 ## Overview
-Rewrite `src/pages/admin/RequestDetail.tsx` to display all 60+ client-submitted fields and replace the free-form status buttons with pipeline-restricted transitions that require confirmation dialogs with mandatory notes.
+Replace the admin top-tab navigation with a CRM-style sidebar layout matching the client side, and add an admin dashboard home page with KPIs and recent activity.
 
-## Part 1: Expanded Data Sections (Main Content Area)
+## Files to Create
 
-### Relinquished Property (expanded)
-Add: Property Name, Asset Subtype, Property Class, Investment Strategy (using STRATEGY_TYPE_LABELS). Keep existing address, type, value, description.
+### 1. `src/components/layout/AdminSidebar.tsx`
+Modeled after ClientSidebar.tsx. Same SidebarProvider/collapsible pattern.
+- Logo: "1031ExchangeUp" + small red "Admin" badge
+- "Operations" group: Dashboard (/admin, exact), Requests (/admin/requests), Inventory (/admin/inventory), Matches (/admin/matches)
+- "Management" group: Clients (/admin/clients), Support (/admin/support)
+- Footer: admin email, "Switch to Client View" link → /dashboard, Sign Out button
+- Same active/hover styles as ClientSidebar
 
-### New: Physical Description
-Show Units, Building SF, Land Area, Year Built, Num Buildings, Num Stories, Parking (spaces + type), Construction/Roof/HVAC Type, Property Condition, Zoning, Recent Renovations (text block), Amenities (pill badges). Only render fields with data.
+### 2. `src/components/layout/AdminHeader.tsx`
+Modeled after ClientHeader.tsx. SidebarTrigger left, avatar right, sticky h-14 with backdrop blur.
 
-### Exchange Economics (expanded)
-Add: Current NOI, Current Cap Rate (calculate from NOI/Value if missing), Current Occupancy Rate, Average Rent Per Unit.
+### 3. `src/pages/admin/AdminDashboard.tsx`
+The /admin home page with:
 
-### New: Income & Expenses
-Financial table format (label left, currency right-aligned) for: Gross Scheduled Income, Effective Gross Income, Real Estate Taxes, Insurance, Utilities, Management Fee, Maintenance/Repairs, CapEx Reserves, Other Expenses. Hide entire section if no data.
+**KPI Cards** (6 cards in responsive grid):
+- Active Requests (count where status='active', blue tint)
+- Pending Review (count where status in submitted/under_review, blue tint)
+- Properties in Inventory (count where status='active', green tint)
+- Matches Pending Review (match_results where status='pending', amber tint)
+- Client Responses (match_results approved + client_response not null, amber tint)
+- Awaiting Response (match_results approved + client_response null, amber tint)
 
-### New: Debt Details
-Current Loan Balance, Interest Rate, Loan Type, Maturity Date, Annual Debt Service, Prepayment Penalty (Yes/No + details). Hide section if no debt data.
+All fetched in parallel on mount.
 
-### Replacement Goals (expanded)
-Add: Target Occupancy Min, Target Year Built Min, Target Property Classes (badges), Open to DSTs/TICs (Yes/No badges), Urgency (using URGENCY_OPTIONS label lookup).
+**Quick Actions Row**: "Add Property" → /admin/inventory/new, "View Requests" → /admin/requests (outline buttons with icons)
 
-### Timing (unchanged)
+**Pipeline Summary**: Horizontal row showing count per request status (draft/submitted/under_review/active/closed), each clickable → /admin/requests?status=X
 
-### New: Client Photos
-Fetch `request_images` for the request. Display in responsive 3-column grid with rounded corners, hover scale effect. Section header shows count: "Client Photos (X)". Click opens image in a Dialog modal. Hide if no photos.
+**Recent Activity**: Simplified approach — fetch 10 most recent exchange_request_status_history entries joined with exchange_requests for context. Show as vertical timeline with icons, text, relative timestamps, and links to request detail.
 
-## Part 2: Pipeline-Restricted Status Management
+### 4. `src/pages/admin/ClientList.tsx`
+Placeholder page: heading "Clients", subheading "Client management coming soon.", empty state card.
 
-### Remove
-The current row of 4 status buttons below the header.
+## Files to Modify
 
-### Add: Status Actions Card (top of sidebar)
-New card showing only valid next-status buttons based on current status:
-- `draft` → "Mark as Submitted" (→ submitted)
-- `submitted` → "Begin Review" (→ under_review)
-- `under_review` → "Activate" (→ active) + "Close Request" (→ closed)
-- `active` → "Close Request" (→ closed)
-- `closed` → "Reopen" (→ active)
+### 5. `src/components/layout/AdminLayout.tsx`
+Full rewrite. Replace top-tab nav with SidebarProvider + AdminSidebar + AdminHeader + Outlet pattern (matching ClientLayout structure). Keep existing auth/role guard logic unchanged.
 
-Button styling: forward progression = primary/blue, close = outline/destructive-ish, reopen = outline/secondary.
+### 6. `src/App.tsx`
+Add two new admin routes (above existing ones inside the AdminLayout route):
+- `<Route path="/admin" element={<AdminDashboard />} />` (index/home)
+- `<Route path="/admin/clients" element={<ClientList />} />`
 
-### Confirmation Dialog (AlertDialog)
-Each button opens an AlertDialog with:
-- Title: "Change status to [label]?"
-- Required Textarea with contextual placeholder per action type
-- Confirm button disabled until note is entered
-- On confirm: update status, insert history row WITH note, refresh UI, toast
-
-### Status History Enhancement
-Show the `note` field for each history entry (if present) as italic text below the status change line.
-
-## Data Loading
-Add one fetch to `loadData()`:
-```
-supabase.from("request_images").select("*").eq("request_id", id).order("sort_order")
-```
-
-## New State
-- `photos: Tables<"request_images">[]`
-- `statusDialogOpen: boolean`
-- `pendingStatus: Enums<"request_status"> | null`
-- `statusNote: string`
-- `lightboxPhoto: string | null`
-
-## New Imports
-- `AlertDialog` components from shadcn
-- `Dialog` components for photo lightbox
-- `Badge` for amenities/property classes
-- Additional lucide icons as needed
-
-## Files Changed
-1. `src/pages/admin/RequestDetail.tsx` — full rewrite (~500-600 lines)
-
-No database changes. No new dependencies. No other files changed.
+## Technical Details
+- KPI queries use `supabase.from().select("id", { count: "exact", head: true })` for efficient counting
+- Pipeline counts come from the same requests fetch, grouped client-side
+- Activity feed uses status history joined with request data for context
+- Relative time formatting via a small helper (no library needed)
+- No database changes required
 
