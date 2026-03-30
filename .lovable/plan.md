@@ -1,51 +1,118 @@
 
 
-# Add Draft & Edit Capability to Exchange Requests
+# Part 1 of 3: Database Migrations + MLS-Level Intake Form
 
-## Overview
-Allow users to save exchange requests as drafts, edit drafts/submitted/active requests, and re-submit edited active requests (which resets status to "submitted").
+This is the first of three rounds. This round handles all database schema changes and rebuilds the exchange request intake form with MLS-level data collection across 8 steps.
 
 ## Database Changes
 
-### 1. Add "draft" to `request_status` enum
-Migration to add the new enum value:
+### Migration 1: Expand `exchange_requests` table
+Add columns for the new property detail fields:
+- `property_name` text — e.g. "Riverside Apartments"
+- `unit_suite` text
+- `county` text
+- `asset_subtype` text
+- `property_class` text — Class A/B/C/D
+- `building_square_footage` numeric
+- `land_area_acres` numeric
+- `num_buildings` integer
+- `num_stories` integer
+- `parking_spaces` integer
+- `parking_type` text
+- `zoning` text
+- `construction_type` text
+- `roof_type` text
+- `hvac_type` text
+- `property_condition` text
+- `recent_renovations` text
+- `amenities` text[]
+- `gross_scheduled_income` numeric
+- `effective_gross_income` numeric
+- `real_estate_taxes` numeric
+- `insurance` numeric
+- `utilities` numeric
+- `management_fee` numeric
+- `maintenance_repairs` numeric
+- `capex_reserves` numeric
+- `other_expenses` numeric
+- `average_rent_per_unit` numeric
+- `current_noi` numeric
+- `current_occupancy_rate` numeric
+- `current_cap_rate` numeric
+- `current_loan_balance` numeric
+- `current_interest_rate` numeric
+- `annual_debt_service` numeric
+- `loan_type` text
+- `loan_maturity_date` date
+- `has_prepayment_penalty` boolean default false
+- `prepayment_penalty_details` text
+
+### Migration 2: Expand `exchange_request_preferences` table
+- `target_occupancy_min` numeric
+- `target_year_built_min` integer
+- `target_property_classes` text[]
+- `open_to_dsts` boolean default false
+- `open_to_tics` boolean default false
+
+### Migration 3: Create `request_images` table + storage bucket
 ```sql
-ALTER TYPE public.request_status ADD VALUE 'draft';
+CREATE TABLE public.request_images (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id uuid NOT NULL REFERENCES exchange_requests(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
+  storage_path text NOT NULL,
+  file_name text,
+  sort_order integer DEFAULT 0,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.request_images ENABLE ROW LEVEL SECURITY;
+-- Users CRUD own, admins read all
+INSERT INTO storage.buckets (id, name, public) VALUES ('request-images', 'request-images', true);
+-- Storage RLS policies for authenticated uploads
 ```
+
+### Migration 4: Expand `inventory_properties` and `inventory_financials`
+Add columns to inventory tables (for Part 3 match detail page to use later):
+- `inventory_properties`: asset_subtype, property_class, land_area_acres, num_buildings, num_stories, parking_spaces, parking_type, zoning, construction_type, roof_type, hvac_type, property_condition, recent_renovations, amenities
+- `inventory_financials`: gross_scheduled_income, effective_gross_income, vacancy_rate, real_estate_taxes, insurance, utilities, management_fee, maintenance_repairs, capex_reserves, other_expenses, other_income, loan_amount, loan_rate, annual_debt_service, average_rent_per_unit
 
 ## Code Changes
 
-### 2. `src/lib/constants.ts` — Add draft status label/color
-- Add `draft: "Draft"` to `REQUEST_STATUS_LABELS`
-- Add `draft: "bg-muted text-muted-foreground"` to `REQUEST_STATUS_COLORS`
+### Rewrite intake form: `src/pages/client/NewRequest.tsx`
+- Expand `RequestFormData` interface with all new fields
+- Update `INITIAL` defaults
+- Change `STEPS` from 6 to 8: Location, Classification, Physical Description, Financials, Debt & Equity, Replacement Criteria, Photos, Review
+- Update `buildRequestPayload()` and `buildPrefsPayload()` to include all new columns
+- Add unsaved-changes browser prompt (`beforeunload` event)
+- Validate required fields per step before allowing Next
 
-### 3. `src/pages/client/NewRequest.tsx` — Support draft saving + editing existing requests
-- Accept an optional `requestId` prop (or read from URL param like `/dashboard/exchanges/:id/edit`)
-- On mount, if editing: fetch the existing `exchange_requests` + `exchange_request_preferences` data and populate the form
-- Add a "Save as Draft" button alongside the existing "Submit" button on every step
-- Save as Draft: upserts the request with `status: 'draft'`
-- Submit: upserts with `status: 'submitted'`
-- When editing an `active` request and re-submitting, set status back to `submitted`
-- For existing requests, use `update` instead of `insert`; for preferences use `upsert` (on `request_id`)
+### New step components (replace existing 6 with 8):
+1. **`StepLocation.tsx`** — Property name, address, unit/suite, city, state (dropdown), ZIP, county
+2. **`StepClassification.tsx`** — Asset type, asset subtype (dynamic based on type), strategy, property class dropdown
+3. **`StepPhysical.tsx`** — Units/SF (conditional on asset type), year built, building SF, lot size, buildings, stories, parking, zoning, construction, roof, HVAC, condition, renovations textarea, amenities multi-select chips
+4. **`StepFinancials.tsx`** — Estimated value, NOI, occupancy rate (required). Gross income, expenses breakdown, auto-calculate cap rate, avg rent per unit (optional with encouragement note)
+5. **`StepDebtEquity.tsx`** — Exchange proceeds, estimated equity (required). Loan balance, rate, type, maturity, debt service, prepayment penalty toggle + details (optional)
+6. **`StepCriteria.tsx`** — Target asset types, target states, price range (required). Metros tags input, target strategies, cap rate range, occupancy min, year built min, property classes, ID deadline, close deadline, DST/TIC toggles, urgency dropdown, additional notes
+7. **`StepPhotos.tsx`** — Drag-and-drop / click-to-browse image uploader. Shows thumbnail grid with remove buttons. Upload to `request-images` bucket. Max 20 photos. Drag-to-reorder for sort_order.
+8. **`StepReview.tsx`** — Full summary organized by section. Red indicators for missing required fields. Conditional submit button.
 
-### 4. `src/App.tsx` — Add edit route
-- Add route: `/dashboard/exchanges/:id/edit` → `NewRequest` component
+### Delete old step components:
+Remove StepRelinquished, StepEconomics, StepGoals, StepGeography, StepTiming (replaced by the 8 new ones)
 
-### 5. `src/pages/client/ExchangeDetail.tsx` — Add Edit button
-- Show an "Edit" button when status is `draft`, `submitted`, or `active`
-- Links to `/dashboard/exchanges/:id/edit`
-
-### 6. `src/pages/client/ExchangeList.tsx` — Show draft badge, edit action
-- Draft requests show a "Draft" badge (already handled by constants)
-- Clicking a draft row goes to the detail page (same as now); edit is available from there
-
-## Flow
-1. User starts new request → can "Save as Draft" at any step or "Submit" at step 6
-2. User opens a draft → clicks Edit → resumes the wizard with all fields pre-filled → submits
-3. User opens a submitted/active request → clicks Edit → modifies fields → re-submits → status resets to "submitted"
+### Update `src/lib/constants.ts`
+- Add `ASSET_SUBTYPE_MAP` — keyed by asset_type, value is array of subtype labels
+- Add `PROPERTY_CLASS_OPTIONS`, `PARKING_TYPE_OPTIONS`, `CONSTRUCTION_TYPE_OPTIONS`, etc.
+- Add `AMENITY_OPTIONS` array
+- Add `LOAN_TYPE_OPTIONS`
+- Add `URGENCY_OPTIONS`
 
 ## What stays the same
+- Routing (same `/dashboard/exchanges/new` and `/:id/edit` paths)
+- Draft/edit/re-submit logic already built
 - Admin pages untouched
-- RLS policies already allow users to update their own requests
-- No new tables needed
+- Match pages untouched (Parts 2 and 3 later)
+
+## What's next (future rounds)
+- **Part 2**: Zillow-style match cards on MatchList page
+- **Part 3**: Full investment analysis match detail page with charts
 
