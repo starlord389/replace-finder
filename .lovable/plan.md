@@ -1,58 +1,81 @@
 
 
-# Help Center Redesign — Two-Tab Layout with Enhanced Content
+# Admin Request Detail: Complete Data View + Pipeline Status Management
 
-## The UX Decision
+## Overview
+Rewrite `src/pages/admin/RequestDetail.tsx` to display all 60+ client-submitted fields and replace the free-form status buttons with pipeline-restricted transitions that require confirmation dialogs with mandatory notes.
 
-Split Help & Support into **two tabs on the same page** rather than two separate sidebar pages. This keeps navigation simple (one "Help" link in the sidebar) while cleanly separating informational content from support tickets. Users land on the Help tab by default (FAQs + guides), and switch to Support when they need to submit or track tickets.
+## Part 1: Expanded Data Sections (Main Content Area)
 
-This solves the conflict: FAQs are front-and-center for self-service, but the support form is one click away — not buried at the bottom.
+### Relinquished Property (expanded)
+Add: Property Name, Asset Subtype, Property Class, Investment Strategy (using STRATEGY_TYPE_LABELS). Keep existing address, type, value, description.
 
-## Page Layout
+### New: Physical Description
+Show Units, Building SF, Land Area, Year Built, Num Buildings, Num Stories, Parking (spaces + type), Construction/Roof/HVAC Type, Property Condition, Zoning, Recent Renovations (text block), Amenities (pill badges). Only render fields with data.
 
-### Top of Page
-- Page title: "Help Center"
-- Subtitle: "Find answers, learn the platform, or get in touch."
-- **Two tabs**: "Help & FAQs" (default) | "Support"
+### Exchange Economics (expanded)
+Add: Current NOI, Current Cap Rate (calculate from NOI/Value if missing), Current Occupancy Rate, Average Rent Per Unit.
 
-### Tab 1: Help & FAQs
+### New: Income & Expenses
+Financial table format (label left, currency right-aligned) for: Gross Scheduled Income, Effective Gross Income, Real Estate Taxes, Insurance, Utilities, Management Fee, Maintenance/Repairs, CapEx Reserves, Other Expenses. Hide entire section if no data.
 
-**Quick Links Row** (new) — 3-4 action cards at the top for the most common actions:
-- "Start an Exchange" → links to /dashboard/exchanges/new
-- "View Your Matches" → links to /dashboard/matches
-- "Contact Support" → switches to Support tab
-- "Update Profile" → links to /dashboard/settings
+### New: Debt Details
+Current Loan Balance, Interest Rate, Loan Type, Maturity Date, Annual Debt Service, Prepayment Penalty (Yes/No + details). Hide section if no debt data.
 
-**How-To Guides** — Same card grid as current, same expand/collapse behavior. Keep exact current UI style.
+### Replacement Goals (expanded)
+Add: Target Occupancy Min, Target Year Built Min, Target Property Classes (badges), Open to DSTs/TICs (Yes/No badges), Urgency (using URGENCY_OPTIONS label lookup).
 
-**FAQ Accordion** — Same categorized accordion cards as current. Add one more category:
+### Timing (unchanged)
 
-- **NEW category: "1031 Exchange Basics"** (5 items):
-  - What is a 1031 exchange?
-  - What are the key deadlines? (45-day identification, 180-day close)
-  - What qualifies as "like-kind" property?
-  - What is "boot" and how does it affect my taxes?
-  - Can I do a 1031 exchange on my primary residence?
+### New: Client Photos
+Fetch `request_images` for the request. Display in responsive 3-column grid with rounded corners, hover scale effect. Section header shows count: "Client Photos (X)". Click opens image in a Dialog modal. Hide if no photos.
 
-This helps users who are new to 1031 exchanges, not just new to the platform.
+## Part 2: Pipeline-Restricted Status Management
 
-**Platform Overview** (new, at bottom) — A brief "About the Platform" card explaining the end-to-end workflow in 4 steps: Submit Request → We Match → You Review → Close Exchange. Simple numbered list, no complexity.
+### Remove
+The current row of 4 status buttons below the header.
 
-### Tab 2: Support
+### Add: Status Actions Card (top of sidebar)
+New card showing only valid next-status buttons based on current status:
+- `draft` → "Mark as Submitted" (→ submitted)
+- `submitted` → "Begin Review" (→ under_review)
+- `under_review` → "Activate" (→ active) + "Close Request" (→ closed)
+- `active` → "Close Request" (→ closed)
+- `closed` → "Reopen" (→ active)
 
-**Support Form** — Same form as current (category, subject, message) but now at the **top** of the tab, which is what the user wanted. Keep exact current form UI.
+Button styling: forward progression = primary/blue, close = outline/destructive-ish, reopen = outline/secondary.
 
-**Contact Info Card** — Same "Other Ways to Reach Us" card alongside the form (email, phone, hours). Same layout.
+### Confirmation Dialog (AlertDialog)
+Each button opens an AlertDialog with:
+- Title: "Change status to [label]?"
+- Required Textarea with contextual placeholder per action type
+- Confirm button disabled until note is entered
+- On confirm: update status, insert history row WITH note, refresh UI, toast
 
-**Your Tickets** — Below the form, show the user's past tickets with status badges. Same current UI.
+### Status History Enhancement
+Show the `note` field for each history entry (if present) as italic text below the status change line.
 
-## Technical Approach
+## Data Loading
+Add one fetch to `loadData()`:
+```
+supabase.from("request_images").select("*").eq("request_id", id).order("sort_order")
+```
 
-Use shadcn `Tabs` component for the two-tab layout. All content stays in a single `Help.tsx` file — no new routes needed.
+## New State
+- `photos: Tables<"request_images">[]`
+- `statusDialogOpen: boolean`
+- `pendingStatus: Enums<"request_status"> | null`
+- `statusNote: string`
+- `lightboxPhoto: string | null`
+
+## New Imports
+- `AlertDialog` components from shadcn
+- `Dialog` components for photo lightbox
+- `Badge` for amenities/property classes
+- Additional lucide icons as needed
 
 ## Files Changed
+1. `src/pages/admin/RequestDetail.tsx` — full rewrite (~500-600 lines)
 
-1. **`src/pages/client/Help.tsx`** — Rewrite to use Tabs layout, add quick links row, add "1031 Exchange Basics" FAQ category, add platform overview card. Move support form + tickets into the Support tab.
-
-No database changes. No new routes. No sidebar changes.
+No database changes. No new dependencies. No other files changed.
 
