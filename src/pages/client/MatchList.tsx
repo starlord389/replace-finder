@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, TrendingUp, ChevronRight } from "lucide-react";
+import { Camera, Building2 } from "lucide-react";
 import { ASSET_TYPE_LABELS, STRATEGY_TYPE_LABELS } from "@/lib/constants";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -15,10 +15,52 @@ interface MatchedProperty {
   granted_at: string;
   inventory_properties: Tables<"inventory_properties"> | null;
   inventory_financials?: Tables<"inventory_financials"> | null;
+  inventory_images?: Tables<"inventory_images">[];
   match_result?: {
+    total_score: number;
     client_response: string | null;
     client_viewed_at: string | null;
   } | null;
+}
+
+function ScoreBadge({ score }: { score: number }) {
+  const rounded = Math.round(score);
+  const color =
+    rounded >= 85
+      ? "bg-green-600"
+      : rounded >= 70
+      ? "bg-amber-500"
+      : "bg-red-500";
+  return (
+    <div className={`absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full ${color} text-sm font-bold text-white shadow-lg`}>
+      {rounded}
+    </div>
+  );
+}
+
+function ResponseBadge({ matchResult }: { matchResult?: MatchedProperty["match_result"] }) {
+  if (!matchResult) return null;
+  if (matchResult.client_response === "interested") {
+    return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 text-[10px]">Interested</Badge>;
+  }
+  if (matchResult.client_response === "passed") {
+    return <Badge className="bg-muted text-muted-foreground hover:bg-muted text-[10px]">Passed</Badge>;
+  }
+  if (!matchResult.client_viewed_at) {
+    return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-[10px]">New</Badge>;
+  }
+  return null;
+}
+
+function currency(v: number | null) {
+  if (!v) return "—";
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K`;
+  return `$${v.toLocaleString()}`;
+}
+
+function currencyFull(v: number | null) {
+  return v ? `$${Number(v).toLocaleString()}` : "—";
 }
 
 export default function MatchList() {
@@ -41,30 +83,45 @@ export default function MatchList() {
         const propertyIds = matchData.map((m) => m.property_id).filter(Boolean);
         const matchResultIds = matchData.map((m) => m.match_result_id).filter(Boolean);
 
-        const [finsRes, mrRes] = await Promise.all([
+        const [finsRes, mrRes, imgRes] = await Promise.all([
           propertyIds.length > 0
             ? supabase.from("inventory_financials").select("*").in("property_id", propertyIds)
             : Promise.resolve({ data: [] }),
           matchResultIds.length > 0
-            ? supabase.from("match_results").select("id, client_response, client_viewed_at").in("id", matchResultIds)
+            ? supabase.from("match_results").select("id, total_score, client_response, client_viewed_at").in("id", matchResultIds)
+            : Promise.resolve({ data: [] }),
+          propertyIds.length > 0
+            ? supabase.from("inventory_images").select("*").in("property_id", propertyIds).order("sort_order")
             : Promise.resolve({ data: [] }),
         ]);
 
         const finMap = new Map((finsRes.data ?? []).map((f: any) => [f.property_id, f]));
         const mrMap = new Map((mrRes.data ?? []).map((r: any) => [r.id, r]));
+        const imgMap = new Map<string, any[]>();
+        (imgRes.data ?? []).forEach((img: any) => {
+          if (!imgMap.has(img.property_id)) imgMap.set(img.property_id, []);
+          imgMap.get(img.property_id)!.push(img);
+        });
 
         matchData.forEach((m) => {
           m.inventory_financials = finMap.get(m.property_id) ?? null;
           m.match_result = mrMap.get(m.match_result_id) ?? null;
+          m.inventory_images = imgMap.get(m.property_id) ?? [];
         });
       }
+
+      // Sort: unresponded first, then by date
+      matchData.sort((a, b) => {
+        const aResponded = !!a.match_result?.client_response;
+        const bResponded = !!b.match_result?.client_response;
+        if (aResponded !== bResponded) return aResponded ? 1 : -1;
+        return new Date(b.granted_at).getTime() - new Date(a.granted_at).getTime();
+      });
 
       setMatches(matchData);
       setLoading(false);
     })();
   }, [user]);
-
-  const currency = (v: number | null) => (v ? `$${Number(v).toLocaleString()}` : "—");
 
   if (loading) {
     return (
@@ -75,7 +132,7 @@ export default function MatchList() {
   }
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <h1 className="text-2xl font-bold text-foreground">Matches</h1>
       <p className="mt-1 text-sm text-muted-foreground">Properties matched to your exchange requests.</p>
 
@@ -84,63 +141,105 @@ export default function MatchList() {
           <p className="text-muted-foreground">No matched properties yet. Once your exchange requests are processed, matches will appear here.</p>
         </div>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {matches.map((match) => {
             const prop = match.inventory_properties;
             const fin = match.inventory_financials;
             const mr = match.match_result;
+            const imgs = match.inventory_images ?? [];
             if (!prop) return null;
+
+            const coverImg = imgs.length > 0
+              ? supabase.storage.from("inventory-images").getPublicUrl(imgs[0].storage_path).data.publicUrl
+              : null;
 
             return (
               <Link
                 key={match.id}
                 to={`/dashboard/matches/${match.id}`}
-                className="group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-md"
+                className="group overflow-hidden rounded-xl border bg-card transition-all hover:shadow-lg hover:-translate-y-0.5"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h5 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                        {prop.name || prop.address || "Property"}
-                      </h5>
-                      <MatchBadge matchResult={mr} />
+                {/* Photo */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                  {coverImg ? (
+                    <img
+                      src={coverImg}
+                      alt={prop.name || "Property"}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted to-muted/60">
+                      <Building2 className="h-12 w-12 text-muted-foreground/40" />
                     </div>
-                    <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5 shrink-0" />
-                      <span className="truncate">{[prop.city, prop.state].filter(Boolean).join(", ") || "—"}</span>
+                  )}
+
+                  {/* Match score */}
+                  {mr && <ScoreBadge score={mr.total_score} />}
+
+                  {/* Photo count */}
+                  {imgs.length > 0 && (
+                    <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-medium text-white">
+                      <Camera className="h-3 w-3" /> {imgs.length}
                     </div>
+                  )}
+
+                  {/* Response badge */}
+                  <div className="absolute left-2 top-2">
+                    <ResponseBadge matchResult={mr} />
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-1" />
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  {prop.asset_type && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Type</p>
-                      <p className="text-sm font-medium text-foreground">{ASSET_TYPE_LABELS[prop.asset_type] ?? prop.asset_type}</p>
-                    </div>
-                  )}
-                  {prop.strategy_type && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Strategy</p>
-                      <p className="text-sm font-medium text-foreground">{STRATEGY_TYPE_LABELS[prop.strategy_type] ?? prop.strategy_type}</p>
-                    </div>
-                  )}
-                  {fin?.asking_price && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Price</p>
-                      <p className="text-sm font-medium text-foreground">{currency(fin.asking_price)}</p>
-                    </div>
-                  )}
-                  {fin?.cap_rate && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Cap Rate</p>
-                      <p className="text-sm font-medium text-foreground flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3" />
-                        {Number(fin.cap_rate).toFixed(1)}%
-                      </p>
-                    </div>
-                  )}
+                {/* Content */}
+                <div className="p-4">
+                  {/* Price */}
+                  <p className="text-xl font-bold text-foreground">
+                    {fin?.asking_price ? currencyFull(fin.asking_price) : "Price TBD"}
+                  </p>
+
+                  {/* Metrics row */}
+                  <div className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
+                    {fin?.cap_rate && (
+                      <span>{Number(fin.cap_rate).toFixed(1)}% cap</span>
+                    )}
+                    {fin?.cap_rate && fin?.noi && <span className="text-border">·</span>}
+                    {fin?.noi && (
+                      <span>{currency(fin.noi)} NOI</span>
+                    )}
+                    {(fin?.cap_rate || fin?.noi) && (prop.units || prop.square_footage) && <span className="text-border">·</span>}
+                    {prop.units ? (
+                      <span>{prop.units} units</span>
+                    ) : prop.square_footage ? (
+                      <span>{Number(prop.square_footage).toLocaleString()} SF</span>
+                    ) : null}
+                    {(prop.units || prop.square_footage) && prop.year_built && <span className="text-border">·</span>}
+                    {prop.year_built && (
+                      <span>Built {prop.year_built}</span>
+                    )}
+                  </div>
+
+                  {/* Name */}
+                  <p className="mt-2 font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                    {prop.name || prop.address || "Property"}
+                  </p>
+
+                  {/* Location */}
+                  <p className="mt-0.5 text-sm text-muted-foreground truncate">
+                    {[prop.city, prop.state].filter(Boolean).join(", ") || "—"}
+                  </p>
+
+                  {/* Badges */}
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {prop.asset_type && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                        {ASSET_TYPE_LABELS[prop.asset_type]}
+                      </span>
+                    )}
+                    {prop.strategy_type && (
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">
+                        {STRATEGY_TYPE_LABELS[prop.strategy_type]}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </Link>
             );
@@ -149,18 +248,4 @@ export default function MatchList() {
       )}
     </div>
   );
-}
-
-function MatchBadge({ matchResult }: { matchResult?: { client_response: string | null; client_viewed_at: string | null } | null }) {
-  if (!matchResult) return null;
-  if (matchResult.client_response === "interested") {
-    return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 text-[10px] px-1.5 py-0">Interested</Badge>;
-  }
-  if (matchResult.client_response === "passed") {
-    return <Badge className="bg-muted text-muted-foreground hover:bg-muted text-[10px] px-1.5 py-0">Passed</Badge>;
-  }
-  if (!matchResult.client_viewed_at) {
-    return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-[10px] px-1.5 py-0">New</Badge>;
-  }
-  return <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 text-[10px] px-1.5 py-0">Awaiting response</Badge>;
 }
