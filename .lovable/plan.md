@@ -1,22 +1,40 @@
 
 
-# Fix: useAuth Race Condition + Remove Debug Page
+# Add Phone Number to Signup + Update Trigger
 
-## Problem
-`useAuth` sets `loading = false` after session resolves, but roles are fetched asynchronously after that — creating a window where `AdminLayout` sees `loading=false` + empty `roles` and redirects.
+## What
+Add a required phone number field to the signup form and store it in the `profiles` table. Update the `handle_new_user` trigger to pull phone from user metadata. The `profiles.phone` column already exists — no schema change needed.
 
 ## Changes
 
-### 1. `src/hooks/useAuth.tsx` — Split loading into `authLoading` + `rolesLoading`
-- Add `authLoading` (default `true`) and `rolesLoading` (default `true`) states
-- Remove the single `loading` state, replace with `const loading = authLoading || rolesLoading`
-- In `onAuthStateChange`: set `authLoading = false` after setting session/user. If no user, also set `rolesLoading = false`. If user exists, fetch roles then set `rolesLoading = false`.
-- In `getSession().then(...)`: same pattern — set `authLoading = false`, and `rolesLoading = false` after roles query completes (or immediately if no user).
-- Remove the `setTimeout` wrapper around the role fetch in `onAuthStateChange` — fetch directly and set `rolesLoading = false` in the `.then()`.
+### 1. `src/pages/auth/Signup.tsx` — Add phone input
+- Add `phone` state variable
+- Include phone in `supabase.auth.signUp` options data: `{ full_name: fullName, phone }`
+- Add a phone input field (type `tel`, required, placeholder `(555) 123-4567`) between Full Name and Email
 
-### 2. Delete `src/pages/DebugRole.tsx`
+### 2. Database migration — Update `handle_new_user()` trigger function
+Update the function to also read `phone` from `raw_user_meta_data` and insert it into the profiles table:
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, phone)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    COALESCE(NEW.raw_user_meta_data->>'phone', '')
+  );
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (NEW.id, 'client');
+  RETURN NEW;
+END;
+$$;
+```
 
-### 3. `src/App.tsx` — Remove debug route
-- Remove the `import DebugRole` line
-- Remove `<Route path="/debug-role" element={<DebugRole />} />`
+No other changes needed — the Profile page already has phone editing, and the column exists in the database.
 
