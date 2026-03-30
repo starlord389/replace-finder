@@ -1,103 +1,58 @@
 
 
-# Expanded Help & Support Page + Support Ticket System
+# Help Center Redesign — Two-Tab Layout with Enhanced Content
 
-## Overview
-Two changes: (1) expand the Help page with comprehensive FAQs, how-tos, and platform explainers using an accordion layout, plus a support contact form that creates tickets in the database, and (2) add an admin Support Tickets page to view and manage submitted tickets.
+## The UX Decision
 
-## Database Changes
+Split Help & Support into **two tabs on the same page** rather than two separate sidebar pages. This keeps navigation simple (one "Help" link in the sidebar) while cleanly separating informational content from support tickets. Users land on the Help tab by default (FAQs + guides), and switch to Support when they need to submit or track tickets.
 
-### Migration: Create `support_tickets` table
-```sql
-CREATE TYPE public.ticket_status AS ENUM ('open', 'in_progress', 'resolved', 'closed');
+This solves the conflict: FAQs are front-and-center for self-service, but the support form is one click away — not buried at the bottom.
 
-CREATE TABLE public.support_tickets (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  subject text NOT NULL,
-  message text NOT NULL,
-  category text NOT NULL DEFAULT 'general',
-  status ticket_status NOT NULL DEFAULT 'open',
-  admin_notes text,
-  resolved_by uuid,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
+## Page Layout
 
-ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
+### Top of Page
+- Page title: "Help Center"
+- Subtitle: "Find answers, learn the platform, or get in touch."
+- **Two tabs**: "Help & FAQs" (default) | "Support"
 
--- Users can insert their own tickets
-CREATE POLICY "Users can insert own tickets" ON public.support_tickets
-  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+### Tab 1: Help & FAQs
 
--- Users can view their own tickets
-CREATE POLICY "Users can view own tickets" ON public.support_tickets
-  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+**Quick Links Row** (new) — 3-4 action cards at the top for the most common actions:
+- "Start an Exchange" → links to /dashboard/exchanges/new
+- "View Your Matches" → links to /dashboard/matches
+- "Contact Support" → switches to Support tab
+- "Update Profile" → links to /dashboard/settings
 
--- Admins full access
-CREATE POLICY "Admins can view all tickets" ON public.support_tickets
-  FOR SELECT TO authenticated USING (has_role(auth.uid(), 'admin'));
+**How-To Guides** — Same card grid as current, same expand/collapse behavior. Keep exact current UI style.
 
-CREATE POLICY "Admins can update tickets" ON public.support_tickets
-  FOR UPDATE TO authenticated USING (has_role(auth.uid(), 'admin'));
+**FAQ Accordion** — Same categorized accordion cards as current. Add one more category:
 
--- Updated_at trigger
-CREATE TRIGGER update_support_tickets_updated_at
-  BEFORE UPDATE ON public.support_tickets
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-```
+- **NEW category: "1031 Exchange Basics"** (5 items):
+  - What is a 1031 exchange?
+  - What are the key deadlines? (45-day identification, 180-day close)
+  - What qualifies as "like-kind" property?
+  - What is "boot" and how does it affect my taxes?
+  - Can I do a 1031 exchange on my primary residence?
 
-## File Changes
+This helps users who are new to 1031 exchanges, not just new to the platform.
 
-### 1. `src/pages/client/Help.tsx` — Full rewrite
+**Platform Overview** (new, at bottom) — A brief "About the Platform" card explaining the end-to-end workflow in 4 steps: Submit Request → We Match → You Review → Close Exchange. Simple numbered list, no complexity.
 
-Restructure into sections:
+### Tab 2: Support
 
-**Section A: FAQ Accordion** — Organized by category using shadcn Accordion:
-- **Getting Started** (4-5 items): What is 1031ExchangeUp, how to create account, how to submit first request, what info do I need, how long does review take
-- **Exchange Requests** (4-5 items): Can I have multiple requests, can I edit after submitting, what statuses mean, what happens when request expires, how are deadlines tracked
-- **Matching & Properties** (4-5 items): How matching works, what the scores mean, why some matches score higher, how often is matching run, what if no matches found
-- **Reviewing Matches** (3-4 items): What happens after expressing interest, can I pass and change mind later, who do I contact about a property, how to read the financial analysis
-- **Account & Privacy** (3-4 items): Is my data confidential, how to update profile, can I delete account, who sees my information
+**Support Form** — Same form as current (category, subject, message) but now at the **top** of the tab, which is what the user wanted. Keep exact current form UI.
 
-**Section B: How-To Guides** — Card grid with brief guides:
-- How to submit your first exchange request
-- How to review and respond to matches
-- Understanding your match scores
-- Reading the financial analysis page
+**Contact Info Card** — Same "Other Ways to Reach Us" card alongside the form (email, phone, hours). Same layout.
 
-Each card links to the relevant page or shows inline content.
+**Your Tickets** — Below the form, show the user's past tickets with status badges. Same current UI.
 
-**Section C: Contact & Support Form**
-- Category dropdown (General Question, Technical Issue, Match Question, Account Issue, Other)
-- Subject text input
-- Message textarea
-- Submit button → inserts into `support_tickets` with user_id
-- Success toast on submit
-- Below the form: show list of user's past tickets with status badges
+## Technical Approach
 
-### 2. `src/pages/admin/SupportTickets.tsx` — New page
+Use shadcn `Tabs` component for the two-tab layout. All content stays in a single `Help.tsx` file — no new routes needed.
 
-Admin view of all support tickets:
-- Table with columns: Date, User Email (fetch from profiles), Category, Subject, Status, Actions
-- Filter by status (open/in_progress/resolved/closed)
-- Click row to expand inline or open detail:
-  - View full message
-  - Update status dropdown
-  - Admin notes textarea (save on blur/button)
-- Badge colors: open=blue, in_progress=amber, resolved=green, closed=gray
+## Files Changed
 
-### 3. `src/components/layout/AdminLayout.tsx` — Add nav link
-Add `{ to: "/admin/support", label: "Support" }` to `adminLinks` array.
+1. **`src/pages/client/Help.tsx`** — Rewrite to use Tabs layout, add quick links row, add "1031 Exchange Basics" FAQ category, add platform overview card. Move support form + tickets into the Support tab.
 
-### 4. `src/App.tsx` — Add routes
-- Import `SupportTickets` from `@/pages/admin/SupportTickets`
-- Add route: `<Route path="/admin/support" element={<SupportTickets />} />`
-
-## Technical Details
-- FAQ content is hardcoded (no DB needed for static content)
-- Support form uses react-hook-form + zod validation
-- Tickets query uses `supabase.from('support_tickets')` with appropriate filters
-- Admin page joins with `profiles` table to show user email
-- All existing UI patterns maintained (shadcn Card, Badge, Table, Accordion)
+No database changes. No new routes. No sidebar changes.
 
