@@ -426,7 +426,10 @@ export default function AgentMatchDetail() {
               {BOOT_STATUS_LABELS[match.boot_status] || match.boot_status}
               {match.estimated_total_boot ? ` · ${fmt(match.estimated_total_boot)}` : ""}
             </Badge>
-            <Button onClick={handleStartExchange} className="gap-1.5">Start Exchange</Button>
+            {connectionState === "none" && <Button onClick={handleStartExchange} className="gap-1.5">Start Exchange</Button>}
+            {connectionState === "pending" && <Button variant="secondary" disabled className="gap-1.5">Request Sent — Awaiting Response</Button>}
+            {connectionState === "accepted" && <Button onClick={() => navigate(`/agent/connections/${connectionId}`)} className="gap-1.5 bg-green-600 hover:bg-green-700">Connected — View Connection</Button>}
+            {connectionState === "declined" && <Button onClick={handleStartExchange} className="gap-1.5">Request Again</Button>}
           </div>
         </div>
       </div>
