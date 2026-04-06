@@ -5,7 +5,7 @@ import ClientSidebar from "./ClientSidebar";
 import ClientHeader from "./ClientHeader";
 
 export default function ClientLayout() {
-  const { user, loading } = useAuth();
+  const { user, loading, profileRole } = useAuth();
 
   if (loading) {
     return (
@@ -17,6 +17,10 @@ export default function ClientLayout() {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (profileRole === "agent") {
+    return <Navigate to="/agent" replace />;
   }
 
   return (
