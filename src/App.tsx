@@ -43,6 +43,7 @@ import AgentExchangeDetail from "@/pages/agent/AgentExchangeDetail";
 import AgentMatches from "@/pages/agent/AgentMatches";
 import AgentMatchDetail from "@/pages/agent/AgentMatchDetail";
 import AgentConnections from "@/pages/agent/AgentConnections";
+import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
 import AgentIdentifications from "@/pages/agent/AgentIdentifications";
 import AgentMessages from "@/pages/agent/AgentMessages";
 import AgentSettings from "@/pages/agent/AgentSettings";
