@@ -14,7 +14,7 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  ArrowLeft, Building2, User, Mail, Phone, Send, CalendarIcon, AlertTriangle,
+  ArrowLeft, User, Mail, Phone, Send, CalendarIcon, AlertTriangle,
 } from "lucide-react";
 import { BOOT_STATUS_LABELS, BOOT_STATUS_COLORS } from "@/lib/constants";
 import { format } from "date-fns";
