@@ -41,6 +41,7 @@ import AgentExchanges from "@/pages/agent/AgentExchanges";
 import NewExchange from "@/pages/agent/NewExchange";
 import AgentExchangeDetail from "@/pages/agent/AgentExchangeDetail";
 import AgentMatches from "@/pages/agent/AgentMatches";
+import AgentMatchDetail from "@/pages/agent/AgentMatchDetail";
 import AgentConnections from "@/pages/agent/AgentConnections";
 import AgentIdentifications from "@/pages/agent/AgentIdentifications";
 import AgentMessages from "@/pages/agent/AgentMessages";
