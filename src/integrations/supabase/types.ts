@@ -94,6 +94,87 @@ export type Database = {
         }
         Relationships: []
       }
+      dst_properties: {
+        Row: {
+          address: string | null
+          asking_price: number | null
+          asset_type: Database["public"]["Enums"]["asset_type"] | null
+          cap_rate: number | null
+          city: string | null
+          created_at: string
+          debt_ratio: number | null
+          description: string | null
+          documents_url: string | null
+          id: string
+          minimum_investment: number | null
+          noi: number | null
+          occupancy_rate: number | null
+          offering_status: string
+          property_name: string
+          sponsor_name: string
+          square_footage: number | null
+          state: string | null
+          status: string
+          strategy_type: Database["public"]["Enums"]["strategy_type"] | null
+          target_return: number | null
+          units: number | null
+          updated_at: string
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          asking_price?: number | null
+          asset_type?: Database["public"]["Enums"]["asset_type"] | null
+          cap_rate?: number | null
+          city?: string | null
+          created_at?: string
+          debt_ratio?: number | null
+          description?: string | null
+          documents_url?: string | null
+          id?: string
+          minimum_investment?: number | null
+          noi?: number | null
+          occupancy_rate?: number | null
+          offering_status?: string
+          property_name: string
+          sponsor_name: string
+          square_footage?: number | null
+          state?: string | null
+          status?: string
+          strategy_type?: Database["public"]["Enums"]["strategy_type"] | null
+          target_return?: number | null
+          units?: number | null
+          updated_at?: string
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          asking_price?: number | null
+          asset_type?: Database["public"]["Enums"]["asset_type"] | null
+          cap_rate?: number | null
+          city?: string | null
+          created_at?: string
+          debt_ratio?: number | null
+          description?: string | null
+          documents_url?: string | null
+          id?: string
+          minimum_investment?: number | null
+          noi?: number | null
+          occupancy_rate?: number | null
+          offering_status?: string
+          property_name?: string
+          sponsor_name?: string
+          square_footage?: number | null
+          state?: string | null
+          status?: string
+          strategy_type?: Database["public"]["Enums"]["strategy_type"] | null
+          target_return?: number | null
+          units?: number | null
+          updated_at?: string
+          zip?: string | null
+        }
+        Relationships: []
+      }
       exchange_connections: {
         Row: {
           accepted_at: string | null
@@ -501,6 +582,44 @@ export type Database = {
           zoning?: string | null
         }
         Relationships: []
+      }
+      exchange_timeline: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          description: string
+          event_type: string
+          exchange_id: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          description: string
+          event_type: string
+          exchange_id: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          description?: string
+          event_type?: string
+          exchange_id?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exchange_timeline_exchange_id_fkey"
+            columns: ["exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       exchanges: {
         Row: {
@@ -1229,6 +1348,77 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      messages: {
+        Row: {
+          connection_id: string
+          content: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          connection_id: string
+          content: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          connection_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link_to: string | null
+          message: string
+          metadata: Json | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link_to?: string | null
+          message: string
+          metadata?: Json | null
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link_to?: string | null
+          message?: string
+          metadata?: Json | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       pledged_properties: {
         Row: {
