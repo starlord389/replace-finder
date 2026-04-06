@@ -96,6 +96,14 @@ export default function AgentMatchDetail() {
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [detailedOpen, setDetailedOpen] = useState(false);
 
+  // Connection state
+  const [connectionState, setConnectionState] = useState<"none" | "pending" | "accepted" | "declined">("none");
+  const [connectionId, setConnectionId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [feeAgreed, setFeeAgreed] = useState(false);
+  const [connectionMessage, setConnectionMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   const viewTracked = useRef(false);
   const headerRef = useRef<HTMLDivElement>(null);
 
