@@ -343,7 +343,10 @@ export default function AgentMatchDetail() {
                 {BOOT_STATUS_LABELS[match.boot_status] || match.boot_status}
               </Badge>
             </div>
-            <Button onClick={handleStartExchange} size="sm">Start Exchange</Button>
+            {connectionState === "none" && <Button onClick={handleStartExchange} size="sm">Start Exchange</Button>}
+            {connectionState === "pending" && <Button size="sm" variant="secondary" disabled>Request Sent</Button>}
+            {connectionState === "accepted" && <Button size="sm" variant="default" onClick={() => navigate(`/agent/connections/${connectionId}`)}>Connected — View</Button>}
+            {connectionState === "declined" && <Button size="sm" onClick={handleStartExchange}>Request Again</Button>}
           </div>
         </div>
       )}
