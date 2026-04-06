@@ -82,10 +82,10 @@ export default function AgentDashboard() {
   }
 
   const kpis = [
-    { label: "Active Clients", value: clientCount, icon: Users },
-    { label: "Active Exchanges", value: exchangeCount, icon: ArrowLeftRight },
-    { label: "Total Matches", value: matchCount, icon: Handshake },
-    { label: "Pending Connections", value: connectionCount, icon: Link2 },
+    { label: "Active Clients", value: clientCount, icon: Users, link: "/agent/clients" },
+    { label: "Active Exchanges", value: exchangeCount, icon: ArrowLeftRight, link: "/agent/exchanges" },
+    { label: "Total Matches", value: matchCount, icon: Handshake, link: "/agent/matches" },
+    { label: "Pending Connections", value: connectionCount, icon: Link2, link: "/agent/connections" },
   ];
 
   const deadlineColor = (days: number) => {
