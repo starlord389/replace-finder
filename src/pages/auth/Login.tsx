@@ -31,7 +31,8 @@ export default function Login() {
         .select("role")
         .eq("id", data.user.id)
         .single();
-      if (profile?.role === "admin") target = "/admin";
+      if (profile?.role === "agent") target = "/agent";
+      else if (profile?.role === "admin") target = "/admin";
     }
 
     setLoading(false);

@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import PublicLayout from "@/components/layout/PublicLayout";
 import ClientLayout from "@/components/layout/ClientLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
+import AgentLayout from "@/components/layout/AgentLayout";
 
 import Index from "@/pages/Index";
 import HowItWorks from "@/pages/HowItWorks";
@@ -33,6 +34,16 @@ import MatchReview from "@/pages/admin/MatchReview";
 import MatchRunDetail from "@/pages/admin/MatchRunDetail";
 import SupportTickets from "@/pages/admin/SupportTickets";
 import ClientList from "@/pages/admin/ClientList";
+import AgentDashboard from "@/pages/agent/AgentDashboard";
+import AgentClients from "@/pages/agent/AgentClients";
+import AgentClientDetail from "@/pages/agent/AgentClientDetail";
+import AgentExchanges from "@/pages/agent/AgentExchanges";
+import AgentMatches from "@/pages/agent/AgentMatches";
+import AgentConnections from "@/pages/agent/AgentConnections";
+import AgentIdentifications from "@/pages/agent/AgentIdentifications";
+import AgentMessages from "@/pages/agent/AgentMessages";
+import AgentSettings from "@/pages/agent/AgentSettings";
+import AgentHelp from "@/pages/agent/AgentHelp";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +64,21 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+            </Route>
+
+            {/* Agent (agent role required) */}
+            <Route element={<AgentLayout />}>
+              <Route path="/agent" element={<AgentDashboard />} />
+              <Route path="/agent/clients" element={<AgentClients />} />
+              <Route path="/agent/clients/new" element={<AgentClientDetail />} />
+              <Route path="/agent/clients/:id" element={<AgentClientDetail />} />
+              <Route path="/agent/exchanges" element={<AgentExchanges />} />
+              <Route path="/agent/matches" element={<AgentMatches />} />
+              <Route path="/agent/connections" element={<AgentConnections />} />
+              <Route path="/agent/identifications" element={<AgentIdentifications />} />
+              <Route path="/agent/messages" element={<AgentMessages />} />
+              <Route path="/agent/settings" element={<AgentSettings />} />
+              <Route path="/agent/help" element={<AgentHelp />} />
             </Route>
 
             {/* Client (auth required) */}
