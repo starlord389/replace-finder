@@ -1,80 +1,125 @@
 
 
-# Phase 2B: Exchange Wizard — Pledge Property + Economics + Criteria
+# Phase 2C: Automatic Matching Engine
 
 ## Overview
-Build a 5-step exchange creation wizard, the exchange list page, and the exchange detail page. No database changes needed.
-
-## Save Order (critical)
-The `replacement_criteria.exchange_id` is NOT NULL, so the order must be:
-1. INSERT `pledged_properties` (no exchange_id yet) → get property_id
-2. INSERT `property_financials` (with property_id)
-3. INSERT `exchanges` (with relinquished_property_id = property_id, no criteria_id yet) → get exchange_id
-4. INSERT `replacement_criteria` (with exchange_id) → get criteria_id
-5. UPDATE `exchanges` SET criteria_id, UPDATE `pledged_properties` SET exchange_id
-6. If activating: UPDATE `pledged_properties` SET status = 'active', listed_at = now()
-7. INSERT `exchange_timeline` entries
-
-The auto-status trigger will fire on the criteria_id update and transition status to 'active'.
+Create a new edge function `run-auto-matching` that performs bidirectional 8-dimension scoring with boot calculations when an exchange is activated. Call it from the frontend after activation. No database migration needed — the `matches_unique_pair` constraint already exists.
 
 ## Files to Create
 
-### 1. `src/lib/exchangeWizardTypes.ts` (~80 lines)
-TypeScript interfaces for wizard state across all 5 steps: `WizardState`, `PropertyData`, `FinancialsData`, `CriteriaData`. Keeps the wizard component clean.
+### `supabase/functions/run-auto-matching/index.ts` (~350 lines)
 
-### 2. `src/pages/agent/NewExchange.tsx` (~200 lines)
-Main wizard container. Manages `step` (1-5) state and a `WizardState` object. Renders step progress bar at top (5 labeled steps, clickable for completed steps only, checkmarks on completed). Renders the active step component, passing data + onChange + onNext/onBack.
+A new Deno edge function following the same pattern as the existing `run-matching/index.ts`.
 
-Submit logic in this file: orchestrates the multi-table insert sequence described above.
+**Setup & Auth:**
+- CORS headers (same pattern as existing function)
+- Verify Authorization header, extract userId via `getClaims()`
+- Use `SUPABASE_SERVICE_ROLE_KEY` client for all DB operations (needs cross-agent reads)
+- Accept JSON body: `{ exchange_id: string, property_id: string }`
+- Do NOT require admin role — any authenticated agent can trigger for their own exchange
 
-### 3. `src/components/exchange/StepSelectClient.tsx` (~120 lines)
-Fetches agent_clients. Renders selectable cards with radio-style selection. Includes inline "Add New Client" form (name, email, phone, company) that inserts into agent_clients and auto-selects.
+**Data Loading:**
+- Fetch the activated exchange by `exchange_id`
+- Fetch its `replacement_criteria` by `exchange.criteria_id`
+- Fetch the pledged property by `property_id`
+- Fetch that property's `property_financials`
 
-### 4. `src/components/exchange/StepPropertyDetails.tsx` (~250 lines)
-Location + Classification sections always expanded. Physical Description expanded with required fields first. "Additional Details" collapsible (Collapsible component) for parking, construction, roof, HVAC, zoning, amenities, renovations, description. Reuses all constants from `constants.ts`.
+**Bidirectional Matching:**
 
-### 5. `src/components/exchange/StepFinancials.tsx` (~280 lines)
-Three sections:
-- **Property Financials**: asking price, NOI, occupancy (required); cap rate auto-calc; collapsible "Detailed Expenses"
-- **Debt Position**: loan balance, rate, type, maturity, ADS, prepayment toggle
-- **Exchange Economics**: proceeds, equity (required); basis, gain (auto-calc), tax liability (auto-calc: gain * 0.30); sale close date (date picker)
+1. **Buyer-side** (find properties FOR this exchange):
+   - Fetch all `pledged_properties` where `status = 'active'` AND `agent_id != userId`
+   - For each, fetch its `property_financials`
+   - Score each property against this exchange's `replacement_criteria`
+   - Insert matches where `total_score >= 65`
 
-Currency inputs styled with "$" prefix, percentage with "%" suffix.
+2. **Seller-side** (find exchanges that want THIS property):
+   - Fetch all `exchanges` where `status IN ('active','in_identification','in_closing')` AND `agent_id != userId`
+   - For each, fetch its `replacement_criteria`
+   - Score this property against each exchange's criteria
+   - Insert matches where `total_score >= 65`
 
-### 6. `src/components/exchange/StepCriteria.tsx` (~220 lines)
-Target asset types + states as multi-select chip grids. Price range min/max. Urgency dropdown. Optional: metros tag input, strategies, property classes, cap rate range, occupancy min, year built min, units range, SF range, DST/TIC toggles, must_replace_debt toggle (default on, auto-fills min_debt from Step 3 loan balance). Additional notes textarea.
+**8-Dimension Scoring (each 0-100, weighted total):**
 
-### 7. `src/components/exchange/StepReview.tsx` (~200 lines)
-Read-only summary of all steps in cards. Missing optional fields flagged with amber "Recommended" badges. Two action buttons: "Save as Draft" (outline) and "Activate Exchange" (primary, prominent). Both call the parent's submit handler with an `activate` boolean.
+| Dimension | Weight | Logic |
+|-----------|--------|-------|
+| Price | 0.20 | Property asking_price vs criteria target_price_min/max. In range = 100. Outside = decrease by deviation from midpoint. Fallback: compare to exchange_proceeds (0.8-2.0x ratio = 100). |
+| Geography | 0.15 | State in target_states = +70. City matches target_metros = +30. Both = 100. Neither = 0. No criteria = 50. |
+| Asset Type | 0.15 | asset_type in target_asset_types = 100. Not in = 0. No criteria = 50. |
+| Strategy | 0.10 | strategy_type in target_strategies = 100. Not in = 20. No criteria = 50. |
+| Financial | 0.10 | Cap rate in target range = 100, decrease by deviation. +20 bonus if occupancy >= target_occupancy_min. +10 bonus if year_built >= target_year_built_min. No criteria = 50. |
+| Timing | 0.10 | Urgency map: immediate=90, standard=70, flexible=50. Default=70. |
+| Debt Fit | 0.10 | If must_replace_debt AND min_debt_replacement set: property loan_balance >= requirement = 100, else proportional. If must_replace_debt false = 80. No data = 50. |
+| Scale Fit | 0.10 | Units in target range = 100, else decrease. Or SF in target range. +20 bonus for property_class match. No criteria = 50. |
 
-### 8. `src/pages/agent/AgentExchangeDetail.tsx` (~250 lines)
-Fetches exchange + joins agent_clients, pledged_properties, property_financials, replacement_criteria, exchange_timeline. Displays in card sections: Overview, Pledged Property, Replacement Criteria, Timeline. Empty states for missing property/criteria. Deadline countdowns if dates exist.
+**Boot Calculation (per match):**
+```
+cashBoot = max(0, buyerExchange.exchange_proceeds - sellerProperty.asking_price)
+mortgageBoot = max(0, buyerExchange.financials.loan_balance - sellerProperty.financials.loan_balance)
+totalBoot = max(0, cashBoot + mortgageBoot)
+bootTax = totalBoot * 0.30
+bootStatus = totalBoot === 0 ? 'no_boot' 
+           : totalBoot < proceeds * 0.05 ? 'minor_boot' 
+           : 'significant_boot'
+           // missing data → 'insufficient_data'
+```
+
+**Match Insert:**
+- Upsert into `matches` using `ON CONFLICT (buyer_exchange_id, seller_property_id) DO UPDATE` — leveraging the existing `matches_unique_pair` constraint
+- Store all 8 dimension scores + boot fields + `status = 'active'`
+
+**Notifications:**
+- For buyer-side matches: notify the buyer agent (current user) — "A property matching your criteria has been found"
+- For seller-side matches: notify the other agent — "A new property has entered the network that matches your client's criteria"
+- Insert into `notifications` table with `type = 'new_match'`, `link_to = '/agent/matches'`
+
+**Return:**
+```json
+{
+  "matches_for_exchange": 3,
+  "matches_from_property": 2, 
+  "total_new_matches": 5,
+  "top_matches": [{ "property_id": "...", "score": 92 }]
+}
+```
 
 ## Files to Modify
 
-### `src/pages/agent/AgentExchanges.tsx` — Full rewrite (~180 lines)
-Replace placeholder with real list page. Fetches exchanges with agent_clients join. Cards show client name, property address, status badge, deadlines, proceeds. "New Exchange" button. Empty state CTA.
+### `src/pages/agent/NewExchange.tsx`
 
-### `src/App.tsx` — Add 2 routes
-```tsx
-<Route path="/agent/exchanges/new" element={<NewExchange />} />
-<Route path="/agent/exchanges/:id" element={<AgentExchangeDetail />} />
+After the timeline insert block (line ~161), before the existing toast/navigate (lines 163-164), add matching invocation when `activate` is true:
+
+```typescript
+if (activate) {
+  try {
+    const { data: matchResult } = await supabase.functions.invoke("run-auto-matching", {
+      body: { exchange_id: exchange.id, property_id: prop.id }
+    });
+    if (matchResult?.total_new_matches > 0) {
+      toast.success(`Exchange activated! ${matchResult.total_new_matches} matches found.`);
+    } else {
+      toast.success("Exchange activated! Your property is now in the network.");
+    }
+  } catch {
+    // Matching failure must NOT block activation
+    toast.success("Exchange activated! Matching will run shortly.");
+  }
+  navigate(`/agent/exchanges/${exchange.id}`);
+} else {
+  toast.success("Exchange saved as draft.");
+  navigate(`/agent/exchanges/${exchange.id}`);
+}
 ```
 
-### `src/lib/constants.ts` — Add exchange status labels/colors
-```ts
-export const EXCHANGE_STATUS_LABELS: Record<string, string> = {
-  draft: "Draft", active: "Active", in_identification: "In Identification",
-  in_closing: "In Closing", completed: "Completed", cancelled: "Cancelled", expired: "Expired",
-};
-export const EXCHANGE_STATUS_COLORS: Record<string, string> = { ... };
-```
+Replace the current lines 163-164 with the above block so activation success/failure is handled separately from draft saves.
 
-## Technical Notes
-- All step components are controlled: they receive data and onChange, no local state for form values
-- Currency formatting helper: `formatCurrency(n)` and a `CurrencyInput` wrapper that strips non-numeric chars
-- Multi-select chips: toggle buttons using Badge components with onClick
-- Tag input for metros: Input with onKeyDown Enter handler, renders removable Badge tags
-- Date picker uses shadcn Popover + Calendar with `pointer-events-auto`
-- No database schema changes needed
+## No Database Changes
+- The `matches_unique_pair` unique constraint already exists from Phase 1A
+- The `matches` table already has all required columns (8 score fields + boot fields)
+- RLS policies already allow authenticated inserts (`Service can insert matches` with `WITH CHECK true`)
+- No migration needed
+
+## What NOT to Change
+- `supabase/functions/run-matching/index.ts` — keep the old admin-triggered engine as-is
+- No RLS changes
+- No other frontend files beyond NewExchange.tsx
 
