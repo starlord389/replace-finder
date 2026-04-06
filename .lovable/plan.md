@@ -1,61 +1,68 @@
 
 
-# Phase 1C: Agent Signup Flow + Updated Auth + Owner Referral Path
+# Phase 2A: Agent Sidebar, Dashboard, and Client Management
 
 ## Overview
-Rewrite the signup page with a two-path flow (agent vs property owner), update login routing by role, extend the auth context with profile data, update the `handle_new_user` trigger, and add anon insert policy on referrals.
+Create the agent layout (sidebar + header), dashboard home with KPIs, client list/detail pages, placeholder pages for future routes, and update login routing.
 
-## Database Migration (1 migration file)
+## Files to Create (14 files)
 
-1. Add `'agent'` to `app_role` enum: `ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'agent'`
-2. Replace `handle_new_user()` function to read `role` from `raw_user_meta_data` and set both `profiles.role` and `user_roles.role` accordingly
-3. Add anon INSERT policy on `referrals`: `CREATE POLICY "Anon can create referral" ON public.referrals FOR INSERT TO anon WITH CHECK (true)`
+### Layout (3 files)
 
-## Files to Modify
+**`src/components/layout/AgentLayout.tsx`**
+Same pattern as AdminLayout. Auth guard: redirect to `/login` if not authenticated, redirect to `/dashboard` if `profileRole !== 'agent'`. SidebarProvider + AgentSidebar + AgentHeader + Outlet.
 
-### 1. `src/pages/auth/Signup.tsx` — Full rewrite (~350 lines)
+**`src/components/layout/AgentSidebar.tsx`**
+Same pattern as AdminSidebar. Three nav groups:
+- "Exchange Network": Dashboard (/agent, exact), My Clients (/agent/clients), Exchanges (/agent/exchanges), Matches (/agent/matches), Connections (/agent/connections)
+- "Tools": Identification Lists (/agent/identifications), Messages (/agent/messages)
+- "Account": Settings (/agent/settings), Help (/agent/help)
 
-Three-state component controlled by a `step` state: `'choose'`, `'agent'`, `'referral'`.
+Logo: "1031ExchangeUp" + blue "Agent" badge. Footer: profileName, brokerage (from profile query), verification badge (green verified / amber pending), Sign Out.
 
-**Step: choose** — Two Card options centered on page. "I'm a Real Estate Agent" and "I'm a Property Owner". Clicking sets step.
+**`src/components/layout/AgentHeader.tsx`**
+Copy of ClientHeader — SidebarTrigger left, bell placeholder + avatar right.
 
-**Step: agent** — Single-page form with three sections (Account, Professional Info, Specializations). Back button to return to choose. On submit:
-- `supabase.auth.signUp` with `data: { full_name, phone, role: 'agent' }`
-- After signup, update profile with agent fields and upsert `user_roles` with `'agent'`
-- Toast success, navigate to `/login`
-- Inline validation: required fields, password match, min 8 chars
+### Core Pages (3 files)
 
-**Step: referral** — Simple form (name, email, phone, location, type, value, notes). No auth required. On submit:
-- Insert into `referrals` table using anon client
-- Replace form with success message + "Back to Home" link
-- No navigation away
+**`src/pages/agent/AgentDashboard.tsx`** (~250 lines)
+- Welcome header with profileName + brokerage + verification banner if pending
+- 4 KPI cards: Active Clients (agent_clients count), Active Exchanges (exchanges count), Total Matches (matches count via exchanges), Pending Connections (exchange_connections count) — all using `select("id", { count: "exact", head: true })`
+- Deadline alerts: query exchanges with identification/closing deadlines, color-coded by urgency
+- Quick actions: Add Client, New Exchange, View Matches
+- Getting started card if 0 clients
 
-### 2. `src/pages/auth/Login.tsx` — Minor update (~5 lines changed)
+**`src/pages/agent/AgentClients.tsx`** (~200 lines)
+- Header with count + "Add Client" button
+- Search input filtering by name/email/company
+- Client cards showing name, email, phone, company, exchange count, status badge, platform referral badge
+- Empty state if no clients
+- Click → /agent/clients/:id
 
-After successful `signInWithPassword`, fetch `profiles.role` for the user, then navigate:
-- `'admin'` → `/admin`
-- `'agent'` → `/dashboard`
-- `'client'` or default → `/dashboard`
+**`src/pages/agent/AgentClientDetail.tsx`** (~300 lines)
+- New mode (/agent/clients/new): form with name, email, phone, company, notes → insert into agent_clients
+- Edit mode (/agent/clients/:id): load + pre-populate form → update agent_clients
+- Edit mode extras: exchanges list for this client, "Invite to Platform" placeholder button, "Deactivate Client" with confirmation dialog
 
-### 3. `src/hooks/useAuth.tsx` — Extend context
+### Placeholder Pages (7 files)
 
-Add to state: `profileRole`, `profileName`, `agentVerificationStatus` (all string | null), plus computed `isAgent` and `isVerifiedAgent` booleans.
+Simple pages in `src/pages/agent/` with heading + description + "coming soon":
+- `AgentExchanges.tsx`, `AgentMatches.tsx`, `AgentConnections.tsx`, `AgentIdentifications.tsx`, `AgentMessages.tsx`
+- `AgentSettings.tsx` — minimal settings page: load profile, edit name/email/phone/brokerage fields, save
+- `AgentHelp.tsx` — basic help/FAQ page
 
-After fetching `user_roles`, also fetch `profiles` row (`role, full_name, verification_status`). Expose all new fields in context. Existing `hasRole()` continues to work unchanged.
+## Files to Modify (2 files)
 
-### 4. `src/components/layout/Navbar.tsx` — Use profileRole
+**`src/App.tsx`**
+Add AgentLayout route group with all 10 agent routes (/agent, /agent/clients, /agent/clients/new, /agent/clients/:id, /agent/exchanges, /agent/matches, /agent/connections, /agent/identifications, /agent/messages, /agent/settings, /agent/help).
 
-When authenticated, use `profileRole` from `useAuth` to determine dashboard link label/target:
-- `'admin'` → "Admin" link to `/admin`
-- `'agent'` → "Dashboard" link to `/dashboard`
-- `'client'` → "My Exchange" link to `/dashboard`
-
-Minor change — swap the hardcoded `/dashboard` link for role-conditional rendering.
-
-## No other files changed. No new routes needed — `/signup` already exists in PublicLayout.
+**`src/pages/auth/Login.tsx`**
+Line 34: add `if (profile?.role === "agent") target = "/agent";` before the admin check.
 
 ## Technical Notes
-- The `handle_new_user` trigger update means new agent signups get `profiles.role = 'agent'` and `user_roles.role = 'agent'` automatically. The post-signup profile update in the signup form is a belt-and-suspenders approach for the transition period.
-- The referral form works without auth via the anon INSERT policy.
-- US_STATES and ASSET_TYPE_LABELS already exist in `constants.ts` — reuse them.
+- KPI queries use `{ count: "exact", head: true }` for efficient counting
+- Agent brokerage name for sidebar/dashboard fetched via profile query in AgentDashboard (useAuth already has profileName)
+- Deadline calculations done client-side: `differenceInDays(deadline, today)`
+- No database changes needed — all tables exist from Phase 1A/1B
+- AgentSettings is a standalone minimal page (not reusing Profile component to avoid layout coupling)
 
