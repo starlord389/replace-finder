@@ -232,12 +232,6 @@ export default function AgentMatchDetail() {
 
   const imgUrls = sellerImages.map((img) => supabase.storage.from("property-images").getPublicUrl(img.storage_path).data.publicUrl);
 
-  if (loading) return <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
-  if (!match || !sellerProp) return <p className="py-20 text-center text-muted-foreground">Match not found or access denied.</p>;
-
-  const totalScore = Math.round(Number(match.total_score));
-  const contextText = `Match for: ${clientName}'s ${[relinquishedProp?.city, relinquishedProp?.state].filter(Boolean).join(", ") || ""} exchange`;
-
   // Check existing connection state
   useEffect(() => {
     if (!match || !user) return;
@@ -258,6 +252,12 @@ export default function AgentMatchDetail() {
         }
       });
   }, [match, user]);
+
+  if (loading) return <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+  if (!match || !sellerProp) return <p className="py-20 text-center text-muted-foreground">Match not found or access denied.</p>;
+
+  const totalScore = Math.round(Number(match.total_score));
+  const contextText = `Match for: ${clientName}'s ${[relinquishedProp?.city, relinquishedProp?.state].filter(Boolean).join(", ") || ""} exchange`;
 
   const handleStartExchange = () => {
     if (connectionState === "accepted" && connectionId) {
