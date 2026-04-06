@@ -120,6 +120,26 @@ export const MATCH_RESULT_STATUS_COLORS: Record<string, string> = {
   rejected: "bg-red-100 text-red-800",
 };
 
+export const EXCHANGE_STATUS_LABELS: Record<string, string> = {
+  draft: "Draft",
+  active: "Active",
+  in_identification: "In Identification",
+  in_closing: "In Closing",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  expired: "Expired",
+};
+
+export const EXCHANGE_STATUS_COLORS: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground",
+  active: "bg-primary/10 text-primary",
+  in_identification: "bg-amber-100 text-amber-800",
+  in_closing: "bg-blue-100 text-blue-800",
+  completed: "bg-green-100 text-green-800",
+  cancelled: "bg-muted text-muted-foreground",
+  expired: "bg-red-100 text-red-800",
+};
+
 export const SCORE_DIMENSIONS = [
   { key: "price_score", label: "Price", weight: "25%" },
   { key: "geo_score", label: "Geography", weight: "20%" },

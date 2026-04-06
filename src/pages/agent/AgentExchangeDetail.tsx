@@ -1,0 +1,191 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Clock } from "lucide-react";
+import { differenceInDays, format } from "date-fns";
+import { formatCurrency } from "@/lib/exchangeWizardTypes";
+import { ASSET_TYPE_LABELS, STRATEGY_TYPE_LABELS, EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS, URGENCY_OPTIONS } from "@/lib/constants";
+
+export default function AgentExchangeDetail() {
+  const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [exchange, setExchange] = useState<any>(null);
+  const [property, setProperty] = useState<any>(null);
+  const [financials, setFinancials] = useState<any>(null);
+  const [criteria, setCriteria] = useState<any>(null);
+  const [client, setClient] = useState<any>(null);
+  const [timeline, setTimeline] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!id || !user) return;
+    const load = async () => {
+      const { data: ex } = await supabase.from("exchanges").select("*").eq("id", id).eq("agent_id", user.id).single();
+      if (!ex) { navigate("/agent/exchanges"); return; }
+      setExchange(ex);
+
+      const promises = [
+        supabase.from("agent_clients").select("*").eq("id", ex.client_id).single(),
+        ex.relinquished_property_id ? supabase.from("pledged_properties").select("*").eq("id", ex.relinquished_property_id).single() : Promise.resolve({ data: null }),
+        ex.relinquished_property_id ? supabase.from("property_financials").select("*").eq("property_id", ex.relinquished_property_id).single() : Promise.resolve({ data: null }),
+        ex.criteria_id ? supabase.from("replacement_criteria").select("*").eq("id", ex.criteria_id).single() : Promise.resolve({ data: null }),
+        supabase.from("exchange_timeline").select("*").eq("exchange_id", id).order("created_at", { ascending: false }),
+      ];
+
+      const [clientRes, propRes, finRes, critRes, timeRes] = await Promise.all(promises);
+      setClient((clientRes as any).data);
+      setProperty((propRes as any).data);
+      setFinancials((finRes as any).data);
+      setCriteria((critRes as any).data);
+      setTimeline((timeRes as any).data || []);
+      setLoading(false);
+    };
+    load();
+  }, [id, user, navigate]);
+
+  if (loading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+  if (!exchange) return null;
+
+  const deadlines = [
+    exchange.identification_deadline && { label: "Identification Deadline", date: exchange.identification_deadline },
+    exchange.closing_deadline && { label: "Closing Deadline", date: exchange.closing_deadline },
+  ].filter(Boolean) as { label: string; date: string }[];
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/agent/exchanges")}><ArrowLeft className="h-5 w-5" /></Button>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-foreground">{client?.client_name || "Exchange"}</h1>
+          <p className="text-sm text-muted-foreground">{property ? [property.address, property.city, property.state].filter(Boolean).join(", ") : "No property pledged"}</p>
+        </div>
+        <Badge className={EXCHANGE_STATUS_COLORS[exchange.status] || "bg-muted text-muted-foreground"}>
+          {EXCHANGE_STATUS_LABELS[exchange.status] || exchange.status}
+        </Badge>
+      </div>
+
+      {/* Deadlines */}
+      {deadlines.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {deadlines.map(d => {
+            const days = differenceInDays(new Date(d.date), new Date());
+            const color = days < 7 ? "text-destructive" : days < 21 ? "text-amber-600" : "text-green-600";
+            return (
+              <Card key={d.label}>
+                <CardContent className="flex items-center gap-3 p-4">
+                  <Clock className={`h-5 w-5 ${color}`} />
+                  <div>
+                    <p className="text-sm font-medium">{d.label}</p>
+                    <p className={`text-lg font-bold ${color}`}>{days} days remaining</p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(d.date), "MMM d, yyyy")}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Overview */}
+      <Card>
+        <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Exchange Overview</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3">
+          <Detail label="Proceeds" value={formatCurrency(exchange.exchange_proceeds)} />
+          <Detail label="Equity" value={formatCurrency(exchange.estimated_equity)} />
+          <Detail label="Basis" value={formatCurrency(exchange.estimated_basis)} />
+          <Detail label="Est. Gain" value={formatCurrency(exchange.estimated_gain)} />
+          <Detail label="Est. Tax Liability" value={formatCurrency(exchange.estimated_tax_liability)} />
+          <Detail label="Sale Close Date" value={exchange.sale_close_date ? format(new Date(exchange.sale_close_date), "MMM d, yyyy") : "—"} />
+        </CardContent>
+      </Card>
+
+      {/* Property */}
+      <Card>
+        <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Pledged Property</CardTitle></CardHeader>
+        <CardContent>
+          {property ? (
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3">
+              <Detail label="Name" value={property.property_name} />
+              <Detail label="Address" value={[property.address, property.city, property.state, property.zip].filter(Boolean).join(", ")} />
+              <Detail label="Asset Type" value={property.asset_type ? ASSET_TYPE_LABELS[property.asset_type as keyof typeof ASSET_TYPE_LABELS] : "—"} />
+              <Detail label="Strategy" value={property.strategy_type ? STRATEGY_TYPE_LABELS[property.strategy_type as keyof typeof STRATEGY_TYPE_LABELS] : "—"} />
+              <Detail label="Class" value={property.property_class} />
+              <Detail label="Year Built" value={property.year_built?.toString()} />
+              <Detail label="Units" value={property.units?.toString()} />
+              <Detail label="Building SF" value={property.building_square_footage?.toLocaleString()} />
+              {financials && <>
+                <Detail label="Asking Price" value={formatCurrency(financials.asking_price)} />
+                <Detail label="NOI" value={formatCurrency(financials.noi)} />
+                <Detail label="Cap Rate" value={financials.cap_rate ? `${financials.cap_rate}%` : "—"} />
+                <Detail label="Occupancy" value={financials.occupancy_rate ? `${financials.occupancy_rate}%` : "—"} />
+                <Detail label="Loan Balance" value={formatCurrency(financials.loan_balance)} />
+              </>}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No property pledged yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Criteria */}
+      <Card>
+        <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Replacement Criteria</CardTitle></CardHeader>
+        <CardContent>
+          {criteria ? (
+            <div className="space-y-3">
+              <div>
+                <span className="text-sm text-muted-foreground">Asset Types: </span>
+                {criteria.target_asset_types?.map((t: string) => <Badge key={t} variant="secondary" className="mr-1">{ASSET_TYPE_LABELS[t as keyof typeof ASSET_TYPE_LABELS] || t}</Badge>)}
+              </div>
+              <div>
+                <span className="text-sm text-muted-foreground">States: </span>
+                {criteria.target_states?.map((s: string) => <Badge key={s} variant="outline" className="mr-1 text-xs">{s}</Badge>)}
+              </div>
+              <Detail label="Price Range" value={`${formatCurrency(criteria.target_price_min)} – ${formatCurrency(criteria.target_price_max)}`} />
+              <Detail label="Urgency" value={URGENCY_OPTIONS.find(o => o.value === criteria.urgency)?.label || criteria.urgency} />
+              {criteria.open_to_dsts && <Detail label="Open to DSTs" value="Yes" />}
+              {criteria.open_to_tics && <Detail label="Open to TICs" value="Yes" />}
+              {criteria.must_replace_debt && <Detail label="Must Replace Debt" value={criteria.min_debt_replacement ? formatCurrency(criteria.min_debt_replacement) : "Yes"} />}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No replacement criteria set.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Timeline */}
+      {timeline.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Timeline</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {timeline.map(e => (
+                <div key={e.id} className="flex items-start gap-3">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-foreground">{e.description}</p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(e.created_at), "MMM d, yyyy 'at' h:mm a")}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="py-1">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <p className="text-sm font-medium text-foreground">{value || "—"}</p>
+    </div>
+  );
+}
