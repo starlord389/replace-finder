@@ -160,8 +160,24 @@ export default function NewExchange() {
         ...(activate ? [{ exchange_id: exchange.id, event_type: "property_pledged", description: "Property pledged to the network", actor_id: user.id }] : []),
       ]);
 
-      toast.success(activate ? "Exchange activated! Your property is now in the network." : "Exchange saved as draft.");
-      navigate(`/agent/exchanges/${exchange.id}`);
+      if (activate) {
+        try {
+          const { data: matchResult } = await supabase.functions.invoke("run-auto-matching", {
+            body: { exchange_id: exchange.id, property_id: prop.id }
+          });
+          if (matchResult?.total_new_matches > 0) {
+            toast.success(`Exchange activated! ${matchResult.total_new_matches} match${matchResult.total_new_matches === 1 ? '' : 'es'} found.`);
+          } else {
+            toast.success("Exchange activated! Your property is now in the network.");
+          }
+        } catch {
+          toast.success("Exchange activated! Matching will run shortly.");
+        }
+        navigate(`/agent/exchanges/${exchange.id}`);
+      } else {
+        toast.success("Exchange saved as draft.");
+        navigate(`/agent/exchanges/${exchange.id}`);
+      }
     } catch (err: any) {
       console.error("Save error:", err);
       toast.error("Failed to save exchange: " + (err.message || "Unknown error"));
