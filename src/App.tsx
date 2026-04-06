@@ -38,6 +38,8 @@ import AgentDashboard from "@/pages/agent/AgentDashboard";
 import AgentClients from "@/pages/agent/AgentClients";
 import AgentClientDetail from "@/pages/agent/AgentClientDetail";
 import AgentExchanges from "@/pages/agent/AgentExchanges";
+import NewExchange from "@/pages/agent/NewExchange";
+import AgentExchangeDetail from "@/pages/agent/AgentExchangeDetail";
 import AgentMatches from "@/pages/agent/AgentMatches";
 import AgentConnections from "@/pages/agent/AgentConnections";
 import AgentIdentifications from "@/pages/agent/AgentIdentifications";
