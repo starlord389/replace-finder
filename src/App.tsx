@@ -1,12 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 
 import PublicLayout from "@/components/layout/PublicLayout";
-import ClientLayout from "@/components/layout/ClientLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
 import AgentLayout from "@/components/layout/AgentLayout";
 
@@ -16,24 +15,8 @@ import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
-import Launchpad from "@/pages/client/Launchpad";
-import Overview from "@/pages/client/Overview";
-import ExchangeList from "@/pages/client/ExchangeList";
-import ExchangeDetail from "@/pages/client/ExchangeDetail";
-import NewRequest from "@/pages/client/NewRequest";
-import MatchList from "@/pages/client/MatchList";
-import MatchDetail from "@/pages/client/MatchDetail";
-import Profile from "@/pages/client/Profile";
-import Help from "@/pages/client/Help";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
-import RequestQueue from "@/pages/admin/RequestQueue";
-import RequestDetail from "@/pages/admin/RequestDetail";
-import InventoryList from "@/pages/admin/InventoryList";
-import InventoryDetail from "@/pages/admin/InventoryDetail";
-import MatchReview from "@/pages/admin/MatchReview";
-import MatchRunDetail from "@/pages/admin/MatchRunDetail";
 import SupportTickets from "@/pages/admin/SupportTickets";
-import ClientList from "@/pages/admin/ClientList";
 import AgentDashboard from "@/pages/agent/AgentDashboard";
 import AgentClients from "@/pages/agent/AgentClients";
 import AgentClientDetail from "@/pages/agent/AgentClientDetail";
@@ -89,32 +72,14 @@ const App = () => (
               <Route path="/agent/help" element={<AgentHelp />} />
             </Route>
 
-            {/* Client (auth required) */}
-            <Route element={<ClientLayout />}>
-              <Route path="/dashboard" element={<Launchpad />} />
-              <Route path="/dashboard/overview" element={<Overview />} />
-              <Route path="/dashboard/exchanges" element={<ExchangeList />} />
-              <Route path="/dashboard/exchanges/new" element={<NewRequest />} />
-              <Route path="/dashboard/exchanges/:id" element={<ExchangeDetail />} />
-              <Route path="/dashboard/exchanges/:id/edit" element={<NewRequest />} />
-              <Route path="/dashboard/matches" element={<MatchList />} />
-              <Route path="/dashboard/matches/:id" element={<MatchDetail />} />
-              <Route path="/dashboard/settings" element={<Profile />} />
-              <Route path="/dashboard/help" element={<Help />} />
-            </Route>
-
             {/* Admin (admin role required) */}
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/requests" element={<RequestQueue />} />
-              <Route path="/admin/requests/:id" element={<RequestDetail />} />
-              <Route path="/admin/inventory" element={<InventoryList />} />
-              <Route path="/admin/inventory/:id" element={<InventoryDetail />} />
-              <Route path="/admin/matches" element={<MatchReview />} />
-              <Route path="/admin/matches/:id" element={<MatchRunDetail />} />
               <Route path="/admin/support" element={<SupportTickets />} />
-              <Route path="/admin/clients" element={<ClientList />} />
             </Route>
+
+            {/* Redirect old client routes */}
+            <Route path="/dashboard/*" element={<Navigate to="/agent" replace />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

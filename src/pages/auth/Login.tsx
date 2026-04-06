@@ -24,7 +24,7 @@ export default function Login() {
     }
 
     // Route based on profile role
-    let target = "/dashboard";
+    let target = "/agent";
     if (data.user) {
       const { data: profile } = await supabase
         .from("profiles")

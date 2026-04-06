@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Building2, Handshake, Users, HelpCircle, LogOut, ArrowLeftRight } from "lucide-react";
+import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,13 +18,9 @@ import { Button } from "@/components/ui/button";
 
 const operationsItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
-  { title: "Requests", url: "/admin/requests", icon: FileText },
-  { title: "Inventory", url: "/admin/inventory", icon: Building2 },
-  { title: "Matches", url: "/admin/matches", icon: Handshake },
 ];
 
 const managementItems = [
-  { title: "Clients", url: "/admin/clients", icon: Users },
   { title: "Support", url: "/admin/support", icon: HelpCircle },
 ];
 
@@ -107,11 +103,11 @@ export default function AdminSidebar() {
                 {user?.email}
               </p>
               <Link
-                to="/dashboard"
+                to="/agent"
                 className="mb-2 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ArrowLeftRight className="h-3 w-3" />
-                Switch to Client View
+                Switch to Agent View
               </Link>
             </>
           )}
