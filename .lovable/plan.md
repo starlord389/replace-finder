@@ -1,14 +1,23 @@
 
 
-# Phase 3: Connections + Exchange Tracking — COMPLETE
+# Bug Fixes — Navbar Routing + 2 DB Constraint Fixes
 
-## What was built
-- **AgentMatchDetail.tsx** — Replaced "Coming soon" toast with real Start Exchange modal (fee acknowledgment checkbox, optional message, connection insert + notification + timeline). Button adapts to connection state: "Start Exchange" / "Request Sent" / "Connected — View Connection" / "Request Again"
-- **AgentConnections.tsx** — Full rewrite with 3 tabs (Pending/Active/Closed). Incoming requests show Accept/Decline. Active shows revealed agent identities + progress tracker. Closed shows completed/declined/cancelled with dates.
-- **AgentConnectionDetail.tsx** — New connection workspace with: agent contact reveal (after acceptance), two-property summary, 6-step progress tracker with milestone updates, messaging section, Mark as Failed action.
-- **AgentDashboard.tsx** — All KPI cards now clickable, navigating to their respective pages
-- **App.tsx** — Added `/agent/connections/:id` route
+## 1. Fix Navbar agent routing
+**File:** `src/components/layout/Navbar.tsx`
 
-## No Database Changes
-- All tables already existed: exchange_connections, messages, notifications, exchange_timeline
-- RLS policies already allow agents to create/read/update connections, send messages, insert notifications/timeline
+Update two lines to add agent-specific routing:
+- `dashboardLink`: add `profileRole === "agent" ? "/agent"` branch
+- `dashboardLabel`: add `profileRole === "agent" ? "Dashboard"` branch
+
+## 2. Migration: notification types CHECK constraint
+Add missing types (`connection_request`, `connection_accepted`, `connection_declined`, `connection_milestone`, `connection_failed`, `deadline_warning`, `deadline_critical`, `exchange_status_change`, `new_referral`, `property_status_change`, `system`) to `notifications.type`.
+
+SQL: Drop existing constraint if any, add new CHECK with all 13 values.
+
+## 3. Migration: timeline event types CHECK constraint
+Add missing event types (`connection_initiated`, `connection_accepted`, `connection_milestone`, `under_contract`, `closed`, `failed`, `cancelled`, etc.) to `exchange_timeline.event_type`.
+
+SQL: Drop existing constraint if any, add new CHECK with all 14 values.
+
+## No other files or schema changes needed.
+
