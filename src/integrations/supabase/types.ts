@@ -46,6 +46,54 @@ export type Database = {
           },
         ]
       }
+      agent_clients: {
+        Row: {
+          agent_id: string
+          client_company: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          client_user_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          referral_id: string | null
+          referred_by_platform: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          client_company?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          client_user_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          referral_id?: string | null
+          referred_by_platform?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          client_company?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          client_user_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          referral_id?: string | null
+          referred_by_platform?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       exchange_request_preferences: {
         Row: {
           additional_notes: string | null
@@ -353,6 +401,74 @@ export type Database = {
           zoning?: string | null
         }
         Relationships: []
+      }
+      exchanges: {
+        Row: {
+          actual_close_date: string | null
+          agent_id: string
+          client_id: string
+          closing_deadline: string | null
+          created_at: string
+          criteria_id: string | null
+          estimated_basis: number | null
+          estimated_equity: number | null
+          estimated_gain: number | null
+          estimated_tax_liability: number | null
+          exchange_proceeds: number | null
+          id: string
+          identification_deadline: string | null
+          relinquished_property_id: string | null
+          sale_close_date: string | null
+          status: Database["public"]["Enums"]["exchange_status"]
+          updated_at: string
+        }
+        Insert: {
+          actual_close_date?: string | null
+          agent_id: string
+          client_id: string
+          closing_deadline?: string | null
+          created_at?: string
+          criteria_id?: string | null
+          estimated_basis?: number | null
+          estimated_equity?: number | null
+          estimated_gain?: number | null
+          estimated_tax_liability?: number | null
+          exchange_proceeds?: number | null
+          id?: string
+          identification_deadline?: string | null
+          relinquished_property_id?: string | null
+          sale_close_date?: string | null
+          status?: Database["public"]["Enums"]["exchange_status"]
+          updated_at?: string
+        }
+        Update: {
+          actual_close_date?: string | null
+          agent_id?: string
+          client_id?: string
+          closing_deadline?: string | null
+          created_at?: string
+          criteria_id?: string | null
+          estimated_basis?: number | null
+          estimated_equity?: number | null
+          estimated_gain?: number | null
+          estimated_tax_liability?: number | null
+          exchange_proceeds?: number | null
+          id?: string
+          identification_deadline?: string | null
+          relinquished_property_id?: string | null
+          sale_close_date?: string | null
+          status?: Database["public"]["Enums"]["exchange_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exchanges_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "agent_clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory_documents: {
         Row: {
@@ -915,6 +1031,51 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          assigned_agent_id: string | null
+          assigned_at: string | null
+          converted_at: string | null
+          created_at: string
+          estimated_value: number | null
+          id: string
+          owner_email: string
+          owner_name: string
+          owner_phone: string | null
+          property_location: string | null
+          property_type: string | null
+          status: string
+        }
+        Insert: {
+          assigned_agent_id?: string | null
+          assigned_at?: string | null
+          converted_at?: string | null
+          created_at?: string
+          estimated_value?: number | null
+          id?: string
+          owner_email: string
+          owner_name: string
+          owner_phone?: string | null
+          property_location?: string | null
+          property_type?: string | null
+          status?: string
+        }
+        Update: {
+          assigned_agent_id?: string | null
+          assigned_at?: string | null
+          converted_at?: string | null
+          created_at?: string
+          estimated_value?: number | null
+          id?: string
+          owner_email?: string
+          owner_name?: string
+          owner_phone?: string | null
+          property_location?: string | null
+          property_type?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       request_images: {
         Row: {
           created_at: string | null
@@ -1040,6 +1201,14 @@ export type Database = {
         | "land"
         | "net_lease"
         | "other"
+      exchange_status:
+        | "draft"
+        | "active"
+        | "in_identification"
+        | "in_closing"
+        | "completed"
+        | "failed"
+        | "cancelled"
       inventory_status:
         | "draft"
         | "active"
@@ -1203,6 +1372,15 @@ export const Constants = {
         "land",
         "net_lease",
         "other",
+      ],
+      exchange_status: [
+        "draft",
+        "active",
+        "in_identification",
+        "in_closing",
+        "completed",
+        "failed",
+        "cancelled",
       ],
       inventory_status: [
         "draft",
