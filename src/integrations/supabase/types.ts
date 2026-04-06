@@ -851,31 +851,67 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
+          brokerage_address: string | null
+          brokerage_name: string | null
           company: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          license_state: string | null
+          mls_number: string | null
           phone: string | null
+          profile_photo_url: string | null
+          role: string
+          specializations: string[] | null
           updated_at: string
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+          years_experience: number | null
         }
         Insert: {
+          bio?: string | null
+          brokerage_address?: string | null
+          brokerage_name?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          license_state?: string | null
+          mls_number?: string | null
           phone?: string | null
+          profile_photo_url?: string | null
+          role?: string
+          specializations?: string[] | null
           updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          years_experience?: number | null
         }
         Update: {
+          bio?: string | null
+          brokerage_address?: string | null
+          brokerage_name?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          license_state?: string | null
+          mls_number?: string | null
           phone?: string | null
+          profile_photo_url?: string | null
+          role?: string
+          specializations?: string[] | null
           updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          years_experience?: number | null
         }
         Relationships: []
       }
