@@ -17,7 +17,7 @@ import {
   ArrowLeft, Building2, User, Mail, Phone, Send, CalendarIcon, AlertTriangle,
 } from "lucide-react";
 import { BOOT_STATUS_LABELS, BOOT_STATUS_COLORS } from "@/lib/constants";
-import { format, cn } from "date-fns";
+import { format } from "date-fns";
 
 const fmt = (v: number | null | undefined) =>
   v != null && v !== 0 ? `$${Math.round(Number(v)).toLocaleString()}` : "—";
