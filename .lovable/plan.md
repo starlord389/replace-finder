@@ -1,12 +1,14 @@
 
 
-# Phase 2D: Agent Match List + Match Detail Pages — COMPLETE
+# Phase 3: Connections + Exchange Tracking — COMPLETE
 
 ## What was built
-- **AgentMatches.tsx** — Full match list with buyer-side cards (Zillow-style), seller-side informational cards, filters (exchange, score, boot status, sort), empty state
-- **AgentMatchDetail.tsx** — Full financial analysis page with 7 sections: property hero, exchange comparison, boot analysis, detailed financial comparison (collapsible), property deep dive, 8-dimension score breakdown, bottom CTA
-- **constants.ts** — Updated SCORE_DIMENSIONS to 8 dimensions, added BOOT_STATUS_LABELS/COLORS
-- **App.tsx** — Added /agent/matches/:id route
+- **AgentMatchDetail.tsx** — Replaced "Coming soon" toast with real Start Exchange modal (fee acknowledgment checkbox, optional message, connection insert + notification + timeline). Button adapts to connection state: "Start Exchange" / "Request Sent" / "Connected — View Connection" / "Request Again"
+- **AgentConnections.tsx** — Full rewrite with 3 tabs (Pending/Active/Closed). Incoming requests show Accept/Decline. Active shows revealed agent identities + progress tracker. Closed shows completed/declined/cancelled with dates.
+- **AgentConnectionDetail.tsx** — New connection workspace with: agent contact reveal (after acceptance), two-property summary, 6-step progress tracker with milestone updates, messaging section, Mark as Failed action.
+- **AgentDashboard.tsx** — All KPI cards now clickable, navigating to their respective pages
+- **App.tsx** — Added `/agent/connections/:id` route
 
 ## No Database Changes
-- All data comes from existing tables: matches, pledged_properties, property_financials, property_images, exchanges, replacement_criteria, agent_clients
+- All tables already existed: exchange_connections, messages, notifications, exchange_timeline
+- RLS policies already allow agents to create/read/update connections, send messages, insert notifications/timeline
