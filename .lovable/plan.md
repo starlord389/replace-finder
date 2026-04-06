@@ -1,125 +1,118 @@
 
 
-# Phase 2C: Automatic Matching Engine
+# Phase 2D: Agent Match List + Match Detail Pages
 
 ## Overview
-Create a new edge function `run-auto-matching` that performs bidirectional 8-dimension scoring with boot calculations when an exchange is activated. Call it from the frontend after activation. No database migration needed — the `matches_unique_pair` constraint already exists.
+Replace the placeholder AgentMatches with a real match list showing buyer-side and seller-side matches. Create AgentMatchDetail with full financial analysis, boot breakdown, score dimensions, and property comparison — adapted from the existing client MatchDetail.tsx (1045 lines).
+
+## Constants Update
+
+### `src/lib/constants.ts`
+Update `SCORE_DIMENSIONS` to include all 8 dimensions with correct weights:
+```
+price_score 20%, geo_score 15%, asset_score 15%, strategy_score 10%,
+financial_score 10%, timing_score 10%, debt_fit_score 10%, scale_fit_score 10%
+```
+
+Add `BOOT_STATUS_LABELS` and `BOOT_STATUS_COLORS` maps.
 
 ## Files to Create
 
-### `supabase/functions/run-auto-matching/index.ts` (~350 lines)
+### `src/pages/agent/AgentMatchDetail.tsx` (~900 lines)
 
-A new Deno edge function following the same pattern as the existing `run-matching/index.ts`.
+Adapted from `src/pages/client/MatchDetail.tsx`. Same section structure, new data model.
 
-**Setup & Auth:**
-- CORS headers (same pattern as existing function)
-- Verify Authorization header, extract userId via `getClaims()`
-- Use `SUPABASE_SERVICE_ROLE_KEY` client for all DB operations (needs cross-agent reads)
-- Accept JSON body: `{ exchange_id: string, property_id: string }`
-- Do NOT require admin role — any authenticated agent can trigger for their own exchange
+**Data loading:**
+- Fetch match by ID from `matches` table
+- Verify access: buyer_exchange belongs to agent OR seller_property belongs to agent
+- Fetch seller property (`pledged_properties`), its `property_financials`, its `property_images`
+- Fetch buyer exchange (`exchanges`), its `replacement_criteria`, its relinquished property + financials
+- Fetch buyer exchange's client (`agent_clients`)
 
-**Data Loading:**
-- Fetch the activated exchange by `exchange_id`
-- Fetch its `replacement_criteria` by `exchange.criteria_id`
-- Fetch the pledged property by `property_id`
-- Fetch that property's `property_financials`
+**View tracking:** If buyer agent and `buyer_agent_viewed = false`, update to true.
 
-**Bidirectional Matching:**
+**Sections (same layout as existing MatchDetail):**
+1. **Context banner** — "Match for: [Client]'s [City, State] exchange"
+2. **Sticky action bar** — property name, price, score, boot status, "Start Exchange" button
+3. **Photo gallery** — same Zillow-style grid + lightbox from existing code
+4. **Property header** — name, address, metrics, score badge, boot status card
+5. **Exchange comparison** — side-by-side table using `CompRow` pattern, position summary cards (equity, cash flow, scale)
+6. **Boot analysis section** — NEW prominent section: cash boot, mortgage boot, total, tax estimate, status badge, explanation text
+7. **Detailed financial comparison** (collapsible) — operating income table (`OpRow`), exchange economics, charts (NOI bar, revenue pie, waterfall)
+8. **Property deep dive** — calculated metrics with health indicators (`HealthMetric`), physical details grid, operating statement
+9. **Match score breakdown** — 8 dimension bars with dynamic explanations per dimension
+10. **Bottom CTA** — "Start Exchange" button (shows toast "Coming in next update" for now)
 
-1. **Buyer-side** (find properties FOR this exchange):
-   - Fetch all `pledged_properties` where `status = 'active'` AND `agent_id != userId`
-   - For each, fetch its `property_financials`
-   - Score each property against this exchange's `replacement_criteria`
-   - Insert matches where `total_score >= 65`
+**Key differences from client MatchDetail:**
+- No "Interested/Pass" response buttons — replaced with "Start Exchange" (coming soon toast)
+- Agent identity hidden: "Listed by a verified agent in the ExchangeUp network"
+- Boot analysis is a standalone prominent section (not buried in collapsible)
+- 8 score dimensions instead of 6
+- Data comes from `pledged_properties` + `property_financials` instead of `inventory_properties` + `inventory_financials`
+- Comparison "yours" side uses the exchange's relinquished property + its financials instead of `exchange_requests`
 
-2. **Seller-side** (find exchanges that want THIS property):
-   - Fetch all `exchanges` where `status IN ('active','in_identification','in_closing')` AND `agent_id != userId`
-   - For each, fetch its `replacement_criteria`
-   - Score this property against each exchange's criteria
-   - Insert matches where `total_score >= 65`
-
-**8-Dimension Scoring (each 0-100, weighted total):**
-
-| Dimension | Weight | Logic |
-|-----------|--------|-------|
-| Price | 0.20 | Property asking_price vs criteria target_price_min/max. In range = 100. Outside = decrease by deviation from midpoint. Fallback: compare to exchange_proceeds (0.8-2.0x ratio = 100). |
-| Geography | 0.15 | State in target_states = +70. City matches target_metros = +30. Both = 100. Neither = 0. No criteria = 50. |
-| Asset Type | 0.15 | asset_type in target_asset_types = 100. Not in = 0. No criteria = 50. |
-| Strategy | 0.10 | strategy_type in target_strategies = 100. Not in = 20. No criteria = 50. |
-| Financial | 0.10 | Cap rate in target range = 100, decrease by deviation. +20 bonus if occupancy >= target_occupancy_min. +10 bonus if year_built >= target_year_built_min. No criteria = 50. |
-| Timing | 0.10 | Urgency map: immediate=90, standard=70, flexible=50. Default=70. |
-| Debt Fit | 0.10 | If must_replace_debt AND min_debt_replacement set: property loan_balance >= requirement = 100, else proportional. If must_replace_debt false = 80. No data = 50. |
-| Scale Fit | 0.10 | Units in target range = 100, else decrease. Or SF in target range. +20 bonus for property_class match. No criteria = 50. |
-
-**Boot Calculation (per match):**
-```
-cashBoot = max(0, buyerExchange.exchange_proceeds - sellerProperty.asking_price)
-mortgageBoot = max(0, buyerExchange.financials.loan_balance - sellerProperty.financials.loan_balance)
-totalBoot = max(0, cashBoot + mortgageBoot)
-bootTax = totalBoot * 0.30
-bootStatus = totalBoot === 0 ? 'no_boot' 
-           : totalBoot < proceeds * 0.05 ? 'minor_boot' 
-           : 'significant_boot'
-           // missing data → 'insufficient_data'
-```
-
-**Match Insert:**
-- Upsert into `matches` using `ON CONFLICT (buyer_exchange_id, seller_property_id) DO UPDATE` — leveraging the existing `matches_unique_pair` constraint
-- Store all 8 dimension scores + boot fields + `status = 'active'`
-
-**Notifications:**
-- For buyer-side matches: notify the buyer agent (current user) — "A property matching your criteria has been found"
-- For seller-side matches: notify the other agent — "A new property has entered the network that matches your client's criteria"
-- Insert into `notifications` table with `type = 'new_match'`, `link_to = '/agent/matches'`
-
-**Return:**
-```json
-{
-  "matches_for_exchange": 3,
-  "matches_from_property": 2, 
-  "total_new_matches": 5,
-  "top_matches": [{ "property_id": "...", "score": 92 }]
-}
-```
+**Reused patterns from existing MatchDetail (copy into file):**
+- `fmt`, `pct`, `num` formatters
+- `scoreColor`, `scoreTextColor`, `metricHealthDot`, `metricColor`
+- `calcDelta`, `absDelta` helpers
+- `CompRow`, `OpRow`, `PositionCard`, `EconItem`, `StatPill`, `FinRow`, `HealthMetric` sub-components
+- Photo gallery + lightbox markup
+- Chart configs (Recharts BarChart, PieChart)
 
 ## Files to Modify
 
-### `src/pages/agent/NewExchange.tsx`
+### `src/pages/agent/AgentMatches.tsx` (full rewrite, ~350 lines)
 
-After the timeline insert block (line ~161), before the existing toast/navigate (lines 163-164), add matching invocation when `activate` is true:
+**Data loading:**
+1. Fetch agent's exchanges: `exchanges.select("id, client_id").eq("agent_id", user.id)`
+2. Fetch agent's pledged property IDs: `pledged_properties.select("id").eq("agent_id", user.id)`
+3. **Buyer-side matches**: `matches.select("*").in("buyer_exchange_id", exchangeIds).eq("status", "active")`
+4. For each match: batch-fetch seller properties, financials, first image, and client names via maps
+5. **Seller-side matches**: `matches.select("*").in("seller_property_id", propertyIds).eq("status", "active")`
+6. Sort buyer matches: unviewed first, then by total_score desc
 
-```typescript
-if (activate) {
-  try {
-    const { data: matchResult } = await supabase.functions.invoke("run-auto-matching", {
-      body: { exchange_id: exchange.id, property_id: prop.id }
-    });
-    if (matchResult?.total_new_matches > 0) {
-      toast.success(`Exchange activated! ${matchResult.total_new_matches} matches found.`);
-    } else {
-      toast.success("Exchange activated! Your property is now in the network.");
-    }
-  } catch {
-    // Matching failure must NOT block activation
-    toast.success("Exchange activated! Matching will run shortly.");
-  }
-  navigate(`/agent/exchanges/${exchange.id}`);
-} else {
-  toast.success("Exchange saved as draft.");
-  navigate(`/agent/exchanges/${exchange.id}`);
-}
+**Filters (state-controlled):**
+- Exchange/client dropdown
+- Score range: All / Strong 85+ / Good 70-84 / Fair 65-69
+- Boot status: All / No Boot / Minor / Significant
+- Sort: Match Score / Price Low-High / Price High-Low / Newest
+
+**Match cards (same Zillow pattern as existing MatchList):**
+- Cover photo or Building2 placeholder
+- Score badge (top-right, color-coded)
+- Boot status indicator
+- "New" badge if `buyer_agent_viewed = false`
+- Price, metrics row (cap rate · NOI · units/SF · year built)
+- Property name, city/state, asset + strategy badges
+- "For: [Client]'s exchange" label
+- Click → `/agent/matches/:id`
+
+**Seller-side section below:**
+- Heading: "Your Properties Matched to Other Exchanges"
+- Simpler cards: "Your [property] matched an exchange in [state]" + score
+- Informational only, no CTA
+
+**Empty state:** "No matches yet. Once you activate an exchange, the system will automatically find matching properties."
+
+### `src/App.tsx`
+Add import and route:
+```tsx
+import AgentMatchDetail from "@/pages/agent/AgentMatchDetail";
+<Route path="/agent/matches/:id" element={<AgentMatchDetail />} />
 ```
 
-Replace the current lines 163-164 with the above block so activation success/failure is handled separately from draft saves.
-
-## No Database Changes
-- The `matches_unique_pair` unique constraint already exists from Phase 1A
-- The `matches` table already has all required columns (8 score fields + boot fields)
-- RLS policies already allow authenticated inserts (`Service can insert matches` with `WITH CHECK true`)
-- No migration needed
+## Technical Notes
+- All financial helpers and sub-components are copied into AgentMatchDetail (not extracted to shared module — simpler for now, same as existing pattern)
+- The `property_images` table references `pledged_properties` via `property_id` foreign key
+- The `property_financials` table is `isOneToOne: true` with `pledged_properties`
+- Boot fields on `matches`: `estimated_cash_boot`, `estimated_mortgage_boot`, `estimated_total_boot`, `estimated_boot_tax`, `boot_status`
+- Score dimensions on `matches`: `price_score`, `geo_score`, `asset_score`, `strategy_score`, `financial_score`, `timing_score`, `debt_fit_score`, `scale_fit_score`, `total_score`
+- "Start Exchange" button shows `toast.info("Exchange connections coming in the next update.")` — no connection logic yet
+- No storage bucket needed for property_images — images are in `property_images` table referencing pledged_properties, likely using an existing bucket or no images uploaded yet in this flow
 
 ## What NOT to Change
-- `supabase/functions/run-matching/index.ts` — keep the old admin-triggered engine as-is
-- No RLS changes
-- No other frontend files beyond NewExchange.tsx
+- Client match pages (MatchList, MatchDetail)
+- Admin pages
+- Matching engine
+- Database schema
 
