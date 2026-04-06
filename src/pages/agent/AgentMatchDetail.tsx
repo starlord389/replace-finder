@@ -851,12 +851,82 @@ export default function AgentMatchDetail() {
       <div className="mt-8 rounded-xl border bg-card p-6">
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
-            <h3 className="font-semibold text-foreground">Interested in this property?</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Start an exchange connection to reveal the listing agent.</p>
+            <h3 className="font-semibold text-foreground">
+              {connectionState === "accepted" ? "You're connected!" : "Interested in this property?"}
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {connectionState === "accepted"
+                ? "View the connection to see agent details and manage the exchange."
+                : "Start an exchange connection to reveal the listing agent."}
+            </p>
           </div>
-          <Button onClick={handleStartExchange} className="gap-1.5">Start Exchange</Button>
+          {connectionState === "none" && <Button onClick={handleStartExchange} className="gap-1.5">Start Exchange</Button>}
+          {connectionState === "pending" && <Button variant="secondary" disabled className="gap-1.5">Request Sent — Awaiting Response</Button>}
+          {connectionState === "accepted" && <Button onClick={() => navigate(`/agent/connections/${connectionId}`)} className="gap-1.5 bg-green-600 hover:bg-green-700">View Connection</Button>}
+          {connectionState === "declined" && <Button onClick={handleStartExchange} className="gap-1.5">Request Again</Button>}
         </div>
       </div>
+
+      {/* ═══ START EXCHANGE MODAL ═══ */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Start Exchange Connection</DialogTitle>
+            <DialogDescription>
+              You're requesting to connect with the listing agent for{" "}
+              <span className="font-medium text-foreground">{sellerProp.property_name || "this property"}</span>
+              {sellerProp.city && sellerProp.state ? ` in ${sellerProp.city}, ${sellerProp.state}` : ""}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center gap-3 py-2">
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${scoreColor(totalScore)}`}>
+              {totalScore}
+            </span>
+            <Badge className={BOOT_STATUS_COLORS[match.boot_status] || ""}>
+              {BOOT_STATUS_LABELS[match.boot_status] || match.boot_status}
+            </Badge>
+          </div>
+
+          <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="fee-agree"
+                checked={feeAgreed}
+                onCheckedChange={(v) => setFeeAgreed(v === true)}
+              />
+              <label htmlFor="fee-agree" className="text-sm leading-snug cursor-pointer">
+                I acknowledge that completed exchanges facilitated through 1031ExchangeUp are subject to the platform's facilitation fee as outlined in the Terms of Service.
+              </label>
+            </div>
+            <p className="text-xs text-muted-foreground pl-7">
+              The facilitation fee applies only when an exchange is completed.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Add a message for the other agent (optional)
+            </label>
+            <Textarea
+              value={connectionMessage}
+              onChange={(e) => setConnectionMessage(e.target.value)}
+              placeholder="Hi, my client is interested in this property for their 1031 exchange..."
+              rows={3}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSendRequest}
+              disabled={!feeAgreed || submitting}
+            >
+              {submitting ? "Sending..." : "Send Request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
