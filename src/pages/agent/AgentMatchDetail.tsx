@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, MapPin, Building2, Camera, ChevronDown, ChevronUp,
-  TrendingUp, TrendingDown, Minus, X, Info, Shield, Send, Check,
+  TrendingUp, TrendingDown, Minus, X, Info, Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
