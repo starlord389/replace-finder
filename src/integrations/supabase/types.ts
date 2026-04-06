@@ -468,6 +468,13 @@ export type Database = {
             referencedRelation: "agent_clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "exchanges_relinquished_property_fkey"
+            columns: ["relinquished_property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
         ]
       }
       inventory_documents: {
@@ -965,6 +972,131 @@ export type Database = {
           },
         ]
       }
+      pledged_properties: {
+        Row: {
+          address: string | null
+          agent_id: string
+          amenities: string[] | null
+          asset_subtype: string | null
+          asset_type: Database["public"]["Enums"]["asset_type"] | null
+          building_square_footage: number | null
+          city: string | null
+          construction_type: string | null
+          county: string | null
+          created_at: string
+          description: string | null
+          exchange_id: string | null
+          hvac_type: string | null
+          id: string
+          land_area_acres: number | null
+          listed_at: string | null
+          num_buildings: number | null
+          num_stories: number | null
+          parking_spaces: number | null
+          parking_type: string | null
+          property_class: string | null
+          property_condition: string | null
+          property_name: string | null
+          recent_renovations: string | null
+          roof_type: string | null
+          source: Database["public"]["Enums"]["property_source"]
+          state: string | null
+          status: Database["public"]["Enums"]["pledged_property_status"]
+          strategy_type: Database["public"]["Enums"]["strategy_type"] | null
+          unit_suite: string | null
+          units: number | null
+          updated_at: string
+          withdrawn_at: string | null
+          year_built: number | null
+          zip: string | null
+          zoning: string | null
+        }
+        Insert: {
+          address?: string | null
+          agent_id: string
+          amenities?: string[] | null
+          asset_subtype?: string | null
+          asset_type?: Database["public"]["Enums"]["asset_type"] | null
+          building_square_footage?: number | null
+          city?: string | null
+          construction_type?: string | null
+          county?: string | null
+          created_at?: string
+          description?: string | null
+          exchange_id?: string | null
+          hvac_type?: string | null
+          id?: string
+          land_area_acres?: number | null
+          listed_at?: string | null
+          num_buildings?: number | null
+          num_stories?: number | null
+          parking_spaces?: number | null
+          parking_type?: string | null
+          property_class?: string | null
+          property_condition?: string | null
+          property_name?: string | null
+          recent_renovations?: string | null
+          roof_type?: string | null
+          source?: Database["public"]["Enums"]["property_source"]
+          state?: string | null
+          status?: Database["public"]["Enums"]["pledged_property_status"]
+          strategy_type?: Database["public"]["Enums"]["strategy_type"] | null
+          unit_suite?: string | null
+          units?: number | null
+          updated_at?: string
+          withdrawn_at?: string | null
+          year_built?: number | null
+          zip?: string | null
+          zoning?: string | null
+        }
+        Update: {
+          address?: string | null
+          agent_id?: string
+          amenities?: string[] | null
+          asset_subtype?: string | null
+          asset_type?: Database["public"]["Enums"]["asset_type"] | null
+          building_square_footage?: number | null
+          city?: string | null
+          construction_type?: string | null
+          county?: string | null
+          created_at?: string
+          description?: string | null
+          exchange_id?: string | null
+          hvac_type?: string | null
+          id?: string
+          land_area_acres?: number | null
+          listed_at?: string | null
+          num_buildings?: number | null
+          num_stories?: number | null
+          parking_spaces?: number | null
+          parking_type?: string | null
+          property_class?: string | null
+          property_condition?: string | null
+          property_name?: string | null
+          recent_renovations?: string | null
+          roof_type?: string | null
+          source?: Database["public"]["Enums"]["property_source"]
+          state?: string | null
+          status?: Database["public"]["Enums"]["pledged_property_status"]
+          strategy_type?: Database["public"]["Enums"]["strategy_type"] | null
+          unit_suite?: string | null
+          units?: number | null
+          updated_at?: string
+          withdrawn_at?: string | null
+          year_built?: number | null
+          zip?: string | null
+          zoning?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pledged_properties_exchange_id_fkey"
+            columns: ["exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           bio: string | null
@@ -1030,6 +1162,186 @@ export type Database = {
           years_experience?: number | null
         }
         Relationships: []
+      }
+      property_documents: {
+        Row: {
+          created_at: string
+          document_type: string | null
+          file_name: string | null
+          id: string
+          property_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          document_type?: string | null
+          file_name?: string | null
+          id?: string
+          property_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string | null
+          file_name?: string | null
+          id?: string
+          property_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_documents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_financials: {
+        Row: {
+          annual_debt_service: number | null
+          annual_expenses: number | null
+          annual_revenue: number | null
+          appraised_value: number | null
+          asking_price: number | null
+          average_rent_per_unit: number | null
+          cap_rate: number | null
+          capex_reserves: number | null
+          cash_on_cash: number | null
+          created_at: string
+          effective_gross_income: number | null
+          gross_scheduled_income: number | null
+          has_prepayment_penalty: boolean | null
+          id: string
+          insurance: number | null
+          loan_balance: number | null
+          loan_maturity_date: string | null
+          loan_rate: number | null
+          loan_type: string | null
+          maintenance_repairs: number | null
+          management_fee: number | null
+          noi: number | null
+          occupancy_rate: number | null
+          other_expenses: number | null
+          other_income: number | null
+          prepayment_penalty_details: string | null
+          property_id: string
+          real_estate_taxes: number | null
+          updated_at: string
+          utilities: number | null
+          vacancy_rate: number | null
+        }
+        Insert: {
+          annual_debt_service?: number | null
+          annual_expenses?: number | null
+          annual_revenue?: number | null
+          appraised_value?: number | null
+          asking_price?: number | null
+          average_rent_per_unit?: number | null
+          cap_rate?: number | null
+          capex_reserves?: number | null
+          cash_on_cash?: number | null
+          created_at?: string
+          effective_gross_income?: number | null
+          gross_scheduled_income?: number | null
+          has_prepayment_penalty?: boolean | null
+          id?: string
+          insurance?: number | null
+          loan_balance?: number | null
+          loan_maturity_date?: string | null
+          loan_rate?: number | null
+          loan_type?: string | null
+          maintenance_repairs?: number | null
+          management_fee?: number | null
+          noi?: number | null
+          occupancy_rate?: number | null
+          other_expenses?: number | null
+          other_income?: number | null
+          prepayment_penalty_details?: string | null
+          property_id: string
+          real_estate_taxes?: number | null
+          updated_at?: string
+          utilities?: number | null
+          vacancy_rate?: number | null
+        }
+        Update: {
+          annual_debt_service?: number | null
+          annual_expenses?: number | null
+          annual_revenue?: number | null
+          appraised_value?: number | null
+          asking_price?: number | null
+          average_rent_per_unit?: number | null
+          cap_rate?: number | null
+          capex_reserves?: number | null
+          cash_on_cash?: number | null
+          created_at?: string
+          effective_gross_income?: number | null
+          gross_scheduled_income?: number | null
+          has_prepayment_penalty?: boolean | null
+          id?: string
+          insurance?: number | null
+          loan_balance?: number | null
+          loan_maturity_date?: string | null
+          loan_rate?: number | null
+          loan_type?: string | null
+          maintenance_repairs?: number | null
+          management_fee?: number | null
+          noi?: number | null
+          occupancy_rate?: number | null
+          other_expenses?: number | null
+          other_income?: number | null
+          prepayment_penalty_details?: string | null
+          property_id?: string
+          real_estate_taxes?: number | null
+          updated_at?: string
+          utilities?: number | null
+          vacancy_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_financials_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_images: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          id: string
+          property_id: string
+          sort_order: number | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          id?: string
+          property_id: string
+          sort_order?: number | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          id?: string
+          property_id?: string
+          sort_order?: number | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_images_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referrals: {
         Row: {
@@ -1217,6 +1529,13 @@ export type Database = {
         | "archived"
       match_result_status: "pending" | "approved" | "rejected"
       match_run_status: "pending" | "completed" | "failed"
+      pledged_property_status:
+        | "draft"
+        | "active"
+        | "under_contract"
+        | "exchanged"
+        | "withdrawn"
+      property_source: "agent_pledge" | "platform_sourced" | "dst"
       request_status:
         | "submitted"
         | "under_review"
@@ -1391,6 +1710,14 @@ export const Constants = {
       ],
       match_result_status: ["pending", "approved", "rejected"],
       match_run_status: ["pending", "completed", "failed"],
+      pledged_property_status: [
+        "draft",
+        "active",
+        "under_contract",
+        "exchanged",
+        "withdrawn",
+      ],
+      property_source: ["agent_pledge", "platform_sourced", "dst"],
       request_status: [
         "submitted",
         "under_review",
