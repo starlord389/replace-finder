@@ -5,10 +5,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, MapPin, Building2, Camera, ChevronDown, ChevronUp,
-  TrendingUp, TrendingDown, Minus, X, Info, Shield,
+  TrendingUp, TrendingDown, Minus, X, Info, Shield, Send, Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
