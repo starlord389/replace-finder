@@ -5,8 +5,11 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
-  const { user, hasRole, signOut } = useAuth();
+  const { user, hasRole, signOut, profileRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const dashboardLink = profileRole === "admin" ? "/admin" : "/dashboard";
+  const dashboardLabel = profileRole === "admin" ? "Admin" : profileRole === "client" ? "My Exchange" : "Dashboard";
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md" aria-label="Main navigation">
@@ -27,8 +30,8 @@ export default function Navbar() {
                   Admin
                 </Link>
               )}
-              <Link to="/dashboard">
-                <Button variant="ghost" size="sm">Dashboard</Button>
+              <Link to={dashboardLink}>
+                <Button variant="ghost" size="sm">{dashboardLabel}</Button>
               </Link>
               <Button variant="outline" size="sm" onClick={signOut}>
                 Sign Out
@@ -81,11 +84,11 @@ export default function Navbar() {
                   </Link>
                 )}
                 <Link
-                  to="/dashboard"
+                  to={dashboardLink}
                   className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   onClick={() => setMobileOpen(false)}
                 >
-                  Dashboard
+                  {dashboardLabel}
                 </Link>
                 <div className="mt-2 border-t pt-2">
                   <Button variant="outline" size="sm" className="w-full" onClick={() => { signOut(); setMobileOpen(false); }}>
