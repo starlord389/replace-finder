@@ -2044,6 +2044,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_exchange_agent: {
+        Args: { _exchange_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "client" | "broker" | "admin"
