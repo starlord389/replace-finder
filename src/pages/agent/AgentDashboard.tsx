@@ -82,10 +82,10 @@ export default function AgentDashboard() {
   }
 
   const kpis = [
-    { label: "Active Clients", value: clientCount, icon: Users },
-    { label: "Active Exchanges", value: exchangeCount, icon: ArrowLeftRight },
-    { label: "Total Matches", value: matchCount, icon: Handshake },
-    { label: "Pending Connections", value: connectionCount, icon: Link2 },
+    { label: "Active Clients", value: clientCount, icon: Users, link: "/agent/clients" },
+    { label: "Active Exchanges", value: exchangeCount, icon: ArrowLeftRight, link: "/agent/exchanges" },
+    { label: "Total Matches", value: matchCount, icon: Handshake, link: "/agent/matches" },
+    { label: "Pending Connections", value: connectionCount, icon: Link2, link: "/agent/connections" },
   ];
 
   const deadlineColor = (days: number) => {
@@ -126,17 +126,19 @@ export default function AgentDashboard() {
       {/* KPI cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi) => (
-          <Card key={kpi.label}>
-            <CardContent className="flex items-center gap-4 p-5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <kpi.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
-                <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <Link key={kpi.label} to={kpi.link}>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="flex items-center gap-4 p-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <kpi.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
+                  <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 

@@ -9,6 +9,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
@@ -90,6 +95,14 @@ export default function AgentMatchDetail() {
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [detailedOpen, setDetailedOpen] = useState(false);
+
+  // Connection state
+  const [connectionState, setConnectionState] = useState<"none" | "pending" | "accepted" | "declined">("none");
+  const [connectionId, setConnectionId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [feeAgreed, setFeeAgreed] = useState(false);
+  const [connectionMessage, setConnectionMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const viewTracked = useRef(false);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -219,6 +232,27 @@ export default function AgentMatchDetail() {
 
   const imgUrls = sellerImages.map((img) => supabase.storage.from("property-images").getPublicUrl(img.storage_path).data.publicUrl);
 
+  // Check existing connection state
+  useEffect(() => {
+    if (!match || !user) return;
+    supabase
+      .from("exchange_connections")
+      .select("id, status")
+      .eq("match_id", match.id)
+      .or(`buyer_agent_id.eq.${user.id},seller_agent_id.eq.${user.id}`)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const conn = data[0];
+          setConnectionId(conn.id);
+          if (conn.status === "pending") setConnectionState("pending");
+          else if (conn.status === "accepted" || conn.status === "completed") setConnectionState("accepted");
+          else if (conn.status === "declined") setConnectionState("declined");
+        }
+      });
+  }, [match, user]);
+
   if (loading) return <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
   if (!match || !sellerProp) return <p className="py-20 text-center text-muted-foreground">Match not found or access denied.</p>;
 
@@ -226,7 +260,63 @@ export default function AgentMatchDetail() {
   const contextText = `Match for: ${clientName}'s ${[relinquishedProp?.city, relinquishedProp?.state].filter(Boolean).join(", ") || ""} exchange`;
 
   const handleStartExchange = () => {
-    toast({ title: "Coming soon", description: "Exchange connections coming in the next update." });
+    if (connectionState === "accepted" && connectionId) {
+      navigate(`/agent/connections/${connectionId}`);
+      return;
+    }
+    setModalOpen(true);
+  };
+
+  const handleSendRequest = async () => {
+    if (!match || !user || !sellerProp) return;
+    setSubmitting(true);
+    try {
+      const sellerAgentId = sellerProp.agent_id;
+      const sellerExchangeId = sellerProp.exchange_id || null;
+
+      const { data: connData, error: connErr } = await supabase
+        .from("exchange_connections")
+        .insert({
+          match_id: match.id,
+          buyer_exchange_id: match.buyer_exchange_id,
+          seller_exchange_id: sellerExchangeId,
+          buyer_agent_id: user.id,
+          seller_agent_id: sellerAgentId,
+          initiated_by: "buyer_agent",
+          status: "pending",
+          facilitation_fee_agreed: true,
+        })
+        .select("id")
+        .single();
+
+      if (connErr) throw connErr;
+
+      // Insert notification for seller agent
+      await supabase.from("notifications").insert({
+        user_id: sellerAgentId,
+        type: "connection_request",
+        title: "New Connection Request",
+        message: `An agent wants to connect on your property ${sellerProp.property_name || "listing"} for their client's 1031 exchange.`,
+        link_to: "/agent/connections",
+      });
+
+      // Insert timeline entry
+      await supabase.from("exchange_timeline").insert({
+        exchange_id: match.buyer_exchange_id,
+        event_type: "connection_initiated",
+        description: `Connection requested for ${sellerProp.property_name || "a replacement property"}`,
+        actor_id: user.id,
+      });
+
+      setConnectionState("pending");
+      setConnectionId(connData.id);
+      setModalOpen(false);
+      toast({ title: "Request sent!", description: "You'll be notified when they respond." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to send request.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -253,7 +343,10 @@ export default function AgentMatchDetail() {
                 {BOOT_STATUS_LABELS[match.boot_status] || match.boot_status}
               </Badge>
             </div>
-            <Button onClick={handleStartExchange} size="sm">Start Exchange</Button>
+            {connectionState === "none" && <Button onClick={handleStartExchange} size="sm">Start Exchange</Button>}
+            {connectionState === "pending" && <Button size="sm" variant="secondary" disabled>Request Sent</Button>}
+            {connectionState === "accepted" && <Button size="sm" variant="default" onClick={() => navigate(`/agent/connections/${connectionId}`)}>Connected — View</Button>}
+            {connectionState === "declined" && <Button size="sm" onClick={handleStartExchange}>Request Again</Button>}
           </div>
         </div>
       )}
@@ -333,7 +426,10 @@ export default function AgentMatchDetail() {
               {BOOT_STATUS_LABELS[match.boot_status] || match.boot_status}
               {match.estimated_total_boot ? ` · ${fmt(match.estimated_total_boot)}` : ""}
             </Badge>
-            <Button onClick={handleStartExchange} className="gap-1.5">Start Exchange</Button>
+            {connectionState === "none" && <Button onClick={handleStartExchange} className="gap-1.5">Start Exchange</Button>}
+            {connectionState === "pending" && <Button variant="secondary" disabled className="gap-1.5">Request Sent — Awaiting Response</Button>}
+            {connectionState === "accepted" && <Button onClick={() => navigate(`/agent/connections/${connectionId}`)} className="gap-1.5 bg-green-600 hover:bg-green-700">Connected — View Connection</Button>}
+            {connectionState === "declined" && <Button onClick={handleStartExchange} className="gap-1.5">Request Again</Button>}
           </div>
         </div>
       </div>
@@ -755,12 +851,82 @@ export default function AgentMatchDetail() {
       <div className="mt-8 rounded-xl border bg-card p-6">
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
-            <h3 className="font-semibold text-foreground">Interested in this property?</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Start an exchange connection to reveal the listing agent.</p>
+            <h3 className="font-semibold text-foreground">
+              {connectionState === "accepted" ? "You're connected!" : "Interested in this property?"}
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {connectionState === "accepted"
+                ? "View the connection to see agent details and manage the exchange."
+                : "Start an exchange connection to reveal the listing agent."}
+            </p>
           </div>
-          <Button onClick={handleStartExchange} className="gap-1.5">Start Exchange</Button>
+          {connectionState === "none" && <Button onClick={handleStartExchange} className="gap-1.5">Start Exchange</Button>}
+          {connectionState === "pending" && <Button variant="secondary" disabled className="gap-1.5">Request Sent — Awaiting Response</Button>}
+          {connectionState === "accepted" && <Button onClick={() => navigate(`/agent/connections/${connectionId}`)} className="gap-1.5 bg-green-600 hover:bg-green-700">View Connection</Button>}
+          {connectionState === "declined" && <Button onClick={handleStartExchange} className="gap-1.5">Request Again</Button>}
         </div>
       </div>
+
+      {/* ═══ START EXCHANGE MODAL ═══ */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Start Exchange Connection</DialogTitle>
+            <DialogDescription>
+              You're requesting to connect with the listing agent for{" "}
+              <span className="font-medium text-foreground">{sellerProp.property_name || "this property"}</span>
+              {sellerProp.city && sellerProp.state ? ` in ${sellerProp.city}, ${sellerProp.state}` : ""}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center gap-3 py-2">
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${scoreColor(totalScore)}`}>
+              {totalScore}
+            </span>
+            <Badge className={BOOT_STATUS_COLORS[match.boot_status] || ""}>
+              {BOOT_STATUS_LABELS[match.boot_status] || match.boot_status}
+            </Badge>
+          </div>
+
+          <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="fee-agree"
+                checked={feeAgreed}
+                onCheckedChange={(v) => setFeeAgreed(v === true)}
+              />
+              <label htmlFor="fee-agree" className="text-sm leading-snug cursor-pointer">
+                I acknowledge that completed exchanges facilitated through 1031ExchangeUp are subject to the platform's facilitation fee as outlined in the Terms of Service.
+              </label>
+            </div>
+            <p className="text-xs text-muted-foreground pl-7">
+              The facilitation fee applies only when an exchange is completed.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Add a message for the other agent (optional)
+            </label>
+            <Textarea
+              value={connectionMessage}
+              onChange={(e) => setConnectionMessage(e.target.value)}
+              placeholder="Hi, my client is interested in this property for their 1031 exchange..."
+              rows={3}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSendRequest}
+              disabled={!feeAgreed || submitting}
+            >
+              {submitting ? "Sending..." : "Send Request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
