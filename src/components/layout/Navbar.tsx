@@ -8,8 +8,8 @@ export default function Navbar() {
   const { user, hasRole, signOut, profileRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const dashboardLink = profileRole === "admin" ? "/admin" : "/dashboard";
-  const dashboardLabel = profileRole === "admin" ? "Admin" : profileRole === "client" ? "My Exchange" : "Dashboard";
+  const dashboardLink = profileRole === "admin" ? "/admin" : profileRole === "agent" ? "/agent" : "/dashboard";
+  const dashboardLabel = profileRole === "admin" ? "Admin" : profileRole === "agent" ? "Dashboard" : profileRole === "client" ? "My Exchange" : "Dashboard";
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md" aria-label="Main navigation">
