@@ -1,23 +1,29 @@
 
 
-# Bug Fixes — Navbar Routing + 2 DB Constraint Fixes
+# Fix 5 Runtime Bugs
 
-## 1. Fix Navbar agent routing
-**File:** `src/components/layout/Navbar.tsx`
+## Analysis
 
-Update two lines to add agent-specific routing:
-- `dashboardLink`: add `profileRole === "agent" ? "/agent"` branch
-- `dashboardLabel`: add `profileRole === "agent" ? "Dashboard"` branch
+**Fix 1 (Navbar routing): Already fixed.** Lines 11-12 of Navbar.tsx already have the correct agent routing from the previous bug fix round.
 
-## 2. Migration: notification types CHECK constraint
-Add missing types (`connection_request`, `connection_accepted`, `connection_declined`, `connection_milestone`, `connection_failed`, `deadline_warning`, `deadline_critical`, `exchange_status_change`, `new_referral`, `property_status_change`, `system`) to `notifications.type`.
+**Fix 2 (ClientLayout agent redirect): Needed.** ClientLayout.tsx currently only checks `!user` — agents can still access the old client area.
 
-SQL: Drop existing constraint if any, add new CHECK with all 13 values.
+**Fixes 3-4 (DB constraints): Already migrated** in the last round (migration `20260406195540`), but the user reports they're still failing. This likely means the migration didn't apply cleanly or needs to be re-run. A new migration with the same `DROP CONSTRAINT IF EXISTS` + `ADD CONSTRAINT` pattern will safely handle this.
 
-## 3. Migration: timeline event types CHECK constraint
-Add missing event types (`connection_initiated`, `connection_accepted`, `connection_milestone`, `under_contract`, `closed`, `failed`, `cancelled`, etc.) to `exchange_timeline.event_type`.
+**Fix 5 (property-images bucket): Needed.** No `property-images` bucket exists in the storage buckets list.
 
-SQL: Drop existing constraint if any, add new CHECK with all 14 values.
+## Changes
 
-## No other files or schema changes needed.
+### 1. `src/components/layout/ClientLayout.tsx`
+- Destructure `profileRole` from `useAuth()`
+- After the `!user` redirect, add: `if (profileRole === "agent") return <Navigate to="/agent" replace />`
+
+### 2. Database migration (single migration, 3 statements)
+- Re-apply notification type constraint with all 13 values (idempotent via `DROP IF EXISTS`)
+- Re-apply timeline event type constraint with all 14 values (idempotent via `DROP IF EXISTS`)
+- Create `property-images` storage bucket with public access + RLS policies for upload/view/delete
+
+### No other changes
+- Navbar.tsx is already correct — skip Fix 1
+- No new files, no new routes, no refactoring
 
