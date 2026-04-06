@@ -75,6 +75,8 @@ const App = () => (
               <Route path="/agent/clients/new" element={<AgentClientDetail />} />
               <Route path="/agent/clients/:id" element={<AgentClientDetail />} />
               <Route path="/agent/exchanges" element={<AgentExchanges />} />
+              <Route path="/agent/exchanges/new" element={<NewExchange />} />
+              <Route path="/agent/exchanges/:id" element={<AgentExchangeDetail />} />
               <Route path="/agent/matches" element={<AgentMatches />} />
               <Route path="/agent/connections" element={<AgentConnections />} />
               <Route path="/agent/identifications" element={<AgentIdentifications />} />

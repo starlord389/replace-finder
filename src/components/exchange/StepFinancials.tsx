@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { FinancialsData, parseCurrency } from "@/lib/exchangeWizardTypes";
 import { LOAN_TYPE_OPTIONS } from "@/lib/constants";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface Props {
   data: FinancialsData;
