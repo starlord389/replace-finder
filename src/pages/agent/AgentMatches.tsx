@@ -3,11 +3,10 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Building2, Camera, Handshake, ArrowUpDown } from "lucide-react";
+import { Building2, Handshake, ArrowUpDown } from "lucide-react";
 import {
   ASSET_TYPE_LABELS, STRATEGY_TYPE_LABELS,
   BOOT_STATUS_LABELS, BOOT_STATUS_COLORS,
