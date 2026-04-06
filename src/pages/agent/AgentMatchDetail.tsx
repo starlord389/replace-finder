@@ -238,8 +238,85 @@ export default function AgentMatchDetail() {
   const totalScore = Math.round(Number(match.total_score));
   const contextText = `Match for: ${clientName}'s ${[relinquishedProp?.city, relinquishedProp?.state].filter(Boolean).join(", ") || ""} exchange`;
 
+  // Check existing connection state
+  useEffect(() => {
+    if (!match || !user) return;
+    supabase
+      .from("exchange_connections")
+      .select("id, status")
+      .eq("match_id", match.id)
+      .or(`buyer_agent_id.eq.${user.id},seller_agent_id.eq.${user.id}`)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const conn = data[0];
+          setConnectionId(conn.id);
+          if (conn.status === "pending") setConnectionState("pending");
+          else if (conn.status === "accepted" || conn.status === "completed") setConnectionState("accepted");
+          else if (conn.status === "declined") setConnectionState("declined");
+        }
+      });
+  }, [match, user]);
+
   const handleStartExchange = () => {
-    toast({ title: "Coming soon", description: "Exchange connections coming in the next update." });
+    if (connectionState === "accepted" && connectionId) {
+      navigate(`/agent/connections/${connectionId}`);
+      return;
+    }
+    setModalOpen(true);
+  };
+
+  const handleSendRequest = async () => {
+    if (!match || !user || !sellerProp) return;
+    setSubmitting(true);
+    try {
+      const sellerAgentId = sellerProp.agent_id;
+      const sellerExchangeId = sellerProp.exchange_id || null;
+
+      const { data: connData, error: connErr } = await supabase
+        .from("exchange_connections")
+        .insert({
+          match_id: match.id,
+          buyer_exchange_id: match.buyer_exchange_id,
+          seller_exchange_id: sellerExchangeId,
+          buyer_agent_id: user.id,
+          seller_agent_id: sellerAgentId,
+          initiated_by: "buyer_agent",
+          status: "pending",
+          facilitation_fee_agreed: true,
+        })
+        .select("id")
+        .single();
+
+      if (connErr) throw connErr;
+
+      // Insert notification for seller agent
+      await supabase.from("notifications").insert({
+        user_id: sellerAgentId,
+        type: "connection_request",
+        title: "New Connection Request",
+        message: `An agent wants to connect on your property ${sellerProp.property_name || "listing"} for their client's 1031 exchange.`,
+        link_to: "/agent/connections",
+      });
+
+      // Insert timeline entry
+      await supabase.from("exchange_timeline").insert({
+        exchange_id: match.buyer_exchange_id,
+        event_type: "connection_initiated",
+        description: `Connection requested for ${sellerProp.property_name || "a replacement property"}`,
+        actor_id: user.id,
+      });
+
+      setConnectionState("pending");
+      setConnectionId(connData.id);
+      setModalOpen(false);
+      toast({ title: "Request sent!", description: "You'll be notified when they respond." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to send request.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
