@@ -141,10 +141,26 @@ export const EXCHANGE_STATUS_COLORS: Record<string, string> = {
 };
 
 export const SCORE_DIMENSIONS = [
-  { key: "price_score", label: "Price", weight: "25%" },
-  { key: "geo_score", label: "Geography", weight: "20%" },
-  { key: "asset_score", label: "Asset Type", weight: "20%" },
-  { key: "strategy_score", label: "Strategy", weight: "15%" },
+  { key: "price_score", label: "Price", weight: "20%" },
+  { key: "geo_score", label: "Geography", weight: "15%" },
+  { key: "asset_score", label: "Asset Type", weight: "15%" },
+  { key: "strategy_score", label: "Strategy", weight: "10%" },
   { key: "financial_score", label: "Financial", weight: "10%" },
   { key: "timing_score", label: "Timing", weight: "10%" },
+  { key: "debt_fit_score", label: "Debt Fit", weight: "10%" },
+  { key: "scale_fit_score", label: "Scale Fit", weight: "10%" },
 ] as const;
+
+export const BOOT_STATUS_LABELS: Record<string, string> = {
+  no_boot: "No Boot",
+  minor_boot: "Minor Boot",
+  significant_boot: "Significant Boot",
+  insufficient_data: "Insufficient Data",
+};
+
+export const BOOT_STATUS_COLORS: Record<string, string> = {
+  no_boot: "bg-green-100 text-green-800",
+  minor_boot: "bg-amber-100 text-amber-800",
+  significant_boot: "bg-red-100 text-red-800",
+  insufficient_data: "bg-muted text-muted-foreground",
+};
