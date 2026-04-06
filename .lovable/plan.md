@@ -1,49 +1,61 @@
 
 
-# Phase 1A: Database Foundation — 17 Migrations
+# Phase 1C: Agent Signup Flow + Updated Auth + Owner Referral Path
 
 ## Overview
-Create all new tables for the exchange network alongside existing tables. No frontend changes. No RLS policies (Phase 1B). This is 17 sequential SQL migrations.
+Rewrite the signup page with a two-path flow (agent vs property owner), update login routing by role, extend the auth context with profile data, update the `handle_new_user` trigger, and add anon insert policy on referrals.
 
-## Important Flags
+## Database Migration (1 migration file)
 
-**Foreign keys to `auth.users`**: Your SQL references `auth.users(id)` in many places (agent_clients, referrals, exchanges, exchange_connections, messages, notifications, etc.). Platform guidelines recommend against this because `auth.users` can't be queried from the client SDK. Since you already have a `profiles` table that mirrors user IDs, consider whether these FKs should reference `profiles(id)` instead. However, the FKs will still *work* for referential integrity — you just can't join through them from the client. I'll proceed with your SQL as written unless you want to change this.
+1. Add `'agent'` to `app_role` enum: `ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'agent'`
+2. Replace `handle_new_user()` function to read `role` from `raw_user_meta_data` and set both `profiles.role` and `user_roles.role` accordingly
+3. Add anon INSERT policy on `referrals`: `CREATE POLICY "Anon can create referral" ON public.referrals FOR INSERT TO anon WITH CHECK (true)`
 
-**`profiles.role` column**: You're adding a `role` column directly to profiles. The existing `user_roles` table already stores roles. This creates two sources of truth. If this is intentional for the new data model, that's fine — just flagging it.
+## Files to Modify
 
-**CHECK constraints**: Several tables use CHECK constraints for enum-like values. These work fine for static value lists (not time-based), so no issue here.
+### 1. `src/pages/auth/Signup.tsx` — Full rewrite (~350 lines)
 
-## Execution Plan
+Three-state component controlled by a `step` state: `'choose'`, `'agent'`, `'referral'`.
 
-Run all 17 migrations via the database migration tool in order:
+**Step: choose** — Two Card options centered on page. "I'm a Real Estate Agent" and "I'm a Property Owner". Clicking sets step.
 
-1. **Expand profiles** — Add agent columns (mls_number, license_state, brokerage, bio, etc.), role column, verification fields, CHECK constraints
-2. **agent_clients** — Agent-client relationships with status
-3. **referrals** — Platform referral tracking
-4. **exchanges** — Core exchange table with `exchange_status` enum, key dates, economics (FKs to properties/criteria added later)
-5. **pledged_properties** — Property listings with `property_source` and `pledged_property_status` enums, physical details. Also adds FK from exchanges.relinquished_property_id
-6. **property_financials** — Financials tied 1:1 to pledged_properties
-7. **property_images + property_documents** — Media/docs for pledged properties
-8. **replacement_criteria** — Buyer criteria per exchange, plus FK from exchanges.criteria_id
-9. **matches** — Scored matches with `boot_status` enum, boot analysis fields, unique pair constraint
-10. **exchange_connections** — Agent-to-agent connection flow with facilitation fee tracking
-11. **identification_list** — 45-day ID list (max 3 positions per exchange)
-12. **notifications** — User notifications with type constraints
-13. **messages** — Connection-scoped messaging
-14. **exchange_timeline** — Audit trail per exchange
-15. **dst_properties** — Platform-managed DST backup options
-16. **Auto-deadline trigger** — Calculates identification (sale+45d) and closing (sale+180d) deadlines
-17. **Auto-status trigger** — Transitions exchange status based on data completeness
+**Step: agent** — Single-page form with three sections (Account, Professional Info, Specializations). Back button to return to choose. On submit:
+- `supabase.auth.signUp` with `data: { full_name, phone, role: 'agent' }`
+- After signup, update profile with agent fields and upsert `user_roles` with `'agent'`
+- Toast success, navigate to `/login`
+- Inline validation: required fields, password match, min 8 chars
 
-## What Gets Created
-- 5 new enums: `exchange_status`, `property_source`, `pledged_property_status`, `boot_status` (plus reusing existing `asset_type`, `strategy_type`)
-- 14 new tables with indexes
-- 2 triggers + 2 functions on `exchanges`
-- ~8 new columns on `profiles`
+**Step: referral** — Simple form (name, email, phone, location, type, value, notes). No auth required. On submit:
+- Insert into `referrals` table using anon client
+- Replace form with success message + "Back to Home" link
+- No navigation away
 
-## What Does NOT Change
-- No existing tables dropped or modified (except profiles)
-- No frontend code touched
-- No RLS policies created
-- No edge functions modified
+### 2. `src/pages/auth/Login.tsx` — Minor update (~5 lines changed)
+
+After successful `signInWithPassword`, fetch `profiles.role` for the user, then navigate:
+- `'admin'` → `/admin`
+- `'agent'` → `/dashboard`
+- `'client'` or default → `/dashboard`
+
+### 3. `src/hooks/useAuth.tsx` — Extend context
+
+Add to state: `profileRole`, `profileName`, `agentVerificationStatus` (all string | null), plus computed `isAgent` and `isVerifiedAgent` booleans.
+
+After fetching `user_roles`, also fetch `profiles` row (`role, full_name, verification_status`). Expose all new fields in context. Existing `hasRole()` continues to work unchanged.
+
+### 4. `src/components/layout/Navbar.tsx` — Use profileRole
+
+When authenticated, use `profileRole` from `useAuth` to determine dashboard link label/target:
+- `'admin'` → "Admin" link to `/admin`
+- `'agent'` → "Dashboard" link to `/dashboard`
+- `'client'` → "My Exchange" link to `/dashboard`
+
+Minor change — swap the hardcoded `/dashboard` link for role-conditional rendering.
+
+## No other files changed. No new routes needed — `/signup` already exists in PublicLayout.
+
+## Technical Notes
+- The `handle_new_user` trigger update means new agent signups get `profiles.role = 'agent'` and `user_roles.role = 'agent'` automatically. The post-signup profile update in the signup form is a belt-and-suspenders approach for the transition period.
+- The referral form works without auth via the anon INSERT policy.
+- US_STATES and ASSET_TYPE_LABELS already exist in `constants.ts` — reuse them.
 
