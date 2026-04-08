@@ -4,7 +4,7 @@ import {
   ArrowRight, Building2, Target, Zap, Handshake,
   BarChart3, Shield, Users, ArrowLeftRight, DollarSign,
   Check, X as XIcon, Star, Search, Bell, Settings,
-  Home, Briefcase, Link2, LayoutDashboard
+  Briefcase, Link2, LayoutDashboard
 } from "lucide-react";
 
 /* ── scroll-reveal hook ────────────────────────── */
