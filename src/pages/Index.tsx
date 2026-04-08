@@ -3,8 +3,8 @@ import { useEffect, useRef } from "react";
 import {
   ArrowRight, Building2, Target, Zap, Handshake,
   BarChart3, Shield, Users, ArrowLeftRight, DollarSign,
-  Check, X as XIcon, Sparkles, TrendingUp, Star,
-  Search, Bell, Settings
+  Check, X as XIcon, Star, Search, Bell, Settings,
+  Home, Briefcase, Link2, LayoutDashboard
 } from "lucide-react";
 
 /* ── scroll-reveal hook ────────────────────────── */
@@ -36,197 +36,293 @@ export default function Index() {
 
   return (
     <div ref={root} className="overflow-hidden">
-      {/* ═══ HERO — Two column: text left, visual right ═══ */}
-      <section className="relative px-4 pb-10 pt-24 sm:px-6 sm:pt-32 lg:pb-16">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_20%_-10%,rgba(99,132,227,0.06),transparent)]" />
+      {/* ═══ HERO — Two column layout like reference ═══ */}
+      <section className="relative px-4 pb-0 pt-24 sm:px-6 sm:pt-32 lg:pt-36">
+        {/* Subtle grid background */}
+        <div className="pointer-events-none absolute inset-0 -z-10" style={{
+          backgroundImage: "linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)",
+          backgroundSize: "40px 40px"
+        }} />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-white/80 to-white" />
 
         <div className="mx-auto max-w-6xl">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            {/* Left — text */}
-            <div>
+          <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-20">
+            {/* Left — text content */}
+            <div className="pt-4 lg:pt-8">
               {/* Pill badge */}
-              <div className="animate-fade-in-up mb-7 inline-flex items-center gap-2.5 rounded-full border border-gray-200 bg-white px-4 py-1.5">
+              <div className="animate-fade-in-up mb-8 inline-flex items-center gap-2.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 shadow-sm">
                 <span className="h-2 w-2 rounded-full bg-blue-500" />
                 <span className="text-[13px] font-medium text-gray-600">
-                  The 1031 Exchange Agent Network
+                  Now available for early access
                 </span>
               </div>
 
-              {/* Headline */}
-              <h1 className="animate-fade-in-up delay-100 text-[2.5rem] font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.5rem]">
-                Every property pledged is a match for{" "}
+              {/* Headline — large, left-aligned */}
+              <h1 className="animate-fade-in-up delay-100 text-[2.75rem] font-extrabold leading-[1.08] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.5rem]">
+                Real-time matching for{" "}
                 <span className="relative inline-block">
-                  <span className="relative z-10">someone else</span>
-                  <span className="absolute -bottom-1 left-0 z-0 h-3 w-full bg-blue-100/70 rounded-sm" />
+                  <span className="relative z-10">modern exchanges</span>
+                  <span className="absolute -bottom-1 left-0 z-0 h-3 w-full rounded-sm bg-blue-100/70" />
                 </span>
               </h1>
 
-              {/* Sub */}
-              <p className="animate-fade-in-up delay-200 mt-6 max-w-lg text-[16px] leading-relaxed text-gray-500">
-                Join a network of agents where your client's property becomes
-                inventory for everyone else's client — and theirs becomes
-                inventory for yours. Automatic matching. Zero manual searching.
-              </p>
-
               {/* CTAs */}
-              <div className="animate-fade-in-up delay-300 mt-8 flex flex-wrap items-center gap-3">
+              <div className="animate-fade-in-up delay-300 mt-10 flex flex-wrap items-center gap-3">
                 <Link
                   to="/signup"
-                  className="group inline-flex items-center gap-2 rounded-full bg-gray-900 px-7 py-3 text-[15px] font-semibold text-white shadow-lg shadow-gray-900/10 transition-all hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/15 active:scale-[0.98]"
+                  className="group inline-flex items-center gap-2 rounded-full bg-gray-900 px-7 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-gray-900/10 transition-all hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/15 active:scale-[0.98]"
                 >
                   Join the Network
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
                 <Link
                   to="/how-it-works"
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-7 py-3 text-[15px] font-semibold text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-7 py-3.5 text-[15px] font-semibold text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
                 >
                   How It Works
                 </Link>
               </div>
             </div>
 
-            {/* Right — visual / illustration */}
+            {/* Right — illustration area with description + stars */}
             <div className="animate-fade-in-up delay-300 relative hidden lg:block">
-              {/* Floating cards composition */}
-              <div className="relative h-[420px]">
-                {/* Main card */}
-                <div className="absolute right-0 top-8 w-72 rounded-2xl border border-gray-100 bg-white p-5 shadow-xl shadow-gray-200/50">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-9 w-9 rounded-xl bg-blue-50 flex items-center justify-center">
-                      <TrendingUp className="h-4 w-4 text-blue-600" />
+              <div className="relative flex flex-col items-end">
+                {/* Illustration placeholder — abstract graphic */}
+                <div className="relative mb-6 h-64 w-80">
+                  {/* Abstract composition of floating cards */}
+                  <div className="absolute right-0 top-0 h-52 w-52 rounded-3xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-5 shadow-lg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                        <Target className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-gray-400">Match Score</p>
+                        <p className="text-lg font-bold text-gray-900">94%</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-400">Match Score</p>
-                      <p className="text-lg font-bold text-gray-900">92/100</p>
+                    <div className="space-y-3">
+                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-blue-500" style={{width:'94%'}} /></div>
+                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-blue-400" style={{width:'88%'}} /></div>
+                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-blue-300" style={{width:'76%'}} /></div>
                     </div>
                   </div>
-                  <div className="space-y-2.5">
-                    <div className="flex justify-between text-xs"><span className="text-gray-400">Price Fit</span><span className="font-semibold text-gray-700">95%</span></div>
-                    <div className="h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-blue-500" style={{width:'95%'}} /></div>
-                    <div className="flex justify-between text-xs"><span className="text-gray-400">Geography</span><span className="font-semibold text-gray-700">88%</span></div>
-                    <div className="h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-blue-500" style={{width:'88%'}} /></div>
-                    <div className="flex justify-between text-xs"><span className="text-gray-400">Asset Type</span><span className="font-semibold text-gray-700">100%</span></div>
-                    <div className="h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-blue-500" style={{width:'100%'}} /></div>
-                    <div className="flex justify-between text-xs"><span className="text-gray-400">Boot Status</span><span className="font-semibold text-emerald-600">No Boot</span></div>
-                  </div>
-                </div>
-
-                {/* Property card (behind, offset) */}
-                <div className="animate-float absolute left-0 top-0 w-64 rounded-2xl border border-gray-100 bg-white p-4 shadow-lg shadow-gray-200/40">
-                  <div className="h-28 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
-                    <Building2 className="h-8 w-8 text-gray-300" />
-                  </div>
-                  <p className="mt-3 text-sm font-semibold text-gray-900">Riverside Apartments</p>
-                  <p className="text-xs text-gray-400">Phoenix, AZ · Multifamily</p>
-                  <div className="mt-2 flex items-center gap-3">
-                    <span className="text-sm font-bold text-gray-900">$4.2M</span>
-                    <span className="text-xs text-gray-400">6.8% cap</span>
-                    <span className="text-xs text-gray-400">48 units</span>
+                  <div className="animate-float absolute -left-4 top-16 w-44 rounded-2xl border border-gray-100 bg-white p-3.5 shadow-md">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <Check className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-900">New Match</p>
+                        <p className="text-[10px] text-gray-400">No Boot · 92 Score</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Small notification card */}
-                <div className="animate-float absolute bottom-12 left-16 w-56 rounded-xl border border-gray-100 bg-white p-3 shadow-md shadow-gray-200/30" style={{animationDelay:'2s'}}>
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-7 w-7 rounded-lg bg-emerald-50 flex items-center justify-center">
-                      <Check className="h-3.5 w-3.5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900">New Match Found</p>
-                      <p className="text-[10px] text-gray-400">Score: 92 · No Boot</p>
-                    </div>
+                {/* Description + stars */}
+                <div className="max-w-xs text-right">
+                  <p className="text-sm leading-relaxed text-gray-500">
+                    Powerful matching engine connecting agents and surfacing replacement properties for faster 1031 exchanges.
+                  </p>
+                  <div className="mt-3 flex items-center justify-end gap-1.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    ))}
+                    <span className="ml-1.5 text-xs font-medium text-gray-400">Built by agents, for agents</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Social proof row */}
-          <div className="mt-16 grid items-center gap-8 border-t border-gray-100 pt-10 lg:grid-cols-2 lg:gap-16">
-            {/* Left — stats */}
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-              {["50+ Agents", "120+ Properties", "800+ Matches", "25+ Exchanges"].map((stat) => (
-                <span key={stat} className="text-[13px] font-semibold text-gray-300 uppercase tracking-wider">
-                  {stat}
-                </span>
+          {/* Logo / stats marquee bar */}
+          <div className="mt-16 overflow-hidden border-t border-gray-100 pt-8 pb-4">
+            <div className="animate-marquee flex items-center gap-12 whitespace-nowrap">
+              {[...Array(2)].map((_, setIdx) => (
+                <div key={setIdx} className="flex items-center gap-12">
+                  {[
+                    { icon: Building2, name: "50+ Active Agents" },
+                    { icon: Briefcase, name: "120+ Properties Pledged" },
+                    { icon: Target, name: "800+ Matches Generated" },
+                    { icon: Handshake, name: "25+ Exchanges Completed" },
+                    { icon: Shield, name: "Identity Protected" },
+                    { icon: Zap, name: "Automatic Matching" },
+                  ].map((item) => (
+                    <div key={`${setIdx}-${item.name}`} className="flex items-center gap-2.5">
+                      <item.icon className="h-4 w-4 text-gray-300" />
+                      <span className="text-sm font-medium text-gray-400">{item.name}</span>
+                    </div>
+                  ))}
+                </div>
               ))}
-            </div>
-            {/* Right — tagline + rating */}
-            <div className="flex flex-col items-start gap-2 lg:items-end">
-              <p className="text-sm text-gray-500 lg:text-right">
-                Automatic matching engine built for commercial real estate agents managing 1031 exchanges.
-              </p>
-              <div className="flex items-center gap-1.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                ))}
-                <span className="ml-1 text-xs font-medium text-gray-400">Built by agents, for agents</span>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══ DASHBOARD PREVIEW ═══ */}
-      <section className="px-4 pb-24 pt-8 sm:px-6">
+      {/* ═══ DASHBOARD PREVIEW — Large card like reference ═══ */}
+      <section className="px-4 pb-24 pt-4 sm:px-6">
         <div className="mx-auto max-w-5xl">
           <div data-reveal className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-2xl shadow-gray-200/50">
             {/* Top bar */}
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-3.5">
               <div className="flex items-center gap-3">
-                <div className="h-6 w-6 rounded-lg bg-blue-600 flex items-center justify-center">
+                <div className="h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center">
                   <span className="text-[10px] font-bold text-white">EU</span>
                 </div>
                 <span className="text-sm font-semibold text-gray-900">Dashboard</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="hidden sm:flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5">
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/80 px-3 py-1.5">
                   <Search className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="text-xs text-gray-400">Search...</span>
+                  <span className="text-xs text-gray-400">Search for something</span>
                 </div>
                 <Settings className="h-4 w-4 text-gray-300" />
                 <Bell className="h-4 w-4 text-gray-300" />
-                <div className="h-6 w-6 rounded-full bg-gray-200" />
+                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600" />
               </div>
             </div>
             {/* Content area */}
-            <div className="flex">
-              {/* Sidebar mock */}
-              <div className="hidden w-48 shrink-0 border-r border-gray-50 bg-gray-50/50 px-3 py-4 sm:block">
-                {["Dashboard", "My Clients", "Exchanges", "Matches", "Connections"].map((item, i) => (
+            <div className="flex min-h-[420px]">
+              {/* Sidebar */}
+              <div className="hidden w-52 shrink-0 border-r border-gray-50 bg-gray-50/30 px-4 py-5 sm:block">
+                {[
+                  { icon: LayoutDashboard, label: "Dashboard", active: true },
+                  { icon: Briefcase, label: "Exchanges", active: false },
+                  { icon: Users, label: "Clients", active: false },
+                  { icon: Target, label: "Matches", active: false },
+                  { icon: Link2, label: "Connections", active: false },
+                ].map((item) => (
                   <div
-                    key={item}
-                    className={`mb-0.5 rounded-lg px-3 py-2 text-xs font-medium ${i === 0 ? "bg-blue-50 text-blue-700" : "text-gray-400"}`}
+                    key={item.label}
+                    className={`mb-1 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-medium ${
+                      item.active ? "text-blue-600" : "text-gray-400"
+                    }`}
                   >
-                    {item}
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
                   </div>
                 ))}
               </div>
-              {/* Main content mock */}
+              {/* Main content */}
               <div className="flex-1 p-5">
+                {/* Stat cards */}
                 <div className="grid gap-3 sm:grid-cols-3">
                   {[
-                    { label: "Active Exchanges", value: "12", change: "+3 this month", color: "text-blue-600" },
-                    { label: "Total Matches", value: "847", change: "+24 this week", color: "text-emerald-600" },
-                    { label: "Pending Connections", value: "5", change: "2 new requests", color: "text-amber-600" },
+                    { icon: Briefcase, label: "Active Exchanges", value: "12", color: "bg-blue-50 text-blue-600" },
+                    { icon: Target, label: "Total Matches", value: "847", color: "bg-emerald-50 text-emerald-600" },
+                    { icon: ArrowRight, label: "Completion Rate", value: "+78%", color: "bg-violet-50 text-violet-600" },
                   ].map((kpi) => (
                     <div key={kpi.label} className="rounded-xl border border-gray-100 bg-white p-4">
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400">{kpi.label}</p>
-                      <p className="mt-1.5 text-2xl font-bold text-gray-900">{kpi.value}</p>
-                      <p className={`mt-0.5 text-[10px] font-medium ${kpi.color}`}>{kpi.change}</p>
+                      <div className="flex items-center gap-3">
+                        <div className={`h-9 w-9 rounded-lg ${kpi.color} flex items-center justify-center`}>
+                          <kpi.icon className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-medium text-gray-400">{kpi.label}</p>
+                          <p className="text-xl font-bold text-gray-900">{kpi.value}</p>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
-                {/* Chart placeholder */}
-                <div className="mt-4 rounded-xl border border-gray-100 bg-white p-4">
-                  <p className="text-xs font-semibold text-gray-900 mb-3">Match Activity</p>
-                  <div className="flex items-end gap-1.5 h-20">
-                    {[35, 52, 40, 65, 48, 72, 58, 80, 62, 90, 75, 85].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-sm bg-blue-100" style={{height: `${h}%`}}>
-                        <div className="w-full rounded-sm bg-blue-500 transition-all" style={{height: `${h * 0.6}%`, marginTop: `${h * 0.4}%`}} />
-                      </div>
-                    ))}
+
+                {/* Two charts side by side */}
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-gray-100 bg-white p-4">
+                    <p className="text-xs font-semibold text-gray-900 mb-3">Match Activity</p>
+                    <div className="relative h-28">
+                      <svg viewBox="0 0 200 60" className="h-full w-full" preserveAspectRatio="none">
+                        <polyline
+                          fill="none"
+                          stroke="#3b82f6"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          points="0,50 20,42 40,35 60,38 80,28 100,22 120,25 140,18 160,12 180,15 200,8"
+                        />
+                        {[
+                          [0,50],[40,35],[80,28],[120,25],[160,12],[200,8]
+                        ].map(([cx, cy], i) => (
+                          <circle key={i} cx={cx} cy={cy} r="3" fill="white" stroke="#3b82f6" strokeWidth="2" />
+                        ))}
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-white p-4">
+                    <p className="text-xs font-semibold text-gray-900 mb-3">Monthly Revenue</p>
+                    <div className="relative h-28">
+                      <svg viewBox="0 0 200 60" className="h-full w-full" preserveAspectRatio="none">
+                        <polyline
+                          fill="none"
+                          stroke="#3b82f6"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          points="0,45 25,40 50,48 75,30 100,35 125,22 150,28 175,15 200,20"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Two tables side by side */}
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {/* Recent Matches */}
+                  <div className="rounded-xl border border-gray-100 bg-white p-4">
+                    <p className="text-xs font-semibold text-gray-900 mb-3">Recent Matches</p>
+                    <div className="space-y-3">
+                      {[
+                        { name: "Riverside Apartments", type: "Multifamily, Phoenix", value: "$4.2M", change: "+16%", positive: true },
+                        { name: "Oak Street Office", type: "Office, Dallas", value: "$2.8M", change: "+8%", positive: true },
+                        { name: "Harbor Retail", type: "Retail, San Diego", value: "$1.5M", change: "-4%", positive: false },
+                      ].map((item) => (
+                        <div key={item.name} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center">
+                              <Building2 className="h-3.5 w-3.5 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-900">{item.name}</p>
+                              <p className="text-[10px] text-gray-400">{item.type}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-medium text-gray-700">{item.value}</p>
+                            <p className={`text-[10px] font-medium ${item.positive ? "text-emerald-600" : "text-red-500"}`}>{item.change}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Trending Properties */}
+                  <div className="rounded-xl border border-gray-100 bg-white p-4">
+                    <p className="text-xs font-semibold text-gray-900 mb-3">Trending Properties</p>
+                    <table className="w-full">
+                      <thead>
+                        <tr className="text-[10px] font-medium text-gray-400">
+                          <td className="pb-2">ID</td>
+                          <td className="pb-2">Name</td>
+                          <td className="pb-2">Price</td>
+                          <td className="pb-2 text-right">Score</td>
+                        </tr>
+                      </thead>
+                      <tbody className="text-xs">
+                        {[
+                          { id: "041", name: "Mesa Plaza", price: "$3.2M", score: "+92" },
+                          { id: "032", name: "Scottsdale Lofts", price: "$5.1M", score: "+88" },
+                          { id: "390", name: "Tempe Office", price: "$2.2M", score: "+85" },
+                          { id: "120", name: "Gilbert Retail", price: "$4.8M", score: "+81" },
+                        ].map((row) => (
+                          <tr key={row.id} className="border-t border-gray-50">
+                            <td className="py-2 text-gray-400">{row.id}</td>
+                            <td className="py-2 font-medium text-gray-700">{row.name}</td>
+                            <td className="py-2 text-gray-500">{row.price}</td>
+                            <td className="py-2 text-right font-medium text-emerald-600">{row.score}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
