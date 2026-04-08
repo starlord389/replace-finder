@@ -1,134 +1,231 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Building2, Target, Zap, Handshake } from "lucide-react";
-import { useHead } from "@/hooks/useHead";
+import { useEffect, useRef } from "react";
+import {
+  Building2, Target, Zap, Handshake, ArrowRight,
+  BarChart3, Shield, DollarSign
+} from "lucide-react";
+
+function useReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const children = el.querySelectorAll("[data-reveal]");
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            (e.target as HTMLElement).classList.add("animate-fade-in-up");
+            io.unobserve(e.target);
+          }
+        }),
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+    );
+    children.forEach((c) => io.observe(c));
+    return () => io.disconnect();
+  }, []);
+  return ref;
+}
+
+const steps = [
+  {
+    icon: Building2,
+    step: "01",
+    title: "Pledge Your Client's Property",
+    color: "bg-blue-50 text-blue-600",
+    paragraphs: [
+      "When your client is ready to do a 1031 exchange, you add their relinquished property to the network. You'll enter the full property details — location, asset type, physical characteristics, financials, and debt position.",
+      "This property immediately becomes visible to every other agent in the network as a potential replacement property for their clients. The more properties pledged, the better the matching for everyone.",
+    ],
+  },
+  {
+    icon: Target,
+    step: "02",
+    title: "Define Replacement Criteria",
+    color: "bg-indigo-50 text-indigo-600",
+    paragraphs: [
+      "Next, you define exactly what your client is looking for in a replacement property. Target asset types, geographic preferences, price range, cap rate requirements, and debt replacement needs.",
+      "The system uses these criteria to score every property in the network. You can be as broad or as specific as you want — the scoring algorithm handles the ranking.",
+    ],
+  },
+  {
+    icon: Zap,
+    step: "03",
+    title: "Automatic 8-Dimension Matching",
+    color: "bg-violet-50 text-violet-600",
+    paragraphs: [
+      "The moment you activate an exchange, the matching engine runs automatically. It scores every active property in the network against your criteria across 8 dimensions: price fit, geography, asset type, investment strategy, financials, timing, debt fit, and scale.",
+      "Every match also gets an automatic boot calculation — showing estimated cash boot, mortgage boot, total exposure, and tax impact. You see the full financial picture before making any decisions.",
+    ],
+  },
+  {
+    icon: Handshake,
+    step: "04",
+    title: "Connect and Close the Exchange",
+    color: "bg-emerald-50 text-emerald-600",
+    paragraphs: [
+      "When you find a match you want to pursue, click 'Start Exchange.' The listing agent's identity is hidden until both sides agree to connect — no cold calls, no unsolicited pitches.",
+      "Once connected, the platform becomes your exchange workspace. Both agents' contact info is revealed, in-platform messaging opens, and you track the deal through milestones: under contract, inspection, financing, and closing.",
+    ],
+  },
+];
+
+const faqs = [
+  {
+    q: "What is a 1031 exchange?",
+    a: "A 1031 exchange (named after Section 1031 of the Internal Revenue Code) allows real estate investors to defer capital gains taxes by selling an investment property and reinvesting the proceeds into a like-kind replacement property within specific time frames.",
+  },
+  {
+    q: "Who can use this platform?",
+    a: "1031ExchangeUp is built for licensed real estate agents. Agents manage exchanges on behalf of their clients. Clients can be invited to view their exchange status and matches in a read-only view.",
+  },
+  {
+    q: "How does matching work?",
+    a: "The system automatically scores every active property against your client's replacement criteria across 8 dimensions: price, geography, asset type, strategy, financials, timing, debt fit, and scale. Matches scoring 65 or above appear in your dashboard with full financial analysis.",
+  },
+  {
+    q: "What does it cost?",
+    a: "Free to join. Free to match. The platform charges a facilitation fee only when an exchange is completed. No subscriptions, no upfront costs, no listing fees.",
+  },
+  {
+    q: "How is agent identity protected?",
+    a: "When you view a match, you see the full property details and financial analysis — but the listing agent's name, brokerage, and contact info are hidden. Both agents must agree to connect before identities are revealed.",
+  },
+];
 
 export default function HowItWorks() {
-  useHead({
-    title: "How It Works — 1031ExchangeUp",
-    description: "Learn how the 1031ExchangeUp agent network matches pledged properties against exchange criteria in 4 steps — from pledge to close.",
-    canonical: "https://1031exchangeup.com/how-it-works",
-  });
-
-  const steps = [
-    {
-      icon: Building2,
-      step: "01",
-      title: "Pledge Your Client's Property",
-      paragraphs: [
-        "When your client is considering a 1031 exchange, the first step is adding their relinquished property to the network. You'll enter the property details — address, asset type, square footage, units, year built — along with the financials: asking price, NOI, cap rate, occupancy, and debt structure.",
-        "Once pledged, that property becomes a potential replacement property for every other agent's client on the platform. You're not listing it publicly — you're making it available to a private network of verified agents.",
-        "You can pledge multiple properties across multiple clients. Each one is tracked independently with its own exchange timeline and status.",
-      ],
-    },
-    {
-      icon: Target,
-      step: "02",
-      title: "Define Your Client's Replacement Criteria",
-      paragraphs: [
-        "For each exchange, you define what your client is looking for in a replacement property. This includes target asset types, geographic preferences (states, metros), price range, minimum cap rate, strategy type, and debt replacement requirements.",
-        "The criteria form is designed around how 1031 exchanges actually work — it captures the financial constraints (equity to deploy, debt to replace) alongside the investment preferences (asset class, geography, strategy).",
-        "You can update criteria at any time as your client's needs evolve. The matching engine re-runs automatically when criteria change.",
-      ],
-    },
-    {
-      icon: Zap,
-      step: "03",
-      title: "Automatic 8-Dimension Matching",
-      paragraphs: [
-        "The matching engine scores every pledged property against every set of active criteria across 8 dimensions:",
-        "Price Fit (25%) — Does the asking price fall within the buyer's target range? Geo Fit (20%) — Does the property's location match the buyer's geographic preferences? Asset Fit (20%) — Does the asset type match what the buyer is looking for? Strategy Fit (15%) — Does the investment strategy align? Financial Fit (10%) — Do cap rate, occupancy, and NOI meet minimums? Timing Fit (10%) — Can the exchange timeline work for both sides? Debt Fit — Can the buyer's debt replacement requirements be met? Scale Fit — Is the property the right size relative to the buyer's equity?",
-        "Every match also includes boot calculations — estimated cash boot, mortgage boot, and potential tax exposure — so you know the financial implications before you ever pick up the phone. Matches scoring 65 or above are surfaced for review.",
-      ],
-    },
-    {
-      icon: Handshake,
-      step: "04",
-      title: "Connect, Negotiate & Close",
-      paragraphs: [
-        "When you find a match that works, you initiate a connection. At this point — and only at this point — the other agent's identity is revealed. No cold calls, no unsolicited pitches. Both sides have already expressed interest through the matching process.",
-        "The platform tracks the connection through its lifecycle: initiated → accepted → under contract → inspection → financing → closed. Both agents can communicate through the built-in messaging system and track milestones.",
-        "Revenue for the platform comes from a simple facilitation fee, charged only when an exchange is successfully completed. There are no subscriptions, no upfront costs, and no listing fees.",
-      ],
-    },
-  ];
+  const root = useReveal();
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-20 sm:px-6 sm:py-28">
-      <header className="text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">How the Network Works</h1>
-        <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-          From pledging a property to closing an exchange — here's how 1031ExchangeUp connects agents across the country.
-        </p>
-      </header>
+    <div ref={root} className="overflow-hidden">
+      {/* Header */}
+      <section className="px-4 pb-16 pt-28 sm:px-6 sm:pt-36">
+        <div className="mx-auto max-w-3xl text-center">
+          <p data-reveal className="text-[13px] font-semibold uppercase tracking-wider text-blue-600">
+            How It Works
+          </p>
+          <h1 data-reveal className="mt-3 text-4xl font-extrabold tracking-tight text-gray-900 delay-100 sm:text-5xl">
+            From pledge to close, fully automated
+          </h1>
+          <p data-reveal className="mx-auto mt-6 max-w-2xl text-lg text-gray-500 delay-200">
+            The platform handles matching, scoring, boot calculations, and
+            exchange coordination. You focus on your clients.
+          </p>
+        </div>
+      </section>
 
-      <div className="mt-16 space-y-20 sm:mt-20 sm:space-y-24">
-        {steps.map((item) => (
-          <section key={item.step} className="flex gap-5 sm:gap-7">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 sm:h-14 sm:w-14" aria-hidden="true">
-              <item.icon className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary">Step {item.step}</p>
-              <h2 className="mt-1.5 text-xl font-semibold text-foreground sm:text-2xl">{item.title}</h2>
-              <div className="mt-4 space-y-4">
-                {item.paragraphs.map((p, i) => (
-                  <p key={i} className="text-sm leading-relaxed text-muted-foreground sm:text-base">{p}</p>
+      {/* Steps */}
+      <section className="px-4 pb-24 sm:px-6">
+        <div className="mx-auto max-w-3xl space-y-20">
+          {steps.map((step, i) => (
+            <div key={step.step} data-reveal className={`delay-${(i % 2 + 1) * 100}`}>
+              <div className="flex items-center gap-4">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${step.color}`}>
+                  <step.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-gray-300">STEP {step.step}</span>
+                  <h2 className="text-xl font-bold text-gray-900">{step.title}</h2>
+                </div>
+              </div>
+              <div className="mt-5 space-y-4 pl-16">
+                {step.paragraphs.map((p, j) => (
+                  <p key={j} className="text-[15px] leading-relaxed text-gray-500">{p}</p>
                 ))}
               </div>
             </div>
-          </section>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Scoring dimensions */}
+      <section className="bg-gray-50/60 px-4 py-24 sm:px-6 sm:py-32">
+        <div className="mx-auto max-w-4xl">
+          <div data-reveal className="text-center">
+            <p className="text-[13px] font-semibold uppercase tracking-wider text-blue-600">
+              Matching Engine
+            </p>
+            <h2 className="mt-3 text-3xl font-bold text-gray-900 sm:text-4xl">
+              8 dimensions of matching
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-gray-500">
+              Every property is scored across eight weighted dimensions to find
+              the strongest matches for your client.
+            </p>
+          </div>
+          <div data-reveal className="mt-14 grid gap-3 delay-200 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: "Price Fit", weight: "20%", icon: DollarSign },
+              { label: "Geography", weight: "15%", icon: Target },
+              { label: "Asset Type", weight: "15%", icon: Building2 },
+              { label: "Strategy", weight: "10%", icon: BarChart3 },
+              { label: "Financials", weight: "10%", icon: BarChart3 },
+              { label: "Timing", weight: "10%", icon: Zap },
+              { label: "Debt Fit", weight: "10%", icon: Shield },
+              { label: "Scale Fit", weight: "10%", icon: Building2 },
+            ].map((d) => (
+              <div
+                key={d.label}
+                className="rounded-xl border border-gray-100 bg-white p-5 transition-all hover:border-gray-200 hover:shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900">{d.label}</span>
+                  <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-600">{d.weight}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* FAQ */}
-      <section className="mt-20 border-t border-border/60 pt-16 sm:mt-28 sm:pt-20" aria-labelledby="faq-heading">
-        <h2 id="faq-heading" className="text-2xl font-bold text-foreground sm:text-3xl">Frequently Asked Questions</h2>
-        <dl className="mt-8 space-y-8 sm:mt-10 sm:space-y-10">
-          {[
-            {
-              q: "What is a 1031 exchange?",
-              a: "A 1031 exchange (named after Section 1031 of the IRS tax code) allows an investor to defer capital gains taxes by reinvesting the proceeds from a sold property into a \"like-kind\" replacement property. There are strict timelines: 45 days to identify replacement properties and 180 days to close.",
-            },
-            {
-              q: "Who can use this platform?",
-              a: "1031ExchangeUp is built for licensed real estate agents and brokers. Agents manage their clients' exchanges on the platform. Clients receive read-only access to view their matches and exchange status, but all actions are taken by the agent.",
-            },
-            {
-              q: "How does matching work?",
-              a: "The matching engine automatically scores every pledged property against every set of active exchange criteria across 8 dimensions: price fit, geographic fit, asset type fit, strategy fit, financial fit, timing fit, debt fit, and scale fit. Matches scoring 65 or above are surfaced for agent review.",
-            },
-            {
-              q: "What does it cost?",
-              a: "Free to join. Free to pledge properties and run matches. The platform charges a facilitation fee only when an exchange is successfully completed through a connection made on the platform. No subscriptions, no listing fees, no upfront costs.",
-            },
-            {
-              q: "How is agent identity protected?",
-              a: "Agent identities are hidden until both sides agree to connect. When you view a match, you see the property details and match scores, but not the listing agent. Only when you initiate a connection — and the other agent accepts — are identities revealed.",
-            },
-          ].map((faq) => (
-            <div key={faq.q}>
-              <dt className="text-base font-semibold text-foreground">{faq.q}</dt>
-              <dd className="mt-2 leading-relaxed text-muted-foreground">{faq.a}</dd>
-            </div>
-          ))}
-        </dl>
+      <section className="px-4 py-24 sm:px-6 sm:py-32">
+        <div className="mx-auto max-w-3xl">
+          <div data-reveal className="text-center">
+            <p className="text-[13px] font-semibold uppercase tracking-wider text-blue-600">FAQ</p>
+            <h2 className="mt-3 text-3xl font-bold text-gray-900">
+              Frequently asked questions
+            </h2>
+          </div>
+          <div data-reveal className="mt-14 divide-y divide-gray-100 delay-200">
+            {faqs.map((faq) => (
+              <details key={faq.q} className="group py-5">
+                <summary className="flex cursor-pointer items-center justify-between text-[15px] font-semibold text-gray-900 [&::-webkit-details-marker]:hidden">
+                  {faq.q}
+                  <span className="ml-4 text-gray-300 transition-transform group-open:rotate-45">＋</span>
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-gray-500">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* CTA */}
-      <div className="mt-20 rounded-xl border border-border/80 bg-muted/30 p-10 text-center sm:mt-28 sm:p-12">
-        <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
-          Ready to get started?
-        </h2>
-        <p className="mt-3 text-lg text-muted-foreground">
-          Join the network and start matching your clients with replacement properties.
-        </p>
-        <Link to="/signup" className="mt-7 inline-block sm:mt-8">
-          <Button size="lg" className="gap-2 rounded-lg px-8 text-base">
-            Join the Network <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Button>
-        </Link>
-      </div>
-    </main>
+      <section className="px-4 pb-24 sm:px-6 sm:pb-32">
+        <div className="mx-auto max-w-4xl">
+          <div
+            data-reveal
+            className="relative overflow-hidden rounded-3xl bg-gray-900 px-8 py-16 text-center sm:px-16 sm:py-20"
+          >
+            <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl" />
+            <h2 className="relative text-3xl font-bold text-white sm:text-4xl">
+              Ready to get started?
+            </h2>
+            <p className="relative mt-4 text-gray-400">
+              Join the network and start matching your clients with replacement
+              properties today.
+            </p>
+            <Link
+              to="/signup"
+              className="group relative mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-[15px] font-semibold text-gray-900 transition-all hover:bg-gray-100"
+            >
+              Join the Network
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

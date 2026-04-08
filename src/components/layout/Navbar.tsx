@@ -1,116 +1,153 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function Navbar() {
-  const { user, hasRole, signOut, profileRole } = useAuth();
+  const { user, signOut, profileRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
 
   const dashboardLink = profileRole === "admin" ? "/admin" : profileRole === "agent" ? "/agent" : "/dashboard";
   const dashboardLabel = profileRole === "admin" ? "Admin" : profileRole === "agent" ? "Dashboard" : profileRole === "client" ? "My Exchange" : "Dashboard";
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
+  const navLinks = [
+    { label: "How It Works", to: "/how-it-works" },
+  ];
+
   return (
-    <nav className="fixed top-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl -translate-x-1/2" aria-label="Main navigation">
-      <div className="flex h-14 items-center justify-between rounded-full border border-black/[0.06] bg-white/70 px-2 pl-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)] backdrop-blur-xl">
-        {/* Logo */}
-        <Link to="/" className="text-base font-bold tracking-tight text-gray-900" aria-label="1031ExchangeUp home">
-          1031<span className="text-primary">ExchangeUp</span>
-        </Link>
+    <>
+      {/* Spacer so content doesn't hide behind floating nav */}
+      <div className="h-5" />
 
-        {/* Desktop nav links */}
-        <div className="hidden items-center gap-6 md:flex">
-          <Link to="/how-it-works" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">
-            How It Works
+      <nav
+        className={`fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-5xl -translate-x-1/2 transition-all duration-300 ${
+          scrolled
+            ? "rounded-2xl border border-gray-200/60 bg-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl"
+            : "rounded-2xl border border-transparent bg-white/60 backdrop-blur-md"
+        }`}
+        aria-label="Main navigation"
+      >
+        <div className="flex h-14 items-center justify-between px-5 sm:h-[3.75rem] sm:px-6">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-1.5 text-lg font-bold tracking-tight">
+            <span className="text-gray-400">1031</span>
+            <span className="text-gray-900">ExchangeUp</span>
           </Link>
-          {user && hasRole("admin") && (
-            <Link to="/admin/requests" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">
-              Admin
-            </Link>
-          )}
-        </div>
 
-        {/* Desktop CTA */}
-        <div className="hidden items-center gap-3 md:flex">
-          {user ? (
-            <>
-              <Link to={dashboardLink} className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">
-                {dashboardLabel}
-              </Link>
-              <button
-                onClick={signOut}
-                className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-900">
-                Log In
-              </Link>
+          {/* Desktop Nav */}
+          <div className="hidden items-center gap-1 md:flex">
+            {navLinks.map((link) => (
               <Link
-                to="/signup"
-                className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+                key={link.to}
+                to={link.to}
+                className="rounded-lg px-3.5 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:bg-gray-100/60 hover:text-gray-900"
               >
-                Get Started <ArrowRight className="h-3.5 w-3.5" />
+                {link.label}
               </Link>
-            </>
-          )}
-        </div>
+            ))}
+          </div>
 
-        {/* Mobile toggle */}
-        <button
-          className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-gray-100 md:hidden"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-expanded={mobileOpen}
-          aria-controls="mobile-menu"
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileOpen ? <X className="h-5 w-5 text-gray-700" /> : <Menu className="h-5 w-5 text-gray-700" />}
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div id="mobile-menu" className="mt-2 rounded-2xl border border-black/[0.06] bg-white/90 px-4 pb-5 pt-4 shadow-[0_2px_16px_rgba(0,0,0,0.06)] backdrop-blur-xl md:hidden" role="navigation" aria-label="Mobile navigation">
-          <div className="flex flex-col gap-1">
-            <Link to="/how-it-works" className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900" onClick={() => setMobileOpen(false)}>
-              How It Works
-            </Link>
+          {/* Desktop Actions */}
+          <div className="hidden items-center gap-2.5 md:flex">
             {user ? (
               <>
-                {hasRole("admin") && (
-                  <Link to="/admin/requests" className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900" onClick={() => setMobileOpen(false)}>
-                    Admin
-                  </Link>
-                )}
-                <Link to={dashboardLink} className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900" onClick={() => setMobileOpen(false)}>
+                <Link
+                  to={dashboardLink}
+                  className="rounded-lg px-3.5 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:bg-gray-100/60 hover:text-gray-900"
+                >
                   {dashboardLabel}
                 </Link>
-                <div className="mt-3 border-t border-gray-100 pt-3">
-                  <button onClick={() => { signOut(); setMobileOpen(false); }} className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                    Sign Out
-                  </button>
-                </div>
+                <button
+                  onClick={signOut}
+                  className="rounded-full border border-gray-200 bg-white px-4 py-[7px] text-[13px] font-medium text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50"
+                >
+                  Sign Out
+                </button>
               </>
             ) : (
-              <div className="mt-3 flex flex-col gap-2 border-t border-gray-100 pt-3">
-                <Link to="/login" onClick={() => setMobileOpen(false)}>
-                  <button className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                    Log In
-                  </button>
+              <>
+                <Link
+                  to="/login"
+                  className="rounded-lg px-3.5 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:bg-gray-100/60 hover:text-gray-900"
+                >
+                  Log In
                 </Link>
-                <Link to="/signup" onClick={() => setMobileOpen(false)}>
-                  <button className="w-full rounded-full bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800">
-                    Get Started
-                  </button>
+                <Link
+                  to="/signup"
+                  className="rounded-full bg-gray-900 px-5 py-[7px] text-[13px] font-medium text-white transition-all hover:bg-gray-800 hover:shadow-lg hover:shadow-gray-900/10"
+                >
+                  Get Started
                 </Link>
-              </div>
+              </>
             )}
           </div>
+
+          {/* Mobile Toggle */}
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-gray-100 md:hidden"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-expanded={mobileOpen}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileOpen ? <X className="h-[18px] w-[18px] text-gray-700" /> : <Menu className="h-[18px] w-[18px] text-gray-700" />}
+          </button>
         </div>
-      )}
-    </nav>
+
+        {/* Mobile Menu */}
+        {mobileOpen && (
+          <div className="border-t border-gray-100 px-5 pb-5 pt-3 md:hidden">
+            <div className="flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {user ? (
+                <>
+                  <Link
+                    to={dashboardLink}
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                  >
+                    {dashboardLabel}
+                  </Link>
+                  <div className="mt-2 border-t border-gray-100 pt-3">
+                    <button
+                      onClick={signOut}
+                      className="w-full rounded-full border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="mt-2 flex flex-col gap-2 border-t border-gray-100 pt-3">
+                  <Link to="/login" className="w-full rounded-full border border-gray-200 bg-white py-2.5 text-center text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
+                    Log In
+                  </Link>
+                  <Link to="/signup" className="w-full rounded-full bg-gray-900 py-2.5 text-center text-sm font-medium text-white transition-all hover:bg-gray-800">
+                    Get Started
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </nav>
+    </>
   );
 }

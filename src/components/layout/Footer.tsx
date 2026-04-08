@@ -1,53 +1,72 @@
 import { Link } from "react-router-dom";
 
+const links = {
+  Platform: [
+    { label: "How It Works", to: "/how-it-works" },
+    { label: "For Agents", to: "/signup" },
+  ],
+  Legal: [
+    { label: "Terms of Service", to: "#" },
+    { label: "Privacy Policy", to: "#" },
+  ],
+  Support: [
+    { label: "Contact Us", to: "mailto:support@1031exchangeup.com" },
+  ],
+};
+
 export default function Footer() {
   return (
-    <footer className="border-t border-border/60 bg-muted/40" role="contentinfo">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-14">
-        <div className="flex flex-col gap-10 md:flex-row md:justify-between">
+    <footer className="border-t border-gray-100 bg-gray-50/50">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
-          <div>
-            <span className="text-lg font-bold text-foreground">
-              1031<span className="text-primary">ExchangeUp</span>
-            </span>
-            <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-              The private agent network for 1031 exchange matching.
+          <div className="lg:col-span-1">
+            <Link to="/" className="text-lg font-bold tracking-tight">
+              <span className="text-gray-400">1031</span>
+              <span className="text-gray-900">ExchangeUp</span>
+            </Link>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-gray-400">
+              The exchange network for 1031 agents. Automatic matching, boot
+              calculations, and exchange tracking — all in one platform.
             </p>
           </div>
 
           {/* Link columns */}
-          <div className="grid grid-cols-3 gap-8 text-sm">
-            <div>
-              <h4 className="font-semibold text-foreground">Platform</h4>
-              <ul className="mt-3 space-y-2">
-                <li><Link to="/how-it-works" className="text-muted-foreground transition-colors hover:text-foreground">How It Works</Link></li>
-                <li><span className="text-muted-foreground cursor-default">For Agents</span></li>
-                <li><span className="text-muted-foreground cursor-default">Pricing</span></li>
+          {Object.entries(links).map(([title, items]) => (
+            <div key={title}>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                {title}
+              </h4>
+              <ul className="mt-4 space-y-2.5">
+                {items.map((item) =>
+                  item.to.startsWith("mailto:") ? (
+                    <li key={item.label}>
+                      <a
+                        href={item.to}
+                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  ) : (
+                    <li key={item.label}>
+                      <Link
+                        to={item.to}
+                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  )
+                )}
               </ul>
             </div>
-            <div>
-              <h4 className="font-semibold text-foreground">Legal</h4>
-              <ul className="mt-3 space-y-2">
-                <li><span className="text-muted-foreground cursor-default">Terms</span></li>
-                <li><span className="text-muted-foreground cursor-default">Privacy</span></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-foreground">Support</h4>
-              <ul className="mt-3 space-y-2">
-                <li>
-                  <a href="mailto:support@1031exchangeup.com" className="text-muted-foreground transition-colors hover:text-foreground">
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
+          ))}
         </div>
 
-        <div className="mt-10 border-t border-border/60 pt-6">
-          <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} 1031ExchangeUp. All rights reserved.
+        <div className="mt-12 border-t border-gray-100 pt-6">
+          <p className="text-xs text-gray-400">
+            © {new Date().getFullYear()} 1031ExchangeUp. All rights reserved.
           </p>
         </div>
       </div>
