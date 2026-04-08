@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, Building2, Target, Zap, Handshake, BarChart3, Calculator, ShieldCheck, Users, GitBranch, CreditCard, Check, X as XIcon, LayoutDashboard, UserCheck, TrendingUp, ArrowUpRight } from "lucide-react";
 import { useHead } from "@/hooks/useHead";
