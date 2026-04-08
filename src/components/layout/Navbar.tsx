@@ -12,38 +12,48 @@ export default function Navbar() {
   const dashboardLabel = profileRole === "admin" ? "Admin" : profileRole === "agent" ? "Dashboard" : profileRole === "client" ? "My Exchange" : "Dashboard";
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md" aria-label="Main navigation">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:h-16 sm:px-6">
-        <Link to="/" className="text-lg font-semibold tracking-tight text-foreground sm:text-xl" aria-label="1031ExchangeUp home">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg" aria-label="Main navigation">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:h-[4.5rem] sm:px-6">
+        <Link to="/" className="text-xl font-bold tracking-tight text-foreground" aria-label="1031ExchangeUp home">
           1031<span className="text-primary">ExchangeUp</span>
         </Link>
 
         {/* Desktop */}
-        <div className="hidden items-center gap-6 md:flex">
-          <Link to="/how-it-works" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+        <div className="hidden items-center gap-8 md:flex">
+          <Link
+            to="/how-it-works"
+            className="relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all hover:after:w-full"
+          >
             How It Works
           </Link>
           {user ? (
             <>
               {hasRole("admin") && (
-                <Link to="/admin/requests" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                <Link
+                  to="/admin/requests"
+                  className="relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all hover:after:w-full"
+                >
                   Admin
                 </Link>
               )}
               <Link to={dashboardLink}>
-                <Button variant="ghost" size="sm">{dashboardLabel}</Button>
+                <Button variant="ghost" size="sm" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                  {dashboardLabel}
+                </Button>
               </Link>
-              <Button variant="outline" size="sm" onClick={signOut}>
+              <Button variant="outline" size="sm" className="rounded-lg" onClick={signOut}>
                 Sign Out
               </Button>
             </>
           ) : (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm">Log In</Button>
+                <Button variant="ghost" size="sm" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                  Log In
+                </Button>
               </Link>
               <Link to="/signup">
-                <Button size="sm">Start Your Search</Button>
+                <Button size="sm" className="rounded-lg px-5">Start Your Search</Button>
               </Link>
             </>
           )}
@@ -63,7 +73,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div id="mobile-menu" className="border-t bg-background px-4 pb-4 pt-3 md:hidden" role="navigation" aria-label="Mobile navigation">
+        <div id="mobile-menu" className="border-t bg-background px-4 pb-5 pt-4 md:hidden" role="navigation" aria-label="Mobile navigation">
           <div className="flex flex-col gap-1">
             <Link
               to="/how-it-works"
@@ -90,19 +100,19 @@ export default function Navbar() {
                 >
                   {dashboardLabel}
                 </Link>
-                <div className="mt-2 border-t pt-2">
-                  <Button variant="outline" size="sm" className="w-full" onClick={() => { signOut(); setMobileOpen(false); }}>
+                <div className="mt-3 border-t pt-3">
+                  <Button variant="outline" size="sm" className="w-full rounded-lg" onClick={() => { signOut(); setMobileOpen(false); }}>
                     Sign Out
                   </Button>
                 </div>
               </>
             ) : (
-              <div className="mt-2 flex flex-col gap-2 border-t pt-3">
+              <div className="mt-3 flex flex-col gap-2 border-t pt-3">
                 <Link to="/login" onClick={() => setMobileOpen(false)}>
-                  <Button variant="outline" size="sm" className="w-full">Log In</Button>
+                  <Button variant="outline" size="sm" className="w-full rounded-lg">Log In</Button>
                 </Link>
                 <Link to="/signup" onClick={() => setMobileOpen(false)}>
-                  <Button size="sm" className="w-full">Start Your Search</Button>
+                  <Button size="sm" className="w-full rounded-lg">Start Your Search</Button>
                 </Link>
               </div>
             )}
