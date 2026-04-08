@@ -37,28 +37,28 @@ export default function Index() {
   return (
     <div ref={root} className="overflow-hidden">
       {/* ═══ HERO — Two column layout like reference ═══ */}
-      <section className="relative px-4 pb-0 pt-24 sm:px-6 sm:pt-32 lg:pt-36">
-        {/* Subtle grid background */}
+      <section className="relative px-4 pb-0 pt-20 sm:px-6 sm:pt-24 lg:pt-28">
+        {/* Subtle dot grid background */}
         <div className="pointer-events-none absolute inset-0 -z-10" style={{
-          backgroundImage: "linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)",
-          backgroundSize: "40px 40px"
+          backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)",
+          backgroundSize: "24px 24px"
         }} />
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-white/80 to-white" />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-white/90 to-white" />
 
         <div className="mx-auto max-w-6xl">
-          <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-20">
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
             {/* Left — text content */}
-            <div className="pt-4 lg:pt-8">
+            <div>
               {/* Pill badge */}
-              <div className="animate-fade-in-up mb-8 inline-flex items-center gap-2.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 shadow-sm">
-                <span className="h-2 w-2 rounded-full bg-blue-500" />
+              <div className="animate-fade-in-up mb-6 inline-flex items-center gap-2.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 shadow-sm">
+                <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
                 <span className="text-[13px] font-medium text-gray-600">
                   Now available for early access
                 </span>
               </div>
 
-              {/* Headline — large, left-aligned */}
-              <h1 className="animate-fade-in-up delay-100 text-[2.75rem] font-extrabold leading-[1.08] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.5rem]">
+              {/* Headline */}
+              <h1 className="animate-fade-in-up delay-100 text-[2.5rem] font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.25rem]">
                 Real-time matching for{" "}
                 <span className="relative inline-block">
                   <span className="relative z-10">modern exchanges</span>
@@ -66,80 +66,98 @@ export default function Index() {
                 </span>
               </h1>
 
+              {/* Subheadline */}
+              <p className="animate-fade-in-up delay-200 mt-5 max-w-md text-[15px] leading-relaxed text-gray-500">
+                Join a network where your client's property becomes inventory for every other agent — and theirs becomes yours. Automatic matching. Zero searching.
+              </p>
+
               {/* CTAs */}
-              <div className="animate-fade-in-up delay-300 mt-10 flex flex-wrap items-center gap-3">
+              <div className="animate-fade-in-up delay-300 mt-8 flex flex-wrap items-center gap-3">
                 <Link
                   to="/signup"
-                  className="group inline-flex items-center gap-2 rounded-full bg-gray-900 px-7 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-gray-900/10 transition-all hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/15 active:scale-[0.98]"
+                  className="group inline-flex items-center gap-2 rounded-full bg-gray-900 px-7 py-3 text-[15px] font-semibold text-white shadow-lg shadow-gray-900/10 transition-all hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/15 active:scale-[0.98]"
                 >
                   Join the Network
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
                 <Link
                   to="/how-it-works"
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-7 py-3.5 text-[15px] font-semibold text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-7 py-3 text-[15px] font-semibold text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
                 >
                   How It Works
                 </Link>
               </div>
             </div>
 
-            {/* Right — illustration area with description + stars */}
-            <div className="animate-fade-in-up delay-300 relative hidden lg:block">
-              <div className="relative flex flex-col items-end">
-                {/* Illustration placeholder — abstract graphic */}
-                <div className="relative mb-6 h-64 w-80">
-                  {/* Abstract composition of floating cards */}
-                  <div className="absolute right-0 top-0 h-52 w-52 rounded-3xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-5 shadow-lg">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                        <Target className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-[11px] text-gray-400">Match Score</p>
-                        <p className="text-lg font-bold text-gray-900">94%</p>
-                      </div>
+            {/* Right — floating cards composition */}
+            <div className="animate-fade-in-up delay-300 relative hidden lg:flex lg:justify-end">
+              <div className="relative h-[340px] w-full max-w-[420px]">
+                {/* Main match score card */}
+                <div className="absolute right-0 top-4 w-64 rounded-2xl border border-gray-100 bg-white p-5 shadow-xl shadow-gray-200/60">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                      <Target className="h-5 w-5 text-blue-600" />
                     </div>
-                    <div className="space-y-3">
-                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-blue-500" style={{width:'94%'}} /></div>
-                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-blue-400" style={{width:'88%'}} /></div>
-                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-blue-300" style={{width:'76%'}} /></div>
+                    <div>
+                      <p className="text-[11px] text-gray-400">Match Score</p>
+                      <p className="text-2xl font-bold text-gray-900">94<span className="text-base text-gray-400">/100</span></p>
                     </div>
                   </div>
-                  <div className="animate-float absolute -left-4 top-16 w-44 rounded-2xl border border-gray-100 bg-white p-3.5 shadow-md">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                        <Check className="h-4 w-4 text-emerald-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-900">New Match</p>
-                        <p className="text-[10px] text-gray-400">No Boot · 92 Score</p>
-                      </div>
+                  <div className="space-y-3">
+                    <div><div className="flex justify-between text-[11px] mb-1"><span className="text-gray-400">Price Fit</span><span className="font-semibold text-gray-700">95%</span></div><div className="h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-blue-500" style={{width:'95%'}} /></div></div>
+                    <div><div className="flex justify-between text-[11px] mb-1"><span className="text-gray-400">Geography</span><span className="font-semibold text-gray-700">88%</span></div><div className="h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-blue-500" style={{width:'88%'}} /></div></div>
+                    <div><div className="flex justify-between text-[11px] mb-1"><span className="text-gray-400">Asset Type</span><span className="font-semibold text-gray-700">100%</span></div><div className="h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-blue-500" style={{width:'100%'}} /></div></div>
+                    <div className="flex justify-between text-[11px] pt-1"><span className="text-gray-400">Boot Status</span><span className="font-semibold text-emerald-600">No Boot ✓</span></div>
+                  </div>
+                </div>
+
+                {/* Property card */}
+                <div className="animate-float absolute left-0 top-0 w-56 rounded-2xl border border-gray-100 bg-white p-4 shadow-lg shadow-gray-200/40">
+                  <div className="h-24 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+                    <Building2 className="h-7 w-7 text-gray-300" />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold text-gray-900">Riverside Apartments</p>
+                  <p className="text-xs text-gray-400">Phoenix, AZ · Multifamily</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <span className="text-sm font-bold text-gray-900">$4.2M</span>
+                    <span className="text-[11px] text-gray-400">6.8% cap</span>
+                  </div>
+                </div>
+
+                {/* Notification card */}
+                <div className="animate-float absolute bottom-4 left-8 w-52 rounded-xl border border-gray-100 bg-white p-3 shadow-md shadow-gray-200/30" style={{animationDelay:'2s'}}>
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                      <Check className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-900">New Match Found</p>
+                      <p className="text-[10px] text-gray-400">Score: 94 · No Boot</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Description + stars */}
-                <div className="max-w-xs text-right">
-                  <p className="text-sm leading-relaxed text-gray-500">
-                    Powerful matching engine connecting agents and surfacing replacement properties for faster 1031 exchanges.
+                {/* Description + rating below cards */}
+                <div className="absolute -bottom-14 right-0 max-w-[260px] text-right">
+                  <p className="text-[13px] leading-relaxed text-gray-500">
+                    Powerful matching engine built for commercial real estate agents managing 1031 exchanges.
                   </p>
-                  <div className="mt-3 flex items-center justify-end gap-1.5">
+                  <div className="mt-2 flex items-center justify-end gap-1">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                     ))}
-                    <span className="ml-1.5 text-xs font-medium text-gray-400">Built by agents, for agents</span>
+                    <span className="ml-1.5 text-[11px] font-medium text-gray-400">Built by agents, for agents</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Logo / stats marquee bar */}
-          <div className="mt-16 overflow-hidden border-t border-gray-100 pt-8 pb-4">
-            <div className="animate-marquee flex items-center gap-12 whitespace-nowrap">
+          {/* Stats marquee bar */}
+          <div className="mt-20 overflow-hidden border-t border-gray-100 pt-6 pb-4 lg:mt-24">
+            <div className="animate-marquee flex items-center gap-10 whitespace-nowrap">
               {[...Array(2)].map((_, setIdx) => (
-                <div key={setIdx} className="flex items-center gap-12">
+                <div key={setIdx} className="flex items-center gap-10">
                   {[
                     { icon: Building2, name: "50+ Active Agents" },
                     { icon: Briefcase, name: "120+ Properties Pledged" },
@@ -148,7 +166,7 @@ export default function Index() {
                     { icon: Shield, name: "Identity Protected" },
                     { icon: Zap, name: "Automatic Matching" },
                   ].map((item) => (
-                    <div key={`${setIdx}-${item.name}`} className="flex items-center gap-2.5">
+                    <div key={`${setIdx}-${item.name}`} className="flex items-center gap-2">
                       <item.icon className="h-4 w-4 text-gray-300" />
                       <span className="text-sm font-medium text-gray-400">{item.name}</span>
                     </div>
