@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { getDefaultRouteForRole, ROUTES } from "@/app/routes/routeManifest";
 
 export default function Navbar() {
   const { user, signOut, profileRole } = useAuth();
@@ -9,7 +10,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
-  const dashboardLink = profileRole === "admin" ? "/admin" : profileRole === "agent" ? "/agent" : "/dashboard";
+  const dashboardLink = getDefaultRouteForRole(profileRole);
   const dashboardLabel = profileRole === "admin" ? "Admin" : profileRole === "agent" ? "Dashboard" : profileRole === "client" ? "My Exchange" : "Dashboard";
 
   useEffect(() => {
@@ -78,13 +79,13 @@ export default function Navbar() {
             ) : (
               <>
                 <Link
-                  to="/login"
+                  to={ROUTES.login}
                   className="rounded-lg px-3.5 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:bg-gray-100/60 hover:text-gray-900"
                 >
                   Log In
                 </Link>
                 <Link
-                  to="/signup"
+                  to={ROUTES.signup}
                   className="rounded-full bg-gray-900 px-5 py-[7px] text-[13px] font-medium text-white transition-all hover:bg-gray-800 hover:shadow-lg hover:shadow-gray-900/10"
                 >
                   Get Started
@@ -136,10 +137,10 @@ export default function Navbar() {
                 </>
               ) : (
                 <div className="mt-2 flex flex-col gap-2 border-t border-gray-100 pt-3">
-                  <Link to="/login" className="w-full rounded-full border border-gray-200 bg-white py-2.5 text-center text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
+                  <Link to={ROUTES.login} className="w-full rounded-full border border-gray-200 bg-white py-2.5 text-center text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
                     Log In
                   </Link>
-                  <Link to="/signup" className="w-full rounded-full bg-gray-900 py-2.5 text-center text-sm font-medium text-white transition-all hover:bg-gray-800">
+                  <Link to={ROUTES.signup} className="w-full rounded-full bg-gray-900 py-2.5 text-center text-sm font-medium text-white transition-all hover:bg-gray-800">
                     Get Started
                   </Link>
                 </div>

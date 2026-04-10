@@ -1,33 +1,34 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  FileText,
-  Clock,
-  Building2,
+  ShieldCheck,
   Handshake,
-  MessageSquare,
-  HourglassIcon,
-  Plus,
+  LifeBuoy,
+  ArrowLeftRight,
+  Activity,
   ArrowRight,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Draft",
-  submitted: "Submitted",
-  under_review: "Under Review",
   active: "Active",
-  closed: "Closed",
+  in_identification: "In Identification",
+  in_closing: "In Closing",
+  completed: "Completed",
+  canceled: "Canceled",
 };
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
-  submitted: "bg-blue-100 text-blue-800",
-  under_review: "bg-amber-100 text-amber-800",
-  active: "bg-green-100 text-green-800",
-  closed: "bg-muted text-muted-foreground",
+  active: "bg-blue-100 text-blue-800",
+  in_identification: "bg-amber-100 text-amber-800",
+  in_closing: "bg-purple-100 text-purple-800",
+  completed: "bg-green-100 text-green-800",
+  canceled: "bg-muted text-muted-foreground",
 };
 
 function relativeTime(dateStr: string): string {
@@ -59,87 +60,63 @@ interface ActivityItem {
 }
 
 export default function AdminDashboard() {
-  const [kpis, setKpis] = useState<KPI[]>([]);
-  const [pipeline, setPipeline] = useState<Record<string, number>>({});
-  const [activity, setActivity] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-monitoring-dashboard"],
+    queryFn: async () => {
+      const [
+        activeExchanges,
+        activeMatches,
+        openConnections,
+        openTickets,
+        allExchanges,
+        timelineEvents,
+      ] = await Promise.all([
+        supabase.from("exchanges").select("id", { count: "exact", head: true }).in("status", ["active", "in_identification", "in_closing"]),
+        supabase.from("matches").select("id", { count: "exact", head: true }).eq("status", "active"),
+        supabase.from("exchange_connections").select("id", { count: "exact", head: true }).in("status", ["pending", "accepted", "under_contract"]),
+        supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
+        supabase.from("exchanges").select("status"),
+        supabase
+          .from("exchange_timeline")
+          .select("id, exchange_id, event_type, description, created_at")
+          .order("created_at", { ascending: false })
+          .limit(10),
+      ]);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+      return {
+        kpis: [
+          { label: "Active Exchanges", value: activeExchanges.count, icon: ArrowLeftRight, color: "bg-blue-50 text-blue-600" },
+          { label: "Active Matches", value: activeMatches.count, icon: Handshake, color: "bg-green-50 text-green-600" },
+          { label: "Open Connections", value: openConnections.count, icon: Activity, color: "bg-amber-50 text-amber-600" },
+          { label: "Open Support Tickets", value: openTickets.count, icon: LifeBuoy, color: "bg-purple-50 text-purple-600" },
+        ] satisfies KPI[],
+        allExchanges: allExchanges.data ?? [],
+        activity: (timelineEvents.data ?? []).map((event) => ({
+          id: event.id,
+          text: event.description,
+          timestamp: event.created_at,
+          linkTo: `/agent/exchanges/${event.exchange_id}`,
+        })) satisfies ActivityItem[],
+      };
+    },
+  });
 
-  async function loadDashboard() {
-    setLoading(true);
-
-    const [
-      activeReqs,
-      pendingReview,
-      activeInventory,
-      pendingMatches,
-      clientResponses,
-      awaitingResponse,
-      allRequests,
-      recentHistory,
-    ] = await Promise.all([
-      supabase.from("exchange_requests").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase.from("exchange_requests").select("id", { count: "exact", head: true }).in("status", ["submitted", "under_review"]),
-      supabase.from("inventory_properties").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase.from("match_results").select("id", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("match_results").select("id", { count: "exact", head: true }).eq("status", "approved").not("client_response", "is", null),
-      supabase.from("match_results").select("id", { count: "exact", head: true }).eq("status", "approved").is("client_response", null),
-      supabase.from("exchange_requests").select("status"),
-      supabase
-        .from("exchange_request_status_history")
-        .select("id, request_id, old_status, new_status, note, created_at")
-        .order("created_at", { ascending: false })
-        .limit(10),
-    ]);
-
-    setKpis([
-      { label: "Active Requests", value: activeReqs.count, icon: FileText, color: "bg-blue-50 text-blue-600" },
-      { label: "Pending Review", value: pendingReview.count, icon: Clock, color: "bg-blue-50 text-blue-600" },
-      { label: "Properties in Inventory", value: activeInventory.count, icon: Building2, color: "bg-green-50 text-green-600" },
-      { label: "Matches Pending Review", value: pendingMatches.count, icon: Handshake, color: "bg-amber-50 text-amber-600" },
-      { label: "Client Responses", value: clientResponses.count, icon: MessageSquare, color: "bg-amber-50 text-amber-600" },
-      { label: "Awaiting Response", value: awaitingResponse.count, icon: HourglassIcon, color: "bg-amber-50 text-amber-600" },
-    ]);
-
-    // Pipeline counts
-    const counts: Record<string, number> = { draft: 0, submitted: 0, under_review: 0, active: 0, closed: 0 };
-    allRequests.data?.forEach((r) => {
-      if (r.status in counts) counts[r.status]++;
+  const pipeline = useMemo(() => {
+    const counts: Record<string, number> = {
+      draft: 0,
+      active: 0,
+      in_identification: 0,
+      in_closing: 0,
+      completed: 0,
+      canceled: 0,
+    };
+    data?.allExchanges.forEach((exchange: { status: string }) => {
+      if (exchange.status in counts) counts[exchange.status]++;
     });
-    setPipeline(counts);
+    return counts;
+  }, [data?.allExchanges]);
 
-    // Activity feed from status history
-    if (recentHistory.data) {
-      // Fetch request context for display
-      const requestIds = [...new Set(recentHistory.data.map((h) => h.request_id))];
-      const { data: requests } = await supabase
-        .from("exchange_requests")
-        .select("id, relinquished_city, relinquished_state, relinquished_asset_type")
-        .in("id", requestIds);
-
-      const reqMap = new Map(requests?.map((r) => [r.id, r]) ?? []);
-
-      setActivity(
-        recentHistory.data.map((h) => {
-          const req = reqMap.get(h.request_id);
-          const loc = [req?.relinquished_city, req?.relinquished_state].filter(Boolean).join(", ") || "Unknown";
-          return {
-            id: h.id,
-            text: `${loc} moved to ${STATUS_LABELS[h.new_status] ?? h.new_status}`,
-            timestamp: h.created_at,
-            linkTo: `/admin/requests/${h.request_id}`,
-          };
-        })
-      );
-    }
-
-    setLoading(false);
-  }
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -152,12 +129,12 @@ export default function AdminDashboard() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Operational overview of your exchange platform.</p>
+        <p className="text-muted-foreground">Monitoring overview for platform health and automation signals.</p>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        {kpis.map((kpi) => (
+        {data?.kpis.map((kpi) => (
           <Card key={kpi.label}>
             <CardContent className="p-4">
               <div className={`mb-2 inline-flex rounded-lg p-2 ${kpi.color}`}>
@@ -173,15 +150,15 @@ export default function AdminDashboard() {
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">
         <Button variant="outline" size="sm" asChild>
-          <Link to="/admin/inventory/new">
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
-            Add Property
+          <Link to="/admin/support">
+            <LifeBuoy className="mr-1.5 h-3.5 w-3.5" />
+            Review Support
           </Link>
         </Button>
         <Button variant="outline" size="sm" asChild>
-          <Link to="/admin/requests">
-            <FileText className="mr-1.5 h-3.5 w-3.5" />
-            View Requests
+          <Link to="/agent">
+            <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
+            View Agent Workspace
           </Link>
         </Button>
       </div>
@@ -194,16 +171,12 @@ export default function AdminDashboard() {
         <CardContent>
           <div className="flex flex-wrap gap-3">
             {Object.entries(STATUS_LABELS).map(([status, label]) => (
-              <Link
-                key={status}
-                to={`/admin/requests?status=${status}`}
-                className="flex items-center gap-2 rounded-lg border px-4 py-3 transition-colors hover:bg-muted/50"
-              >
+              <div key={status} className="flex items-center gap-2 rounded-lg border px-4 py-3">
                 <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[status]}`}>
                   {pipeline[status] ?? 0}
                 </span>
                 <span className="text-sm font-medium">{label}</span>
-              </Link>
+              </div>
             ))}
           </div>
         </CardContent>
@@ -215,11 +188,11 @@ export default function AdminDashboard() {
           <CardTitle className="text-base">Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          {activity.length === 0 ? (
+          {(data?.activity.length ?? 0) === 0 ? (
             <p className="text-sm text-muted-foreground">No recent activity.</p>
           ) : (
             <div className="space-y-3">
-              {activity.map((item) => (
+              {data?.activity.map((item) => (
                 <div key={item.id} className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 rounded-full bg-muted p-1.5">

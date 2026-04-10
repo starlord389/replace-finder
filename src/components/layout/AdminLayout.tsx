@@ -3,11 +3,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { getUnauthorizedRedirectPath } from "@/app/routes/routeGuards";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
 
 export default function AdminLayout() {
-  const { user, hasRole, loading } = useAuth();
+  const { user, hasRole, loading, profileRole } = useAuth();
   const isUnauthorized = !loading && (!user || !hasRole("admin"));
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function AdminLayout() {
   }
 
   if (isUnauthorized) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getUnauthorizedRedirectPath(profileRole)} replace />;
   }
 
   return (

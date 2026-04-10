@@ -1,79 +1,23 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Users, ArrowLeftRight, Handshake, Link2, Plus, Eye, ShieldCheck, Clock, AlertTriangle, ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { differenceInDays, parseISO } from "date-fns";
-
-interface DeadlineAlert {
-  exchangeId: string;
-  clientName: string;
-  deadlineType: "identification" | "closing";
-  deadline: string;
-  daysRemaining: number;
-}
+import { useAgentDashboardQuery } from "@/features/agent/hooks/useAgentDashboardQuery";
+import type { DeadlineAlert } from "@/features/agent/hooks/useAgentDashboardQuery";
 
 export default function AgentDashboard() {
   const { user, profileName, isVerifiedAgent, agentVerificationStatus } = useAuth();
-  const [brokerageName, setBrokerageName] = useState<string | null>(null);
-  const [clientCount, setClientCount] = useState(0);
-  const [exchangeCount, setExchangeCount] = useState(0);
-  const [matchCount, setMatchCount] = useState(0);
-  const [connectionCount, setConnectionCount] = useState(0);
-  const [deadlines, setDeadlines] = useState<DeadlineAlert[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useAgentDashboardQuery(user?.id);
 
-  useEffect(() => {
-    if (!user) return;
+  const brokerageName = data?.brokerageName ?? null;
+  const clientCount = data?.clientCount ?? 0;
+  const exchangeCount = data?.exchangeCount ?? 0;
+  const matchCount = data?.matchCount ?? 0;
+  const connectionCount = data?.connectionCount ?? 0;
+  const deadlines = data?.deadlines ?? [];
 
-    const fetchData = async () => {
-      const [profileRes, clientsRes, exchangesRes, matchesRes, connectionsRes, deadlinesRes] =
-        await Promise.all([
-          supabase.from("profiles").select("brokerage_name").eq("id", user.id).single(),
-          supabase.from("agent_clients").select("id", { count: "exact", head: true }).eq("agent_id", user.id).eq("status", "active"),
-          supabase.from("exchanges").select("id", { count: "exact", head: true }).eq("agent_id", user.id).in("status", ["active", "in_identification", "in_closing"]),
-          supabase.from("exchanges").select("id").eq("agent_id", user.id).then(async ({ data: exs }) => {
-            if (!exs?.length) return { count: 0 };
-            const { count } = await supabase.from("matches").select("id", { count: "exact", head: true }).in("buyer_exchange_id", exs.map((e) => e.id));
-            return { count: count ?? 0 };
-          }),
-          supabase.from("exchange_connections").select("id", { count: "exact", head: true }).or(`buyer_agent_id.eq.${user.id},seller_agent_id.eq.${user.id}`).eq("status", "pending"),
-          supabase.from("exchanges").select("id, identification_deadline, closing_deadline, client_id, agent_clients(client_name)").eq("agent_id", user.id).in("status", ["in_identification", "in_closing"]).not("identification_deadline", "is", null),
-        ]);
-
-      setBrokerageName(profileRes.data?.brokerage_name ?? null);
-      setClientCount(clientsRes.count ?? 0);
-      setExchangeCount(exchangesRes.count ?? 0);
-      setMatchCount(typeof matchesRes === "object" && "count" in matchesRes ? (matchesRes.count as number) : 0);
-      setConnectionCount(connectionsRes.count ?? 0);
-
-      const today = new Date();
-      const alerts: DeadlineAlert[] = [];
-      if (deadlinesRes.data) {
-        for (const ex of deadlinesRes.data) {
-          const clientName = (ex as any).agent_clients?.client_name ?? "Unknown Client";
-          if (ex.identification_deadline) {
-            const days = differenceInDays(parseISO(ex.identification_deadline), today);
-            if (days >= 0) alerts.push({ exchangeId: ex.id, clientName, deadlineType: "identification", deadline: ex.identification_deadline, daysRemaining: days });
-          }
-          if (ex.closing_deadline) {
-            const days = differenceInDays(parseISO(ex.closing_deadline), today);
-            if (days >= 0) alerts.push({ exchangeId: ex.id, clientName, deadlineType: "closing", deadline: ex.closing_deadline, daysRemaining: days });
-          }
-        }
-      }
-      alerts.sort((a, b) => a.daysRemaining - b.daysRemaining);
-      setDeadlines(alerts);
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [user]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -147,8 +91,8 @@ export default function AgentDashboard() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-foreground">Upcoming Deadlines</h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            {deadlines.slice(0, 6).map((d, i) => (
-              <Card key={i} className={`border ${deadlineColor(d.daysRemaining)}`}>
+            {deadlines.slice(0, 6).map((d: DeadlineAlert) => (
+              <Card key={`${d.exchangeId}-${d.deadlineType}`} className={`border ${deadlineColor(d.daysRemaining)}`}>
                 <CardContent className="flex items-center justify-between p-4">
                   <div>
                     <p className="text-sm font-medium">{d.clientName}</p>

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { trackEvent } from "@/lib/telemetry";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, MapPin, Building2, Camera, ChevronDown, ChevronUp,
@@ -311,6 +312,7 @@ export default function AgentMatchDetail() {
       setConnectionState("pending");
       setConnectionId(connData.id);
       setModalOpen(false);
+      trackEvent("connection_initiated", { matchId: match.id, connectionId: connData.id });
       toast({ title: "Request sent!", description: "You'll be notified when they respond." });
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to send request.", variant: "destructive" });

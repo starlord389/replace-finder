@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,37 +7,16 @@ import { ArrowLeftRight, Plus, Clock } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import { formatCurrency } from "@/lib/exchangeWizardTypes";
 import { EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS } from "@/lib/constants";
-
-interface ExchangeRow {
-  id: string;
-  status: string;
-  exchange_proceeds: number | null;
-  sale_close_date: string | null;
-  identification_deadline: string | null;
-  closing_deadline: string | null;
-  created_at: string;
-  agent_clients: { client_name: string } | null;
-  pledged_properties: { address: string | null; city: string | null; state: string | null } | null;
-}
+import { useAgentExchangesQuery } from "@/features/agent/hooks/useAgentExchangesQuery";
 
 export default function AgentExchanges() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [exchanges, setExchanges] = useState<ExchangeRow[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("exchanges")
-      .select("id, status, exchange_proceeds, sale_close_date, identification_deadline, closing_deadline, created_at, agent_clients(client_name), pledged_properties(address, city, state)")
-      .eq("agent_id", user.id)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => { setExchanges((data as any) || []); setLoading(false); });
-  }, [user]);
+  const { data: exchanges = [], isLoading } = useAgentExchangesQuery(user?.id);
 
   const activeCount = exchanges.filter(e => ["active", "in_identification", "in_closing"].includes(e.status)).length;
 
-  if (loading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+  if (isLoading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
     <div className="space-y-6">

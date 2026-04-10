@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { getUnauthorizedRedirectPath } from "@/app/routes/routeGuards";
 import AgentSidebar from "./AgentSidebar";
 import AgentHeader from "./AgentHeader";
 
@@ -20,7 +21,7 @@ export default function AgentLayout() {
   }
 
   if (profileRole !== "agent") {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getUnauthorizedRedirectPath(profileRole)} replace />;
   }
 
   return (

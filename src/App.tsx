@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ROUTES } from "@/app/routes/routeManifest";
 
 import PublicLayout from "@/components/layout/PublicLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -32,8 +33,17 @@ import AgentMessages from "@/pages/agent/AgentMessages";
 import AgentSettings from "@/pages/agent/AgentSettings";
 import AgentHelp from "@/pages/agent/AgentHelp";
 import NotFound from "@/pages/NotFound";
+import Unavailable from "@/pages/Unavailable";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 30_000,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -51,6 +61,7 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/unavailable" element={<Unavailable />} />
             </Route>
 
             {/* Agent (agent role required) */}
@@ -79,7 +90,7 @@ const App = () => (
             </Route>
 
             {/* Redirect old client routes */}
-            <Route path="/dashboard/*" element={<Navigate to="/agent" replace />} />
+            <Route path="/dashboard/*" element={<Navigate to={ROUTES.unavailable} replace />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

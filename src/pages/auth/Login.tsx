@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { getDefaultRouteForRole } from "@/app/routes/routeManifest";
+import { trackEvent } from "@/lib/telemetry";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -19,6 +21,7 @@ export default function Login() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
+      trackEvent("auth_login_failure", { message: error.message });
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
       return;
     }
@@ -31,11 +34,11 @@ export default function Login() {
         .select("role")
         .eq("id", data.user.id)
         .single();
-      if (profile?.role === "agent") target = "/agent";
-      else if (profile?.role === "admin") target = "/admin";
+      target = getDefaultRouteForRole(profile?.role);
     }
 
     setLoading(false);
+    trackEvent("auth_login_success", { target });
     navigate(target);
   };
 

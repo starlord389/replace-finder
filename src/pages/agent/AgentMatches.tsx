@@ -1,17 +1,18 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import type { JSX } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Building2, Handshake, ArrowUpDown } from "lucide-react";
+import { Building2, Handshake, ArrowUpDown, CheckCircle2, AlertTriangle, ShieldAlert } from "lucide-react";
 import {
   ASSET_TYPE_LABELS, STRATEGY_TYPE_LABELS,
   BOOT_STATUS_LABELS, BOOT_STATUS_COLORS,
 } from "@/lib/constants";
 import type { Enums } from "@/integrations/supabase/types";
+import { useAgentMatchesQuery } from "@/features/agent/hooks/useAgentMatchesQuery";
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -38,12 +39,16 @@ function ScoreBadge({ score }: { score: number }) {
 }
 
 function BootIndicator({ status, totalBoot }: { status: string; totalBoot: number | null }) {
-  const icons: Record<string, string> = { no_boot: "✅", minor_boot: "⚠️", significant_boot: "🚨" };
-  const icon = icons[status] || "";
+  const icons: Record<string, JSX.Element> = {
+    no_boot: <CheckCircle2 className="h-3 w-3" />,
+    minor_boot: <AlertTriangle className="h-3 w-3" />,
+    significant_boot: <ShieldAlert className="h-3 w-3" />,
+  };
+  const icon = icons[status];
   const label = BOOT_STATUS_LABELS[status] || status;
-  if (status === "no_boot") return <span className="text-[11px] font-medium text-green-700">{icon} No Boot</span>;
+  if (status === "no_boot") return <span className="inline-flex items-center gap-1 text-[11px] font-medium text-green-700">{icon} No Boot</span>;
   return (
-    <span className="text-[11px] font-medium text-amber-700">
+    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700">
       {icon} {totalBoot ? currency(totalBoot) : label}
     </span>
   );
@@ -51,147 +56,20 @@ function BootIndicator({ status, totalBoot }: { status: string; totalBoot: numbe
 
 // ── Types ────────────────────────────────────────────────
 
-interface MatchRow {
-  id: string;
-  buyer_exchange_id: string;
-  seller_property_id: string;
-  total_score: number;
-  boot_status: string;
-  estimated_total_boot: number | null;
-  buyer_agent_viewed: boolean;
-  created_at: string;
-  price_score: number;
-  geo_score: number;
-  asset_score: number;
-  strategy_score: number;
-  financial_score: number;
-  timing_score: number;
-  debt_fit_score: number;
-  scale_fit_score: number;
-  // hydrated
-  property?: any;
-  financials?: any;
-  coverUrl?: string | null;
-  clientName?: string;
-}
-
 // ── Main Component ──────────────────────────────────────
 
 export default function AgentMatches() {
   const { user } = useAuth();
-  const [buyerMatches, setBuyerMatches] = useState<MatchRow[]>([]);
-  const [sellerMatches, setSellerMatches] = useState<MatchRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useAgentMatchesQuery(user?.id);
+  const buyerMatches = data?.buyerMatches ?? [];
+  const sellerMatches = data?.sellerMatches ?? [];
+  const exchangeMap = data?.exchangeMap ?? new Map<string, string>();
 
   // Filters
   const [exchangeFilter, setExchangeFilter] = useState("all");
   const [scoreFilter, setScoreFilter] = useState("all");
   const [bootFilter, setBootFilter] = useState("all");
   const [sortBy, setSortBy] = useState("score");
-
-  // Exchange map for filter dropdown
-  const [exchangeMap, setExchangeMap] = useState<Map<string, string>>(new Map());
-
-  useEffect(() => {
-    if (!user) return;
-    loadMatches();
-  }, [user]);
-
-  const loadMatches = async () => {
-    // 1. Agent's exchanges
-    const { data: exchanges } = await supabase
-      .from("exchanges")
-      .select("id, client_id")
-      .eq("agent_id", user!.id);
-    const exchangeIds = (exchanges ?? []).map((e) => e.id);
-
-    // 2. Agent's pledged property IDs
-    const { data: props } = await supabase
-      .from("pledged_properties")
-      .select("id, property_name")
-      .eq("agent_id", user!.id);
-    const propertyIds = (props ?? []).map((p) => p.id);
-    const propNameMap = new Map((props ?? []).map((p) => [p.id, p.property_name || "Property"]));
-
-    // 3. Client names
-    const clientIds = [...new Set((exchanges ?? []).map((e) => e.client_id))];
-    const { data: clients } = clientIds.length > 0
-      ? await supabase.from("agent_clients").select("id, client_name").in("id", clientIds)
-      : { data: [] as any[] };
-    const clientMap = new Map((clients ?? []).map((c) => [c.id, c.client_name]));
-
-    // Build exchange → client name map
-    const exMap = new Map<string, string>();
-    (exchanges ?? []).forEach((e) => {
-      exMap.set(e.id, clientMap.get(e.client_id) || "Client");
-    });
-    setExchangeMap(exMap);
-
-    // 4. Buyer-side matches
-    let buyerData: MatchRow[] = [];
-    if (exchangeIds.length > 0) {
-      const { data } = await supabase
-        .from("matches")
-        .select("*")
-        .in("buyer_exchange_id", exchangeIds)
-        .eq("status", "active")
-        .order("total_score", { ascending: false });
-      buyerData = (data ?? []) as unknown as MatchRow[];
-    }
-
-    // 5. Seller-side matches
-    let sellerData: MatchRow[] = [];
-    if (propertyIds.length > 0) {
-      const { data } = await supabase
-        .from("matches")
-        .select("*")
-        .in("seller_property_id", propertyIds)
-        .eq("status", "active")
-        .order("total_score", { ascending: false });
-      sellerData = (data ?? []) as unknown as MatchRow[];
-    }
-
-    // 6. Hydrate buyer matches with property data
-    if (buyerData.length > 0) {
-      const sellerPropIds = [...new Set(buyerData.map((m) => m.seller_property_id))];
-      const [propsRes, finsRes, imgsRes] = await Promise.all([
-        supabase.from("pledged_properties").select("*").in("id", sellerPropIds),
-        supabase.from("property_financials").select("*").in("property_id", sellerPropIds),
-        supabase.from("property_images").select("*").in("property_id", sellerPropIds).order("sort_order"),
-      ]);
-
-      const pMap = new Map((propsRes.data ?? []).map((p: any) => [p.id, p]));
-      const fMap = new Map((finsRes.data ?? []).map((f: any) => [f.property_id, f]));
-      const iMap = new Map<string, any>();
-      (imgsRes.data ?? []).forEach((img: any) => {
-        if (!iMap.has(img.property_id)) iMap.set(img.property_id, img);
-      });
-
-      buyerData.forEach((m) => {
-        m.property = pMap.get(m.seller_property_id);
-        m.financials = fMap.get(m.seller_property_id);
-        const firstImg = iMap.get(m.seller_property_id);
-        m.coverUrl = firstImg ? supabase.storage.from("property-images").getPublicUrl(firstImg.storage_path).data.publicUrl : null;
-        m.clientName = exMap.get(m.buyer_exchange_id) || "Client";
-      });
-
-      // Sort: unviewed first, then by score
-      buyerData.sort((a, b) => {
-        if (a.buyer_agent_viewed !== b.buyer_agent_viewed) return a.buyer_agent_viewed ? 1 : -1;
-        return Number(b.total_score) - Number(a.total_score);
-      });
-    }
-
-    // Hydrate seller matches with exchange state info
-    sellerData.forEach((m) => {
-      const propName = propNameMap.get(m.seller_property_id);
-      (m as any).sellerPropertyName = propName || "Your property";
-    });
-
-    setBuyerMatches(buyerData);
-    setSellerMatches(sellerData);
-    setLoading(false);
-  };
 
   // ── Filtered & sorted buyer matches ──
   const filteredMatches = useMemo(() => {
@@ -216,7 +94,7 @@ export default function AgentMatches() {
     return result;
   }, [buyerMatches, exchangeFilter, scoreFilter, bootFilter, sortBy]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -249,7 +127,8 @@ export default function AgentMatches() {
       {buyerMatches.length > 0 && (
         <>
           {/* Filters */}
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="mt-6 overflow-x-auto pb-2">
+            <div className="flex min-w-max items-center gap-3">
             <Select value={exchangeFilter} onValueChange={setExchangeFilter}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="All exchanges" />
@@ -298,6 +177,7 @@ export default function AgentMatches() {
                 <SelectItem value="newest">Newest</SelectItem>
               </SelectContent>
             </Select>
+            </div>
           </div>
 
           {/* Match cards */}
