@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { ASSET_TYPE_LABELS } from "@/lib/constants";
 
 export default function AgentSettings() {
   const { user } = useAuth();
@@ -14,12 +16,14 @@ export default function AgentSettings() {
   const [phone, setPhone] = useState("");
   const [brokerageName, setBrokerageName] = useState("");
   const [brokerageAddress, setBrokerageAddress] = useState("");
+  const [bio, setBio] = useState("");
+  const [specializations, setSpecializations] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("full_name, email, phone, brokerage_name, brokerage_address")
+    supabase.from("profiles").select("full_name, email, phone, brokerage_name, brokerage_address, bio, specializations")
       .eq("id", user.id).single()
       .then(({ data }) => {
         if (data) {
@@ -28,10 +32,18 @@ export default function AgentSettings() {
           setPhone(data.phone ?? "");
           setBrokerageName(data.brokerage_name ?? "");
           setBrokerageAddress(data.brokerage_address ?? "");
+          setBio(data.bio ?? "");
+          setSpecializations(data.specializations ?? []);
         }
         setLoading(false);
       });
   }, [user]);
+
+  const toggleSpecialization = (value: string) => {
+    setSpecializations((current) =>
+      current.includes(value) ? current.filter((item) => item !== value) : [...current, value],
+    );
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +54,8 @@ export default function AgentSettings() {
       phone: phone.trim() || null,
       brokerage_name: brokerageName.trim() || null,
       brokerage_address: brokerageAddress.trim() || null,
+      bio: bio.trim() || null,
+      specializations: specializations.length ? specializations : null,
     }).eq("id", user.id);
     setSaving(false);
     if (error) { toast.error("Failed to save"); return; }
@@ -85,6 +99,40 @@ export default function AgentSettings() {
             <div className="space-y-2">
               <Label>Brokerage Address</Label>
               <Input value={brokerageAddress} onChange={(e) => setBrokerageAddress(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Bio</Label>
+              <Textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={4}
+                placeholder="Describe your market focus, client profile, and 1031 exchange experience."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Specializations</Label>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(ASSET_TYPE_LABELS).map(([key, label]) => {
+                  const selected = specializations.includes(key);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => toggleSpecialization(key)}
+                      className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+                        selected
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-background text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Select the property types you most often represent so your profile is complete for Launchpad setup.
+              </p>
             </div>
             <Button type="submit" disabled={saving}>
               {saving ? "Saving…" : "Save Changes"}

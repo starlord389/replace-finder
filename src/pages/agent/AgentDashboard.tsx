@@ -1,15 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Users, ArrowLeftRight, Handshake, Link2, Plus, Eye, ShieldCheck, AlertTriangle, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAgentDashboardQuery } from "@/features/agent/hooks/useAgentDashboardQuery";
+import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
 import type { DeadlineAlert } from "@/features/agent/hooks/useAgentDashboardQuery";
 import { getAgentVerificationUiState } from "@/lib/agentVerification";
 
 export default function AgentDashboard() {
   const { user, profileName, isVerifiedAgent, agentVerificationStatus, isSuspendedAgent } = useAuth();
   const { data, isLoading } = useAgentDashboardQuery(user?.id);
+  const { data: launchpadProgress, isLoading: launchpadLoading } = useAgentLaunchpadProgress(user?.id);
   const verificationUi = getAgentVerificationUiState(agentVerificationStatus);
 
   const brokerageName = data?.brokerageName ?? null;
@@ -19,12 +21,16 @@ export default function AgentDashboard() {
   const connectionCount = data?.connectionCount ?? 0;
   const deadlines = data?.deadlines ?? [];
 
-  if (isLoading) {
+  if (isLoading || launchpadLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
+  }
+
+  if (!isSuspendedAgent && !launchpadProgress?.profile.launchpad_completed_at) {
+    return <Navigate to="/agent/launchpad" replace />;
   }
 
   const kpis = [

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { getDefaultRouteForRole } from "@/app/routes/routeManifest";
+import { getAgentPostLoginRoute, getDefaultRouteForRole } from "@/app/routes/routeManifest";
 import { trackEvent } from "@/lib/telemetry";
 import { isEmailConfirmationError } from "@/lib/agentVerification";
 
@@ -38,10 +38,12 @@ export default function Login() {
     if (data.user) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, launchpad_completed_at, verification_status")
         .eq("id", data.user.id)
         .single();
-      target = getDefaultRouteForRole(profile?.role);
+      target = profile?.role === "agent"
+        ? getAgentPostLoginRoute(profile.launchpad_completed_at, profile.verification_status)
+        : getDefaultRouteForRole(profile?.role);
     }
 
     setLoading(false);

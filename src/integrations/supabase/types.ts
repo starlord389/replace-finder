@@ -1556,6 +1556,8 @@ export type Database = {
           full_name: string | null
           id: string
           license_state: string | null
+          launchpad_completed_at: string | null
+          launchpad_version: string | null
           mls_number: string | null
           phone: string | null
           profile_photo_url: string | null
@@ -1577,6 +1579,8 @@ export type Database = {
           full_name?: string | null
           id: string
           license_state?: string | null
+          launchpad_completed_at?: string | null
+          launchpad_version?: string | null
           mls_number?: string | null
           phone?: string | null
           profile_photo_url?: string | null
@@ -1598,6 +1602,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           license_state?: string | null
+          launchpad_completed_at?: string | null
+          launchpad_version?: string | null
           mls_number?: string | null
           phone?: string | null
           profile_photo_url?: string | null

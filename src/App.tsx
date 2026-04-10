@@ -19,6 +19,7 @@ import ResetPassword from "@/pages/auth/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import SupportTickets from "@/pages/admin/SupportTickets";
 import AgentDashboard from "@/pages/agent/AgentDashboard";
+import AgentLaunchpad from "@/pages/agent/AgentLaunchpad";
 import AgentClients from "@/pages/agent/AgentClients";
 import AgentClientDetail from "@/pages/agent/AgentClientDetail";
 import AgentExchanges from "@/pages/agent/AgentExchanges";
@@ -67,6 +68,7 @@ const App = () => (
             {/* Agent (agent role required) */}
             <Route element={<AgentLayout />}>
               <Route path="/agent" element={<AgentDashboard />} />
+              <Route path="/agent/launchpad" element={<AgentLaunchpad />} />
               <Route path="/agent/clients" element={<AgentClients />} />
               <Route path="/agent/clients/new" element={<AgentClientDetail />} />
               <Route path="/agent/clients/:id" element={<AgentClientDetail />} />

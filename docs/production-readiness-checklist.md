@@ -31,6 +31,14 @@
 - [ ] Verify confirmed agents land in `/agent` with no pending-verification banner or badge.
 - [ ] Verify suspended agents still surface clear restricted-state messaging.
 
+## Agent Launchpad Validation
+- [ ] Verify new agents are routed to `/agent/launchpad` until launchpad completion is recorded.
+- [ ] Verify launchpad progress updates from live profile, client, exchange, match, and connection state.
+- [ ] Verify the profile checklist step only completes when brokerage details, bio, and specializations are filled in.
+- [ ] Verify the inline matching explanation expands in place and contributes to visible checklist progress.
+- [ ] Verify all launchpad steps complete before the final dashboard CTA appears.
+- [ ] Verify Launchpad remains accessible from the agent sidebar after completion.
+
 ## Release Controls
 - [ ] Roll out with feature flags for automation worker and referral auto-assignment.
 - [ ] Monitor `event_outbox` and `match_job_queue` for failed records.

@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ArrowLeftRight, Handshake, Link2,
-  ListChecks, MessageSquare, Settings, HelpCircle, LogOut, ShieldCheck, AlertTriangle,
+  ListChecks, MessageSquare, Settings, HelpCircle, LogOut, ShieldCheck, AlertTriangle, Compass,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAgentVerificationUiState } from "@/lib/agentVerification";
 
 const networkItems = [
+  { title: "Launchpad", url: "/agent/launchpad", icon: Compass },
   { title: "Dashboard", url: "/agent", icon: LayoutDashboard, end: true },
   { title: "My Clients", url: "/agent/clients", icon: Users },
   { title: "Exchanges", url: "/agent/exchanges", icon: ArrowLeftRight },
