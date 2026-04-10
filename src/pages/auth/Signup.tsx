@@ -7,11 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { ASSET_TYPE_LABELS, US_STATES } from "@/lib/constants";
 import { Briefcase, Home, ArrowLeft, CheckCircle2 } from "lucide-react";
-import type { Enums } from "@/integrations/supabase/types";
 
 type Step = "choose" | "agent" | "referral";
 
@@ -89,31 +88,20 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
     phone: "",
     password: "",
     confirmPassword: "",
-    mlsNumber: "",
+    professionalId: "",
     licenseState: "",
     brokerageName: "",
-    brokerageAddress: "",
-    bio: "",
-    yearsExperience: "",
-    specializations: [] as string[],
+    attested: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const set = (key: string, value: string) => {
     setForm((p) => ({ ...p, [key]: value }));
     if (errors[key]) setErrors((p) => { const n = { ...p }; delete n[key]; return n; });
-  };
-
-  const toggleSpec = (val: string) => {
-    setForm((p) => ({
-      ...p,
-      specializations: p.specializations.includes(val)
-        ? p.specializations.filter((s) => s !== val)
-        : [...p.specializations, val],
-    }));
   };
 
   const validate = () => {
@@ -124,9 +112,10 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
     if (!form.phone.trim()) e.phone = "Phone number is required";
     if (form.password.length < 8) e.password = "Password must be at least 8 characters";
     if (form.password !== form.confirmPassword) e.confirmPassword = "Passwords do not match";
-    if (!form.mlsNumber.trim()) e.mlsNumber = "MLS number is required";
+    if (!form.professionalId.trim()) e.professionalId = "License or MLS number is required";
     if (!form.licenseState) e.licenseState = "License state is required";
     if (!form.brokerageName.trim()) e.brokerageName = "Brokerage name is required";
+    if (!form.attested) e.attested = "You must confirm your license is valid to continue";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -140,8 +129,17 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
       email: form.email,
       password: form.password,
       options: {
-        data: { full_name: form.fullName, phone: form.phone, role: "agent" },
-        emailRedirectTo: window.location.origin,
+        data: {
+          full_name: form.fullName.trim(),
+          phone: form.phone.trim(),
+          role: "agent",
+          mls_number: form.professionalId.trim(),
+          license_state: form.licenseState,
+          brokerage_name: form.brokerageName.trim(),
+          verification_path: "self_certification",
+          self_certified_at: new Date().toISOString(),
+        },
+        emailRedirectTo: `${window.location.origin}/login`,
       },
     });
 
@@ -151,36 +149,44 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
       return;
     }
 
-    if (data.user) {
-      await supabase.from("profiles").update({
-        role: "agent",
-        mls_number: form.mlsNumber,
-        license_state: form.licenseState,
-        brokerage_name: form.brokerageName,
-        brokerage_address: form.brokerageAddress || null,
-        bio: form.bio || null,
-        years_experience: form.yearsExperience ? parseInt(form.yearsExperience) : null,
-        specializations: form.specializations.length > 0 ? form.specializations : null,
-        phone: form.phone,
-        verification_status: "pending",
-      }).eq("id", data.user.id);
-
-      await supabase.from("user_roles").upsert(
-        { user_id: data.user.id, role: "agent" as Enums<"app_role"> },
-        { onConflict: "user_id,role" }
-      );
-    }
-
     setLoading(false);
-    toast({
-      title: "Account created",
-      description: "Check your email to verify your account, then sign in.",
-    });
-    navigate("/login");
+    if (data.user) {
+      setSubmittedEmail(form.email.trim());
+      toast({
+        title: "Check your email",
+        description: "Confirm your email to unlock your self-certified agent workspace.",
+      });
+    }
   };
 
   const fieldError = (key: string) =>
     errors[key] ? <p className="text-sm text-destructive">{errors[key]}</p> : null;
+
+  if (submittedEmail) {
+    return (
+      <Card className="border-primary/20">
+        <CardContent className="space-y-6 p-6 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <CheckCircle2 className="h-7 w-7" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-foreground">Confirm your email to enter your workspace</h1>
+            <p className="text-sm text-muted-foreground">
+              We sent a confirmation link to <span className="font-medium text-foreground">{submittedEmail}</span>.
+              Your self-certified agent profile has been saved, and there is no manual approval queue.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              After you confirm, sign in to land directly in your agent dashboard. You can finish the rest of your profile later in Settings.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button onClick={() => navigate("/login")}>I've Confirmed My Email</Button>
+            <Button variant="outline" type="button" onClick={onBack}>Back</Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -191,12 +197,18 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Create Agent Account</h1>
           <p className="text-sm text-muted-foreground">
-            Fill in your details to get started on the platform.
+            Self-certify the essentials now and finish the rest of your profile later.
           </p>
         </div>
       </div>
 
-      {/* Section 1: Account */}
+      <div className="rounded-xl border bg-muted/30 p-4">
+        <p className="text-sm font-medium text-foreground">Fast setup for active agents</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          We only ask for the details needed to create your workspace, confirm your role, and get you into the platform quickly.
+        </p>
+      </div>
+
       <div className="space-y-4">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Account</h2>
         <div className="space-y-2">
@@ -205,12 +217,12 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
           {fieldError("fullName")}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email *</Label>
+          <Label htmlFor="email">Work Email *</Label>
           <Input id="email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" />
           {fieldError("email")}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone *</Label>
+          <Label htmlFor="phone">Mobile Phone *</Label>
           <Input id="phone" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="(555) 123-4567" />
           {fieldError("phone")}
         </div>
@@ -228,12 +240,17 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
 
       {/* Section 2: Professional Info */}
       <div className="space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Professional Info</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Professional Verification</h2>
         <div className="space-y-2">
-          <Label htmlFor="mlsNumber">MLS Number *</Label>
-          <Input id="mlsNumber" value={form.mlsNumber} onChange={(e) => set("mlsNumber", e.target.value)} placeholder="Your MLS ID" />
-          <p className="text-xs text-muted-foreground">Your MLS ID number for verification</p>
-          {fieldError("mlsNumber")}
+          <Label htmlFor="professionalId">License or MLS Number *</Label>
+          <Input
+            id="professionalId"
+            value={form.professionalId}
+            onChange={(e) => set("professionalId", e.target.value)}
+            placeholder="CA-DRE-123456 or MLS ID"
+          />
+          <p className="text-xs text-muted-foreground">Use whichever identifier you actively practice under.</p>
+          {fieldError("professionalId")}
         </div>
         <div className="space-y-2">
           <Label>License State *</Label>
@@ -249,45 +266,41 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         <div className="space-y-2">
           <Label htmlFor="brokerageName">Brokerage Name *</Label>
           <Input id="brokerageName" value={form.brokerageName} onChange={(e) => set("brokerageName", e.target.value)} placeholder="ABC Realty" />
+          <p className="text-xs text-muted-foreground">Brokerage address, bio, specialties, and experience can be completed later in Settings.</p>
           {fieldError("brokerageName")}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="brokerageAddress">Brokerage Address</Label>
-          <Input id="brokerageAddress" value={form.brokerageAddress} onChange={(e) => set("brokerageAddress", e.target.value)} placeholder="123 Main St, Suite 100" />
         </div>
       </div>
 
-      {/* Section 3: Specializations */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Specializations (optional)</h2>
-        <div className="space-y-2">
-          <Label>Property Types You Work With</Label>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(ASSET_TYPE_LABELS).map(([key, label]) => (
-              <Badge
-                key={key}
-                variant={form.specializations.includes(key) ? "default" : "outline"}
-                className="cursor-pointer select-none"
-                onClick={() => toggleSpec(key)}
-              >
-                {label}
-              </Badge>
-            ))}
+      <div className="rounded-xl border p-4">
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="attested"
+            checked={form.attested}
+            onCheckedChange={(checked) => {
+              setForm((prev) => ({ ...prev, attested: checked === true }));
+              if (errors.attested && checked === true) {
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.attested;
+                  return next;
+                });
+              }
+            }}
+          />
+          <div className="space-y-1">
+            <Label htmlFor="attested" className="cursor-pointer">
+              I certify that my real estate license is active and the details above are accurate.
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Your workspace is activated through self-certification. Suspended accounts are reserved for compliance issues, not routine signup review.
+            </p>
+            {fieldError("attested")}
           </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="yearsExperience">Years of Experience</Label>
-          <Input id="yearsExperience" type="number" min={0} max={99} value={form.yearsExperience} onChange={(e) => set("yearsExperience", e.target.value)} placeholder="10" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="bio">Brief Bio</Label>
-          <Textarea id="bio" value={form.bio} onChange={(e) => set("bio", e.target.value)} placeholder="Tell other agents about your experience and market focus..." maxLength={500} rows={3} />
-          <p className="text-xs text-muted-foreground">{form.bio.length}/500 characters</p>
         </div>
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Creating account…" : "Create Agent Account"}
+        {loading ? "Creating account…" : "Create Self-Certified Agent Account"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">

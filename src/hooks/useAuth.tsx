@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Enums } from "@/integrations/supabase/types";
+import { hasOperationalAgentAccess } from "@/lib/agentVerification";
 
 type AppRole = Enums<"app_role">;
 
@@ -16,6 +17,7 @@ interface AuthContextType {
   profileName: string | null;
   isAgent: boolean;
   isVerifiedAgent: boolean;
+  isSuspendedAgent: boolean;
   agentVerificationStatus: string | null;
 }
 
@@ -30,6 +32,7 @@ const AuthContext = createContext<AuthContextType>({
   profileName: null,
   isAgent: false,
   isVerifiedAgent: false,
+  isSuspendedAgent: false,
   agentVerificationStatus: null,
 });
 
@@ -45,7 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loading = authLoading || rolesLoading;
   const isAgent = profileRole === "agent";
-  const isVerifiedAgent = isAgent && agentVerificationStatus === "verified";
+  const isSuspendedAgent = isAgent && agentVerificationStatus === "suspended";
+  const isVerifiedAgent = isAgent && hasOperationalAgentAccess(agentVerificationStatus);
 
   const fetchUserData = async (userId: string) => {
     const [rolesResult, profileResult] = await Promise.all([
@@ -101,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       session, user, roles, loading, signOut, hasRole,
-      profileRole, profileName, isAgent, isVerifiedAgent, agentVerificationStatus,
+      profileRole, profileName, isAgent, isVerifiedAgent, isSuspendedAgent, agentVerificationStatus,
     }}>
       {children}
     </AuthContext.Provider>

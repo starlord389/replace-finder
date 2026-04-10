@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { getDefaultRouteForRole } from "@/app/routes/routeManifest";
 import { trackEvent } from "@/lib/telemetry";
+import { isEmailConfirmationError } from "@/lib/agentVerification";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -22,7 +23,13 @@ export default function Login() {
     if (error) {
       setLoading(false);
       trackEvent("auth_login_failure", { message: error.message });
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      toast({
+        title: isEmailConfirmationError(error.message) ? "Confirm your email first" : "Login failed",
+        description: isEmailConfirmationError(error.message)
+          ? "Open the confirmation email we sent when you created your account, then sign in to access your agent workspace."
+          : error.message,
+        variant: "destructive",
+      });
       return;
     }
 
@@ -48,7 +55,7 @@ export default function Login() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to access your exchange dashboard.
+            Sign in to access your self-certified agent workspace.
           </p>
         </div>
         <form onSubmit={handleLogin} className="mt-8 space-y-4">

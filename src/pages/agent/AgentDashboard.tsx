@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
-import { Users, ArrowLeftRight, Handshake, Link2, Plus, Eye, ShieldCheck, Clock, AlertTriangle, ArrowRight } from "lucide-react";
+import { Users, ArrowLeftRight, Handshake, Link2, Plus, Eye, ShieldCheck, AlertTriangle, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAgentDashboardQuery } from "@/features/agent/hooks/useAgentDashboardQuery";
 import type { DeadlineAlert } from "@/features/agent/hooks/useAgentDashboardQuery";
+import { getAgentVerificationUiState } from "@/lib/agentVerification";
 
 export default function AgentDashboard() {
-  const { user, profileName, isVerifiedAgent, agentVerificationStatus } = useAuth();
+  const { user, profileName, isVerifiedAgent, agentVerificationStatus, isSuspendedAgent } = useAuth();
   const { data, isLoading } = useAgentDashboardQuery(user?.id);
+  const verificationUi = getAgentVerificationUiState(agentVerificationStatus);
 
   const brokerageName = data?.brokerageName ?? null;
   const clientCount = data?.clientCount ?? 0;
@@ -50,20 +52,23 @@ export default function AgentDashboard() {
           {brokerageName && <span>·</span>}
           {isVerifiedAgent ? (
             <span className="inline-flex items-center gap-1 text-green-600">
-              <ShieldCheck className="h-3.5 w-3.5" /> Verified Agent
+              <ShieldCheck className="h-3.5 w-3.5" /> {verificationUi.badgeLabel}
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-amber-600">
-              <Clock className="h-3.5 w-3.5" /> Pending Verification
+            <span className="inline-flex items-center gap-1 text-red-600">
+              <AlertTriangle className="h-3.5 w-3.5" /> Suspended
             </span>
           )}
         </div>
       </div>
 
-      {/* Verification banner */}
-      {agentVerificationStatus === "pending" && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          Your account is pending verification. You can start adding clients and setting up exchanges while we verify your credentials.
+      {isSuspendedAgent ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {verificationUi.description}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          {verificationUi.description}
         </div>
       )}
 

@@ -23,6 +23,14 @@
 - [ ] Run `npm run verify:domain` against staging data.
 - [ ] Verify telemetry logs appear for login success/failure, exchange creation, matching, and connection initiation.
 
+## Agent Signup Validation
+- [ ] Verify agent signup only asks for essential self-certification fields.
+- [ ] Verify the auth trigger writes agent role, license state, brokerage name, professional ID, and `verification_status = 'verified'`.
+- [ ] Verify pending legacy agent profiles are migrated to active self-certified status.
+- [ ] Verify signup success copy instructs email confirmation and does not mention manual approval.
+- [ ] Verify confirmed agents land in `/agent` with no pending-verification banner or badge.
+- [ ] Verify suspended agents still surface clear restricted-state messaging.
+
 ## Release Controls
 - [ ] Roll out with feature flags for automation worker and referral auto-assignment.
 - [ ] Monitor `event_outbox` and `match_job_queue` for failed records.
