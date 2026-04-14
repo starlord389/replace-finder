@@ -128,7 +128,7 @@ export default function Index() {
 
       [data-exchangeup-logo-slider] {
         width: 100%;
-        padding: 18px 0 28px;
+        padding: 2px 0 6px;
         background: transparent;
         display: flex;
         justify-content: center;
@@ -170,15 +170,15 @@ export default function Index() {
       }
 
       [data-exchangeup-logo-slider] [data-logo-item] svg {
-        width: 22px;
-        height: 22px;
+        width: 69px;
+        height: 69px;
         display: block;
         color: rgba(148, 144, 136, 0.7);
       }
 
       @media (max-width: 809.98px) {
         [data-exchangeup-logo-slider] {
-          padding: 12px 0 22px;
+          padding: 2px 0 4px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
@@ -192,8 +192,8 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] svg {
-          width: 18px;
-          height: 18px;
+          width: 54px;
+          height: 54px;
         }
       }
     `;
