@@ -54,6 +54,61 @@ function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
 }
 
 export default function Index() {
+  const rewriteHeroCopy = useCallback((doc: Document) => {
+    const headlineContainers = Array.from(
+      doc.querySelectorAll(
+        '[data-framer-name="Strategy and growth for modern teams"]',
+      ),
+    );
+
+    headlineContainers.forEach((container) => {
+      const lines = container.querySelectorAll("h1");
+      if (lines[0]) lines[0].textContent = "The 1031 exchange network";
+      if (lines[1]) lines[1].textContent = "built for agents";
+    });
+
+    const subheadlineText =
+      "Match clients with replacement properties faster using automatic scoring, built-in boot visibility, and a shared agent network designed for 1031 exchanges.";
+
+    const subheadlineContainers = Array.from(
+      doc.querySelectorAll(
+        '[data-framer-name="Grovia partners with startups and small businesses to streamline operations, elevate team performance, and build a foundation for lasting success."]',
+      ),
+    );
+
+    subheadlineContainers.forEach((container) => {
+      const paragraph = container.querySelector("p");
+      if (paragraph) {
+        paragraph.textContent = subheadlineText;
+      }
+    });
+
+    const buttonGroups = Array.from(
+      doc.querySelectorAll('[data-framer-name="Buttons"]'),
+    );
+
+    buttonGroups.forEach((group) => {
+      const links = Array.from(group.querySelectorAll("a"));
+      if (links[0]) {
+        links[0].setAttribute("href", "/signup");
+        links[0].setAttribute("target", "_parent");
+        const textEl = links[0].querySelector(
+          "[data-framer-component-type='RichTextContainer'] p",
+        );
+        if (textEl) textEl.textContent = "Get Started";
+      }
+
+      if (links[1]) {
+        links[1].setAttribute("href", "/contact");
+        links[1].setAttribute("target", "_parent");
+        const textEl = links[1].querySelector(
+          "[data-framer-component-type='RichTextContainer'] p",
+        );
+        if (textEl) textEl.textContent = "Book a Demo";
+      }
+    });
+  }, []);
+
   const injectLogoSlider = useCallback((doc: Document) => {
     doc.querySelector("[data-exchangeup-logo-slider]")?.remove();
     doc.querySelector("[data-exchangeup-logo-slider-style]")?.remove();
@@ -259,8 +314,9 @@ export default function Index() {
       }
     }
 
+    rewriteHeroCopy(doc);
     injectLogoSlider(doc);
-  }, [injectLogoSlider]);
+  }, [injectLogoSlider, rewriteHeroCopy]);
 
   return (
     <section
