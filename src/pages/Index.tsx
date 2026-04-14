@@ -466,6 +466,873 @@ const EASY_SETUP_STYLE = `
     color: rgba(97, 97, 97, 0.76);
   }
 `;
+
+type FeatureShowcaseTabId =
+  | "client-portal"
+  | "kpi-tracking"
+  | "workflow-automation"
+  | "team-management";
+
+type FeatureShowcaseItem = {
+  id: FeatureShowcaseTabId;
+  label: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+};
+
+const FEATURE_SHOWCASE_HEADING = "Built for high performance";
+const FEATURE_SHOWCASE_SUBHEADING =
+  "Grovia gives your team everything it needs to stay aligned, track performance, and scale with confidence — all in one place.";
+
+const FEATURE_SHOWCASE_ITEMS: FeatureShowcaseItem[] = [
+  {
+    id: "client-portal",
+    label: "Client portal",
+    eyebrow: "Client portal",
+    title: "Centralized access for teams and clients",
+    description:
+      "Securely share progress, files, feedback, and timelines with stakeholders. Keep everyone on the same page without switching platforms.",
+  },
+  {
+    id: "kpi-tracking",
+    label: "KPI tracking",
+    eyebrow: "KPI tracking",
+    title: "Measure what matters most",
+    description:
+      "Monitor your team's goals and key business metrics in real time. Custom dashboards make insights easy to access and act on.",
+  },
+  {
+    id: "workflow-automation",
+    label: "Workflow automation",
+    eyebrow: "Workflow automation",
+    title: "Automate repetitive tasks",
+    description:
+      "Save time with built-in automations that handle reminders, approvals, and task assignments, so your team can focus on high-impact work.",
+  },
+  {
+    id: "team-management",
+    label: "Team management",
+    eyebrow: "Team management",
+    title: "Built for growing teams",
+    description:
+      "Easily onboard new members, assign roles, and manage access. Keep your organization structured and scalable from day one.",
+  },
+];
+
+const FEATURE_SHOWCASE_STYLE = `
+  [data-exchangeup-feature-showcase] {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 10px 0 0;
+    color: #1d1d1d;
+  }
+
+  [data-exchangeup-feature-shell] {
+    width: min(1120px, calc(100vw - 64px));
+  }
+
+  [data-exchangeup-feature-heading] {
+    width: min(720px, 100%);
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  [data-exchangeup-feature-heading] h2 {
+    margin: 0;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: clamp(38px, 4.6vw, 56px);
+    font-weight: 600;
+    letter-spacing: -0.05em;
+    line-height: 0.98;
+    color: #171717;
+  }
+
+  [data-exchangeup-feature-heading] p {
+    margin: 18px auto 0;
+    max-width: 640px;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: -0.02em;
+    color: rgba(86, 82, 75, 0.86);
+  }
+
+  [data-exchangeup-feature-tabs] {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+    margin-top: 34px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(244, 239, 230, 0.96) 0%, rgba(240, 235, 226, 0.92) 100%);
+    box-shadow: inset 0 0 0 1px rgba(236, 230, 219, 0.92);
+  }
+
+  [data-exchangeup-feature-tab] {
+    appearance: none;
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    min-height: 64px;
+    padding: 0 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    color: rgba(100, 95, 88, 0.9);
+    transition:
+      background 0.24s ease,
+      color 0.24s ease,
+      transform 0.24s ease,
+      box-shadow 0.24s ease;
+  }
+
+  [data-exchangeup-feature-tab] svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    color: currentColor;
+    flex: none;
+  }
+
+  [data-exchangeup-feature-tab]:hover,
+  [data-exchangeup-feature-tab]:focus-visible {
+    color: #1d1d1d;
+    outline: none;
+  }
+
+  [data-exchangeup-feature-panel] {
+    display: none;
+    grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+    margin-top: 20px;
+    overflow: hidden;
+    border-radius: 32px;
+    background: linear-gradient(180deg, rgba(255, 252, 247, 0.98) 0%, rgba(255, 251, 245, 0.98) 100%);
+    border: 1px solid rgba(240, 234, 225, 0.96);
+    box-shadow: 0 24px 44px rgba(92, 83, 70, 0.06);
+  }
+
+  ${FEATURE_SHOWCASE_ITEMS.map(
+    ({ id }) => `
+      [data-exchangeup-feature-showcase][data-exchangeup-feature-active="${id}"] [data-exchangeup-feature-tab="${id}"] {
+        background: rgba(255, 255, 255, 0.96);
+        color: #1d1d1d;
+        box-shadow: 0 12px 26px rgba(80, 71, 58, 0.14), inset 0 0 0 1px rgba(239, 233, 223, 0.98);
+        transform: translateY(-1px);
+      }
+
+      [data-exchangeup-feature-showcase][data-exchangeup-feature-active="${id}"] [data-exchangeup-feature-panel="${id}"] {
+        display: grid;
+      }
+    `,
+  ).join("\n")}
+
+  [data-exchangeup-feature-visual] {
+    position: relative;
+    min-height: 470px;
+    padding: 32px 26px 0;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 10% 92%, rgba(132, 24, 0, 0.9) 0%, rgba(132, 24, 0, 0) 30%),
+      radial-gradient(circle at 95% 88%, rgba(122, 23, 0, 0.78) 0%, rgba(122, 23, 0, 0) 28%),
+      linear-gradient(180deg, #39484d 0%, #344248 56%, #27363a 100%);
+  }
+
+  [data-exchangeup-feature-visual]::before {
+    content: "";
+    position: absolute;
+    inset: auto -16% -24% auto;
+    width: 260px;
+    height: 180px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(173, 52, 22, 0.34) 0%, rgba(173, 52, 22, 0) 72%);
+    pointer-events: none;
+  }
+
+  [data-exchangeup-feature-visual]::after {
+    content: "";
+    position: absolute;
+    inset: auto auto -28% -8%;
+    width: 220px;
+    height: 180px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(183, 58, 22, 0.36) 0%, rgba(183, 58, 22, 0) 72%);
+    pointer-events: none;
+  }
+
+  [data-exchangeup-feature-copy] {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 56px 54px;
+    background: rgba(255, 252, 247, 0.98);
+  }
+
+  [data-exchangeup-feature-chip] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #fff084;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: #5e5617;
+  }
+
+  [data-exchangeup-feature-copy] h3 {
+    margin: 24px 0 0;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: clamp(34px, 4vw, 54px);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -0.05em;
+    color: #1a1a1a;
+  }
+
+  [data-exchangeup-feature-copy] p {
+    margin: 28px 0 0;
+    max-width: 420px;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.65;
+    letter-spacing: -0.02em;
+    color: rgba(86, 82, 75, 0.86);
+  }
+
+  [data-feature-client-window] {
+    position: absolute;
+    left: 16px;
+    right: 34px;
+    top: 34px;
+    bottom: 16px;
+    border-radius: 26px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 24px 44px rgba(20, 28, 32, 0.22);
+  }
+
+  [data-feature-client-window]::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 28px;
+    background: #44545a;
+  }
+
+  [data-feature-client-body] {
+    position: absolute;
+    inset: 28px 0 0;
+    padding: 22px 18px 18px;
+  }
+
+  [data-feature-client-header] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 15px;
+    font-weight: 600;
+    color: #232323;
+  }
+
+  [data-feature-client-list] {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  [data-feature-client-row] {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(247, 247, 245, 0.9);
+  }
+
+  [data-feature-client-row="active"] {
+    background: linear-gradient(180deg, #fff390 0%, #fff07a 100%);
+  }
+
+  [data-feature-avatar] {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #ff8e78 0%, #ffd281 100%);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.72);
+  }
+
+  [data-feature-avatar="2"] { background: linear-gradient(135deg, #9fd8ff 0%, #7ae0d0 100%); }
+  [data-feature-avatar="3"] { background: linear-gradient(135deg, #ff7b72 0%, #ffd46c 100%); }
+  [data-feature-avatar="4"] { background: linear-gradient(135deg, #ffa39b 0%, #f7d4d0 100%); }
+
+  [data-feature-client-name] {
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.15;
+    color: #1e1e1e;
+  }
+
+  [data-feature-client-meta] {
+    margin-top: 4px;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(93, 93, 93, 0.82);
+  }
+
+  [data-feature-client-icons] {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: rgba(39, 39, 39, 0.72);
+  }
+
+  [data-feature-client-icons] svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+  }
+
+  [data-feature-kpi-stack] {
+    position: relative;
+    width: min(84%, 430px);
+    margin: 40px auto 0;
+  }
+
+  [data-feature-kpi-shadow] {
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(4px);
+  }
+
+  [data-feature-kpi-shadow="back"] {
+    transform: translate(-20px, -18px);
+    opacity: 0.28;
+  }
+
+  [data-feature-kpi-shadow="mid"] {
+    transform: translate(-10px, -10px);
+    opacity: 0.4;
+  }
+
+  [data-feature-kpi-card] {
+    position: relative;
+    z-index: 2;
+    padding: 28px 28px 18px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 28px 44px rgba(18, 24, 28, 0.24);
+  }
+
+  [data-feature-kpi-card] h4,
+  [data-feature-kpi-card] p,
+  [data-feature-team-form] h4,
+  [data-feature-team-form] p {
+    margin: 0;
+    font-family: ${NAVBAR_FONT_STACK};
+  }
+
+  [data-feature-kpi-card] h4 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: #1d1d1d;
+    text-align: center;
+  }
+
+  [data-feature-kpi-card] p {
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    color: rgba(95, 95, 95, 0.72);
+  }
+
+  [data-feature-kpi-chart] {
+    position: relative;
+    margin-top: 28px;
+    height: 190px;
+    border-radius: 18px;
+    background:
+      linear-gradient(180deg, rgba(255, 237, 241, 0.76) 0%, rgba(255, 255, 255, 0) 60%),
+      rgba(251, 250, 248, 0.9);
+    overflow: hidden;
+  }
+
+  [data-feature-kpi-chart] svg {
+    position: absolute;
+    inset: 22px 16px 16px;
+    width: calc(100% - 32px);
+    height: calc(100% - 38px);
+  }
+
+  [data-feature-kpi-bubble] {
+    position: absolute;
+    left: 18px;
+    top: 46px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #111111;
+    color: #ffffff;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    box-shadow: 0 18px 24px rgba(17, 17, 17, 0.18);
+  }
+
+  [data-feature-kpi-tag] {
+    position: absolute;
+    left: 124px;
+    top: 88px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #ff8f9f;
+    color: #ffffff;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    box-shadow: 0 14px 18px rgba(255, 143, 159, 0.28);
+  }
+
+  [data-feature-workflow-ghost] {
+    position: absolute;
+    left: 92px;
+    top: 66px;
+    width: min(66%, 270px);
+    aspect-ratio: 0.82;
+    border-radius: 28px;
+    border: 1px dashed rgba(255, 255, 255, 0.26);
+    transform: rotate(-2deg);
+  }
+
+  [data-feature-workflow-card] {
+    position: relative;
+    z-index: 2;
+    width: min(66%, 270px);
+    aspect-ratio: 0.82;
+    margin: 42px 0 0 112px;
+    padding: 18px 18px 16px;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 28px 46px rgba(18, 24, 28, 0.24);
+    transform: rotate(3deg);
+  }
+
+  [data-feature-workflow-tag] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #ffd5ea;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #d96e9f;
+  }
+
+  [data-feature-workflow-card] h4 {
+    margin: 14px 0 0;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: #1d1d1d;
+  }
+
+  [data-feature-workflow-illustration] {
+    position: relative;
+    margin-top: 16px;
+    height: 170px;
+    overflow: hidden;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f7d2ba 0%, #efc0a0 100%);
+  }
+
+  [data-feature-workflow-illustration]::before,
+  [data-feature-workflow-illustration]::after {
+    content: "";
+    position: absolute;
+    background: rgba(214, 111, 79, 0.58);
+  }
+
+  [data-feature-workflow-illustration]::before {
+    width: 200px;
+    height: 6px;
+    left: -22px;
+    top: 48px;
+    transform: rotate(-32deg);
+  }
+
+  [data-feature-workflow-illustration]::after {
+    width: 180px;
+    height: 6px;
+    left: 54px;
+    top: 96px;
+    transform: rotate(-34deg);
+  }
+
+  [data-feature-workflow-leaf] {
+    position: absolute;
+    left: 98px;
+    top: 54px;
+    width: 44px;
+    height: 72px;
+  }
+
+  [data-feature-workflow-leaf] span {
+    position: absolute;
+    border-radius: 999px 999px 0 999px;
+    background: #5c8f56;
+    transform-origin: bottom center;
+  }
+
+  [data-feature-workflow-leaf] span:nth-child(1) {
+    width: 14px;
+    height: 24px;
+    left: 15px;
+    top: 4px;
+  }
+
+  [data-feature-workflow-leaf] span:nth-child(2) {
+    width: 16px;
+    height: 28px;
+    left: 4px;
+    top: 22px;
+    transform: rotate(-34deg);
+  }
+
+  [data-feature-workflow-leaf] span:nth-child(3) {
+    width: 16px;
+    height: 28px;
+    right: 2px;
+    top: 24px;
+    transform: scaleX(-1) rotate(-32deg);
+  }
+
+  [data-feature-workflow-stem] {
+    position: absolute;
+    left: 119px;
+    top: 34px;
+    width: 3px;
+    height: 92px;
+    background: #50724f;
+    border-radius: 999px;
+  }
+
+  [data-feature-workflow-text] {
+    margin-top: 14px;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: rgba(92, 92, 92, 0.78);
+  }
+
+  [data-feature-workflow-footer] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(85, 85, 85, 0.82);
+  }
+
+  [data-feature-workflow-avatars] {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  [data-feature-workflow-avatars] span {
+    width: 20px;
+    height: 20px;
+    margin-left: -6px;
+    border-radius: 999px;
+    border: 2px solid #ffffff;
+  }
+
+  [data-feature-workflow-avatars] span:nth-child(1) {
+    margin-left: 0;
+    background: #fa9376;
+  }
+
+  [data-feature-workflow-avatars] span:nth-child(2) { background: #f0c964; }
+  [data-feature-workflow-avatars] span:nth-child(3) { background: #b2d6ff; }
+
+  [data-feature-team-form] {
+    position: absolute;
+    left: 18px;
+    right: 46px;
+    top: 34px;
+    bottom: 18px;
+    padding: 34px 28px 26px;
+    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 24px 44px rgba(20, 28, 32, 0.22);
+    overflow: hidden;
+  }
+
+  [data-feature-team-form] h4 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: #1d1d1d;
+  }
+
+  [data-feature-team-field] {
+    margin-top: 18px;
+  }
+
+  [data-feature-team-field] label {
+    display: block;
+    margin-bottom: 8px;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #484848;
+  }
+
+  [data-feature-team-field] div {
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(245, 243, 239, 0.9);
+  }
+
+  [data-feature-team-invite] {
+    position: absolute;
+    left: 104px;
+    top: 18px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px 12px 14px;
+    border-radius: 16px;
+    background: #111111;
+    color: #ffffff;
+    box-shadow: 0 20px 28px rgba(17, 17, 17, 0.22);
+  }
+
+  [data-feature-team-invite] strong,
+  [data-feature-team-invite] span {
+    font-family: ${NAVBAR_FONT_STACK};
+  }
+
+  [data-feature-team-invite] strong {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  [data-feature-team-invite] span {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  [data-feature-team-invite-avatars] {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  [data-feature-team-invite-avatars] span {
+    width: 34px;
+    height: 34px;
+    margin-left: -8px;
+    border-radius: 999px;
+    border: 2px solid rgba(17, 17, 17, 0.9);
+    background: linear-gradient(135deg, #ff7f7a 0%, #f8d36a 100%);
+  }
+
+  [data-feature-team-invite-avatars] span:nth-child(1) { margin-left: 0; }
+  [data-feature-team-invite-avatars] span:nth-child(2) { background: linear-gradient(135deg, #9fd9ff 0%, #6ce6cb 100%); }
+  [data-feature-team-invite-avatars] span:nth-child(3) { background: linear-gradient(135deg, #ffd3df 0%, #ffa188 100%); }
+  [data-feature-team-invite-avatars] span:nth-child(4) { background: linear-gradient(135deg, #fab35b 0%, #ff8f95 100%); }
+  [data-feature-team-invite-avatars] span:nth-child(5) { background: linear-gradient(135deg, #7faeff 0%, #d1b0ff 100%); }
+
+  @media (max-width: 1199.98px) {
+    [data-exchangeup-feature-shell] {
+      width: calc(100vw - 40px);
+    }
+
+    [data-exchangeup-feature-tabs] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-radius: 28px;
+    }
+
+    [data-exchangeup-feature-panel] {
+      grid-template-columns: 1fr;
+    }
+
+    [data-exchangeup-feature-visual] {
+      min-height: 400px;
+    }
+
+    [data-exchangeup-feature-copy] {
+      padding: 42px 34px 40px;
+    }
+  }
+
+  @media (max-width: 809.98px) {
+    [data-exchangeup-feature-showcase] {
+      padding-top: 2px;
+    }
+
+    [data-exchangeup-feature-shell] {
+      width: calc(100vw - 24px);
+    }
+
+    [data-exchangeup-feature-heading] h2 {
+      font-size: 34px;
+    }
+
+    [data-exchangeup-feature-heading] p {
+      margin-top: 14px;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    [data-exchangeup-feature-tabs] {
+      gap: 6px;
+      padding: 6px;
+      margin-top: 24px;
+    }
+
+    [data-exchangeup-feature-tab] {
+      min-height: 52px;
+      padding: 0 14px;
+      font-size: 14px;
+    }
+
+    [data-exchangeup-feature-tab] svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    [data-exchangeup-feature-panel] {
+      margin-top: 16px;
+      border-radius: 24px;
+    }
+
+    [data-exchangeup-feature-visual] {
+      min-height: 310px;
+      padding: 22px 18px 0;
+    }
+
+    [data-exchangeup-feature-copy] {
+      padding: 30px 22px 28px;
+    }
+
+    [data-exchangeup-feature-copy] h3 {
+      margin-top: 18px;
+      font-size: 32px;
+    }
+
+    [data-exchangeup-feature-copy] p {
+      margin-top: 18px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    [data-feature-client-window],
+    [data-feature-team-form] {
+      left: 10px;
+      right: 18px;
+      top: 18px;
+      bottom: 10px;
+    }
+
+    [data-feature-kpi-stack] {
+      width: calc(100% - 44px);
+      margin-top: 26px;
+    }
+
+    [data-feature-kpi-card] {
+      padding: 20px 20px 14px;
+    }
+
+    [data-feature-kpi-card] h4,
+    [data-feature-workflow-card] h4,
+    [data-feature-team-form] h4 {
+      font-size: 22px;
+    }
+
+    [data-feature-kpi-chart] {
+      height: 160px;
+      margin-top: 22px;
+    }
+
+    [data-feature-kpi-bubble] {
+      top: 38px;
+      left: 10px;
+      padding: 10px 12px;
+      font-size: 11px;
+    }
+
+    [data-feature-kpi-tag] {
+      left: 106px;
+      top: 78px;
+      font-size: 10px;
+    }
+
+    [data-feature-workflow-ghost] {
+      left: 42px;
+      top: 34px;
+      width: 210px;
+    }
+
+    [data-feature-workflow-card] {
+      width: 210px;
+      margin: 22px 0 0 56px;
+      padding: 14px 14px 12px;
+    }
+
+    [data-feature-workflow-illustration] {
+      height: 130px;
+    }
+
+    [data-feature-team-invite] {
+      left: 72px;
+      top: 10px;
+      padding: 10px 12px;
+      gap: 8px;
+    }
+
+    [data-feature-team-invite-avatars] span {
+      width: 28px;
+      height: 28px;
+    }
+  }
+`;
+
 function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
   switch (mark) {
     case "plus":
@@ -510,6 +1377,246 @@ function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
   }
 }
 
+function getFeatureShowcaseIconSvg(tabId: FeatureShowcaseTabId) {
+  switch (tabId) {
+    case "client-portal":
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="3.2" y="4.2" width="13.6" height="9.8" rx="2.1" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M7.2 15.8h5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      `;
+    case "kpi-tracking":
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M3.4 15.6h13.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M4.8 12.6 8.2 9.5l2.7 2.2 4-4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    case "workflow-automation":
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M5.4 6.2 10 3.8l4.6 2.4L10 8.6 5.4 6.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M5.4 10 10 12.4 14.6 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5.4 13.8 10 16.2l4.6-2.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    case "team-management":
+    default:
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M7.3 8.4a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8Zm5.8.8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M3.8 15.8c.6-2 2.2-3.1 4.5-3.1 2.4 0 4 1.1 4.5 3.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M12.7 15.4c.3-1.2 1.3-1.9 2.8-1.9 1.2 0 2.1.4 2.7 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      `;
+  }
+}
+
+function getFeatureClientMarkup() {
+  return `
+    <div data-feature-client-window>
+      <div data-feature-client-body>
+        <div data-feature-client-header>
+          <span>Customers</span>
+          <span>Sort by</span>
+        </div>
+        <div data-feature-client-list>
+          <div data-feature-client-row="active">
+            <span data-feature-avatar="1"></span>
+            <div>
+              <div data-feature-client-name>Maggie Johnson</div>
+              <div data-feature-client-meta>Oasis Organic Inc.</div>
+            </div>
+            <div data-feature-client-icons>
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 14.2 14.2 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="m11.8 5.8 2.4.2.2 2.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m10 3.8 1.8 3.7 4.1.6-3 2.9.7 4-3.6-1.9-3.6 1.9.7-4-3-2.9 4.1-.6L10 3.8Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.6 10h10.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 4.6v10.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div data-feature-client-row>
+            <span data-feature-avatar="2"></span>
+            <div>
+              <div data-feature-client-name>Chris Friedkly</div>
+              <div data-feature-client-meta>Supermarket Villanova</div>
+            </div>
+            <div data-feature-client-icons>
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 14.2 14.2 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div data-feature-client-row>
+            <span data-feature-avatar="3"></span>
+            <div>
+              <div data-feature-client-name>Gael Harry</div>
+              <div data-feature-client-meta>New York Finest Fruits</div>
+            </div>
+            <div data-feature-client-icons>
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m10 4.4 5.2 5.2L10 14.8 4.8 9.6 10 4.4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div data-feature-client-row>
+            <span data-feature-avatar="4"></span>
+            <div>
+              <div data-feature-client-name>Molly Smith</div>
+              <div data-feature-client-meta>NovaTech Inc.</div>
+            </div>
+            <div data-feature-client-icons>
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M10 3.8v2.1M10 14.1v2.1M16.2 10h-2.1M5.9 10H3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function getFeatureKpiMarkup() {
+  return `
+    <div data-feature-kpi-stack>
+      <div data-feature-kpi-shadow="back"></div>
+      <div data-feature-kpi-shadow="mid"></div>
+      <div data-feature-kpi-card>
+        <h4>Revenue Overview</h4>
+        <p>Apr 30 - Aug 31</p>
+        <div data-feature-kpi-chart>
+          <div data-feature-kpi-bubble>4,890: Sales in June</div>
+          <div data-feature-kpi-tag>Emily</div>
+          <svg viewBox="0 0 320 150" fill="none" aria-hidden="true">
+            <path d="M10 112C38 88 58 58 90 72C122 86 138 126 168 118C204 108 214 70 246 64C274 58 292 78 310 74V136H10V112Z" fill="#f6dce5"/>
+            <path d="M10 112C38 88 58 58 90 72C122 86 138 126 168 118C204 108 214 70 246 64C274 58 292 78 310 74" stroke="#f09aae" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 122C44 116 58 76 94 80C126 84 140 108 168 102C196 96 210 48 240 46C270 44 288 80 310 74V136H10V122Z" fill="#d6eef4" fill-opacity="0.96"/>
+            <path d="M10 122C44 116 58 76 94 80C126 84 140 108 168 102C196 96 210 48 240 46C270 44 288 80 310 74" stroke="#a5dce6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            ${Array.from({ length: 18 }, (_, index) => {
+              const x = 14 + index * 17;
+              return `<path d="M${x} 136v8" stroke="rgba(193,193,193,0.75)" stroke-width="2" stroke-linecap="round"/>`;
+            }).join("")}
+          </svg>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function getFeatureWorkflowMarkup() {
+  return `
+    <div data-feature-workflow-ghost></div>
+    <div data-feature-workflow-card>
+      <span data-feature-workflow-tag>High</span>
+      <h4>Research</h4>
+      <div data-feature-workflow-illustration>
+        <div data-feature-workflow-stem></div>
+        <div data-feature-workflow-leaf>
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <div data-feature-workflow-text>
+        User research helps you to create an optimal product for users.
+      </div>
+      <div data-feature-workflow-footer>
+        <div data-feature-workflow-avatars>
+          <span></span><span></span><span></span>
+        </div>
+        <span>12 comments</span>
+        <span>9 files</span>
+      </div>
+    </div>
+  `;
+}
+
+function getFeatureTeamMarkup() {
+  return `
+    <div data-feature-team-invite>
+      <strong>Invite</strong>
+      <div data-feature-team-invite-avatars>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <span>+2</span>
+    </div>
+    <div data-feature-team-form>
+      <h4>Welcome!</h4>
+      <div data-feature-team-field>
+        <label>Username</label>
+        <div></div>
+      </div>
+      <div data-feature-team-field>
+        <label>Email</label>
+        <div></div>
+      </div>
+      <div data-feature-team-field>
+        <label>Password</label>
+        <div></div>
+      </div>
+    </div>
+  `;
+}
+
+function getFeatureShowcaseVisualMarkup(tabId: FeatureShowcaseTabId) {
+  switch (tabId) {
+    case "client-portal":
+      return getFeatureClientMarkup();
+    case "kpi-tracking":
+      return getFeatureKpiMarkup();
+    case "workflow-automation":
+      return getFeatureWorkflowMarkup();
+    case "team-management":
+    default:
+      return getFeatureTeamMarkup();
+  }
+}
+
+function getFeatureShowcaseMarkup() {
+  const tabsMarkup = FEATURE_SHOWCASE_ITEMS.map(
+    (item) => `
+      <button
+        type="button"
+        role="tab"
+        tabindex="-1"
+        aria-selected="false"
+        data-exchangeup-feature-tab="${item.id}"
+      >
+        ${getFeatureShowcaseIconSvg(item.id)}
+        <span>${item.label}</span>
+      </button>
+    `,
+  ).join("");
+
+  const panelsMarkup = FEATURE_SHOWCASE_ITEMS.map(
+    (item) => `
+      <article
+        role="tabpanel"
+        aria-label="${item.label}"
+        data-exchangeup-feature-panel="${item.id}"
+      >
+        <div data-exchangeup-feature-visual data-variant="${item.id}">
+          ${getFeatureShowcaseVisualMarkup(item.id)}
+        </div>
+        <div data-exchangeup-feature-copy>
+          <span data-exchangeup-feature-chip>${item.eyebrow}</span>
+          <h3>${item.title}</h3>
+          <p>${item.description}</p>
+        </div>
+      </article>
+    `,
+  ).join("");
+
+  return `
+    <div data-exchangeup-feature-shell>
+      <div data-exchangeup-feature-heading>
+        <h2>${FEATURE_SHOWCASE_HEADING}</h2>
+        <p>${FEATURE_SHOWCASE_SUBHEADING}</p>
+      </div>
+      <div
+        role="tablist"
+        aria-label="Built for high performance tabs"
+        data-exchangeup-feature-tabs
+      >
+        ${tabsMarkup}
+      </div>
+      ${panelsMarkup}
+    </div>
+  `;
+}
+
 export default function Index() {
   const lenisRef = useRef<Lenis | null>(null);
   const lenisRafRef = useRef<number | null>(null);
@@ -549,6 +1656,86 @@ export default function Index() {
     style.setAttribute("data-exchangeup-easy-setup-style", "true");
     style.textContent = EASY_SETUP_STYLE;
     doc.head.appendChild(style);
+  }, []);
+
+  const injectFeatureShowcase = useCallback((doc: Document) => {
+    doc.querySelector("[data-exchangeup-feature-showcase-style]")?.remove();
+    doc.querySelector("[data-exchangeup-feature-showcase]")?.remove();
+
+    doc
+      .querySelectorAll("[data-exchangeup-feature-original-hidden='true']")
+      .forEach((node) => {
+        node.removeAttribute("data-exchangeup-feature-original-hidden");
+        (node as HTMLElement).style.removeProperty("display");
+      });
+
+    const normalizeText = (value: string) =>
+      value.replace(/\s+/g, " ").replace(/&nbsp;/g, " ").trim();
+
+    const candidates = Array.from(doc.querySelectorAll("section, div"))
+      .filter((node) => {
+        const text = normalizeText(node.textContent ?? "");
+        const rect = (node as HTMLElement).getBoundingClientRect();
+        return (
+          rect.width > 0 &&
+          rect.height > 0 &&
+          text.includes(FEATURE_SHOWCASE_HEADING) &&
+          text.includes(FEATURE_SHOWCASE_SUBHEADING)
+        );
+      })
+      .sort(
+        (a, b) =>
+          normalizeText(a.textContent ?? "").length -
+          normalizeText(b.textContent ?? "").length,
+      ) as HTMLElement[];
+
+    const anchor =
+      candidates.find((node) => normalizeText(node.textContent ?? "").length < 320) ??
+      candidates[0];
+
+    if (!anchor || !anchor.parentElement) return;
+
+    anchor.setAttribute("data-exchangeup-feature-original-hidden", "true");
+    anchor.style.display = "none";
+
+    const style = doc.createElement("style");
+    style.setAttribute("data-exchangeup-feature-showcase-style", "true");
+    style.textContent = FEATURE_SHOWCASE_STYLE;
+    doc.head.appendChild(style);
+
+    const showcase = doc.createElement("section");
+    showcase.setAttribute("data-exchangeup-feature-showcase", "true");
+    showcase.setAttribute("data-exchangeup-feature-active", "client-portal");
+    showcase.innerHTML = getFeatureShowcaseMarkup();
+
+    const setActiveTab = (tabId: FeatureShowcaseTabId) => {
+      showcase.setAttribute("data-exchangeup-feature-active", tabId);
+
+      showcase
+        .querySelectorAll("[data-exchangeup-feature-tab]")
+        .forEach((button) => {
+          const isActive =
+            button.getAttribute("data-exchangeup-feature-tab") === tabId;
+          button.setAttribute("aria-selected", String(isActive));
+          button.setAttribute("tabindex", isActive ? "0" : "-1");
+        });
+    };
+
+    showcase
+      .querySelectorAll("[data-exchangeup-feature-tab]")
+      .forEach((button) => {
+        const tabId = button.getAttribute(
+          "data-exchangeup-feature-tab",
+        ) as FeatureShowcaseTabId | null;
+        if (!tabId) return;
+
+        button.addEventListener("click", () => setActiveTab(tabId));
+        button.addEventListener("focus", () => setActiveTab(tabId));
+        button.addEventListener("mouseenter", () => setActiveTab(tabId));
+      });
+
+    setActiveTab("client-portal");
+    anchor.insertAdjacentElement("afterend", showcase);
   }, []);
 
   const setupEasySetupCards = useCallback(
@@ -991,7 +2178,8 @@ export default function Index() {
     rewriteHeroCopy(doc);
     setupEasySetupCards(frame);
     injectLogoSlider(doc);
-  }, [injectLogoSlider, injectNavbarStyles, rewriteHeroCopy, setupEasySetupCards]);
+    injectFeatureShowcase(doc);
+  }, [injectFeatureShowcase, injectLogoSlider, injectNavbarStyles, rewriteHeroCopy, setupEasySetupCards]);
 
   const handleFrameLoad = useCallback((frame: HTMLIFrameElement | null) => {
     cleanIframe(frame);
