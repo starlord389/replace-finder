@@ -1,4 +1,5 @@
-import { useCallback } from "react";
+import Lenis from "lenis";
+import { useCallback, useEffect, useRef } from "react";
 
 const LOGO_BRANDS = [
   { name: "Pluto Inc", mark: "chevrons" },
@@ -8,6 +9,35 @@ const LOGO_BRANDS = [
   { name: "Horizon Labs", mark: "bars" },
   { name: "Vertex AI", mark: "spark" },
 ] as const;
+
+const SMOOTH_SCROLL_STYLE = `
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis:not(.lenis-autoToggle).lenis-stopped {
+    overflow: clip;
+  }
+
+  .lenis [data-lenis-prevent],
+  .lenis [data-lenis-prevent-wheel],
+  .lenis [data-lenis-prevent-touch],
+  .lenis [data-lenis-prevent-vertical],
+  .lenis [data-lenis-prevent-horizontal] {
+    overscroll-behavior: contain;
+  }
+`;
 
 function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
   switch (mark) {
@@ -54,6 +84,68 @@ function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
 }
 
 export default function Index() {
+  const lenisRef = useRef<Lenis | null>(null);
+  const lenisRafRef = useRef<number | null>(null);
+
+  const destroySmoothScroll = useCallback(() => {
+    if (lenisRafRef.current !== null) {
+      cancelAnimationFrame(lenisRafRef.current);
+    }
+
+    lenisRafRef.current = null;
+    lenisRef.current?.destroy();
+    lenisRef.current = null;
+  }, []);
+
+  const injectSmoothScrollStyles = useCallback((doc: Document) => {
+    doc.querySelector("[data-exchangeup-smooth-scroll-style]")?.remove();
+
+    const style = doc.createElement("style");
+    style.setAttribute("data-exchangeup-smooth-scroll-style", "true");
+    style.textContent = SMOOTH_SCROLL_STYLE;
+    doc.head.appendChild(style);
+  }, []);
+
+  const setupSmoothScroll = useCallback((frame: HTMLIFrameElement | null) => {
+    const win = frame?.contentWindow;
+    const doc = frame?.contentDocument;
+    if (!win || !doc) return;
+
+    injectSmoothScrollStyles(doc);
+    destroySmoothScroll();
+
+    if (win.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const lenis = new Lenis({
+      wrapper: doc.documentElement,
+      content: doc.body,
+      eventsTarget: doc.documentElement,
+      autoRaf: false,
+      smoothWheel: true,
+      syncTouch: false,
+      overscroll: true,
+      anchors: true,
+      lerp: 0.085,
+      wheelMultiplier: 0.9,
+      prevent: (node) =>
+        typeof (node as Element | null)?.closest === "function" &&
+        Boolean(
+          (node as Element).closest(
+            "textarea, input, select, [data-lenis-prevent]",
+          ),
+        ),
+    });
+
+    lenisRef.current = lenis;
+
+    const raf = (time: number) => {
+      lenis.raf(time);
+      lenisRafRef.current = requestAnimationFrame(raf);
+    };
+
+    lenisRafRef.current = requestAnimationFrame(raf);
+  }, [destroySmoothScroll, injectSmoothScrollStyles]);
+
   const rewriteHeroCopy = useCallback((doc: Document) => {
     const headlineContainers = Array.from(
       doc.querySelectorAll(
@@ -326,6 +418,13 @@ export default function Index() {
     injectLogoSlider(doc);
   }, [injectLogoSlider, rewriteHeroCopy]);
 
+  const handleFrameLoad = useCallback((frame: HTMLIFrameElement | null) => {
+    cleanIframe(frame);
+    setupSmoothScroll(frame);
+  }, [cleanIframe, setupSmoothScroll]);
+
+  useEffect(() => destroySmoothScroll, [destroySmoothScroll]);
+
   return (
     <section
       aria-label="Grovia template homepage"
@@ -335,7 +434,7 @@ export default function Index() {
         title="Grovia homepage"
         src="/grovia/index.html"
         className="h-[100vh] w-full border-0"
-        onLoad={(event) => cleanIframe(event.currentTarget)}
+        onLoad={(event) => handleFrameLoad(event.currentTarget)}
       />
     </section>
   );
