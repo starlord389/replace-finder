@@ -12,6 +12,9 @@ import AgentLayout from "@/components/layout/AgentLayout";
 
 import Index from "@/pages/Index";
 import HowItWorks from "@/pages/HowItWorks";
+import Contact from "@/pages/Contact";
+import Features from "@/pages/Features";
+import Pricing from "@/pages/Pricing";
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
@@ -19,6 +22,7 @@ import ResetPassword from "@/pages/auth/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import SupportTickets from "@/pages/admin/SupportTickets";
 import AgentDashboard from "@/pages/agent/AgentDashboard";
+import AgentLaunchpad from "@/pages/agent/AgentLaunchpad";
 import AgentClients from "@/pages/agent/AgentClients";
 import AgentClientDetail from "@/pages/agent/AgentClientDetail";
 import AgentExchanges from "@/pages/agent/AgentExchanges";
@@ -55,18 +59,22 @@ const App = () => (
           <Routes>
             {/* Public */}
             <Route element={<PublicLayout />}>
-              <Route path="/" element={<Index />} />
-              <Route path="/how-it-works" element={<HowItWorks />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/unavailable" element={<Unavailable />} />
+              <Route path={ROUTES.home} element={<Index />} />
+              <Route path={ROUTES.howItWorks} element={<HowItWorks />} />
+              <Route path={ROUTES.contact} element={<Contact />} />
+              <Route path={ROUTES.features} element={<Features />} />
+              <Route path={ROUTES.pricing} element={<Pricing />} />
+              <Route path={ROUTES.login} element={<Login />} />
+              <Route path={ROUTES.signup} element={<Signup />} />
+              <Route path={ROUTES.forgotPassword} element={<ForgotPassword />} />
+              <Route path={ROUTES.resetPassword} element={<ResetPassword />} />
+              <Route path={ROUTES.unavailable} element={<Unavailable />} />
             </Route>
 
             {/* Agent (agent role required) */}
             <Route element={<AgentLayout />}>
               <Route path="/agent" element={<AgentDashboard />} />
+              <Route path="/agent/launchpad" element={<AgentLaunchpad />} />
               <Route path="/agent/clients" element={<AgentClients />} />
               <Route path="/agent/clients/new" element={<AgentClientDetail />} />
               <Route path="/agent/clients/:id" element={<AgentClientDetail />} />

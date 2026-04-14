@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getDefaultRouteForRole, ROUTES } from "@/app/routes/routeManifest";
+import { getAgentPostLoginRoute, getDefaultRouteForRole, ROUTES } from "@/app/routes/routeManifest";
 import { getUnauthorizedRedirectPath, isKnownRole } from "@/app/routes/routeGuards";
 
 describe("route policy helpers", () => {
@@ -21,5 +21,11 @@ describe("route policy helpers", () => {
     expect(isKnownRole("admin")).toBe(true);
     expect(isKnownRole("client")).toBe(true);
     expect(isKnownRole("broker")).toBe(false);
+  });
+
+  it("routes agents to launchpad until onboarding is completed", () => {
+    expect(getAgentPostLoginRoute(null)).toBe(ROUTES.agentLaunchpad);
+    expect(getAgentPostLoginRoute("2026-04-10T00:00:00.000Z")).toBe(ROUTES.agentHome);
+    expect(getAgentPostLoginRoute(null, "suspended")).toBe(ROUTES.agentHome);
   });
 });

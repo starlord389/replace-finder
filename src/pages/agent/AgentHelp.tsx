@@ -6,7 +6,7 @@ const faqs = [
   { q: "How do I add a client?", a: "Navigate to My Clients and click 'Add Client'. Fill in their contact information and any relevant notes about their exchange goals." },
   { q: "How does matching work?", a: "Once you create an exchange for a client and pledge their property, the platform will automatically find matching properties from other agents in the network based on price, location, asset type, and other criteria." },
   { q: "What are the 1031 exchange deadlines?", a: "After the sale of the relinquished property closes, you have 45 days to identify replacement properties and 180 days to close on them. The platform tracks these deadlines automatically." },
-  { q: "How do I get verified?", a: "Verification is reviewed by our team after you sign up. We check your MLS number and license information. This typically takes 1-2 business days." },
+  { q: "How does agent verification work?", a: "Agents self-certify at signup by providing their license or MLS information and confirming it is accurate. Your workspace becomes active without any manual approval queue." },
   { q: "How do connections work?", a: "When you find a match you're interested in, you can initiate a connection with the other agent. Both parties must agree before any client details are shared." },
 ];
 

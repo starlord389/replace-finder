@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ArrowLeftRight, Handshake, Link2,
-  ListChecks, MessageSquare, Settings, HelpCircle, LogOut, ShieldCheck, Clock,
+  ListChecks, MessageSquare, Settings, HelpCircle, LogOut, ShieldCheck, AlertTriangle, Compass,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,8 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAgentVerificationUiState } from "@/lib/agentVerification";
 
 const networkItems = [
+  { title: "Launchpad", url: "/agent/launchpad", icon: Compass },
   { title: "Dashboard", url: "/agent", icon: LayoutDashboard, end: true },
   { title: "My Clients", url: "/agent/clients", icon: Users },
   { title: "Exchanges", url: "/agent/exchanges", icon: ArrowLeftRight },
@@ -36,6 +38,7 @@ export default function AgentSidebar() {
   const collapsed = state === "collapsed";
   const { user, signOut, profileName, isVerifiedAgent, agentVerificationStatus } = useAuth();
   const [brokerageName, setBrokerageName] = useState<string | null>(null);
+  const verificationUi = getAgentVerificationUiState(agentVerificationStatus);
 
   useEffect(() => {
     if (!user) return;
@@ -103,12 +106,12 @@ export default function AgentSidebar() {
               )}
               <div className="mt-1 mb-2">
                 {isVerifiedAgent ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
-                    <ShieldCheck className="h-3 w-3" /> Verified
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${verificationUi.badgeClassName}`}>
+                    <ShieldCheck className="h-3 w-3" /> {verificationUi.badgeLabel}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                    <Clock className="h-3 w-3" /> Pending Verification
+                  <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+                    <AlertTriangle className="h-3 w-3" /> Suspended
                   </span>
                 )}
               </div>
