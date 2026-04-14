@@ -88,6 +88,384 @@ const NAVBAR_STYLE = `
     letter-spacing: -0.02em !important;
   }
 `;
+
+type EasySetupCardId = "1" | "2" | "3";
+
+const EASY_SETUP_PREVIEW_MARKUP: Record<EasySetupCardId, string> = {
+  "1": `
+    <div data-exchangeup-preview-surface data-preview-variant="1">
+      <div data-exchangeup-preview-ribbon></div>
+      <div data-exchangeup-preview-panel>
+        <div data-exchangeup-preview-kicker>+</div>
+        <div data-exchangeup-preview-title>Create account</div>
+        <div data-exchangeup-preview-avatars>
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div data-exchangeup-preview-label">Username</div>
+        <div data-exchangeup-preview-input>Your username</div>
+        <div data-exchangeup-preview-label">Email</div>
+        <div data-exchangeup-preview-input>Your email</div>
+      </div>
+    </div>
+  `,
+  "2": `
+    <div data-exchangeup-preview-surface data-preview-variant="2">
+      <div data-exchangeup-preview-ribbon></div>
+      <div data-exchangeup-preview-panel>
+        <div data-exchangeup-preview-kicker>+</div>
+        <div data-exchangeup-preview-title">To-do tasks</div>
+        <div data-exchangeup-preview-task">
+          <span data-exchangeup-preview-checkbox></span>
+          <div>
+            <div data-exchangeup-preview-task-title>Brainstorming</div>
+            <div data-exchangeup-preview-task-meta>Sketch next campaign ideas</div>
+          </div>
+        </div>
+        <div data-exchangeup-preview-avatars>
+          <span></span><span></span><span></span>
+        </div>
+        <div data-exchangeup-preview-task>
+          <span data-exchangeup-preview-checkbox></span>
+          <div>
+            <div data-exchangeup-preview-task-title>Research</div>
+            <div data-exchangeup-preview-task-meta>Gather market notes and links</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  "3": `
+    <div data-exchangeup-preview-surface data-preview-variant="3">
+      <div data-exchangeup-preview-ribbon></div>
+      <div data-exchangeup-preview-panel>
+        <div data-exchangeup-preview-kicker>+</div>
+        <div data-exchangeup-preview-title">Sales Performance</div>
+        <div data-exchangeup-preview-subtitle>Apr 30 - May 30</div>
+        <div data-exchangeup-preview-chart>
+          <svg viewBox="0 0 180 92" aria-hidden="true">
+            <path d="M10 68C26 48 40 30 58 42C76 54 88 82 112 70C128 62 138 34 150 36C162 38 171 56 174 58" />
+          </svg>
+        </div>
+        <div data-exchangeup-preview-metric">
+          <strong>30%</strong>
+          <span>Your sales performance is 30% above average this month.</span>
+        </div>
+      </div>
+    </div>
+  `,
+};
+
+const EASY_SETUP_STYLE = `
+  @media (min-width: 1200px) and (hover: hover) and (pointer: fine) {
+    [data-exchangeup-easy-setup-row] {
+      display: flex !important;
+      align-items: stretch !important;
+      gap: 8px !important;
+      overflow: visible !important;
+    }
+
+    [data-exchangeup-easy-setup-group] {
+      display: flex !important;
+      align-items: stretch !important;
+      gap: 8px !important;
+      flex: none !important;
+      overflow: visible !important;
+      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+
+    [data-exchangeup-easy-setup-shell] {
+      flex: none !important;
+      overflow: visible !important;
+      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+
+    [data-exchangeup-easy-setup-card] {
+      position: relative !important;
+      width: 100% !important;
+      height: 340px !important;
+      overflow: hidden !important;
+      cursor: pointer !important;
+      transition:
+        box-shadow 0.35s ease,
+        transform 0.35s ease !important;
+    }
+
+    [data-exchangeup-easy-setup-content] {
+      position: relative !important;
+      z-index: 2 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      min-width: 0 !important;
+      height: 100% !important;
+      transition: max-width 0.55s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+
+    [data-exchangeup-easy-setup-preview] {
+      position: absolute !important;
+      top: 24px !important;
+      right: 24px !important;
+      width: 222px !important;
+      height: 292px !important;
+      opacity: 0 !important;
+      transform: translateX(28px) scale(0.96) !important;
+      transform-origin: right center !important;
+      pointer-events: none !important;
+      transition:
+        opacity 0.28s ease,
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="1"] [data-exchangeup-easy-setup-group] {
+      width: 768px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="1"] [data-exchangeup-easy-setup-shell="1"] {
+      width: 509px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="1"] [data-exchangeup-easy-setup-shell="2"] {
+      width: 251px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="1"] [data-exchangeup-easy-setup-shell="3"] {
+      width: 248px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="2"] [data-exchangeup-easy-setup-group] {
+      width: 768px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="2"] [data-exchangeup-easy-setup-shell="1"] {
+      width: 251px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="2"] [data-exchangeup-easy-setup-shell="2"] {
+      width: 509px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="2"] [data-exchangeup-easy-setup-shell="3"] {
+      width: 248px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="3"] [data-exchangeup-easy-setup-group] {
+      width: 507px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="3"] [data-exchangeup-easy-setup-shell="1"] {
+      width: 251px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="3"] [data-exchangeup-easy-setup-shell="2"] {
+      width: 248px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="3"] [data-exchangeup-easy-setup-shell="3"] {
+      width: 509px !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="1"] [data-exchangeup-easy-setup-card="1"],
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="2"] [data-exchangeup-easy-setup-card="2"],
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="3"] [data-exchangeup-easy-setup-card="3"] {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 20px 44px rgba(40, 35, 28, 0.12), 0 3px 12px rgba(40, 35, 28, 0.05) !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="1"] [data-exchangeup-easy-setup-card="1"] [data-exchangeup-easy-setup-content],
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="2"] [data-exchangeup-easy-setup-card="2"] [data-exchangeup-easy-setup-content],
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="3"] [data-exchangeup-easy-setup-card="3"] [data-exchangeup-easy-setup-content] {
+      max-width: calc(100% - 262px) !important;
+    }
+
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="1"] [data-exchangeup-easy-setup-card="1"] [data-exchangeup-easy-setup-preview],
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="2"] [data-exchangeup-easy-setup-card="2"] [data-exchangeup-easy-setup-preview],
+    [data-exchangeup-easy-setup-row][data-exchangeup-active-card="3"] [data-exchangeup-easy-setup-card="3"] [data-exchangeup-easy-setup-preview] {
+      opacity: 1 !important;
+      transform: translateX(0) scale(1) !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-exchangeup-easy-setup-row] *,
+    [data-exchangeup-easy-setup-row] {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+
+  [data-exchangeup-preview-surface] {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(236, 243, 251, 0.98) 0%, rgba(250, 238, 242, 0.98) 100%);
+    box-shadow: 0 12px 32px rgba(40, 35, 28, 0.08);
+  }
+
+  [data-exchangeup-preview-ribbon] {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 14px;
+    background: linear-gradient(180deg, #98c5e1 0%, #f6a76c 52%, #cc88d2 100%);
+  }
+
+  [data-exchangeup-preview-panel] {
+    position: relative;
+    height: 100%;
+    margin-left: 14px;
+    padding: 16px 16px 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 250, 251, 0.82) 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  [data-exchangeup-preview-kicker] {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #7d7d7d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(29, 29, 29, 0.08);
+  }
+
+  [data-exchangeup-preview-title] {
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: #1d1d1d;
+  }
+
+  [data-exchangeup-preview-subtitle] {
+    margin-top: -6px;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(97, 97, 97, 0.7);
+  }
+
+  [data-exchangeup-preview-avatars] {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  [data-exchangeup-preview-avatars] span {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    margin-left: -5px;
+  }
+
+  [data-exchangeup-preview-avatars] span:nth-child(1) { background: #f7c26d; margin-left: 0; }
+  [data-exchangeup-preview-avatars] span:nth-child(2) { background: #f49774; }
+  [data-exchangeup-preview-avatars] span:nth-child(3) { background: #9a9df4; }
+  [data-exchangeup-preview-avatars] span:nth-child(4) { background: #7ac7a4; }
+
+  [data-exchangeup-preview-label] {
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(29, 29, 29, 0.85);
+  }
+
+  [data-exchangeup-preview-input] {
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(207, 204, 198, 0.72);
+    padding: 10px 12px;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(128, 128, 128, 0.92);
+  }
+
+  [data-exchangeup-preview-task] {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(214, 210, 205, 0.72);
+    padding: 10px 11px;
+  }
+
+  [data-exchangeup-preview-checkbox] {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(188, 184, 178, 0.9);
+    flex: none;
+    margin-top: 2px;
+  }
+
+  [data-exchangeup-preview-task-title] {
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 11px;
+    font-weight: 600;
+    color: #1d1d1d;
+  }
+
+  [data-exchangeup-preview-task-meta] {
+    margin-top: 2px;
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(97, 97, 97, 0.76);
+  }
+
+  [data-exchangeup-preview-chart] {
+    margin-top: 4px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.76);
+    border: 1px solid rgba(214, 210, 205, 0.7);
+    padding: 10px 10px 8px;
+  }
+
+  [data-exchangeup-preview-chart] svg {
+    width: 100%;
+    height: 92px;
+    display: block;
+  }
+
+  [data-exchangeup-preview-chart] path {
+    fill: none;
+    stroke: #b57659;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  [data-exchangeup-preview-metric] {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-top: auto;
+  }
+
+  [data-exchangeup-preview-metric] strong {
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    color: #1d1d1d;
+  }
+
+  [data-exchangeup-preview-metric] span {
+    font-family: ${NAVBAR_FONT_STACK};
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(97, 97, 97, 0.76);
+  }
+`;
 function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
   switch (mark) {
     case "plus":
@@ -163,6 +541,126 @@ export default function Index() {
     style.textContent = NAVBAR_STYLE;
     doc.head.appendChild(style);
   }, []);
+
+  const injectEasySetupStyles = useCallback((doc: Document) => {
+    doc.querySelector("[data-exchangeup-easy-setup-style]")?.remove();
+
+    const style = doc.createElement("style");
+    style.setAttribute("data-exchangeup-easy-setup-style", "true");
+    style.textContent = EASY_SETUP_STYLE;
+    doc.head.appendChild(style);
+  }, []);
+
+  const setupEasySetupCards = useCallback(
+    (frame: HTMLIFrameElement | null) => {
+      const win = frame?.contentWindow;
+      const doc = frame?.contentDocument;
+      if (!win || !doc) return;
+
+      doc
+        .querySelectorAll("[data-exchangeup-easy-setup-preview][data-exchangeup-injected='true']")
+        .forEach((node) => node.remove());
+      doc
+        .querySelectorAll("[data-exchangeup-easy-setup-row]")
+        .forEach((node) => {
+          node.removeAttribute("data-exchangeup-easy-setup-row");
+          node.removeAttribute("data-exchangeup-active-card");
+          (node as HTMLElement).onmouseleave = null;
+        });
+      doc
+        .querySelectorAll("[data-exchangeup-easy-setup-group]")
+        .forEach((node) => node.removeAttribute("data-exchangeup-easy-setup-group"));
+      doc
+        .querySelectorAll("[data-exchangeup-easy-setup-shell]")
+        .forEach((node) => {
+          node.removeAttribute("data-exchangeup-easy-setup-shell");
+          (node as HTMLElement).onmouseenter = null;
+        });
+      doc
+        .querySelectorAll("[data-exchangeup-easy-setup-card]")
+        .forEach((node) => node.removeAttribute("data-exchangeup-easy-setup-card"));
+      doc
+        .querySelectorAll("[data-exchangeup-easy-setup-content]")
+        .forEach((node) => node.removeAttribute("data-exchangeup-easy-setup-content"));
+
+      if (
+        frame.clientWidth < 1200 ||
+        !win.matchMedia("(hover: hover) and (pointer: fine)").matches
+      ) {
+        return;
+      }
+
+      injectEasySetupStyles(doc);
+
+      const cardRoots = Array.from(
+        doc.querySelectorAll(
+          '[data-framer-name="Default/Open"], [data-framer-name="Default/Close"]',
+        ),
+      )
+        .filter((node) => {
+          const text = (node.textContent ?? "").trim();
+          const rect = (node as HTMLElement).getBoundingClientRect();
+          return (
+            rect.width > 0 &&
+            rect.top > 1200 &&
+            rect.top < 1800 &&
+            (text.includes("Easy setup") ||
+              text.includes("Collaborate") ||
+              text.includes("Track growth"))
+          );
+        })
+        .sort(
+          (a, b) =>
+            (a as HTMLElement).getBoundingClientRect().left -
+            (b as HTMLElement).getBoundingClientRect().left,
+        ) as HTMLElement[];
+
+      if (cardRoots.length !== 3) return;
+
+      const row = cardRoots[0].closest(
+        '[data-framer-name="Desktop/1"]',
+      ) as HTMLElement | null;
+      const group = cardRoots[0].closest(
+        '[data-framer-name="1+2"]',
+      ) as HTMLElement | null;
+      if (!row || !group) return;
+
+      const cardIds: EasySetupCardId[] = ["1", "2", "3"];
+      row.setAttribute("data-exchangeup-easy-setup-row", "true");
+      row.setAttribute("data-exchangeup-active-card", "1");
+      group.setAttribute("data-exchangeup-easy-setup-group", "true");
+
+      cardRoots.forEach((cardRoot, index) => {
+        const cardId = cardIds[index];
+        const shell = cardRoot.parentElement as HTMLElement | null;
+        const content = cardRoot.firstElementChild as HTMLElement | null;
+        if (!shell || !content) return;
+
+        shell.setAttribute("data-exchangeup-easy-setup-shell", cardId);
+        cardRoot.setAttribute("data-exchangeup-easy-setup-card", cardId);
+        content.setAttribute("data-exchangeup-easy-setup-content", "true");
+
+        while (cardRoot.children.length > 1) {
+          cardRoot.lastElementChild?.remove();
+        }
+
+        const preview = doc.createElement("div");
+        preview.setAttribute("data-exchangeup-easy-setup-preview", "true");
+        preview.setAttribute("data-exchangeup-injected", "true");
+        preview.innerHTML = EASY_SETUP_PREVIEW_MARKUP[cardId];
+        cardRoot.appendChild(preview);
+
+        shell.onmouseenter = () => {
+          row.setAttribute("data-exchangeup-active-card", cardId);
+        };
+      });
+
+      row.onmouseleave = () => {
+        row.setAttribute("data-exchangeup-active-card", "1");
+      };
+    },
+    [injectEasySetupStyles],
+  );
 
   const setupSmoothScroll = useCallback((frame: HTMLIFrameElement | null) => {
     const win = frame?.contentWindow;
@@ -491,8 +989,9 @@ export default function Index() {
     }
 
     rewriteHeroCopy(doc);
+    setupEasySetupCards(frame);
     injectLogoSlider(doc);
-  }, [injectLogoSlider, injectNavbarStyles, rewriteHeroCopy]);
+  }, [injectLogoSlider, injectNavbarStyles, rewriteHeroCopy, setupEasySetupCards]);
 
   const handleFrameLoad = useCallback((frame: HTMLIFrameElement | null) => {
     cleanIframe(frame);
