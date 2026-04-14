@@ -39,6 +39,9 @@ const SMOOTH_SCROLL_STYLE = `
   }
 `;
 
+const NAVBAR_FONT_STACK =
+  "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
 const NAVBAR_LOGO_LOCKUP = `
   <span style="display:inline-flex;align-items:center;justify-content:center;flex:none;">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="100 60 312 392" width="32" height="32" aria-hidden="true" style="display:block;flex:none;">
@@ -47,9 +50,43 @@ const NAVBAR_LOGO_LOCKUP = `
       <circle cx="382" cy="124" r="34" fill="#FADC6A"></circle>
     </svg>
   </span>
-  <span style="font-family: Geist, sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -0.03em; color: #1d1d1d; line-height: 1;">
-    Grovia
+  <span style="font-family: ${NAVBAR_FONT_STACK}; font-size: 15px; font-weight: 600; letter-spacing: -0.03em; color: #1d1d1d; line-height: 1; white-space: nowrap;">
+    1031 Exchange Up
   </span>
+`;
+
+const NAVBAR_STYLE = `
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
+
+  [data-exchangeup-navbar="true"] a,
+  [data-exchangeup-navbar="true"] p,
+  [data-exchangeup-navbar="true"] span {
+    font-family: ${NAVBAR_FONT_STACK} !important;
+  }
+
+  [data-exchangeup-navbar="true"] [data-framer-name="Nav/Desktop"] {
+    text-decoration: none !important;
+  }
+
+  [data-exchangeup-navbar="true"] [data-framer-name="Nav/Desktop"] p {
+    margin: 0 !important;
+    color: #5d5d5d !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1 !important;
+  }
+
+  [data-exchangeup-navbar="true"] [data-framer-name="Nav/Desktop"]:hover p {
+    color: #1d1d1d !important;
+  }
+
+  [data-exchangeup-navbar="true"] a[href="/signup"] p {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em !important;
+  }
 `;
 function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
   switch (mark) {
@@ -115,6 +152,15 @@ export default function Index() {
     const style = doc.createElement("style");
     style.setAttribute("data-exchangeup-smooth-scroll-style", "true");
     style.textContent = SMOOTH_SCROLL_STYLE;
+    doc.head.appendChild(style);
+  }, []);
+
+  const injectNavbarStyles = useCallback((doc: Document) => {
+    doc.querySelector("[data-exchangeup-navbar-style]")?.remove();
+
+    const style = doc.createElement("style");
+    style.setAttribute("data-exchangeup-navbar-style", "true");
+    style.textContent = NAVBAR_STYLE;
     doc.head.appendChild(style);
   }, []);
 
@@ -350,6 +396,8 @@ export default function Index() {
     const doc = frame?.contentDocument;
     if (!doc) return;
 
+    injectNavbarStyles(doc);
+
     doc.querySelector("#__framer-badge-container")?.remove();
 
     const allAnchors = Array.from(doc.querySelectorAll("a"));
@@ -393,6 +441,7 @@ export default function Index() {
 
     const navEl = doc.querySelector(".framer-9FYxx") as HTMLElement | null;
     if (navEl) {
+      navEl.setAttribute("data-exchangeup-navbar", "true");
       if (frame.clientWidth >= 960) {
         navEl.style.width = "730px";
         navEl.style.maxWidth = "calc(100vw - 48px)";
@@ -409,12 +458,13 @@ export default function Index() {
         logoLink.target = "_parent";
         logoLink.innerHTML = NAVBAR_LOGO_LOCKUP;
         logoLink.style.cssText =
-          "display:inline-flex; align-items:center; gap:10px; width:auto; height:36px; " +
+          "display:inline-flex; align-items:center; gap:6px; width:auto; height:36px; " +
           "position:relative; text-decoration:none; color:#1d1d1d; white-space:nowrap; overflow:visible;";
       }
 
       const contactBtn = navEl.querySelector("a[href='/signup']") as HTMLAnchorElement | null;
       if (contactBtn) {
+        contactBtn.style.textDecoration = "none";
         const actionContainer = contactBtn.parentElement as HTMLElement | null;
         if (actionContainer) {
           actionContainer.style.display = "flex";
@@ -429,12 +479,12 @@ export default function Index() {
         loginLink.target = "_parent";
         loginLink.textContent = "Login";
         loginLink.style.cssText =
-          "font-family: Geist, sans-serif; font-size: 15px; color: #6b6b6b; " +
+          `font-family: ${NAVBAR_FONT_STACK}; font-size: 14px; font-weight: 500; letter-spacing: -0.02em; color: #5d5d5d; ` +
           "text-decoration: none; padding: 4px 4px; white-space: nowrap; " +
           "line-height: 1; display: inline-flex; align-items: center; " +
           "transition: color 0.2s;";
         loginLink.addEventListener("mouseenter", () => { loginLink.style.color = "#1d1d1d"; });
-        loginLink.addEventListener("mouseleave", () => { loginLink.style.color = "#6b6b6b"; });
+        loginLink.addEventListener("mouseleave", () => { loginLink.style.color = "#5d5d5d"; });
 
         contactBtn.parentElement?.insertBefore(loginLink, contactBtn);
       }
@@ -442,7 +492,7 @@ export default function Index() {
 
     rewriteHeroCopy(doc);
     injectLogoSlider(doc);
-  }, [injectLogoSlider, rewriteHeroCopy]);
+  }, [injectLogoSlider, injectNavbarStyles, rewriteHeroCopy]);
 
   const handleFrameLoad = useCallback((frame: HTMLIFrameElement | null) => {
     cleanIframe(frame);

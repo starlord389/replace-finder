@@ -41,6 +41,11 @@ export default function Navbar() {
   const { user, signOut, profileRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const desktopLinkClass =
+    "whitespace-nowrap px-1.5 py-1 text-[14px] font-medium tracking-[-0.02em] transition-colors";
+  const secondaryDesktopText = "text-[#5d5d5d] hover:text-[#1d1d1d]";
+  const primaryDesktopButton =
+    "flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1d1d1d] py-1.5 pl-3.5 pr-1.5 text-[14px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black";
 
   const dashboardLink = getDefaultRouteForRole(profileRole);
   const dashboardLabel =
@@ -67,15 +72,15 @@ export default function Navbar() {
       <div className="h-16" />
 
       <nav
-        className="fixed left-1/2 top-3 z-50 w-[calc(100%-2rem)] max-w-[750px] -translate-x-1/2 rounded-full border border-[#e0ddd6] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)]"
+        className="fixed left-1/2 top-3 z-50 w-[calc(100%-2rem)] max-w-[730px] -translate-x-1/2 rounded-full border border-[#e0ddd6] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)]"
         aria-label="Main navigation"
       >
-        <div className="flex h-12 items-center justify-between px-3 sm:px-4 lg:px-4">
+        <div className="flex h-12 items-center justify-between px-3 sm:px-3.5">
           {/* Logo */}
-          <Link to={ROUTES.home} className="flex shrink-0 items-center gap-2">
+          <Link to={ROUTES.home} className="flex shrink-0 items-center gap-1.5">
             <ExchangeLogoIcon className="h-8 w-8 shrink-0" />
-            <span className="text-[16px] font-semibold tracking-tight text-[#1d1d1d]">
-              Grovia
+            <span className="whitespace-nowrap text-[15px] font-semibold tracking-[-0.03em] text-[#1d1d1d]">
+              1031 Exchange Up
             </span>
           </Link>
 
@@ -85,10 +90,10 @@ export default function Navbar() {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`whitespace-nowrap px-1.5 py-1 text-[14px] transition-colors lg:text-[15px] ${
+                className={`${desktopLinkClass} ${
                   location.pathname === link.to
-                    ? "font-medium text-[#1d1d1d]"
-                    : "text-[#6b6b6b] hover:text-[#1d1d1d]"
+                    ? "text-[#1d1d1d]"
+                    : secondaryDesktopText
                 }`}
               >
                 {link.label}
@@ -102,13 +107,13 @@ export default function Navbar() {
               <>
                 <Link
                   to={dashboardLink}
-                  className="whitespace-nowrap px-1.5 py-1 text-[14px] text-[#6b6b6b] transition-colors hover:text-[#1d1d1d] lg:text-[15px]"
+                  className={`${desktopLinkClass} ${secondaryDesktopText}`}
                 >
                   {dashboardLabel}
                 </Link>
                 <button
                   onClick={signOut}
-                  className="flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1d1d1d] py-1.5 pl-3.5 pr-1.5 text-[14px] font-medium text-white transition-colors hover:bg-black lg:text-[15px]"
+                  className={primaryDesktopButton}
                 >
                   Sign Out
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white">
@@ -120,13 +125,13 @@ export default function Navbar() {
               <>
                 <Link
                   to={ROUTES.login}
-                  className="whitespace-nowrap px-1.5 py-1 text-[14px] text-[#6b6b6b] transition-colors hover:text-[#1d1d1d] lg:text-[15px]"
+                  className={`${desktopLinkClass} ${secondaryDesktopText}`}
                 >
                   Login
                 </Link>
                 <Link
                   to={ROUTES.signup}
-                  className="flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1d1d1d] py-1.5 pl-3.5 pr-1.5 text-[14px] font-medium text-white transition-colors hover:bg-black lg:text-[15px]"
+                  className={primaryDesktopButton}
                 >
                   Get Started
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white">
@@ -172,7 +177,7 @@ export default function Navbar() {
                 className={`rounded-lg px-3 py-2.5 text-sm font-medium ${
                   location.pathname === ROUTES.home
                     ? "bg-[#1d1d1d] text-white"
-                    : "text-[#4a4a4a] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
+                    : "text-[#5d5d5d] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
                 }`}
               >
                 Home
@@ -184,7 +189,7 @@ export default function Navbar() {
                   className={`rounded-lg px-3 py-2.5 text-sm font-medium ${
                     location.pathname === link.to
                       ? "bg-[#1d1d1d] text-white"
-                      : "text-[#4a4a4a] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
+                      : "text-[#5d5d5d] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
                   }`}
                 >
                   {link.label}
@@ -194,7 +199,7 @@ export default function Navbar() {
                 <>
                   <Link
                     to={dashboardLink}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#4a4a4a] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#5d5d5d] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
                   >
                     {dashboardLabel}
                   </Link>
