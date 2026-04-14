@@ -38,7 +38,6 @@ const SMOOTH_SCROLL_STYLE = `
     overscroll-behavior: contain;
   }
 `;
-
 function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
   switch (mark) {
     case "plus":
@@ -200,7 +199,6 @@ export default function Index() {
       }
     });
   }, []);
-
   const injectLogoSlider = useCallback((doc: Document) => {
     doc.querySelector("[data-exchangeup-logo-slider]")?.remove();
     doc.querySelector("[data-exchangeup-logo-slider-style]")?.remove();
