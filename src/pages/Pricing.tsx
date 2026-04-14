@@ -46,10 +46,10 @@ export default function Pricing() {
               successfully closes. No hidden charges.
             </p>
             <Link
-              to={ROUTES.contact}
+              to={ROUTES.bookDemo}
               className="mt-6 inline-flex rounded-full border border-[#d8d5ce] bg-white px-6 py-2.5 text-sm font-medium text-[#1d1d1d] transition-colors hover:bg-[#f6f4ef]"
             >
-              Contact Us
+              Book a Demo
             </Link>
           </article>
         </div>

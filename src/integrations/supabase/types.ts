@@ -1978,6 +1978,48 @@ export type Database = {
           },
         ]
       }
+      demo_requests: {
+        Row: {
+          company: string
+          created_at: string
+          full_name: string
+          id: string
+          phone: string | null
+          role: string
+          status: string
+          timeline: string | null
+          updated_at: string
+          use_case: string
+          work_email: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          role: string
+          status?: string
+          timeline?: string | null
+          updated_at?: string
+          use_case: string
+          work_email: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          role?: string
+          status?: string
+          timeline?: string | null
+          updated_at?: string
+          use_case?: string
+          work_email?: string
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           admin_notes: string | null

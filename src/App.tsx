@@ -11,6 +11,7 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import AgentLayout from "@/components/layout/AgentLayout";
 
 import Index from "@/pages/Index";
+import BookDemo from "@/pages/BookDemo";
 import HowItWorks from "@/pages/HowItWorks";
 import Contact from "@/pages/Contact";
 import Features from "@/pages/Features";
@@ -60,6 +61,7 @@ const App = () => (
             {/* Public */}
             <Route element={<PublicLayout />}>
               <Route path={ROUTES.home} element={<Index />} />
+              <Route path={ROUTES.bookDemo} element={<BookDemo />} />
               <Route path={ROUTES.howItWorks} element={<HowItWorks />} />
               <Route path={ROUTES.contact} element={<Contact />} />
               <Route path={ROUTES.features} element={<Features />} />
