@@ -1,581 +1,278 @@
-import { Link } from "react-router-dom";
-import { useEffect, useRef } from "react";
-import {
-  ArrowRight, Building2, Target, Zap, Handshake,
-  BarChart3, Shield, Users, ArrowLeftRight, DollarSign,
-  Check, X as XIcon, Star, Search, Bell, Settings,
-  Briefcase, Link2, LayoutDashboard
-} from "lucide-react";
+import { useCallback } from "react";
 
-/* ── scroll-reveal hook ────────────────────────── */
-function useReveal() {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const children = el.querySelectorAll("[data-reveal]");
-    const io = new IntersectionObserver(
-      (entries) =>
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            (e.target as HTMLElement).classList.add("animate-fade-in-up");
-            io.unobserve(e.target);
-          }
-        }),
-      { threshold: 0.12, rootMargin: "0px 0px -60px 0px" }
-    );
-    children.forEach((c) => io.observe(c));
-    return () => io.disconnect();
-  }, []);
-  return ref;
+const LOGO_BRANDS = [
+  { name: "Pluto Inc", mark: "chevrons" },
+  { name: "VitaHealth", mark: "plus" },
+  { name: "BoxMedia", mark: "cube" },
+  { name: "NovaTech", mark: "shield" },
+  { name: "Horizon Labs", mark: "bars" },
+  { name: "Vertex AI", mark: "spark" },
+] as const;
+
+function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
+  switch (mark) {
+    case "plus":
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M8 3h4v5h5v4h-5v5H8v-5H3V8h5V3Z" fill="currentColor"/>
+        </svg>
+      `;
+    case "cube":
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M10 2.8 16.4 6.5v7L10 17.2 3.6 13.5v-7L10 2.8Z" fill="currentColor" opacity=".18"/>
+          <path d="M10 2.8 16.4 6.5 10 10.2 3.6 6.5 10 2.8Z" fill="currentColor"/>
+          <path d="M10 10.2v7" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+      `;
+    case "shield":
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M10 2.5 16.2 4.7v4.4c0 4.1-2.6 6.7-6.2 8.4-3.6-1.7-6.2-4.3-6.2-8.4V4.7L10 2.5Z" fill="currentColor"/>
+        </svg>
+      `;
+    case "bars":
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M4 5h2.8l2.4 4.1L6.8 15H4l2.4-5.9L4 5Zm9.2 0H16l-2.4 4.1L16 15h-2.8l-2.4-5.9L13.2 5Z" fill="currentColor"/>
+        </svg>
+      `;
+    case "spark":
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M10 2.4 12.1 7.9 17.6 10l-5.5 2.1L10 17.6l-2.1-5.5L2.4 10l5.5-2.1L10 2.4Z" fill="currentColor"/>
+        </svg>
+      `;
+    case "chevrons":
+    default:
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M2.8 4.8 8.1 10l-5.3 5.2h3.7L11.8 10 6.5 4.8H2.8Zm5.7 0L13.8 10l-5.3 5.2h3.7L17.5 10l-5.3-5.2H8.5Z" fill="currentColor"/>
+        </svg>
+      `;
+  }
 }
 
-/* ── page ──────────────────────────────────────── */
 export default function Index() {
-  const root = useReveal();
+  const injectLogoSlider = useCallback((doc: Document) => {
+    doc.querySelector("[data-exchangeup-logo-slider]")?.remove();
+    doc.querySelector("[data-exchangeup-logo-slider-style]")?.remove();
+
+    const heroSection = doc.querySelector(
+      'header[data-framer-name="Hero Section"]',
+    ) as HTMLElement | null;
+    if (!heroSection || !heroSection.parentElement) return;
+
+    const style = doc.createElement("style");
+    style.setAttribute("data-exchangeup-logo-slider-style", "true");
+    style.textContent = `
+      @keyframes exchangeupLogoMarquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+
+      [data-exchangeup-logo-slider] {
+        width: 100%;
+        padding: 18px 0 28px;
+        background: transparent;
+        display: flex;
+        justify-content: center;
+      }
+
+      [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
+        overflow: hidden;
+        width: min(1000px, calc(100vw - 160px));
+        mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+      }
+
+      [data-exchangeup-logo-slider] [data-logo-slider-track] {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        width: max-content;
+        animation: exchangeupLogoMarquee 52s linear infinite;
+      }
+
+      [data-exchangeup-logo-slider] [data-logo-slider-group] {
+        display: flex;
+        align-items: center;
+      }
+
+      [data-exchangeup-logo-slider] [data-logo-item] {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 28px;
+        color: rgba(148, 144, 136, 0.82);
+        font-family: Geist, sans-serif;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        white-space: nowrap;
+        flex: none;
+        user-select: none;
+      }
+
+      [data-exchangeup-logo-slider] [data-logo-item] svg {
+        width: 22px;
+        height: 22px;
+        display: block;
+        color: rgba(148, 144, 136, 0.7);
+      }
+
+      @media (max-width: 809.98px) {
+        [data-exchangeup-logo-slider] {
+          padding: 12px 0 22px;
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
+          width: calc(100vw - 40px);
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-item] {
+          font-size: 15px;
+          padding: 0 20px;
+          gap: 10px;
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-item] svg {
+          width: 18px;
+          height: 18px;
+        }
+      }
+    `;
+    doc.head.appendChild(style);
+
+    const slider = doc.createElement("section");
+    slider.setAttribute("data-exchangeup-logo-slider", "true");
+    slider.setAttribute("aria-label", "Partner logo slider");
+
+    const viewport = doc.createElement("div");
+    viewport.setAttribute("data-logo-slider-viewport", "true");
+
+    const track = doc.createElement("div");
+    track.setAttribute("data-logo-slider-track", "true");
+
+    for (let groupIndex = 0; groupIndex < 2; groupIndex += 1) {
+      const group = doc.createElement("div");
+      group.setAttribute("data-logo-slider-group", "true");
+
+      LOGO_BRANDS.forEach((brand) => {
+        const item = doc.createElement("div");
+        item.setAttribute("data-logo-item", "true");
+
+        const icon = doc.createElement("span");
+        icon.innerHTML = getLogoMarkSvg(brand.mark);
+
+        const label = doc.createElement("span");
+        label.textContent = brand.name;
+
+        item.append(icon, label);
+        group.appendChild(item);
+      });
+
+      track.appendChild(group);
+    }
+
+    viewport.appendChild(track);
+    slider.appendChild(viewport);
+    heroSection.insertAdjacentElement("afterend", slider);
+  }, []);
+
+  const cleanIframe = useCallback((frame: HTMLIFrameElement | null) => {
+    const doc = frame?.contentDocument;
+    if (!doc) return;
+
+    doc.querySelector("#__framer-badge-container")?.remove();
+
+    const allAnchors = Array.from(doc.querySelectorAll("a"));
+
+    allAnchors.forEach((anchor) => {
+      const text = (anchor.textContent ?? "").toLowerCase().trim();
+      const href = (anchor.getAttribute("href") ?? "").toLowerCase();
+
+      if (
+        text.includes("made in framer") ||
+        text.includes("use template") ||
+        href.includes("framer.com")
+      ) {
+        anchor.remove();
+        return;
+      }
+
+      const linkMap: Record<string, { href: string; label?: string }> = {
+        about: { href: "/how-it-works", label: "How It Works" },
+        features: { href: "/features" },
+        pricing: { href: "/pricing" },
+        "contact us": { href: "/signup", label: "Get Started" },
+      };
+
+      const match = linkMap[text];
+      if (match) {
+        anchor.setAttribute("href", match.href);
+        anchor.setAttribute("target", "_parent");
+        if (match.label) {
+          const textEl = anchor.querySelector("[data-framer-component-type='RichTextContainer'] p");
+          if (textEl) {
+            textEl.textContent = match.label;
+          }
+        }
+      }
+    });
+
+    doc
+      .querySelectorAll("[data-exchangeup-injected-login]")
+      .forEach((node) => node.remove());
+
+    const navEl = doc.querySelector(".framer-9FYxx") as HTMLElement | null;
+    if (navEl) {
+      if (frame.clientWidth >= 960) {
+        navEl.style.width = "730px";
+        navEl.style.maxWidth = "calc(100vw - 48px)";
+      }
+
+      const contactBtn = navEl.querySelector("a[href='/signup']") as HTMLAnchorElement | null;
+      if (contactBtn) {
+        const actionContainer = contactBtn.parentElement as HTMLElement | null;
+        if (actionContainer) {
+          actionContainer.style.display = "flex";
+          actionContainer.style.alignItems = "center";
+          actionContainer.style.gap = "8px";
+          actionContainer.style.whiteSpace = "nowrap";
+        }
+
+        const loginLink = doc.createElement("a");
+        loginLink.setAttribute("data-exchangeup-injected-login", "true");
+        loginLink.href = "/login";
+        loginLink.target = "_parent";
+        loginLink.textContent = "Login";
+        loginLink.style.cssText =
+          "font-family: Geist, sans-serif; font-size: 15px; color: #6b6b6b; " +
+          "text-decoration: none; padding: 4px 4px; white-space: nowrap; " +
+          "line-height: 1; display: inline-flex; align-items: center; " +
+          "transition: color 0.2s;";
+        loginLink.addEventListener("mouseenter", () => { loginLink.style.color = "#1d1d1d"; });
+        loginLink.addEventListener("mouseleave", () => { loginLink.style.color = "#6b6b6b"; });
+
+        contactBtn.parentElement?.insertBefore(loginLink, contactBtn);
+      }
+    }
+
+    injectLogoSlider(doc);
+  }, [injectLogoSlider]);
 
   return (
-    <div ref={root} className="overflow-hidden">
-      {/* ═══ HERO — Two column layout like reference ═══ */}
-      <section className="relative px-4 pb-0 pt-20 sm:px-6 sm:pt-24 lg:pt-28">
-        {/* Subtle dot grid background */}
-        <div className="pointer-events-none absolute inset-0 -z-10" style={{
-          backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)",
-          backgroundSize: "24px 24px"
-        }} />
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-white/90 to-white" />
-
-        <div className="mx-auto max-w-6xl">
-          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
-            {/* Left — text content */}
-            <div>
-              {/* Pill badge */}
-              <div className="animate-fade-in-up mb-6 inline-flex items-center gap-2.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 shadow-sm">
-                <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-                <span className="text-[13px] font-medium text-gray-600">
-                  Now available for early access
-                </span>
-              </div>
-
-              {/* Headline */}
-              <h1 className="animate-fade-in-up delay-100 text-[2.5rem] font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.25rem]">
-                Real-time matching for{" "}
-                <span className="relative inline-block">
-                  <span className="relative z-10">modern exchanges</span>
-                  <span className="absolute -bottom-1 left-0 z-0 h-3 w-full rounded-sm bg-blue-100/70" />
-                </span>
-              </h1>
-
-              {/* Subheadline */}
-              <p className="animate-fade-in-up delay-200 mt-5 max-w-md text-[15px] leading-relaxed text-gray-500">
-                Join a network where your client's property becomes inventory for every other agent — and theirs becomes yours. Automatic matching. Zero searching.
-              </p>
-
-              {/* CTAs */}
-              <div className="animate-fade-in-up delay-300 mt-8 flex flex-wrap items-center gap-3">
-                <Link
-                  to="/signup"
-                  className="group inline-flex items-center gap-2 rounded-full bg-gray-900 px-7 py-3 text-[15px] font-semibold text-white shadow-lg shadow-gray-900/10 transition-all hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/15 active:scale-[0.98]"
-                >
-                  Join the Network
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-                <Link
-                  to="/how-it-works"
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-7 py-3 text-[15px] font-semibold text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
-                >
-                  How It Works
-                </Link>
-              </div>
-            </div>
-
-            {/* Right — floating cards composition */}
-            <div className="animate-fade-in-up delay-300 relative hidden lg:flex lg:justify-end">
-              <div className="relative h-[340px] w-full max-w-[420px]">
-                {/* Main match score card */}
-                <div className="absolute right-0 top-4 w-64 rounded-2xl border border-gray-100 bg-white p-5 shadow-xl shadow-gray-200/60">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                      <Target className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-gray-400">Match Score</p>
-                      <p className="text-2xl font-bold text-gray-900">94<span className="text-base text-gray-400">/100</span></p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div><div className="flex justify-between text-[11px] mb-1"><span className="text-gray-400">Price Fit</span><span className="font-semibold text-gray-700">95%</span></div><div className="h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-blue-500" style={{width:'95%'}} /></div></div>
-                    <div><div className="flex justify-between text-[11px] mb-1"><span className="text-gray-400">Geography</span><span className="font-semibold text-gray-700">88%</span></div><div className="h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-blue-500" style={{width:'88%'}} /></div></div>
-                    <div><div className="flex justify-between text-[11px] mb-1"><span className="text-gray-400">Asset Type</span><span className="font-semibold text-gray-700">100%</span></div><div className="h-1.5 rounded-full bg-gray-100"><div className="h-1.5 rounded-full bg-blue-500" style={{width:'100%'}} /></div></div>
-                    <div className="flex justify-between text-[11px] pt-1"><span className="text-gray-400">Boot Status</span><span className="font-semibold text-emerald-600">No Boot ✓</span></div>
-                  </div>
-                </div>
-
-                {/* Property card */}
-                <div className="animate-float absolute left-0 top-0 w-56 rounded-2xl border border-gray-100 bg-white p-4 shadow-lg shadow-gray-200/40">
-                  <div className="h-24 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
-                    <Building2 className="h-7 w-7 text-gray-300" />
-                  </div>
-                  <p className="mt-3 text-sm font-semibold text-gray-900">Riverside Apartments</p>
-                  <p className="text-xs text-gray-400">Phoenix, AZ · Multifamily</p>
-                  <div className="mt-2 flex items-center gap-3">
-                    <span className="text-sm font-bold text-gray-900">$4.2M</span>
-                    <span className="text-[11px] text-gray-400">6.8% cap</span>
-                  </div>
-                </div>
-
-                {/* Notification card */}
-                <div className="animate-float absolute bottom-4 left-8 w-52 rounded-xl border border-gray-100 bg-white p-3 shadow-md shadow-gray-200/30" style={{animationDelay:'2s'}}>
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                      <Check className="h-4 w-4 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900">New Match Found</p>
-                      <p className="text-[10px] text-gray-400">Score: 94 · No Boot</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Description + rating below cards */}
-                <div className="absolute -bottom-14 right-0 max-w-[260px] text-right">
-                  <p className="text-[13px] leading-relaxed text-gray-500">
-                    Powerful matching engine built for commercial real estate agents managing 1031 exchanges.
-                  </p>
-                  <div className="mt-2 flex items-center justify-end gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                    ))}
-                    <span className="ml-1.5 text-[11px] font-medium text-gray-400">Built by agents, for agents</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats marquee bar */}
-          <div className="mt-20 overflow-hidden border-t border-gray-100 pt-6 pb-4 lg:mt-24">
-            <div className="animate-marquee flex items-center gap-10 whitespace-nowrap">
-              {[...Array(2)].map((_, setIdx) => (
-                <div key={setIdx} className="flex items-center gap-10">
-                  {[
-                    { icon: Building2, name: "50+ Active Agents" },
-                    { icon: Briefcase, name: "120+ Properties Pledged" },
-                    { icon: Target, name: "800+ Matches Generated" },
-                    { icon: Handshake, name: "25+ Exchanges Completed" },
-                    { icon: Shield, name: "Identity Protected" },
-                    { icon: Zap, name: "Automatic Matching" },
-                  ].map((item) => (
-                    <div key={`${setIdx}-${item.name}`} className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4 text-gray-300" />
-                      <span className="text-sm font-medium text-gray-400">{item.name}</span>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ DASHBOARD PREVIEW — Large card like reference ═══ */}
-      <section className="px-4 pb-24 pt-4 sm:px-6">
-        <div className="mx-auto max-w-5xl">
-          <div data-reveal className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-2xl shadow-gray-200/50">
-            {/* Top bar */}
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-3.5">
-              <div className="flex items-center gap-3">
-                <div className="h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-white">EU</span>
-                </div>
-                <span className="text-sm font-semibold text-gray-900">Dashboard</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/80 px-3 py-1.5">
-                  <Search className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="text-xs text-gray-400">Search for something</span>
-                </div>
-                <Settings className="h-4 w-4 text-gray-300" />
-                <Bell className="h-4 w-4 text-gray-300" />
-                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600" />
-              </div>
-            </div>
-            {/* Content area */}
-            <div className="flex min-h-[420px]">
-              {/* Sidebar */}
-              <div className="hidden w-52 shrink-0 border-r border-gray-50 bg-gray-50/30 px-4 py-5 sm:block">
-                {[
-                  { icon: LayoutDashboard, label: "Dashboard", active: true },
-                  { icon: Briefcase, label: "Exchanges", active: false },
-                  { icon: Users, label: "Clients", active: false },
-                  { icon: Target, label: "Matches", active: false },
-                  { icon: Link2, label: "Connections", active: false },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className={`mb-1 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-medium ${
-                      item.active ? "text-blue-600" : "text-gray-400"
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </div>
-                ))}
-              </div>
-              {/* Main content */}
-              <div className="flex-1 p-5">
-                {/* Stat cards */}
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {[
-                    { icon: Briefcase, label: "Active Exchanges", value: "12", color: "bg-blue-50 text-blue-600" },
-                    { icon: Target, label: "Total Matches", value: "847", color: "bg-emerald-50 text-emerald-600" },
-                    { icon: ArrowRight, label: "Completion Rate", value: "+78%", color: "bg-violet-50 text-violet-600" },
-                  ].map((kpi) => (
-                    <div key={kpi.label} className="rounded-xl border border-gray-100 bg-white p-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-9 w-9 rounded-lg ${kpi.color} flex items-center justify-center`}>
-                          <kpi.icon className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-medium text-gray-400">{kpi.label}</p>
-                          <p className="text-xl font-bold text-gray-900">{kpi.value}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Two charts side by side */}
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-gray-100 bg-white p-4">
-                    <p className="text-xs font-semibold text-gray-900 mb-3">Match Activity</p>
-                    <div className="relative h-28">
-                      <svg viewBox="0 0 200 60" className="h-full w-full" preserveAspectRatio="none">
-                        <polyline
-                          fill="none"
-                          stroke="#3b82f6"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          points="0,50 20,42 40,35 60,38 80,28 100,22 120,25 140,18 160,12 180,15 200,8"
-                        />
-                        {[
-                          [0,50],[40,35],[80,28],[120,25],[160,12],[200,8]
-                        ].map(([cx, cy], i) => (
-                          <circle key={i} cx={cx} cy={cy} r="3" fill="white" stroke="#3b82f6" strokeWidth="2" />
-                        ))}
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-gray-100 bg-white p-4">
-                    <p className="text-xs font-semibold text-gray-900 mb-3">Monthly Revenue</p>
-                    <div className="relative h-28">
-                      <svg viewBox="0 0 200 60" className="h-full w-full" preserveAspectRatio="none">
-                        <polyline
-                          fill="none"
-                          stroke="#3b82f6"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          points="0,45 25,40 50,48 75,30 100,35 125,22 150,28 175,15 200,20"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Two tables side by side */}
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {/* Recent Matches */}
-                  <div className="rounded-xl border border-gray-100 bg-white p-4">
-                    <p className="text-xs font-semibold text-gray-900 mb-3">Recent Matches</p>
-                    <div className="space-y-3">
-                      {[
-                        { name: "Riverside Apartments", type: "Multifamily, Phoenix", value: "$4.2M", change: "+16%", positive: true },
-                        { name: "Oak Street Office", type: "Office, Dallas", value: "$2.8M", change: "+8%", positive: true },
-                        { name: "Harbor Retail", type: "Retail, San Diego", value: "$1.5M", change: "-4%", positive: false },
-                      ].map((item) => (
-                        <div key={item.name} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <div className="h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center">
-                              <Building2 className="h-3.5 w-3.5 text-gray-400" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-gray-900">{item.name}</p>
-                              <p className="text-[10px] text-gray-400">{item.type}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs font-medium text-gray-700">{item.value}</p>
-                            <p className={`text-[10px] font-medium ${item.positive ? "text-emerald-600" : "text-red-500"}`}>{item.change}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Trending Properties */}
-                  <div className="rounded-xl border border-gray-100 bg-white p-4">
-                    <p className="text-xs font-semibold text-gray-900 mb-3">Trending Properties</p>
-                    <table className="w-full">
-                      <thead>
-                        <tr className="text-[10px] font-medium text-gray-400">
-                          <td className="pb-2">ID</td>
-                          <td className="pb-2">Name</td>
-                          <td className="pb-2">Price</td>
-                          <td className="pb-2 text-right">Score</td>
-                        </tr>
-                      </thead>
-                      <tbody className="text-xs">
-                        {[
-                          { id: "041", name: "Mesa Plaza", price: "$3.2M", score: "+92" },
-                          { id: "032", name: "Scottsdale Lofts", price: "$5.1M", score: "+88" },
-                          { id: "390", name: "Tempe Office", price: "$2.2M", score: "+85" },
-                          { id: "120", name: "Gilbert Retail", price: "$4.8M", score: "+81" },
-                        ].map((row) => (
-                          <tr key={row.id} className="border-t border-gray-50">
-                            <td className="py-2 text-gray-400">{row.id}</td>
-                            <td className="py-2 font-medium text-gray-700">{row.name}</td>
-                            <td className="py-2 text-gray-500">{row.price}</td>
-                            <td className="py-2 text-right font-medium text-emerald-600">{row.score}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ HOW IT WORKS ═══ */}
-      <section className="bg-gray-50/60 px-4 py-24 sm:px-6 sm:py-32">
-        <div className="mx-auto max-w-6xl">
-          <div data-reveal className="text-center">
-            <p className="text-[13px] font-semibold uppercase tracking-wider text-blue-600">
-              How It Works
-            </p>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 sm:text-4xl">
-              Four steps from pledge to close
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-gray-500">
-              The entire process is automated. No manual searching, no cold
-              calls, no wasted time.
-            </p>
-          </div>
-
-          <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: Building2,
-                step: "01",
-                title: "Pledge Property",
-                desc: "Add your client's property to the network. It becomes a potential replacement for every other agent's client.",
-                color: "bg-blue-50 text-blue-600",
-              },
-              {
-                icon: Target,
-                step: "02",
-                title: "Set Criteria",
-                desc: "Define what your client needs — asset type, geography, price range, debt replacement requirements.",
-                color: "bg-indigo-50 text-indigo-600",
-              },
-              {
-                icon: Zap,
-                step: "03",
-                title: "Get Matched",
-                desc: "The system scores your criteria against every pledged property. 8 dimensions. Boot calculations included.",
-                color: "bg-violet-50 text-violet-600",
-              },
-              {
-                icon: Handshake,
-                step: "04",
-                title: "Connect & Close",
-                desc: "Review matches, start a connection, and the listing agent is revealed. Track the deal through closing.",
-                color: "bg-emerald-50 text-emerald-600",
-              },
-            ].map((item, i) => (
-              <div
-                key={item.step}
-                data-reveal
-                className={`group relative rounded-2xl border border-gray-100 bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:border-gray-200 hover:shadow-lg hover:shadow-gray-100/80 delay-${(i + 1) * 100}`}
-              >
-                <span className="text-xs font-bold text-gray-300">{item.step}</span>
-                <div className={`mt-4 flex h-11 w-11 items-center justify-center rounded-xl ${item.color}`}>
-                  <item.icon className="h-5 w-5" />
-                </div>
-                <h3 className="mt-5 text-[15px] font-semibold text-gray-900">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ FEATURE GRID (Bento) ═══ */}
-      <section className="px-4 py-24 sm:px-6 sm:py-32">
-        <div className="mx-auto max-w-6xl">
-          <div data-reveal className="text-center">
-            <p className="text-[13px] font-semibold uppercase tracking-wider text-blue-600">
-              Platform Features
-            </p>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 sm:text-4xl">
-              Built for how agents actually work
-            </h2>
-          </div>
-
-          <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                icon: BarChart3,
-                title: "8-Dimension Matching",
-                desc: "Price, geography, asset type, strategy, financials, timing, debt fit, and scale — all scored automatically.",
-              },
-              {
-                icon: DollarSign,
-                title: "Boot Calculator",
-                desc: "Every match shows estimated cash boot, mortgage boot, and tax exposure before you ever make a call.",
-              },
-              {
-                icon: Shield,
-                title: "Identity Protection",
-                desc: "No cold calls. Agent identities stay hidden until both sides agree to connect.",
-              },
-              {
-                icon: Users,
-                title: "Multi-Client Management",
-                desc: "Manage multiple clients, each with their own exchange, criteria, and matches — all from one dashboard.",
-              },
-              {
-                icon: ArrowLeftRight,
-                title: "Exchange Tracking",
-                desc: "Track connections from first contact through closing with milestone updates and in-platform messaging.",
-              },
-              {
-                icon: Handshake,
-                title: "Simple Facilitation Fee",
-                desc: "No subscriptions. No upfront costs. A simple fee only when an exchange is completed.",
-              },
-            ].map((item, i) => (
-              <div
-                key={item.title}
-                data-reveal
-                className={`group rounded-2xl border border-gray-100 bg-white p-7 transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-200 hover:shadow-lg hover:shadow-gray-100/80 delay-${(i % 3 + 1) * 100}`}
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-900 text-white">
-                  <item.icon className="h-[18px] w-[18px]" />
-                </div>
-                <h3 className="mt-5 text-[15px] font-semibold text-gray-900">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ COMPARISON ═══ */}
-      <section className="bg-gray-50/60 px-4 py-24 sm:px-6 sm:py-32">
-        <div className="mx-auto max-w-5xl">
-          <div data-reveal className="text-center">
-            <p className="text-[13px] font-semibold uppercase tracking-wider text-blue-600">
-              Comparison
-            </p>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 sm:text-4xl">
-              Why agents choose ExchangeUp
-            </h2>
-          </div>
-
-          <div data-reveal className="mt-14 grid gap-5 delay-200 md:grid-cols-2">
-            {/* With */}
-            <div className="rounded-2xl border-2 border-blue-100 bg-gradient-to-b from-blue-50/50 to-white p-8">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-                  <Check className="h-4 w-4" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">With ExchangeUp</h3>
-              </div>
-              <ul className="mt-6 space-y-4">
-                {[
-                  "Automatic matching across a national agent network",
-                  "Boot calculations on every match instantly",
-                  "Agent identity protected until you choose to connect",
-                  "One platform from match through closing",
-                  "Fee only on completed exchanges",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
-                    <span className="text-sm text-gray-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Without */}
-            <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-8">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-200 text-gray-500">
-                  <XIcon className="h-4 w-4" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-400">Without ExchangeUp</h3>
-              </div>
-              <ul className="mt-6 space-y-4">
-                {[
-                  "Manual searching across multiple platforms",
-                  "Spreadsheets and guesswork for boot exposure",
-                  "Cold calls and unsolicited pitches",
-                  "Emails, phone calls, scattered documents",
-                  "Upfront subscriptions and listing fees",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <XIcon className="mt-0.5 h-4 w-4 shrink-0 text-gray-300" />
-                    <span className="text-sm text-gray-400">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ BOTTOM CTA ═══ */}
-      <section className="px-4 py-24 sm:px-6 sm:py-32">
-        <div className="mx-auto max-w-4xl">
-          <div
-            data-reveal
-            className="relative overflow-hidden rounded-3xl bg-gray-900 px-8 py-16 text-center sm:px-16 sm:py-20"
-          >
-            <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl" />
-            <h2 className="relative text-3xl font-bold text-white sm:text-4xl">
-              Ready to grow your exchange network?
-            </h2>
-            <p className="relative mt-4 text-gray-400">
-              Join 50+ agents already matching on the platform.
-            </p>
-            <Link
-              to="/signup"
-              className="group relative mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-[15px] font-semibold text-gray-900 transition-all hover:bg-gray-100 hover:shadow-lg active:scale-[0.98]"
-            >
-              Join the Network
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <p className="relative mt-4 text-sm text-gray-500">
-              Questions?{" "}
-              <a href="mailto:support@1031exchangeup.com" className="text-gray-400 underline underline-offset-2 hover:text-gray-300">
-                support@1031exchangeup.com
-              </a>
-            </p>
-          </div>
-        </div>
-      </section>
-    </div>
+    <section
+      aria-label="Grovia template homepage"
+      className="relative h-full min-h-screen w-full"
+    >
+      <iframe
+        title="Grovia homepage"
+        src="/grovia/index.html"
+        className="h-[100vh] w-full border-0"
+        onLoad={(event) => cleanIframe(event.currentTarget)}
+      />
+    </section>
   );
 }
