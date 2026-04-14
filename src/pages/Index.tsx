@@ -126,6 +126,10 @@ export default function Index() {
         to { transform: translateX(-50%); }
       }
 
+      header[data-framer-name="Hero Section"] {
+        margin-bottom: -24px;
+      }
+
       [data-exchangeup-logo-slider] {
         width: 100%;
         padding: 2px 0 6px;
@@ -170,13 +174,17 @@ export default function Index() {
       }
 
       [data-exchangeup-logo-slider] [data-logo-item] svg {
-        width: 69px;
-        height: 69px;
+        width: 62px;
+        height: 62px;
         display: block;
         color: rgba(148, 144, 136, 0.7);
       }
 
       @media (max-width: 809.98px) {
+        header[data-framer-name="Hero Section"] {
+          margin-bottom: -14px;
+        }
+
         [data-exchangeup-logo-slider] {
           padding: 2px 0 4px;
         }
@@ -192,8 +200,8 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] svg {
-          width: 54px;
-          height: 54px;
+          width: 49px;
+          height: 49px;
         }
       }
     `;
