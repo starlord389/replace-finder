@@ -38,6 +38,19 @@ const SMOOTH_SCROLL_STYLE = `
     overscroll-behavior: contain;
   }
 `;
+
+const NAVBAR_LOGO_LOCKUP = `
+  <span style="display:inline-flex;align-items:center;justify-content:center;flex:none;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="100 60 312 392" width="32" height="32" aria-hidden="true" style="display:block;flex:none;">
+      <rect x="126" y="86" width="52" height="340" rx="26" ry="26" fill="#1A1A1A" transform="rotate(20 256 256)"></rect>
+      <rect x="334" y="86" width="52" height="340" rx="26" ry="26" fill="#1A1A1A" transform="rotate(-20 256 256)"></rect>
+      <circle cx="382" cy="124" r="34" fill="#FADC6A"></circle>
+    </svg>
+  </span>
+  <span style="font-family: Geist, sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -0.03em; color: #1d1d1d; line-height: 1;">
+    Grovia
+  </span>
+`;
 function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
   switch (mark) {
     case "plus":
@@ -383,6 +396,21 @@ export default function Index() {
       if (frame.clientWidth >= 960) {
         navEl.style.width = "730px";
         navEl.style.maxWidth = "calc(100vw - 48px)";
+      }
+
+      const logoWrap = navEl.querySelector(
+        '[data-framer-name="Logo"]',
+      ) as HTMLElement | null;
+      const logoLink = logoWrap?.querySelector("a") as HTMLAnchorElement | null;
+      if (logoWrap && logoLink) {
+        logoWrap.style.width = "auto";
+
+        logoLink.href = "/";
+        logoLink.target = "_parent";
+        logoLink.innerHTML = NAVBAR_LOGO_LOCKUP;
+        logoLink.style.cssText =
+          "display:inline-flex; align-items:center; gap:10px; width:auto; height:36px; " +
+          "position:relative; text-decoration:none; color:#1d1d1d; white-space:nowrap; overflow:visible;";
       }
 
       const contactBtn = navEl.querySelector("a[href='/signup']") as HTMLAnchorElement | null;

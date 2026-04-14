@@ -4,15 +4,35 @@ import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getDefaultRouteForRole, ROUTES } from "@/app/routes/routeManifest";
 
-function LightningBoltIcon({ className }: { className?: string }) {
+function ExchangeLogoIcon({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="100 60 312 392"
       className={className}
       aria-hidden="true"
     >
-      <path d="M13 2L4.09 12.63a1 1 0 00.78 1.62H11v5.5a.5.5 0 00.89.31L20.91 9.37a1 1 0 00-.78-1.62H13V2.25a.5.5 0 00-.89-.31L13 2z" />
+      <rect
+        x="126"
+        y="86"
+        width="52"
+        height="340"
+        rx="26"
+        ry="26"
+        fill="#1A1A1A"
+        transform="rotate(20 256 256)"
+      />
+      <rect
+        x="334"
+        y="86"
+        width="52"
+        height="340"
+        rx="26"
+        ry="26"
+        fill="#1A1A1A"
+        transform="rotate(-20 256 256)"
+      />
+      <circle cx="382" cy="124" r="34" fill="#FADC6A" />
     </svg>
   );
 }
@@ -53,9 +73,7 @@ export default function Navbar() {
         <div className="flex h-12 items-center justify-between px-3 sm:px-4 lg:px-4">
           {/* Logo */}
           <Link to={ROUTES.home} className="flex shrink-0 items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1d1d1d]">
-              <LightningBoltIcon className="h-3.5 w-3.5 text-white" />
-            </div>
+            <ExchangeLogoIcon className="h-8 w-8 shrink-0" />
             <span className="text-[16px] font-semibold tracking-tight text-[#1d1d1d]">
               Grovia
             </span>
