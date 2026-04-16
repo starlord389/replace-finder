@@ -228,7 +228,7 @@ export default function AgentConnectionDetail() {
       {/* Header */}
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold text-foreground">Exchange Connection</h1>
-        <Badge className={conn.status === "accepted" ? "bg-green-600 text-white" : conn.status === "completed" ? "bg-blue-600 text-white" : ""}>{conn.status}</Badge>
+        <Badge className={conn.status === "accepted" ? "bg-green-600 text-white" : conn.status === "completed" ? "bg-[#39484d] text-white" : ""}>{conn.status}</Badge>
         {match && (
           <>
             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${scoreColor(totalScore)}`}>{totalScore}</span>

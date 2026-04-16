@@ -24,7 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
-  active: "bg-blue-100 text-blue-800",
+  active: "bg-primary/15 text-primary",
   in_identification: "bg-amber-100 text-amber-800",
   in_closing: "bg-purple-100 text-purple-800",
   completed: "bg-green-100 text-green-800",
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
 
       return {
         kpis: [
-          { label: "Active Exchanges", value: activeExchanges.count, icon: ArrowLeftRight, color: "bg-blue-50 text-blue-600" },
+          { label: "Active Exchanges", value: activeExchanges.count, icon: ArrowLeftRight, color: "bg-primary/10 text-primary" },
           { label: "Active Matches", value: activeMatches.count, icon: Handshake, color: "bg-green-50 text-green-600" },
           { label: "Open Connections", value: openConnections.count, icon: Activity, color: "bg-amber-50 text-amber-600" },
           { label: "Open Support Tickets", value: openTickets.count, icon: LifeBuoy, color: "bg-purple-50 text-purple-600" },

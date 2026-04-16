@@ -327,7 +327,7 @@ function MatchBadge({ matchResult }: { matchResult?: { client_response: string |
   if (!matchResult.client_viewed_at) {
     return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-[10px] px-1.5 py-0">New</Badge>;
   }
-  return <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 text-[10px] px-1.5 py-0">Awaiting response</Badge>;
+  return <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-[10px] px-1.5 py-0">Awaiting response</Badge>;
 }
 
 function TimelineStep({ label, date, active }: { label: string; date: string; active: boolean }) {

@@ -54,7 +54,7 @@ function statusBadge(status: string) {
   switch (status) {
     case "pending": return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Pending</Badge>;
     case "accepted": return <Badge className="bg-green-600 text-white">Active</Badge>;
-    case "completed": return <Badge className="bg-blue-600 text-white">Completed</Badge>;
+    case "completed": return <Badge className="bg-[#39484d] text-white">Completed</Badge>;
     case "declined": return <Badge variant="destructive">Declined</Badge>;
     case "cancelled": return <Badge variant="outline">Cancelled</Badge>;
     default: return <Badge variant="secondary">{status}</Badge>;

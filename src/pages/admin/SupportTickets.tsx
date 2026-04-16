@@ -17,7 +17,7 @@ const statusOptions = [
 ];
 
 const statusColors: Record<string, string> = {
-  open: "bg-blue-100 text-blue-800 border-blue-200",
+  open: "bg-[#e8eef0] text-[#2d3d42] border-[#c9d4d9]",
   in_progress: "bg-amber-100 text-amber-800 border-amber-200",
   resolved: "bg-green-100 text-green-800 border-green-200",
   closed: "bg-muted text-muted-foreground",

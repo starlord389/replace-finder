@@ -8,7 +8,7 @@ export default function AdminHeader() {
   const { user } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-md">
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[#e4dcd0] bg-white/80 px-4 backdrop-blur-md">
       <SidebarTrigger className="h-8 w-8" />
 
       <div className="flex items-center gap-3">

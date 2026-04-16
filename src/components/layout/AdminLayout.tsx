@@ -19,7 +19,7 @@ export default function AdminLayout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#F4F2EE]">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
@@ -35,7 +35,7 @@ export default function AdminLayout() {
         <AdminSidebar />
         <div className="flex flex-1 flex-col">
           <AdminHeader />
-          <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+          <main className="flex-1 bg-[#F4F2EE] px-4 py-6 sm:px-6 sm:py-8">
             <Outlet />
           </main>
         </div>

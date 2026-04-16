@@ -8,7 +8,10 @@ export default function PublicLayout() {
   const { pathname } = useLocation();
   const isTemplateHome = pathname === "/";
   const isAuthBeigeShell =
-    pathname === ROUTES.signup || pathname === ROUTES.login;
+    pathname === ROUTES.signup ||
+    pathname === ROUTES.login ||
+    pathname === ROUTES.forgotPassword ||
+    pathname === ROUTES.resetPassword;
 
   return (
     <div

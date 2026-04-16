@@ -81,7 +81,7 @@ export default function AgentSidebar() {
                 <span className="text-lg font-semibold tracking-tight text-foreground">
                   1031<span className="text-primary">ExchangeUp</span>
                 </span>
-                <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
+                <span className="rounded bg-[#FADC6A]/25 px-1.5 py-0.5 text-[10px] font-semibold text-[#1d1d1d]">
                   Agent
                 </span>
               </div>

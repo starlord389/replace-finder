@@ -134,7 +134,7 @@ export const EXCHANGE_STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   active: "bg-primary/10 text-primary",
   in_identification: "bg-amber-100 text-amber-800",
-  in_closing: "bg-blue-100 text-blue-800",
+  in_closing: "bg-[#e8eef0] text-[#2d3d42]",
   completed: "bg-green-100 text-green-800",
   cancelled: "bg-muted text-muted-foreground",
   expired: "bg-red-100 text-red-800",
