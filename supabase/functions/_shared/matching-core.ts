@@ -76,7 +76,7 @@ export async function computeMatchesForExchange(
           ...boot,
           direction: "buyer",
           other_agent_id: candidateProperty.agent_id,
-        });
+        } as ScoredMatch);
       }
     }
   }
@@ -114,7 +114,7 @@ export async function computeMatchesForExchange(
         ...boot,
         direction: "seller",
         other_agent_id: otherExchange.agent_id,
-      });
+      } as ScoredMatch);
     }
   }
 
