@@ -7,13 +7,14 @@ import { cn } from "@/lib/utils";
 export default function PublicLayout() {
   const { pathname } = useLocation();
   const isTemplateHome = pathname === "/";
-  const isSignupPage = pathname === ROUTES.signup;
+  const isAuthBeigeShell =
+    pathname === ROUTES.signup || pathname === ROUTES.login;
 
   return (
     <div
       className={cn(
         "flex min-h-screen flex-col",
-        isSignupPage && "bg-[#F4F2EE]",
+        isAuthBeigeShell && "bg-[#F4F2EE]",
       )}
     >
       {!isTemplateHome && (
