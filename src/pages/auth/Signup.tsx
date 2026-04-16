@@ -41,11 +41,11 @@ function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {
       </div>
       <div className="grid gap-4">
         <Card
-          className="cursor-pointer border-2 border-transparent transition-all hover:border-primary hover:shadow-md"
+          className="cursor-pointer border-2 border-transparent bg-white/90 transition-all hover:border-[#39484d]/35 hover:shadow-md"
           onClick={() => onSelect("agent")}
         >
           <CardContent className="flex items-start gap-4 p-6">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FADC6A]/25 text-[#1d1d1d]">
               <Briefcase className="h-5 w-5" />
             </div>
             <div className="space-y-1">
@@ -53,16 +53,16 @@ function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {
               <p className="text-sm text-muted-foreground">
                 Manage 1031 exchanges for your clients. List properties, find matches, and coordinate deals.
               </p>
-              <Button size="sm" className="mt-3">Sign Up as Agent</Button>
+              <Button size="sm" className="mt-3 bg-[#1d1d1d] text-white hover:bg-[#39484d]">Sign Up as Agent</Button>
             </div>
           </CardContent>
         </Card>
         <Card
-          className="cursor-pointer border-2 border-transparent transition-all hover:border-primary hover:shadow-md"
+          className="cursor-pointer border-2 border-transparent bg-white/90 transition-all hover:border-[#39484d]/35 hover:shadow-md"
           onClick={() => onSelect("referral")}
         >
           <CardContent className="flex items-start gap-4 p-6">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FADC6A]/25 text-[#1d1d1d]">
               <Home className="h-5 w-5" />
             </div>
             <div className="space-y-1">
@@ -70,14 +70,14 @@ function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {
               <p className="text-sm text-muted-foreground">
                 Looking to do a 1031 exchange? We'll connect you with a qualified agent in our network.
               </p>
-              <Button size="sm" variant="outline" className="mt-3">Get Connected</Button>
+              <Button size="sm" variant="outline" className="mt-3 border-[#d7c9b1] text-[#1d1d1d] hover:bg-[#f0ebe3] hover:text-[#1d1d1d]">Get Connected</Button>
             </div>
           </CardContent>
         </Card>
       </div>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link to="/login" className="font-medium text-primary hover:underline">Sign in</Link>
+        <Link to="/login" className="font-medium text-[#1d1d1d] hover:underline">Sign in</Link>
       </p>
     </div>
   );
@@ -166,9 +166,9 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
 
   if (submittedEmail) {
     return (
-      <Card className="border-primary/20">
+      <Card className="border-[#d7c9b1] bg-white/90">
         <CardContent className="space-y-6 p-6 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FADC6A]/25 text-[#1d1d1d]">
             <CheckCircle2 className="h-7 w-7" />
           </div>
           <div className="space-y-2">
@@ -182,8 +182,8 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button onClick={() => navigate("/login")}>I've Confirmed My Email</Button>
-            <Button variant="outline" type="button" onClick={onBack}>Back</Button>
+            <Button onClick={() => navigate("/login")} className="bg-[#1d1d1d] text-white hover:bg-[#39484d]">I've Confirmed My Email</Button>
+            <Button variant="outline" type="button" onClick={onBack} className="border-[#d7c9b1] text-[#1d1d1d] hover:bg-[#f0ebe3] hover:text-[#1d1d1d]">Back</Button>
           </div>
         </CardContent>
       </Card>
@@ -204,7 +204,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-muted/30 p-4">
+      <div className="rounded-xl border border-[#e4dcd0] bg-white/70 p-4">
         <p className="text-sm font-medium text-foreground">Fast setup for active agents</p>
         <p className="mt-1 text-sm text-muted-foreground">
           We only ask for the details needed to create your workspace, confirm your role, and get you into the platform quickly.
@@ -215,27 +215,27 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Account</h2>
         <div className="space-y-2">
           <Label htmlFor="fullName">Full Name *</Label>
-          <Input id="fullName" value={form.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder="Jane Smith" />
+          <Input id="fullName" value={form.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder="Jane Smith" className="focus-visible:ring-[#39484d]" />
           {fieldError("fullName")}
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Work Email *</Label>
-          <Input id="email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" />
+          <Input id="email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" className="focus-visible:ring-[#39484d]" />
           {fieldError("email")}
         </div>
         <div className="space-y-2">
           <Label htmlFor="phone">Mobile Phone *</Label>
-          <Input id="phone" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="(555) 123-4567" />
+          <Input id="phone" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="(555) 123-4567" className="focus-visible:ring-[#39484d]" />
           {fieldError("phone")}
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password *</Label>
-          <Input id="password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" minLength={8} />
+          <Input id="password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" minLength={8} className="focus-visible:ring-[#39484d]" />
           {fieldError("password")}
         </div>
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">Confirm Password *</Label>
-          <Input id="confirmPassword" type="password" value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} placeholder="••••••••" />
+          <Input id="confirmPassword" type="password" value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} placeholder="••••••••" className="focus-visible:ring-[#39484d]" />
           {fieldError("confirmPassword")}
         </div>
       </div>
@@ -250,6 +250,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
             value={form.professionalId}
             onChange={(e) => set("professionalId", e.target.value)}
             placeholder="CA-DRE-123456 or MLS ID"
+            className="focus-visible:ring-[#39484d]"
           />
           <p className="text-xs text-muted-foreground">Use whichever identifier you actively practice under.</p>
           {fieldError("professionalId")}
@@ -257,7 +258,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         <div className="space-y-2">
           <Label>License State *</Label>
           <Select value={form.licenseState} onValueChange={(v) => set("licenseState", v)}>
-            <SelectTrigger><SelectValue placeholder="Select state" /></SelectTrigger>
+            <SelectTrigger className="focus:ring-[#39484d]"><SelectValue placeholder="Select state" /></SelectTrigger>
             <SelectContent>
               {US_STATES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
@@ -267,17 +268,18 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="brokerageName">Brokerage Name *</Label>
-          <Input id="brokerageName" value={form.brokerageName} onChange={(e) => set("brokerageName", e.target.value)} placeholder="ABC Realty" />
+          <Input id="brokerageName" value={form.brokerageName} onChange={(e) => set("brokerageName", e.target.value)} placeholder="ABC Realty" className="focus-visible:ring-[#39484d]" />
           <p className="text-xs text-muted-foreground">Brokerage address, bio, specialties, and experience can be completed later in Settings.</p>
           {fieldError("brokerageName")}
         </div>
       </div>
 
-      <div className="rounded-xl border p-4">
+      <div className="rounded-xl border border-[#e4dcd0] bg-white/50 p-4">
         <div className="flex items-start gap-3">
           <Checkbox
             id="attested"
             checked={form.attested}
+            className="border-[#cbbfa8] data-[state=checked]:border-[#1d1d1d] data-[state=checked]:bg-[#1d1d1d] data-[state=checked]:text-white"
             onCheckedChange={(checked) => {
               setForm((prev) => ({ ...prev, attested: checked === true }));
               if (errors.attested && checked === true) {
@@ -301,13 +303,13 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]" disabled={loading}>
         {loading ? "Creating account…" : "Create Self-Certified Agent Account"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link to="/login" className="font-medium text-primary hover:underline">Sign in</Link>
+        <Link to="/login" className="font-medium text-[#1d1d1d] hover:underline">Sign in</Link>
       </p>
     </form>
   );
@@ -359,7 +361,7 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
   if (submitted) {
     return (
       <div className="space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FADC6A]/25 text-[#1d1d1d]">
           <CheckCircle2 className="h-8 w-8" />
         </div>
         <div>
@@ -369,7 +371,7 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
           </p>
         </div>
         <Link to="/">
-          <Button variant="outline">Back to Home</Button>
+          <Button variant="outline" className="border-[#d7c9b1] text-[#1d1d1d] hover:bg-[#f0ebe3] hover:text-[#1d1d1d]">Back to Home</Button>
         </Link>
       </div>
     );
@@ -392,24 +394,24 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="refName">Full Name *</Label>
-          <Input id="refName" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="John Doe" required />
+          <Input id="refName" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="John Doe" required className="focus-visible:ring-[#39484d]" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="refEmail">Email *</Label>
-          <Input id="refEmail" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" required />
+          <Input id="refEmail" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" required className="focus-visible:ring-[#39484d]" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="refPhone">Phone *</Label>
-          <Input id="refPhone" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="(555) 123-4567" required />
+          <Input id="refPhone" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="(555) 123-4567" required className="focus-visible:ring-[#39484d]" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="refLocation">Property Location *</Label>
-          <Input id="refLocation" value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="City, State or address" required />
+          <Input id="refLocation" value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="City, State or address" required className="focus-visible:ring-[#39484d]" />
         </div>
         <div className="space-y-2">
           <Label>Property Type</Label>
           <Select value={form.propertyType} onValueChange={(v) => set("propertyType", v)}>
-            <SelectTrigger><SelectValue placeholder="Select type (optional)" /></SelectTrigger>
+            <SelectTrigger className="focus:ring-[#39484d]"><SelectValue placeholder="Select type (optional)" /></SelectTrigger>
             <SelectContent>
               {Object.entries(ASSET_TYPE_LABELS).map(([key, label]) => (
                 <SelectItem key={key} value={key}>{label}</SelectItem>
@@ -419,21 +421,21 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="refValue">Estimated Property Value</Label>
-          <Input id="refValue" value={form.estimatedValue} onChange={(e) => set("estimatedValue", e.target.value)} placeholder="$" />
+          <Input id="refValue" value={form.estimatedValue} onChange={(e) => set("estimatedValue", e.target.value)} placeholder="$" className="focus-visible:ring-[#39484d]" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="refNotes">Anything else you'd like us to know?</Label>
-          <Textarea id="refNotes" value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={3} />
+          <Textarea id="refNotes" value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={3} className="focus-visible:ring-[#39484d]" />
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]" disabled={loading}>
         {loading ? "Submitting…" : "Request Agent Referral"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link to="/login" className="font-medium text-primary hover:underline">Sign in</Link>
+        <Link to="/login" className="font-medium text-[#1d1d1d] hover:underline">Sign in</Link>
       </p>
     </form>
   );
