@@ -18,11 +18,13 @@ export default function Signup() {
   const [step, setStep] = useState<Step>("choose");
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg">
-        {step === "choose" && <RoleSelection onSelect={setStep} />}
-        {step === "agent" && <AgentSignupForm onBack={() => setStep("choose")} />}
-        {step === "referral" && <ReferralForm onBack={() => setStep("choose")} />}
+    <div className="min-h-[100dvh] w-full bg-[#F4F2EE] px-4 py-12">
+      <div className="flex min-h-[80vh] items-center justify-center">
+        <div className="w-full max-w-lg">
+          {step === "choose" && <RoleSelection onSelect={setStep} />}
+          {step === "agent" && <AgentSignupForm onBack={() => setStep("choose")} />}
+          {step === "referral" && <ReferralForm onBack={() => setStep("choose")} />}
+        </div>
       </div>
     </div>
   );
