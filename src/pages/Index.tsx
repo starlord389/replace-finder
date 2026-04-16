@@ -2073,8 +2073,8 @@ export default function Index() {
 
       [data-exchangeup-hero-renders] {
         position: absolute;
-        right: max(24px, min(5vw, 56px));
-        top: 86px;
+        right: max(72px, min(9vw, 130px));
+        top: 170px;
         width: min(540px, 42vw);
         height: 392px;
         pointer-events: none;
