@@ -484,6 +484,32 @@ type FeatureShowcaseItem = {
 const FEATURE_SHOWCASE_HEADING = "Built for high performance";
 const FEATURE_SHOWCASE_SUBHEADING =
   "Grovia gives your team everything it needs to stay aligned, track performance, and scale with confidence — all in one place.";
+const LANDING_DASHBOARD_IMAGE_SRC = "/landing-dashboard-render.png";
+const HERO_LIST_IMAGE_SRC = "/landing-hero-list-render.png";
+const HERO_KPI_IMAGE_SRC = "/landing-hero-kpi-render.png";
+
+function createLandingRenderImage(
+  doc: Document,
+  src: string,
+  alt: string,
+  objectPosition = "center center",
+) {
+  const image = doc.createElement("img");
+  image.src = src;
+  image.alt = alt;
+  image.decoding = "async";
+  image.style.cssText = [
+    "display:block",
+    "width:100%",
+    "height:100%",
+    "border-radius:inherit",
+    "corner-shape:inherit",
+    "object-fit:cover",
+    `object-position:${objectPosition}`,
+  ].join(";");
+
+  return image;
+}
 
 const FEATURE_SHOWCASE_ITEMS: FeatureShowcaseItem[] = [
   {
@@ -1979,6 +2005,154 @@ export default function Index() {
       }
     });
   }, []);
+
+  const replaceDashboardScreenshot = useCallback((doc: Document) => {
+    const screenshots = Array.from(
+      doc.querySelectorAll(
+        "img[alt='Dashboard UI'], img[src*='gU3HkY1CdAlVmjaQoAPwETeEos']",
+      ),
+    ) as HTMLImageElement[];
+
+    screenshots.forEach((screenshot) => {
+      const wrapper = screenshot.parentElement;
+      if (!wrapper) return;
+
+      wrapper.replaceChildren(
+        createLandingRenderImage(
+          doc,
+          LANDING_DASHBOARD_IMAGE_SRC,
+          "1031 ExchangeUp dashboard preview",
+          "center top",
+        ),
+      );
+    });
+  }, []);
+
+  const replaceHeroRenders = useCallback((doc: Document) => {
+    doc.querySelector("[data-exchangeup-hero-renders-style]")?.remove();
+    doc.querySelector("[data-exchangeup-hero-renders]")?.remove();
+
+    doc
+      .querySelectorAll("[data-exchangeup-hero-original-hidden='true']")
+      .forEach((node) => {
+        node.removeAttribute("data-exchangeup-hero-original-hidden");
+        (node as HTMLElement).style.removeProperty("display");
+      });
+
+    const heroSection = doc.querySelector(
+      'header[data-framer-name="Hero Section"]',
+    ) as HTMLElement | null;
+    if (!heroSection) return;
+
+    const heroListWidgets = Array.from(
+      doc.querySelectorAll("[data-framer-name='Widget']"),
+    ).filter((node) => {
+      const text = (node.textContent ?? "").replace(/\s+/g, " ").trim();
+      return text.includes("Customers") && text.includes("Sort by Newest");
+    }) as HTMLElement[];
+
+    const heroKpiWidgets = Array.from(
+      doc.querySelectorAll("[data-framer-name='Chart']"),
+    ).filter((node) => {
+      const text = (node.textContent ?? "").replace(/\s+/g, " ").trim();
+      return text.includes("Daily Average") && text.includes("+30m");
+    }) as HTMLElement[];
+
+    [...heroListWidgets, ...heroKpiWidgets].forEach((widget) => {
+      widget.setAttribute("data-exchangeup-hero-original-hidden", "true");
+      widget.style.display = "none";
+    });
+
+    const style = doc.createElement("style");
+    style.setAttribute("data-exchangeup-hero-renders-style", "true");
+    style.textContent = `
+      header[data-framer-name="Hero Section"] {
+        position: relative;
+        overflow: visible;
+      }
+
+      [data-exchangeup-hero-renders] {
+        position: absolute;
+        right: max(24px, min(5vw, 56px));
+        top: 86px;
+        width: min(540px, 42vw);
+        height: 392px;
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      [data-exchangeup-hero-renders] img {
+        position: absolute;
+        display: block;
+        max-width: none;
+      }
+
+      [data-exchangeup-hero-card="list"] {
+        inset: 0 44px 72px 0;
+        width: calc(100% - 44px);
+        height: calc(100% - 72px);
+        object-fit: contain;
+        filter: drop-shadow(0 24px 42px rgba(77, 63, 41, 0.12));
+      }
+
+      [data-exchangeup-hero-card="kpi"] {
+        right: 0;
+        bottom: 0;
+        width: 52%;
+        object-fit: contain;
+        transform: rotate(-3deg);
+        filter: drop-shadow(0 20px 34px rgba(77, 63, 41, 0.14));
+      }
+
+      @media (max-width: 809.98px) {
+        header[data-framer-name="Hero Section"] {
+          min-height: 860px !important;
+        }
+
+        [data-exchangeup-hero-renders] {
+          left: 18px;
+          right: 18px;
+          top: auto;
+          bottom: 22px;
+          width: auto;
+          height: 312px;
+        }
+
+        [data-exchangeup-hero-card="list"] {
+          inset: 0 38px 74px 0;
+          width: calc(100% - 38px);
+          height: calc(100% - 74px);
+        }
+
+        [data-exchangeup-hero-card="kpi"] {
+          width: 61%;
+          right: -2px;
+          bottom: -2px;
+        }
+      }
+    `;
+    doc.head.appendChild(style);
+
+    const heroRenders = doc.createElement("div");
+    heroRenders.setAttribute("data-exchangeup-hero-renders", "true");
+    heroRenders.innerHTML = `
+      <img
+        data-exchangeup-hero-card="list"
+        src="${HERO_LIST_IMAGE_SRC}"
+        alt="1031 ExchangeUp client pipeline"
+        decoding="async"
+      />
+      <img
+        data-exchangeup-hero-card="kpi"
+        src="${HERO_KPI_IMAGE_SRC}"
+        alt="1031 ExchangeUp match activity"
+        decoding="async"
+      />
+    `;
+
+    heroSection.appendChild(heroRenders);
+  }, []);
+
   const injectLogoSlider = useCallback((doc: Document) => {
     doc.querySelector("[data-exchangeup-logo-slider]")?.remove();
     doc.querySelector("[data-exchangeup-logo-slider-style]")?.remove();
@@ -2212,10 +2386,12 @@ export default function Index() {
     }
 
     rewriteHeroCopy(doc);
+    replaceHeroRenders(doc);
+    replaceDashboardScreenshot(doc);
     setupEasySetupCards(frame);
     injectLogoSlider(doc);
     injectFeatureShowcase(doc);
-  }, [injectFeatureShowcase, injectLogoSlider, injectNavbarStyles, rewriteHeroCopy, setupEasySetupCards]);
+  }, [injectFeatureShowcase, injectLogoSlider, injectNavbarStyles, replaceDashboardScreenshot, replaceHeroRenders, rewriteHeroCopy, setupEasySetupCards]);
 
   const handleFrameLoad = useCallback((frame: HTMLIFrameElement | null) => {
     cleanIframe(frame);
