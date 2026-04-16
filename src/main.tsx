@@ -8,3 +8,12 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </AppErrorBoundary>
 );
+
+// Remove preloader after React mounts
+requestAnimationFrame(() => {
+  const el = document.getElementById("preloader");
+  if (el) {
+    el.classList.add("fade-out");
+    el.addEventListener("transitionend", () => el.remove());
+  }
+});
