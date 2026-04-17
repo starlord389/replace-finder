@@ -94,6 +94,72 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      demo_requests: {
+        Row: {
+          company: string
+          created_at: string
+          full_name: string
+          id: string
+          phone: string | null
+          role: string
+          status: string
+          timeline: string | null
+          use_case: string
+          work_email: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          role: string
+          status?: string
+          timeline?: string | null
+          use_case: string
+          work_email: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          role?: string
+          status?: string
+          timeline?: string | null
+          use_case?: string
+          work_email?: string
+        }
+        Relationships: []
+      }
       dst_properties: {
         Row: {
           address: string | null
@@ -1555,6 +1621,8 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          launchpad_completed_at: string | null
+          launchpad_version: string | null
           license_state: string | null
           mls_number: string | null
           phone: string | null
@@ -1576,6 +1644,8 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          launchpad_completed_at?: string | null
+          launchpad_version?: string | null
           license_state?: string | null
           mls_number?: string | null
           phone?: string | null
@@ -1597,6 +1667,8 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          launchpad_completed_at?: string | null
+          launchpad_version?: string | null
           license_state?: string | null
           mls_number?: string | null
           phone?: string | null
@@ -1971,78 +2043,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      contact_submissions: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          message: string
-          name: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          message: string
-          name: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          message?: string
-          name?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      demo_requests: {
-        Row: {
-          company: string
-          created_at: string
-          full_name: string
-          id: string
-          phone: string | null
-          role: string
-          status: string
-          timeline: string | null
-          updated_at: string
-          use_case: string
-          work_email: string
-        }
-        Insert: {
-          company: string
-          created_at?: string
-          full_name: string
-          id?: string
-          phone?: string | null
-          role: string
-          status?: string
-          timeline?: string | null
-          updated_at?: string
-          use_case: string
-          work_email: string
-        }
-        Update: {
-          company?: string
-          created_at?: string
-          full_name?: string
-          id?: string
-          phone?: string | null
-          role?: string
-          status?: string
-          timeline?: string | null
-          updated_at?: string
-          use_case?: string
-          work_email?: string
-        }
-        Relationships: []
       }
       support_tickets: {
         Row: {
