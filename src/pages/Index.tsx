@@ -2653,6 +2653,8 @@ export default function Index() {
       const form = section.querySelector<HTMLFormElement>("form");
       if (!form) return;
 
+      section.setAttribute("data-exchangeup-anchor", "contact");
+
       form.parentElement
         ?.querySelectorAll<HTMLElement>("[data-exchangeup-contact-status='true']")
         .forEach((node) => node.remove());
@@ -3518,17 +3520,25 @@ export default function Index() {
         return;
       }
 
-      const linkMap: Record<string, { href: string; label?: string }> = {
-        about: { href: "/how-it-works", label: "How It Works" },
-        features: { href: "/features" },
-        pricing: { href: "/pricing" },
+      const linkMap: Record<
+        string,
+        { href: string; label?: string; scrollKey?: "process" | "feature" | "contact" }
+      > = {
+        about: { href: "#process", label: "How It Works", scrollKey: "process" },
+        features: { href: "#feature", label: "Features", scrollKey: "feature" },
+        pricing: { href: "#contact", label: "Contact", scrollKey: "contact" },
         "contact us": { href: "/signup", label: "Get Started" },
       };
 
       const match = linkMap[text];
       if (match) {
         anchor.setAttribute("href", match.href);
-        anchor.setAttribute("target", "_parent");
+        if (match.scrollKey) {
+          anchor.removeAttribute("target");
+          anchor.setAttribute("data-exchangeup-scroll-key", match.scrollKey);
+        } else {
+          anchor.setAttribute("target", "_parent");
+        }
         if (match.label) {
           const textEl = anchor.querySelector("[data-framer-component-type='RichTextContainer'] p");
           if (textEl) {
@@ -3537,6 +3547,39 @@ export default function Index() {
         }
       }
     });
+
+    const resolveScrollTarget = (
+      key: "process" | "feature" | "contact",
+    ): HTMLElement | null => {
+      if (key === "contact") {
+        const contactMarkers = Array.from(
+          doc.querySelectorAll<HTMLElement>("[data-exchangeup-anchor='contact']"),
+        );
+        return (
+          contactMarkers.find((node) => node.offsetParent !== null) ??
+          contactMarkers[0] ??
+          null
+        );
+      }
+      return doc.getElementById(key);
+    };
+
+    doc
+      .querySelectorAll<HTMLAnchorElement>("[data-exchangeup-scroll-key]")
+      .forEach((anchor) => {
+        if (anchor.dataset.exchangeupScrollBound === "true") return;
+        anchor.dataset.exchangeupScrollBound = "true";
+        anchor.addEventListener("click", (event) => {
+          const key = anchor.getAttribute(
+            "data-exchangeup-scroll-key",
+          ) as "process" | "feature" | "contact" | null;
+          if (!key) return;
+          const target = resolveScrollTarget(key);
+          if (!target) return;
+          event.preventDefault();
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
 
     doc
       .querySelectorAll("[data-exchangeup-injected-login]")
