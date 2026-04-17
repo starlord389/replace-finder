@@ -3648,6 +3648,25 @@ export default function Index() {
     wireContactForm(doc);
     injectFooterSection(doc);
     injectFeatureShowcase(doc);
+
+    doc.querySelectorAll<HTMLAnchorElement>("a[href^='/']").forEach((anchor) => {
+      if (anchor.hasAttribute("data-exchangeup-scroll-key")) return;
+      if (anchor.dataset.exchangeupTopNavBound === "true") return;
+      anchor.dataset.exchangeupTopNavBound = "true";
+      anchor.addEventListener("click", (event) => {
+        const href = anchor.getAttribute("href");
+        if (!href || !href.startsWith("/")) return;
+        if (event.defaultPrevented) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        const topWindow = window.top ?? window.parent ?? window;
+        try {
+          topWindow.location.assign(href);
+        } catch {
+          window.location.assign(href);
+        }
+      });
+    });
   }, [injectButtonArrows, injectContactSection, injectFaqSection, injectFeatureShowcase, injectFooterSection, injectLogoSlider, injectNavbarStyles, removeSectionsBetweenFeatureAndFaq, replaceDashboardScreenshot, replaceHeroRenders, rewriteHeroCopy, setupEasySetupCards, wireContactForm]);
 
   const handleFrameLoad = useCallback((frame: HTMLIFrameElement | null) => {
