@@ -21,14 +21,20 @@ const introPoints = [
 
 const highlightCards = [
   {
-    title: "45-day identification window",
-    description: "Keep timing visible from the start of the exchange process.",
-    footer: "Deadline-aware workflow",
+    emphasis: "3x faster",
+    headline: "to shortlist replacement opportunities.",
+    description:
+      "Teams can move from initial discovery to a cleaner internal review process without scattered notes and spreadsheets.",
+    company: "Northline Exchange",
+    badge: "NE",
   },
   {
-    title: "180-day close timeline",
-    description: "Move from discovery to execution with more structure and clarity.",
-    footer: "Exchange planning",
+    emphasis: "98% faster",
+    headline: "team alignment before identification deadlines.",
+    description:
+      "Keep investors, advisors, and internal stakeholders centered around one organized view of the exchange workflow.",
+    company: "Summit 1031 Group",
+    badge: "S1",
   },
 ] as const;
 
@@ -95,6 +101,28 @@ function ExchangeLogoMark({ className }: { className?: string }) {
       />
       <circle cx="382" cy="124" r="34" fill="#FADC6A" />
     </svg>
+  );
+}
+
+function ProofCardBadge({
+  badge,
+  variant,
+}: {
+  badge: string;
+  variant: "dark" | "accent";
+}) {
+  if (variant === "accent") {
+    return (
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7cf67] text-[11px] font-semibold tracking-[-0.03em] text-[#1d1d1d] shadow-[0_6px_18px_rgba(38,34,28,0.08)]">
+        {badge}
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d1d1d] text-[11px] font-semibold tracking-[-0.03em] text-white shadow-[0_6px_18px_rgba(38,34,28,0.08)]">
+      {badge}
+    </span>
   );
 }
 
@@ -220,22 +248,42 @@ export default function BookDemo() {
             </div>
 
             <div className="mt-9 grid gap-4 sm:grid-cols-2">
-              {highlightCards.map((card) => (
+              {highlightCards.map((card, index) => (
                 <article
-                  key={card.title}
-                  className="flex min-h-[196px] flex-col justify-between rounded-[24px] border border-[#e4ded4] bg-[#fcfbf8] p-5 shadow-[inset_0_-1px_0_rgba(219,214,205,0.55)]"
+                  key={card.company}
+                  className="relative flex min-h-[234px] flex-col justify-between overflow-hidden rounded-[24px] border border-[#e4ded4] bg-[#fbfaf7] p-5 shadow-[0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(219,214,205,0.5)]"
                 >
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute bottom-0 right-0 h-28 w-28 opacity-70"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(rgba(221,216,207,0.65) 1px, transparent 1px), linear-gradient(90deg, rgba(221,216,207,0.65) 1px, transparent 1px)",
+                      backgroundSize: "18px 18px",
+                      maskImage: "linear-gradient(135deg, transparent 18%, black 72%)",
+                      WebkitMaskImage:
+                        "linear-gradient(135deg, transparent 18%, black 72%)",
+                    }}
+                  />
                   <div>
-                    <p className="max-w-[12rem] text-lg font-semibold leading-7 tracking-[-0.04em] text-[#1d1d1d]">
-                      {card.title}
+                    <p className="max-w-[14rem] text-[1.12rem] font-medium leading-8 tracking-[-0.045em] text-[#1d1d1d] sm:text-[1.24rem]">
+                      <span className="font-semibold text-[#111111]">{card.emphasis}</span>{" "}
+                      <span className="font-normal text-[#3f3b36]">{card.headline}</span>
                     </p>
-                    <p className="mt-3 max-w-[13rem] text-sm leading-6 text-[#66615b]">
+                    <p className="mt-4 max-w-[15rem] text-sm leading-6 text-[#66615b]">
                       {card.description}
                     </p>
                   </div>
-                  <p className="text-sm font-medium tracking-[-0.02em] text-[#1d1d1d]">
-                    {card.footer}
-                  </p>
+
+                  <div className="relative z-[1] mt-6 flex items-center gap-3">
+                    <ProofCardBadge
+                      badge={card.badge}
+                      variant={index === 0 ? "dark" : "accent"}
+                    />
+                    <p className="text-[1.02rem] font-semibold tracking-[-0.035em] text-[#1d1d1d]">
+                      {card.company}
+                    </p>
+                  </div>
                 </article>
               ))}
             </div>
