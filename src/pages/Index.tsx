@@ -2363,6 +2363,52 @@ function getFooterSections(doc: Document) {
   ).filter((section) => (section.textContent ?? "").includes("hello@grovia.io"));
 }
 
+function isMissingContactSubmissionsTable(message: string) {
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    normalizedMessage.includes("contact_submissions") &&
+    (normalizedMessage.includes("schema cache") ||
+      normalizedMessage.includes("could not find the table") ||
+      normalizedMessage.includes("relation") ||
+      normalizedMessage.includes("does not exist"))
+  );
+}
+
+async function submitContactLead({
+  name,
+  email,
+  message,
+}: {
+  name: string;
+  email: string;
+  message: string;
+}) {
+  const contactSubmissionResult = await supabase.from("contact_submissions").insert({
+    name,
+    email,
+    message,
+  });
+
+  if (!contactSubmissionResult.error) {
+    return contactSubmissionResult;
+  }
+
+  if (!isMissingContactSubmissionsTable(contactSubmissionResult.error.message)) {
+    return contactSubmissionResult;
+  }
+
+  return supabase.from("demo_requests").insert({
+    full_name: name,
+    work_email: email,
+    company: "Website contact inquiry",
+    role: "Contact form lead",
+    phone: null,
+    timeline: null,
+    use_case: message,
+  });
+}
+
 export default function Index() {
   const lenisRef = useRef<Lenis | null>(null);
   const lenisRafRef = useRef<number | null>(null);
@@ -2667,7 +2713,7 @@ export default function Index() {
         if (submitLabel) submitLabel.textContent = "Submitting...";
         setStatus("Submitting your message...", "default");
 
-        const { error } = await supabase.from("contact_submissions").insert({
+        const { error } = await submitContactLead({
           name,
           email,
           message,
@@ -3060,6 +3106,35 @@ export default function Index() {
       if (lines[1]) {
         lines[1].textContent = "";
         (lines[1] as HTMLElement).style.display = "none";
+      }
+
+      const parent = (lines[0] as HTMLElement | undefined)?.parentElement;
+      if (lines[0] && parent) {
+        let eyebrow = parent.querySelector<HTMLElement>(
+          "[data-exchangeup-hero-eyebrow='true']",
+        );
+        if (!eyebrow) {
+          eyebrow = doc.createElement("p");
+          eyebrow.setAttribute("data-exchangeup-hero-eyebrow", "true");
+          parent.insertBefore(eyebrow, lines[0]);
+        }
+        eyebrow.textContent = "Built for real estate agents & brokers";
+        eyebrow.style.margin = "0 0 14px 0";
+        eyebrow.style.padding = "6px 14px";
+        eyebrow.style.display = "inline-flex";
+        eyebrow.style.alignSelf = "flex-start";
+        eyebrow.style.alignItems = "center";
+        eyebrow.style.width = "fit-content";
+        eyebrow.style.borderRadius = "999px";
+        eyebrow.style.border = "1px solid rgba(29,29,29,0.12)";
+        eyebrow.style.background = "rgba(29,29,29,0.04)";
+        eyebrow.style.fontFamily = NAVBAR_FONT_STACK;
+        eyebrow.style.fontSize = "12px";
+        eyebrow.style.fontWeight = "600";
+        eyebrow.style.letterSpacing = "0.14em";
+        eyebrow.style.textTransform = "uppercase";
+        eyebrow.style.color = "#1d1d1d";
+        eyebrow.style.lineHeight = "1";
       }
     });
 
