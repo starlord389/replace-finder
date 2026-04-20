@@ -1,8 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { WizardState, formatCurrency, parseCurrency } from "@/lib/exchangeWizardTypes";
-import { ASSET_TYPE_LABELS, STRATEGY_TYPE_LABELS, URGENCY_OPTIONS } from "@/lib/constants";
+import {
+  DEFAULT_SELLER_COST_ESTIMATE_RATE,
+  WizardState,
+  formatCurrency,
+  getEstimatedExchangeEconomics,
+  parseCurrency,
+} from "@/lib/exchangeWizardTypes";
+import { ASSET_TYPE_LABELS } from "@/lib/constants";
 
 interface Props {
   data: WizardState;
@@ -25,7 +31,8 @@ function Field({ label, value, recommended }: { label: string; value?: string | 
 
 export default function StepReview({ data, clientName, onBack, onSubmit, saving }: Props) {
   const { property: p, financials: f, criteria: c } = data;
-  const urgencyLabel = URGENCY_OPTIONS.find(o => o.value === c.urgency)?.label || c.urgency;
+  const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(f);
+  const sellerCostRatePercent = Math.round(DEFAULT_SELLER_COST_ESTIMATE_RATE * 100);
 
   return (
     <div className="space-y-6">
@@ -45,16 +52,35 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving 
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Pledged Property</CardTitle></CardHeader>
         <CardContent className="space-y-1">
           {p.property_name && <p className="font-medium">{p.property_name}</p>}
-          <p className="text-sm text-muted-foreground">{[p.address, p.unit_suite].filter(Boolean).join(", ")}</p>
+          <p className="text-sm text-muted-foreground">{p.address}</p>
           <p className="text-sm text-muted-foreground">{[p.city, p.state, p.zip].filter(Boolean).join(", ")}</p>
           <div className="mt-3 grid grid-cols-2 gap-x-8">
             <Field label="Asset Type" value={p.asset_type ? ASSET_TYPE_LABELS[p.asset_type as keyof typeof ASSET_TYPE_LABELS] : undefined} />
-            <Field label="Strategy" value={p.strategy_type ? STRATEGY_TYPE_LABELS[p.strategy_type as keyof typeof STRATEGY_TYPE_LABELS] : undefined} />
-            <Field label="Property Class" value={p.property_class} />
             <Field label="Year Built" value={p.year_built} />
             <Field label="Units" value={p.units} />
             <Field label="Building SF" value={p.building_square_footage ? Number(p.building_square_footage).toLocaleString() : undefined} />
           </div>
+          <Field label="Description" value={p.description} />
+          {data.images.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-2 text-sm text-muted-foreground">{data.images.length} photo{data.images.length > 1 ? "s" : ""} attached</p>
+              <div className="flex flex-wrap gap-2">
+                {data.images.slice(0, 6).map((img) => (
+                  <img
+                    key={img.storage_path}
+                    src={img.url}
+                    alt={img.file_name}
+                    className="h-16 w-20 rounded-md border object-cover"
+                  />
+                ))}
+                {data.images.length > 6 && (
+                  <div className="flex h-16 w-20 items-center justify-center rounded-md border bg-muted text-xs font-medium text-muted-foreground">
+                    +{data.images.length - 6}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -66,21 +92,21 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving 
           <Field label="NOI" value={formatCurrency(parseCurrency(f.noi))} />
           <Field label="Cap Rate" value={f.cap_rate ? `${f.cap_rate}%` : undefined} />
           <Field label="Occupancy" value={f.occupancy_rate ? `${f.occupancy_rate}%` : undefined} />
-          <Field label="Loan Balance" value={formatCurrency(parseCurrency(f.loan_balance))} recommended={!f.loan_balance} />
-          <Field label="Loan Type" value={f.loan_type} />
+          <Field label="Loan Balance" value={formatCurrency(parseCurrency(f.loan_balance))} />
         </CardContent>
       </Card>
 
       {/* Exchange Economics */}
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Exchange Economics</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-2 gap-x-8">
-          <Field label="Exchange Proceeds" value={formatCurrency(parseCurrency(f.exchange_proceeds))} />
-          <Field label="Estimated Equity" value={formatCurrency(parseCurrency(f.estimated_equity))} />
-          <Field label="Estimated Basis" value={formatCurrency(parseCurrency(f.estimated_basis))} recommended={!f.estimated_basis} />
-          <Field label="Estimated Gain" value={formatCurrency(parseCurrency(f.estimated_gain))} />
-          <Field label="Est. Tax Liability" value={formatCurrency(parseCurrency(f.estimated_tax_liability))} />
-          <Field label="Sale Close Date" value={f.sale_close_date || undefined} recommended={!f.sale_close_date} />
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-x-8">
+            <Field label="Estimated Exchange Proceeds" value={formatCurrency(exchangeProceeds)} />
+            <Field label="Estimated Equity" value={formatCurrency(estimatedEquity)} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Exchange proceeds are estimated using a {sellerCostRatePercent}% seller cost allowance for closing costs and commissions.
+          </p>
         </CardContent>
       </Card>
 
@@ -97,10 +123,8 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving 
             {c.target_states.map(s => <Badge key={s} variant="outline" className="mr-1 text-xs">{s}</Badge>)}
           </div>
           <Field label="Price Range" value={`${formatCurrency(parseCurrency(c.target_price_min))} – ${formatCurrency(parseCurrency(c.target_price_max))}`} />
-          <Field label="Urgency" value={urgencyLabel} />
-          {c.open_to_dsts && <Field label="Open to DSTs" value="Yes" />}
-          {c.open_to_tics && <Field label="Open to TICs" value="Yes" />}
-          {c.must_replace_debt && <Field label="Must Replace Debt" value={c.min_debt_replacement ? formatCurrency(parseCurrency(c.min_debt_replacement)) : "Yes"} />}
+          {c.target_metros.length > 0 && <Field label="Target Metros" value={c.target_metros.join(", ")} />}
+          {c.target_year_built_min && <Field label="Min Year Built" value={c.target_year_built_min} />}
         </CardContent>
       </Card>
 

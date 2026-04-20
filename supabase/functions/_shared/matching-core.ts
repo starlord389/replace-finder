@@ -9,9 +9,6 @@ export interface ScoredMatch {
   asset: number;
   strategy: number;
   financial: number;
-  timing: number;
-  debtFit: number;
-  scaleFit: number;
   estimated_cash_boot: number | null;
   estimated_mortgage_boot: number | null;
   estimated_total_boot: number | null;
@@ -133,9 +130,6 @@ export async function persistMatchesAndNotifications(db: any, matches: ScoredMat
       asset_score: m.asset,
       strategy_score: m.strategy,
       financial_score: m.financial,
-      timing_score: m.timing,
-      debt_fit_score: m.debtFit,
-      scale_fit_score: m.scaleFit,
       estimated_cash_boot: m.estimated_cash_boot,
       estimated_mortgage_boot: m.estimated_mortgage_boot,
       estimated_total_boot: m.estimated_total_boot,
@@ -173,19 +167,13 @@ function scoreProperty(prop: any, fin: any, criteria: any, exchange: any): Recor
   const asset = scoreAsset(prop, criteria);
   const strategy = scoreStrategy(prop, criteria);
   const financial = scoreFinancial(prop, fin, criteria);
-  const timing = scoreTiming(criteria);
-  const debtFit = scoreDebtFit(fin, criteria);
-  const scaleFit = scoreScaleFit(prop, criteria);
 
   const total =
     price * MATCH_WEIGHTS.price +
     geo * MATCH_WEIGHTS.geo +
     asset * MATCH_WEIGHTS.asset +
     strategy * MATCH_WEIGHTS.strategy +
-    financial * MATCH_WEIGHTS.financial +
-    timing * MATCH_WEIGHTS.timing +
-    debtFit * MATCH_WEIGHTS.debtFit +
-    scaleFit * MATCH_WEIGHTS.scaleFit;
+    financial * MATCH_WEIGHTS.financial;
 
   return {
     total: round(total),
@@ -194,9 +182,6 @@ function scoreProperty(prop: any, fin: any, criteria: any, exchange: any): Recor
     asset: round(asset),
     strategy: round(strategy),
     financial: round(financial),
-    timing: round(timing),
-    debtFit: round(debtFit),
-    scaleFit: round(scaleFit),
   };
 }
 
@@ -204,27 +189,43 @@ function round(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-function scorePrice(prop: any, fin: any, criteria: any, exchange: any): number {
+// Commercial loans cap out around 75% LTV, so the buyer's equity (exchange_proceeds)
+// can stretch to roughly 4x its value as a purchase price without cash out of pocket.
+const MAX_COMMERCIAL_LTV = 0.75;
+const EQUITY_TO_MAX_PRICE_MULTIPLIER = 1 / (1 - MAX_COMMERCIAL_LTV);
+
+function scorePrice(_prop: any, fin: any, criteria: any, exchange: any): number {
   const askingPrice = Number(fin?.asking_price || 0);
   if (!askingPrice) return 50;
 
-  const min = Number(criteria.target_price_min || 0);
-  const max = Number(criteria.target_price_max || 0);
-  if (min || max) {
-    const effectiveMax = max || min * 3;
-    const effectiveMin = min || 0;
+  const proceeds = Number(exchange?.exchange_proceeds || 0);
+  const maxBudget = proceeds > 0 ? proceeds * EQUITY_TO_MAX_PRICE_MULTIPLIER : 0;
+
+  // Hard affordability ceiling: if the buyer can't cover this with a 75% LTV loan, reject.
+  if (maxBudget > 0 && askingPrice > maxBudget) return 0;
+
+  const userMin = Number(criteria?.target_price_min || 0);
+  const userMax = Number(criteria?.target_price_max || 0);
+
+  if (userMin || userMax) {
+    // Clamp the user's max to the affordability ceiling.
+    const effectiveMax = maxBudget > 0
+      ? Math.min(userMax || maxBudget, maxBudget)
+      : (userMax || userMin * 3);
+    const effectiveMin = userMin || 0;
     if (askingPrice >= effectiveMin && askingPrice <= effectiveMax) return 100;
     const mid = (effectiveMin + effectiveMax) / 2 || effectiveMin || effectiveMax;
-    const deviation = Math.abs(askingPrice - mid) / mid;
+    const deviation = Math.abs(askingPrice - mid) / (mid || 1);
     return Math.max(0, 100 - deviation * 100);
   }
 
-  const proceeds = Number(exchange.exchange_proceeds || 0);
-  if (!proceeds) return 50;
-  const ratio = askingPrice / proceeds;
-  if (ratio >= 0.8 && ratio <= 2.0) return 100;
-  if (ratio < 0.8) return Math.max(0, (ratio / 0.8) * 80);
-  return Math.max(0, 100 - (ratio - 2.0) * 50);
+  // No user-specified range: prefer bigger properties that fully deploy the buyer's equity.
+  if (maxBudget > 0) {
+    return Math.min(100, Math.max(0, (askingPrice / maxBudget) * 100));
+  }
+
+  // Fallback when we have no equity signal yet: neutral.
+  return 50;
 }
 
 function scoreGeo(prop: any, criteria: any): number {
@@ -253,95 +254,56 @@ function scoreStrategy(prop: any, criteria: any): number {
   return criteria.target_strategies.includes(prop.strategy_type) ? 100 : 20;
 }
 
+// "Property quality" score. Rewards higher cap rate, higher occupancy, and newer
+// construction so that when a buyer leaves criteria blank we surface better-performing
+// properties. Also honours the one buyer preference we still collect (min year built).
 function scoreFinancial(prop: any, fin: any, criteria: any): number {
-  const hasCapRange = criteria.target_cap_rate_min || criteria.target_cap_rate_max;
-  if (!hasCapRange && !criteria.target_occupancy_min && !criteria.target_year_built_min) return 50;
+  let score = 0;
+  let weight = 0;
 
-  let score = 50;
-  let factors = 0;
-
-  if (hasCapRange && fin?.cap_rate) {
-    factors++;
-    const capRate = Number(fin.cap_rate);
-    const min = Number(criteria.target_cap_rate_min || 0);
-    const max = Number(criteria.target_cap_rate_max || 100);
-    if (capRate >= min && capRate <= max) {
-      score = 100;
-    } else {
-      const mid = (min + max) / 2;
-      const deviation = Math.abs(capRate - mid) / (mid || 1);
-      score = Math.max(0, 100 - deviation * 100);
-    }
+  // Cap rate: 0 points at <= 3%, full 40 at >= 8%. Linear in between.
+  const capRate = fin?.cap_rate != null ? Number(fin.cap_rate) : null;
+  if (capRate != null && !Number.isNaN(capRate)) {
+    const normalized = clamp01((capRate - 3) / (8 - 3));
+    score += normalized * 40;
+    weight += 40;
   }
 
-  let bonus = 0;
-  if (criteria.target_occupancy_min && fin?.occupancy_rate && Number(fin.occupancy_rate) >= Number(criteria.target_occupancy_min)) {
-    bonus += 20;
-  }
-  if (criteria.target_year_built_min && prop.year_built && Number(prop.year_built) >= Number(criteria.target_year_built_min)) {
-    bonus += 10;
+  // Occupancy: 0 points at <= 70%, full 40 at >= 95%.
+  const occupancy = fin?.occupancy_rate != null ? Number(fin.occupancy_rate) : null;
+  if (occupancy != null && !Number.isNaN(occupancy)) {
+    const normalized = clamp01((occupancy - 70) / (95 - 70));
+    score += normalized * 40;
+    weight += 40;
   }
 
-  return Math.min(100, factors > 0 ? score + bonus : 50 + bonus);
+  // Year built: 0 points at >= 60yrs old, full 20 within last 10 years.
+  const yearBuilt = prop?.year_built ? Number(prop.year_built) : null;
+  if (yearBuilt && !Number.isNaN(yearBuilt)) {
+    const currentYear = new Date().getUTCFullYear();
+    const age = currentYear - yearBuilt;
+    const normalized = clamp01((60 - age) / (60 - 10));
+    score += normalized * 20;
+    weight += 20;
+  }
+
+  // If we have no quality signal on the candidate, return neutral.
+  if (weight === 0) return 50;
+
+  const qualityScore = (score / weight) * 100;
+
+  // Honour the buyer's year-built minimum if set: properties below it get a penalty.
+  const minYear = Number(criteria?.target_year_built_min || 0);
+  if (minYear && yearBuilt && yearBuilt < minYear) {
+    return Math.max(0, qualityScore - 40);
+  }
+
+  return Math.min(100, qualityScore);
 }
 
-function scoreTiming(criteria: any): number {
-  const urgencyMap: Record<string, number> = {
-    immediate: 90,
-    "1_3_months": 80,
-    standard: 70,
-    "3_6_months": 60,
-    flexible: 50,
-  };
-  return urgencyMap[criteria.urgency] || 70;
-}
-
-function scoreDebtFit(fin: any, criteria: any): number {
-  if (criteria.must_replace_debt === false) return 80;
-  if (!criteria.must_replace_debt || !criteria.min_debt_replacement) return 50;
-  const requirement = Number(criteria.min_debt_replacement);
-  const loanBalance = Number(fin?.loan_balance || 0);
-  if (!requirement) return 50;
-  if (loanBalance >= requirement) return 100;
-  return Math.max(0, (loanBalance / requirement) * 100);
-}
-
-function scoreScaleFit(prop: any, criteria: any): number {
-  const hasUnits = criteria.target_units_min || criteria.target_units_max;
-  const hasSf = criteria.target_sf_min || criteria.target_sf_max;
-  if (!hasUnits && !hasSf && !criteria.target_property_classes?.length) return 50;
-
-  let score = 50;
-  let factors = 0;
-  if (hasUnits && prop.units) {
-    factors++;
-    const units = Number(prop.units);
-    const min = Number(criteria.target_units_min || 0);
-    const max = Number(criteria.target_units_max || Infinity);
-    if (units >= min && units <= max) {
-      score = 100;
-    } else {
-      const mid = ((min || 0) + (max === Infinity ? min * 2 : max)) / 2;
-      const deviation = Math.abs(units - mid) / (mid || 1);
-      score = Math.max(0, 100 - deviation * 50);
-    }
-  }
-
-  if (hasSf && prop.building_square_footage) {
-    factors++;
-    const sf = Number(prop.building_square_footage);
-    const min = Number(criteria.target_sf_min || 0);
-    const max = Number(criteria.target_sf_max || Infinity);
-    if (sf >= min && sf <= max) {
-      score = factors > 1 ? (score + 100) / 2 : 100;
-    }
-  }
-
-  let bonus = 0;
-  if (criteria.target_property_classes?.length && prop.property_class && criteria.target_property_classes.includes(prop.property_class)) {
-    bonus += 20;
-  }
-  return Math.min(100, (factors > 0 ? score : 50) + bonus);
+function clamp01(n: number): number {
+  if (Number.isNaN(n)) return 0;
+  return Math.max(0, Math.min(1, n));
 }
 
 function calculateBoot(buyerExchange: any, buyerFin: any, _sellerProp: any, sellerFin: any): Record<string, any> {

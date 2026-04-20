@@ -6,15 +6,14 @@ import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { WizardState, initialWizardState } from "@/lib/exchangeWizardTypes";
 import StepSelectClient from "@/components/exchange/StepSelectClient";
-import StepPropertyDetails from "@/components/exchange/StepPropertyDetails";
-import StepFinancials from "@/components/exchange/StepFinancials";
+import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
 import StepCriteria from "@/components/exchange/StepCriteria";
 import StepReview from "@/components/exchange/StepReview";
 import { useCreateExchange } from "@/features/exchanges/hooks/useCreateExchange";
 import { trackEvent } from "@/lib/telemetry";
 
-const STEPS = ["Select Client", "Property Details", "Financials", "Criteria", "Review"];
-const MOBILE_STEP_LABELS = ["Client", "Property", "Financials", "Criteria", "Review"];
+const STEPS = ["Select Client", "Property & Financials", "Criteria", "Review"];
+const MOBILE_STEP_LABELS = ["Client", "Property", "Criteria", "Review"];
 
 export default function NewExchange() {
   const { user } = useAuth();
@@ -89,23 +88,25 @@ export default function NewExchange() {
           onNext={() => setStep(2)} />
       )}
       {step === 2 && (
-        <StepPropertyDetails data={data.property}
-          onChange={property => setData(d => ({ ...d, property }))}
-          onNext={() => setStep(3)} onBack={() => setStep(1)} />
+        <StepPropertyAndFinancials
+          property={data.property}
+          financials={data.financials}
+          images={data.images}
+          onChangeProperty={property => setData(d => ({ ...d, property }))}
+          onChangeFinancials={financials => setData(d => ({ ...d, financials }))}
+          onChangeImages={images => setData(d => ({ ...d, images }))}
+          onNext={() => setStep(3)}
+          onBack={() => setStep(1)}
+        />
       )}
       {step === 3 && (
-        <StepFinancials data={data.financials}
-          onChange={financials => setData(d => ({ ...d, financials }))}
+        <StepCriteria data={data.criteria}
+          onChange={criteria => setData(d => ({ ...d, criteria }))}
           onNext={() => setStep(4)} onBack={() => setStep(2)} />
       )}
       {step === 4 && (
-        <StepCriteria data={data.criteria} loanBalance={data.financials.loan_balance}
-          onChange={criteria => setData(d => ({ ...d, criteria }))}
-          onNext={() => setStep(5)} onBack={() => setStep(3)} />
-      )}
-      {step === 5 && (
         <StepReview data={data} clientName={clientName}
-          onBack={() => setStep(4)} onSubmit={handleSubmit} saving={saving} />
+          onBack={() => setStep(3)} onSubmit={handleSubmit} saving={saving} />
       )}
     </div>
   );

@@ -49,7 +49,7 @@ export default function Login() {
 
     setLoading(false);
     trackEvent("auth_login_success", { target });
-    navigate(target);
+    navigate(target, { replace: true });
   };
 
   return (

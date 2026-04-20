@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ArrowLeftRight, Handshake, Link2,
-  ListChecks, MessageSquare, Settings, HelpCircle, LogOut, ShieldCheck, AlertTriangle, Compass,
+  MessageSquare, Settings, HelpCircle, LogOut, Compass,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getAgentVerificationUiState } from "@/lib/agentVerification";
 
 const networkItems = [
   { title: "Launchpad", url: "/agent/launchpad", icon: Compass },
@@ -24,7 +23,6 @@ const networkItems = [
 ];
 
 const toolsItems = [
-  { title: "Identification Lists", url: "/agent/identifications", icon: ListChecks },
   { title: "Messages", url: "/agent/messages", icon: MessageSquare },
 ];
 
@@ -36,9 +34,8 @@ const accountItems = [
 export default function AgentSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { user, signOut, profileName, isVerifiedAgent, agentVerificationStatus } = useAuth();
+  const { user, signOut, profileName } = useAuth();
   const [brokerageName, setBrokerageName] = useState<string | null>(null);
-  const verificationUi = getAgentVerificationUiState(agentVerificationStatus);
 
   useEffect(() => {
     if (!user) return;
@@ -102,19 +99,8 @@ export default function AgentSidebar() {
                 {profileName || user?.email}
               </p>
               {brokerageName && (
-                <p className="truncate text-xs text-muted-foreground">{brokerageName}</p>
+                <p className="mb-2 truncate text-xs text-muted-foreground">{brokerageName}</p>
               )}
-              <div className="mt-1 mb-2">
-                {isVerifiedAgent ? (
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${verificationUi.badgeClassName}`}>
-                    <ShieldCheck className="h-3 w-3" /> {verificationUi.badgeLabel}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
-                    <AlertTriangle className="h-3 w-3" /> Suspended
-                  </span>
-                )}
-              </div>
             </>
           )}
           <Button

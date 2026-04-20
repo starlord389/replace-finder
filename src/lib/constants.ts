@@ -141,14 +141,11 @@ export const EXCHANGE_STATUS_COLORS: Record<string, string> = {
 };
 
 export const SCORE_DIMENSIONS = [
-  { key: "price_score", label: "Price", weight: "20%" },
-  { key: "geo_score", label: "Geography", weight: "15%" },
-  { key: "asset_score", label: "Asset Type", weight: "15%" },
-  { key: "strategy_score", label: "Strategy", weight: "10%" },
-  { key: "financial_score", label: "Financial", weight: "10%" },
-  { key: "timing_score", label: "Timing", weight: "10%" },
-  { key: "debt_fit_score", label: "Debt Fit", weight: "10%" },
-  { key: "scale_fit_score", label: "Scale Fit", weight: "10%" },
+  { key: "price_score", label: "Price", weight: "30%" },
+  { key: "geo_score", label: "Geography", weight: "20%" },
+  { key: "asset_score", label: "Asset Type", weight: "20%" },
+  { key: "strategy_score", label: "Strategy", weight: "15%" },
+  { key: "financial_score", label: "Property Quality", weight: "15%" },
 ] as const;
 
 export const BOOT_STATUS_LABELS: Record<string, string> = {

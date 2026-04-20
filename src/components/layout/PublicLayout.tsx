@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import LandingFooter from "./LandingFooter";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,10 @@ export default function PublicLayout() {
     pathname === ROUTES.login ||
     pathname === ROUTES.forgotPassword ||
     pathname === ROUTES.resetPassword;
+  const usesLandingFooter =
+    pathname === ROUTES.signup ||
+    pathname === ROUTES.login ||
+    pathname === ROUTES.bookDemo;
 
   return (
     <div
@@ -31,7 +36,7 @@ export default function PublicLayout() {
       <main id="main-content" className="flex-1">
         <Outlet />
       </main>
-      {!isTemplateHome && <Footer />}
+      {!isTemplateHome && (usesLandingFooter ? <LandingFooter /> : <Footer />)}
     </div>
   );
 }

@@ -141,7 +141,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
           verification_path: "self_certification",
           self_certified_at: new Date().toISOString(),
         },
-        emailRedirectTo: `${window.location.origin}/login`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 

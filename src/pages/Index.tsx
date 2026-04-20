@@ -3,12 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const LOGO_BRANDS = [
-  { name: "Pluto Inc", mark: "chevrons" },
-  { name: "VitaHealth", mark: "plus" },
-  { name: "BoxMedia", mark: "cube" },
-  { name: "NovaTech", mark: "shield" },
-  { name: "Horizon Labs", mark: "bars" },
-  { name: "Vertex AI", mark: "spark" },
+  { name: "Compass", src: "/logos/compass.svg", height: 22, mobileHeight: 16, blend: false },
+  { name: "Churchill Properties", src: "/logos/churchill.svg", height: 52, mobileHeight: 40, blend: false },
+  { name: "Keller Williams Realty", src: "/logos/keller-williams.svg", height: 48, mobileHeight: 36, blend: false },
+  { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 40, mobileHeight: 30, blend: false },
 ] as const;
 
 const SMOOTH_SCROLL_STYLE = `
@@ -1711,48 +1709,8 @@ const FEATURE_SHOWCASE_STYLE = `
   }
 `;
 
-function getLogoMarkSvg(mark: (typeof LOGO_BRANDS)[number]["mark"]) {
-  switch (mark) {
-    case "plus":
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M8 3h4v5h5v4h-5v5H8v-5H3V8h5V3Z" fill="currentColor"/>
-        </svg>
-      `;
-    case "cube":
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M10 2.8 16.4 6.5v7L10 17.2 3.6 13.5v-7L10 2.8Z" fill="currentColor" opacity=".18"/>
-          <path d="M10 2.8 16.4 6.5 10 10.2 3.6 6.5 10 2.8Z" fill="currentColor"/>
-          <path d="M10 10.2v7" stroke="currentColor" stroke-width="1.3"/>
-        </svg>
-      `;
-    case "shield":
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M10 2.5 16.2 4.7v4.4c0 4.1-2.6 6.7-6.2 8.4-3.6-1.7-6.2-4.3-6.2-8.4V4.7L10 2.5Z" fill="currentColor"/>
-        </svg>
-      `;
-    case "bars":
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M4 5h2.8l2.4 4.1L6.8 15H4l2.4-5.9L4 5Zm9.2 0H16l-2.4 4.1L16 15h-2.8l-2.4-5.9L13.2 5Z" fill="currentColor"/>
-        </svg>
-      `;
-    case "spark":
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M10 2.4 12.1 7.9 17.6 10l-5.5 2.1L10 17.6l-2.1-5.5L2.4 10l5.5-2.1L10 2.4Z" fill="currentColor"/>
-        </svg>
-      `;
-    case "chevrons":
-    default:
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M2.8 4.8 8.1 10l-5.3 5.2h3.7L11.8 10 6.5 4.8H2.8Zm5.7 0L13.8 10l-5.3 5.2h3.7L17.5 10l-5.3-5.2H8.5Z" fill="currentColor"/>
-        </svg>
-      `;
-  }
+function getLogoImgMarkup(brand: (typeof LOGO_BRANDS)[number]) {
+  return `<img src="${brand.src}" alt="${brand.name}" loading="lazy" decoding="async" />`;
 }
 
 function getFeatureShowcaseIconSvg(tabId: FeatureShowcaseTabId) {
@@ -2286,12 +2244,19 @@ const CONTACT_BODY =
   "Questions about the marketplace, onboarding, or getting started? Send us a message and we'll follow up by email.";
 const FOOTER_SECTION_SELECTOR =
   'footer[data-framer-name="Desktop"], footer[data-framer-name="Tablet"], footer[data-framer-name="Phone"]';
-const FOOTER_NEWSLETTER_COPY = "The exchange network for 1031 agents.";
-const FOOTER_PAGE_LINKS = [
+type FooterScrollKey = "process" | "feature" | "contact";
+type FooterPageLink = {
+  label: string;
+  href: string;
+  scrollKey?: FooterScrollKey;
+};
+const FOOTER_PAGE_LINKS: readonly FooterPageLink[] = [
   { label: "Home", href: "/" },
-  { label: "How It Works", href: "/how-it-works" },
-  { label: "Features", href: "/features" },
-  { label: "Pricing", href: "/pricing" },
+  { label: "How It Works", href: "#process", scrollKey: "process" },
+  { label: "Features", href: "#feature", scrollKey: "feature" },
+  { label: "Contact", href: "#contact", scrollKey: "contact" },
+  { label: "Login", href: "/login" },
+  { label: "Get Started", href: "/signup" },
 ] as const;
 const FOOTER_STYLE = `
   [data-exchangeup-footer="true"] [data-framer-name="Nav"] {
@@ -2320,6 +2285,15 @@ const FOOTER_STYLE = `
     max-width: none !important;
     white-space: nowrap !important;
     line-height: 1.25 !important;
+    text-decoration: none !important;
+  }
+
+  [data-exchangeup-footer="true"] a,
+  [data-exchangeup-footer="true"] a:link,
+  [data-exchangeup-footer="true"] a:visited,
+  [data-exchangeup-footer="true"] a:hover,
+  [data-exchangeup-footer="true"] a:active {
+    color: inherit !important;
     text-decoration: none !important;
   }
 
@@ -2413,6 +2387,7 @@ export default function Index() {
   const lenisRef = useRef<Lenis | null>(null);
   const lenisRafRef = useRef<number | null>(null);
   const revealRafRef = useRef<number | null>(null);
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [frameReady, setFrameReady] = useState(false);
 
   const destroySmoothScroll = useCallback(() => {
@@ -2764,10 +2739,6 @@ export default function Index() {
       leafNodes(footer).forEach((node) => {
         const text = normalizeText(node.textContent ?? "");
 
-        if (text === "Sign up for our newsletter") {
-          node.textContent = FOOTER_NEWSLETTER_COPY;
-        }
-
         if (text === "hello@grovia.io") {
           node.textContent = CONTACT_SUPPORT_EMAIL;
         }
@@ -2777,34 +2748,130 @@ export default function Index() {
         }
       });
 
-      const pageLinks = Array.from(footer.querySelectorAll<HTMLAnchorElement>("a")).filter(
-        (anchor) => normalizeText(anchor.textContent ?? "").length > 0,
+      const setAnchorLabel = (anchor: HTMLAnchorElement, label: string) => {
+        const textEl =
+          anchor.querySelector<HTMLElement>("p, h1, h2, h3, h4, h5, h6, span") ??
+          anchor;
+        textEl.textContent = label;
+      };
+
+      const resolveFooterScrollTarget = (
+        key: FooterScrollKey,
+      ): HTMLElement | null => {
+        if (key === "contact") {
+          const markers = Array.from(
+            doc.querySelectorAll<HTMLElement>(
+              "[data-exchangeup-anchor='contact']",
+            ),
+          );
+          return (
+            markers.find((node) => node.offsetParent !== null) ??
+            markers[0] ??
+            null
+          );
+        }
+        return doc.getElementById(key);
+      };
+
+      const navList = footer.querySelector<HTMLElement>(
+        '[data-framer-name="Nav List"]',
       );
+      if (navList) {
+        const containers = Array.from(navList.children) as HTMLElement[];
+        const templateContainer =
+          containers.find((c) => c.querySelector("a")) ?? containers[0];
 
-      FOOTER_PAGE_LINKS.forEach((linkConfig, index) => {
-        const anchor = pageLinks[index];
-        if (!anchor) return;
-        anchor.href = linkConfig.href;
-        anchor.target = "_parent";
-        anchor.textContent = linkConfig.label;
-      });
+        if (templateContainer) {
+          const templateClone = templateContainer.cloneNode(true) as HTMLElement;
+          containers.forEach((c) => c.remove());
 
-      const emailAnchor = pageLinks[FOOTER_PAGE_LINKS.length];
-      if (emailAnchor) {
-        emailAnchor.href = `mailto:${CONTACT_SUPPORT_EMAIL}`;
-        emailAnchor.target = "_parent";
-        emailAnchor.textContent = CONTACT_SUPPORT_EMAIL;
+          FOOTER_PAGE_LINKS.forEach((linkConfig) => {
+            const container = templateClone.cloneNode(true) as HTMLElement;
+            const anchor = container.querySelector<HTMLAnchorElement>("a");
+            if (anchor) {
+              anchor.setAttribute("href", linkConfig.href);
+              anchor.removeAttribute("data-framer-page-link-current");
+              setAnchorLabel(anchor, linkConfig.label);
+
+              if (linkConfig.scrollKey) {
+                const scrollKey = linkConfig.scrollKey;
+                anchor.removeAttribute("target");
+                anchor.setAttribute("data-exchangeup-scroll-key", scrollKey);
+                anchor.addEventListener("click", (event) => {
+                  const target = resolveFooterScrollTarget(scrollKey);
+                  if (!target) return;
+                  event.preventDefault();
+                  target.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+              } else {
+                anchor.target = "_parent";
+              }
+            }
+            navList.appendChild(container);
+          });
+        }
+      }
+
+      const mailtoAnchor = Array.from(
+        footer.querySelectorAll<HTMLAnchorElement>("a"),
+      ).find((anchor) => (anchor.getAttribute("href") ?? "").trim().toLowerCase().startsWith("mailto:"));
+      if (mailtoAnchor) {
+        mailtoAnchor.href = `mailto:${CONTACT_SUPPORT_EMAIL}`;
+        mailtoAnchor.target = "_parent";
+        setAnchorLabel(mailtoAnchor, CONTACT_SUPPORT_EMAIL);
       }
 
       const socialContainer = footer.querySelector<HTMLElement>(
         '[data-framer-name="Socials"]',
       );
-      socialContainer?.setAttribute("data-exchangeup-footer-hidden", "true");
       if (socialContainer) {
         socialContainer.style.display = "none";
       }
     });
   }, []);
+
+  const resolveScrollTarget = useCallback(
+    (
+      doc: Document,
+      key: "process" | "feature" | "contact",
+    ): HTMLElement | null => {
+      if (key === "contact") {
+        const contactMarkers = Array.from(
+          doc.querySelectorAll<HTMLElement>("[data-exchangeup-anchor='contact']"),
+        );
+        return (
+          contactMarkers.find((node) => node.offsetParent !== null) ??
+          contactMarkers[0] ??
+          null
+        );
+      }
+
+      return doc.getElementById(key);
+    },
+    [],
+  );
+
+  const scrollFrameToHash = useCallback(
+    (
+      frame: HTMLIFrameElement | null,
+      behavior: ScrollBehavior = "smooth",
+    ) => {
+      const hash = window.location.hash.replace(/^#/, "");
+      if (hash !== "process" && hash !== "feature" && hash !== "contact") {
+        return false;
+      }
+
+      const doc = frame?.contentDocument;
+      if (!doc) return false;
+
+      const target = resolveScrollTarget(doc, hash);
+      if (!target) return false;
+
+      target.scrollIntoView({ behavior, block: "start" });
+      return true;
+    },
+    [resolveScrollTarget],
+  );
 
   const injectFeatureShowcase = useCallback((doc: Document) => {
     doc.querySelector("[data-exchangeup-feature-showcase-style]")?.remove();
@@ -3410,28 +3477,40 @@ export default function Index() {
       [data-exchangeup-logo-slider] [data-logo-slider-group] {
         display: flex;
         align-items: center;
+        gap: 80px;
+        padding-right: 80px;
       }
 
       [data-exchangeup-logo-slider] [data-logo-item] {
         display: inline-flex;
         align-items: center;
-        gap: 12px;
-        padding: 0 28px;
-        color: rgba(148, 144, 136, 0.82);
-        font-family: Geist, sans-serif;
-        font-size: 17px;
-        font-weight: 600;
-        letter-spacing: -0.03em;
+        justify-content: center;
+        height: 68px;
         white-space: nowrap;
         flex: none;
         user-select: none;
       }
 
-      [data-exchangeup-logo-slider] [data-logo-item] svg {
-        width: 62px;
-        height: 62px;
+      [data-exchangeup-logo-slider] [data-logo-item] > span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+      }
+
+      [data-exchangeup-logo-slider] [data-logo-item] img {
+        height: var(--brand-h, 32px);
+        width: auto;
+        max-height: 100%;
         display: block;
-        color: rgba(148, 144, 136, 0.7);
+        filter: grayscale(1) contrast(0.92) brightness(1.05);
+        opacity: 0.62;
+        -webkit-user-drag: none;
+        pointer-events: none;
+      }
+
+      [data-exchangeup-logo-slider] [data-logo-item][data-logo-blend="multiply"] img {
+        mix-blend-mode: multiply;
       }
 
       @media (max-width: 809.98px) {
@@ -3447,15 +3526,17 @@ export default function Index() {
           width: calc(100vw - 40px);
         }
 
-        [data-exchangeup-logo-slider] [data-logo-item] {
-          font-size: 15px;
-          padding: 0 20px;
-          gap: 10px;
+        [data-exchangeup-logo-slider] [data-logo-slider-group] {
+          gap: 52px;
+          padding-right: 52px;
         }
 
-        [data-exchangeup-logo-slider] [data-logo-item] svg {
-          width: 49px;
-          height: 49px;
+        [data-exchangeup-logo-slider] [data-logo-item] {
+          height: 54px;
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-item] img {
+          height: var(--brand-h-mobile, 24px);
         }
       }
     `;
@@ -3478,14 +3559,15 @@ export default function Index() {
       LOGO_BRANDS.forEach((brand) => {
         const item = doc.createElement("div");
         item.setAttribute("data-logo-item", "true");
+        item.setAttribute("aria-label", brand.name);
+        if (brand.blend) item.setAttribute("data-logo-blend", "multiply");
+        item.style.setProperty("--brand-h", `${brand.height}px`);
+        item.style.setProperty("--brand-h-mobile", `${brand.mobileHeight}px`);
 
         const icon = doc.createElement("span");
-        icon.innerHTML = getLogoMarkSvg(brand.mark);
+        icon.innerHTML = getLogoImgMarkup(brand);
 
-        const label = doc.createElement("span");
-        label.textContent = brand.name;
-
-        item.append(icon, label);
+        item.append(icon);
         group.appendChild(item);
       });
 
@@ -3548,22 +3630,6 @@ export default function Index() {
       }
     });
 
-    const resolveScrollTarget = (
-      key: "process" | "feature" | "contact",
-    ): HTMLElement | null => {
-      if (key === "contact") {
-        const contactMarkers = Array.from(
-          doc.querySelectorAll<HTMLElement>("[data-exchangeup-anchor='contact']"),
-        );
-        return (
-          contactMarkers.find((node) => node.offsetParent !== null) ??
-          contactMarkers[0] ??
-          null
-        );
-      }
-      return doc.getElementById(key);
-    };
-
     doc
       .querySelectorAll<HTMLAnchorElement>("[data-exchangeup-scroll-key]")
       .forEach((anchor) => {
@@ -3574,7 +3640,7 @@ export default function Index() {
             "data-exchangeup-scroll-key",
           ) as "process" | "feature" | "contact" | null;
           if (!key) return;
-          const target = resolveScrollTarget(key);
+          const target = resolveScrollTarget(doc, key);
           if (!target) return;
           event.preventDefault();
           target.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -3667,7 +3733,7 @@ export default function Index() {
         }
       });
     });
-  }, [injectButtonArrows, injectContactSection, injectFaqSection, injectFeatureShowcase, injectFooterSection, injectLogoSlider, injectNavbarStyles, removeSectionsBetweenFeatureAndFaq, replaceDashboardScreenshot, replaceHeroRenders, rewriteHeroCopy, setupEasySetupCards, wireContactForm]);
+  }, [injectButtonArrows, injectContactSection, injectFaqSection, injectFeatureShowcase, injectFooterSection, injectLogoSlider, injectNavbarStyles, removeSectionsBetweenFeatureAndFaq, replaceDashboardScreenshot, replaceHeroRenders, resolveScrollTarget, rewriteHeroCopy, setupEasySetupCards, wireContactForm]);
 
   const handleFrameLoad = useCallback((frame: HTMLIFrameElement | null) => {
     setFrameReady(false);
@@ -3680,9 +3746,22 @@ export default function Index() {
 
     revealRafRef.current = requestAnimationFrame(() => {
       revealRafRef.current = null;
+      scrollFrameToHash(frame, "auto");
       setFrameReady(true);
     });
-  }, [cleanIframe, setupSmoothScroll]);
+  }, [cleanIframe, scrollFrameToHash, setupSmoothScroll]);
+
+  useEffect(() => {
+    const syncHashScroll = () => {
+      scrollFrameToHash(frameRef.current, "smooth");
+    };
+
+    syncHashScroll();
+    window.addEventListener("hashchange", syncHashScroll);
+    return () => {
+      window.removeEventListener("hashchange", syncHashScroll);
+    };
+  }, [scrollFrameToHash]);
 
   useEffect(() => {
     return () => {
@@ -3706,6 +3785,7 @@ export default function Index() {
         }`}
       />
       <iframe
+        ref={frameRef}
         title="Grovia homepage"
         src="/grovia/index.html"
         className={`relative z-10 h-[100vh] w-full border-0 transition-opacity duration-200 ${

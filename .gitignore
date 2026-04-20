@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Firecrawl scrape cache
+.firecrawl/
+
+# Supabase CLI local state
+supabase/.temp/

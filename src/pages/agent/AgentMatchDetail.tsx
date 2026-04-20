@@ -740,42 +740,16 @@ export default function AgentMatchDetail() {
 
       {/* Physical Details */}
       <div className="mt-6 rounded-xl border bg-card p-6">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">Physical Details</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">Property Details</h3>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {sellerProp.asset_type && <Detail label="Asset Type" value={ASSET_TYPE_LABELS[sellerProp.asset_type as Enums<"asset_type">]} />}
           {sellerProp.asset_subtype && <Detail label="Subtype" value={sellerProp.asset_subtype} />}
           {sellerProp.strategy_type && <Detail label="Strategy" value={STRATEGY_TYPE_LABELS[sellerProp.strategy_type as Enums<"strategy_type">]} />}
-          {sellerProp.property_class && <Detail label="Class" value={sellerProp.property_class} />}
           {sellerProp.units && <Detail label="Units" value={num(sellerProp.units)} />}
           {sellerProp.building_square_footage && <Detail label="Square Footage" value={`${num(sellerProp.building_square_footage)} SF`} />}
-          {sellerProp.land_area_acres && <Detail label="Land Area" value={`${sellerProp.land_area_acres} acres`} />}
           {sellerProp.year_built && <Detail label="Year Built" value={String(sellerProp.year_built)} />}
-          {sellerProp.num_stories && <Detail label="Stories" value={String(sellerProp.num_stories)} />}
-          {sellerProp.num_buildings && <Detail label="Buildings" value={String(sellerProp.num_buildings)} />}
-          {sellerProp.parking_spaces && <Detail label="Parking" value={[sellerProp.parking_spaces + " spaces", sellerProp.parking_type].filter(Boolean).join(" · ")} />}
-          {sellerProp.construction_type && <Detail label="Construction" value={sellerProp.construction_type} />}
-          {sellerProp.roof_type && <Detail label="Roof" value={sellerProp.roof_type} />}
-          {sellerProp.hvac_type && <Detail label="HVAC" value={sellerProp.hvac_type} />}
-          {sellerProp.property_condition && <Detail label="Condition" value={sellerProp.property_condition} />}
-          {sellerProp.zoning && <Detail label="Zoning" value={sellerProp.zoning} />}
         </div>
-        {sellerProp.amenities?.length > 0 && (
-          <div className="mt-4">
-            <p className="mb-2 text-xs text-muted-foreground">Amenities</p>
-            <div className="flex flex-wrap gap-1.5">
-              {sellerProp.amenities.map((a: string) => (
-                <span key={a} className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-primary">{a}</span>
-              ))}
-            </div>
-          </div>
-        )}
         {sellerProp.description && <p className="mt-4 border-t pt-4 text-sm text-muted-foreground leading-relaxed">{sellerProp.description}</p>}
-        {sellerProp.recent_renovations && (
-          <div className="mt-4 border-t pt-4">
-            <p className="text-xs text-muted-foreground mb-1">Recent Renovations</p>
-            <p className="text-sm text-foreground">{sellerProp.recent_renovations}</p>
-          </div>
-        )}
       </div>
 
       {/* Operating Statement */}
@@ -1092,38 +1066,20 @@ function getScoreExplanation(
     }
     case "financial_score": {
       const capRate = metrics?.capRate;
-      const min = c?.target_cap_rate_min;
-      const max = c?.target_cap_rate_max;
-      if (capRate != null && min != null && max != null) return `Cap rate of ${capRate.toFixed(1)}% is ${capRate >= Number(min) && capRate <= Number(max) ? "within" : "outside"} your target range of ${Number(min).toFixed(1)}%–${Number(max).toFixed(1)}%.`;
-      if (capRate != null) return `Cap rate of ${capRate.toFixed(1)}%.`;
-      return null;
-    }
-    case "timing_score": {
-      const urgency = c?.urgency;
-      if (urgency) return `Exchange urgency: ${urgency}. Property is currently available.`;
-      return "Based on property availability and exchange timeline.";
-    }
-    case "debt_fit_score": {
-      if (c?.must_replace_debt && c?.min_debt_replacement) {
-        const loanBal = financials?.loan_balance;
-        if (loanBal) return `Loan balance of ${fmt(loanBal)} vs. minimum debt replacement of ${fmt(c.min_debt_replacement)}.`;
-        return `Minimum debt replacement required: ${fmt(c.min_debt_replacement)}.`;
+      const occupancy = metrics?.occupancyRate;
+      const yearBuilt = property?.year_built;
+      const minYear = c?.target_year_built_min;
+      const parts: string[] = [];
+      if (capRate != null) parts.push(`cap rate ${capRate.toFixed(1)}%`);
+      if (occupancy != null) parts.push(`${Number(occupancy).toFixed(0)}% occupancy`);
+      if (yearBuilt) {
+        if (minYear != null) {
+          parts.push(`built ${yearBuilt} (${yearBuilt >= Number(minYear) ? "meets" : "below"} your ${minYear}+ preference)`);
+        } else {
+          parts.push(`built ${yearBuilt}`);
+        }
       }
-      if (c?.must_replace_debt === false) return "Debt replacement not required for this exchange.";
-      return "Based on debt replacement requirements.";
-    }
-    case "scale_fit_score": {
-      const units = property?.units;
-      const sf = property?.building_square_footage;
-      if (units && c?.target_units_min && c?.target_units_max) {
-        return `${units} units — ${units >= c.target_units_min && units <= c.target_units_max ? "within" : "outside"} your target range of ${c.target_units_min}–${c.target_units_max}.`;
-      }
-      if (sf && c?.target_sf_min && c?.target_sf_max) {
-        return `${num(sf)} SF — ${Number(sf) >= c.target_sf_min && Number(sf) <= c.target_sf_max ? "within" : "outside"} your target range.`;
-      }
-      if (units) return `${units} units.`;
-      if (sf) return `${num(sf)} SF.`;
-      return null;
+      return parts.length ? `Property quality: ${parts.join(", ")}.` : null;
     }
     default:
       return null;

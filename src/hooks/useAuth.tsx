@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isVerifiedAgent = isAgent && hasOperationalAgentAccess(agentVerificationStatus);
 
   const fetchUserData = async (userId: string) => {
+    setRolesLoading(true);
     const [rolesResult, profileResult] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", userId),
       supabase.from("profiles").select("role, full_name, verification_status").eq("id", userId).single(),

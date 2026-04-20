@@ -9,6 +9,7 @@ import { ROUTES } from "@/app/routes/routeManifest";
 import PublicLayout from "@/components/layout/PublicLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
 import AgentLayout from "@/components/layout/AgentLayout";
+import RequireGuest from "@/components/layout/RequireGuest";
 
 import Index from "@/pages/Index";
 import BookDemo from "@/pages/BookDemo";
@@ -20,6 +21,7 @@ import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
+import AuthCallback from "@/pages/auth/AuthCallback";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import SupportTickets from "@/pages/admin/SupportTickets";
 import AgentDashboard from "@/pages/agent/AgentDashboard";
@@ -33,7 +35,6 @@ import AgentMatches from "@/pages/agent/AgentMatches";
 import AgentMatchDetail from "@/pages/agent/AgentMatchDetail";
 import AgentConnections from "@/pages/agent/AgentConnections";
 import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
-import AgentIdentifications from "@/pages/agent/AgentIdentifications";
 import AgentMessages from "@/pages/agent/AgentMessages";
 import AgentSettings from "@/pages/agent/AgentSettings";
 import AgentHelp from "@/pages/agent/AgentHelp";
@@ -58,20 +59,30 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Public */}
+            {/* Public (marketing + auth entry) — signed-in users are redirected to their dashboard */}
+            <Route element={<RequireGuest />}>
+              <Route element={<PublicLayout />}>
+                <Route path={ROUTES.home} element={<Index />} />
+                <Route path={ROUTES.bookDemo} element={<BookDemo />} />
+                <Route path={ROUTES.howItWorks} element={<HowItWorks />} />
+                <Route path={ROUTES.contact} element={<Contact />} />
+                <Route path={ROUTES.features} element={<Features />} />
+                <Route path={ROUTES.pricing} element={<Pricing />} />
+                <Route path={ROUTES.login} element={<Login />} />
+                <Route path={ROUTES.signup} element={<Signup />} />
+              </Route>
+            </Route>
+
+            {/* Recovery / informational routes — accessible whether signed in or not */}
             <Route element={<PublicLayout />}>
-              <Route path={ROUTES.home} element={<Index />} />
-              <Route path={ROUTES.bookDemo} element={<BookDemo />} />
-              <Route path={ROUTES.howItWorks} element={<HowItWorks />} />
-              <Route path={ROUTES.contact} element={<Contact />} />
-              <Route path={ROUTES.features} element={<Features />} />
-              <Route path={ROUTES.pricing} element={<Pricing />} />
-              <Route path={ROUTES.login} element={<Login />} />
-              <Route path={ROUTES.signup} element={<Signup />} />
               <Route path={ROUTES.forgotPassword} element={<ForgotPassword />} />
               <Route path={ROUTES.resetPassword} element={<ResetPassword />} />
               <Route path={ROUTES.unavailable} element={<Unavailable />} />
             </Route>
+
+            {/* Auth callback — handles email-confirmation redirect, routes to dashboard */}
+            <Route path="/auth/callback" element={<AuthCallback />} />
+
 
             {/* Agent (agent role required) */}
             <Route element={<AgentLayout />}>
@@ -87,7 +98,6 @@ const App = () => (
               <Route path="/agent/matches/:id" element={<AgentMatchDetail />} />
               <Route path="/agent/connections" element={<AgentConnections />} />
               <Route path="/agent/connections/:id" element={<AgentConnectionDetail />} />
-              <Route path="/agent/identifications" element={<AgentIdentifications />} />
               <Route path="/agent/messages" element={<AgentMessages />} />
               <Route path="/agent/settings" element={<AgentSettings />} />
               <Route path="/agent/help" element={<AgentHelp />} />

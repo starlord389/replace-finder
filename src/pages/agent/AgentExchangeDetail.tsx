@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Clock } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
 import { formatCurrency } from "@/lib/exchangeWizardTypes";
-import { ASSET_TYPE_LABELS, STRATEGY_TYPE_LABELS, EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS, URGENCY_OPTIONS } from "@/lib/constants";
+import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS } from "@/lib/constants";
 
 export default function AgentExchangeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -94,13 +94,9 @@ export default function AgentExchangeDetail() {
       {/* Overview */}
       <Card>
         <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Exchange Overview</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3">
-          <Detail label="Proceeds" value={formatCurrency(exchange.exchange_proceeds)} />
-          <Detail label="Equity" value={formatCurrency(exchange.estimated_equity)} />
-          <Detail label="Basis" value={formatCurrency(exchange.estimated_basis)} />
-          <Detail label="Est. Gain" value={formatCurrency(exchange.estimated_gain)} />
-          <Detail label="Est. Tax Liability" value={formatCurrency(exchange.estimated_tax_liability)} />
-          <Detail label="Sale Close Date" value={exchange.sale_close_date ? format(new Date(exchange.sale_close_date), "MMM d, yyyy") : "—"} />
+        <CardContent className="grid grid-cols-2 gap-x-8 gap-y-2">
+          <Detail label="Estimated Proceeds" value={formatCurrency(exchange.exchange_proceeds)} />
+          <Detail label="Estimated Equity" value={formatCurrency(exchange.estimated_equity)} />
         </CardContent>
       </Card>
 
@@ -109,23 +105,29 @@ export default function AgentExchangeDetail() {
         <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Pledged Property</CardTitle></CardHeader>
         <CardContent>
           {property ? (
-            <div className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3">
-              <Detail label="Name" value={property.property_name} />
-              <Detail label="Address" value={[property.address, property.city, property.state, property.zip].filter(Boolean).join(", ")} />
-              <Detail label="Asset Type" value={property.asset_type ? ASSET_TYPE_LABELS[property.asset_type as keyof typeof ASSET_TYPE_LABELS] : "—"} />
-              <Detail label="Strategy" value={property.strategy_type ? STRATEGY_TYPE_LABELS[property.strategy_type as keyof typeof STRATEGY_TYPE_LABELS] : "—"} />
-              <Detail label="Class" value={property.property_class} />
-              <Detail label="Year Built" value={property.year_built?.toString()} />
-              <Detail label="Units" value={property.units?.toString()} />
-              <Detail label="Building SF" value={property.building_square_footage?.toLocaleString()} />
-              {financials && <>
-                <Detail label="Asking Price" value={formatCurrency(financials.asking_price)} />
-                <Detail label="NOI" value={formatCurrency(financials.noi)} />
-                <Detail label="Cap Rate" value={financials.cap_rate ? `${financials.cap_rate}%` : "—"} />
-                <Detail label="Occupancy" value={financials.occupancy_rate ? `${financials.occupancy_rate}%` : "—"} />
-                <Detail label="Loan Balance" value={formatCurrency(financials.loan_balance)} />
-              </>}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3">
+                <Detail label="Name" value={property.property_name} />
+                <Detail label="Address" value={[property.address, property.city, property.state, property.zip].filter(Boolean).join(", ")} />
+                <Detail label="Asset Type" value={property.asset_type ? ASSET_TYPE_LABELS[property.asset_type as keyof typeof ASSET_TYPE_LABELS] : "—"} />
+                <Detail label="Year Built" value={property.year_built?.toString()} />
+                <Detail label="Units" value={property.units?.toString()} />
+                <Detail label="Building SF" value={property.building_square_footage?.toLocaleString()} />
+                {financials && <>
+                  <Detail label="Asking Price" value={formatCurrency(financials.asking_price)} />
+                  <Detail label="NOI" value={formatCurrency(financials.noi)} />
+                  <Detail label="Cap Rate" value={financials.cap_rate ? `${financials.cap_rate}%` : "—"} />
+                  <Detail label="Occupancy" value={financials.occupancy_rate ? `${financials.occupancy_rate}%` : "—"} />
+                  <Detail label="Loan Balance" value={formatCurrency(financials.loan_balance)} />
+                </>}
+              </div>
+              {property.description && (
+                <div className="mt-4 border-t pt-4">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Property Summary</p>
+                  <p className="mt-2 text-sm text-foreground">{property.description}</p>
+                </div>
+              )}
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">No property pledged yet.</p>
           )}
@@ -147,10 +149,8 @@ export default function AgentExchangeDetail() {
                 {criteria.target_states?.map((s: string) => <Badge key={s} variant="outline" className="mr-1 text-xs">{s}</Badge>)}
               </div>
               <Detail label="Price Range" value={`${formatCurrency(criteria.target_price_min)} – ${formatCurrency(criteria.target_price_max)}`} />
-              <Detail label="Urgency" value={URGENCY_OPTIONS.find(o => o.value === criteria.urgency)?.label || criteria.urgency} />
-              {criteria.open_to_dsts && <Detail label="Open to DSTs" value="Yes" />}
-              {criteria.open_to_tics && <Detail label="Open to TICs" value="Yes" />}
-              {criteria.must_replace_debt && <Detail label="Must Replace Debt" value={criteria.min_debt_replacement ? formatCurrency(criteria.min_debt_replacement) : "Yes"} />}
+              {criteria.target_metros?.length > 0 && <Detail label="Target Metros" value={criteria.target_metros.join(", ")} />}
+              {criteria.target_year_built_min && <Detail label="Min Year Built" value={criteria.target_year_built_min?.toString()} />}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">No replacement criteria set.</p>

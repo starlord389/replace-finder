@@ -14,6 +14,11 @@ interface CreateExchangePayload {
   property: Record<string, unknown>;
   financials: Record<string, NumericLike | string | boolean | null>;
   criteria: Record<string, NumericLike | string | string[] | boolean | null>;
+  images?: Array<{
+    storage_path: string;
+    file_name?: string | null;
+    sort_order?: number;
+  }>;
   clientName?: string;
 }
 
@@ -66,30 +71,13 @@ Deno.serve(async (req) => {
         agent_id: user.id,
         property_name: stringOrNull(payload.property.property_name),
         address: stringOrNull(payload.property.address),
-        unit_suite: stringOrNull(payload.property.unit_suite),
         city: stringOrNull(payload.property.city),
         state: stringOrNull(payload.property.state),
         zip: stringOrNull(payload.property.zip),
-        county: stringOrNull(payload.property.county),
         asset_type: valueOrNull(payload.property.asset_type),
-        asset_subtype: stringOrNull(payload.property.asset_subtype),
-        strategy_type: valueOrNull(payload.property.strategy_type),
-        property_class: stringOrNull(payload.property.property_class),
         year_built: numberOrNull(payload.property.year_built),
         units: numberOrNull(payload.property.units),
         building_square_footage: numberOrNull(payload.property.building_square_footage),
-        land_area_acres: numberOrNull(payload.property.land_area_acres),
-        num_buildings: numberOrNull(payload.property.num_buildings),
-        num_stories: numberOrNull(payload.property.num_stories),
-        parking_spaces: numberOrNull(payload.property.parking_spaces),
-        parking_type: stringOrNull(payload.property.parking_type),
-        construction_type: stringOrNull(payload.property.construction_type),
-        roof_type: stringOrNull(payload.property.roof_type),
-        hvac_type: stringOrNull(payload.property.hvac_type),
-        property_condition: stringOrNull(payload.property.property_condition),
-        zoning: stringOrNull(payload.property.zoning),
-        amenities: arrayOrNull(payload.property.amenities),
-        recent_renovations: stringOrNull(payload.property.recent_renovations),
         description: stringOrNull(payload.property.description),
         status: payload.activate ? "active" : "draft",
         source: "agent_pledge",
@@ -104,32 +92,24 @@ Deno.serve(async (req) => {
       if (propertyError || !propertyRow) throw propertyError || new Error("Unable to create property");
       propertyId = propertyRow.id;
 
+      if (Array.isArray(payload.images) && payload.images.length > 0) {
+        const imageRows = payload.images.map((img, i) => ({
+          property_id: propertyId!,
+          storage_path: String(img.storage_path),
+          file_name: img.file_name ? String(img.file_name) : null,
+          sort_order: typeof img.sort_order === "number" ? img.sort_order : i,
+        }));
+        const { error: imageError } = await db.from("property_images").insert(imageRows);
+        if (imageError) throw imageError;
+      }
+
       const financialInsert = {
         property_id: propertyId,
         asking_price: numberOrNull(payload.financials.asking_price),
         noi: numberOrNull(payload.financials.noi),
         occupancy_rate: numberOrNull(payload.financials.occupancy_rate),
         cap_rate: numberOrNull(payload.financials.cap_rate),
-        gross_scheduled_income: numberOrNull(payload.financials.gross_scheduled_income),
-        effective_gross_income: numberOrNull(payload.financials.effective_gross_income),
-        vacancy_rate: numberOrNull(payload.financials.vacancy_rate),
-        annual_revenue: numberOrNull(payload.financials.annual_revenue),
-        annual_expenses: numberOrNull(payload.financials.annual_expenses),
-        real_estate_taxes: numberOrNull(payload.financials.real_estate_taxes),
-        insurance: numberOrNull(payload.financials.insurance),
-        utilities: numberOrNull(payload.financials.utilities),
-        management_fee: numberOrNull(payload.financials.management_fee),
-        maintenance_repairs: numberOrNull(payload.financials.maintenance_repairs),
-        capex_reserves: numberOrNull(payload.financials.capex_reserves),
-        other_expenses: numberOrNull(payload.financials.other_expenses),
-        average_rent_per_unit: numberOrNull(payload.financials.average_rent_per_unit),
         loan_balance: numberOrNull(payload.financials.loan_balance),
-        loan_rate: numberOrNull(payload.financials.loan_rate),
-        loan_type: stringOrNull(payload.financials.loan_type),
-        loan_maturity_date: stringOrNull(payload.financials.loan_maturity_date),
-        annual_debt_service: numberOrNull(payload.financials.annual_debt_service),
-        has_prepayment_penalty: boolOrDefault(payload.financials.has_prepayment_penalty, false),
-        prepayment_penalty_details: stringOrNull(payload.financials.prepayment_penalty_details),
       };
 
       const { error: financialError } = await db.from("property_financials").insert(financialInsert);
@@ -143,10 +123,6 @@ Deno.serve(async (req) => {
           relinquished_property_id: propertyId,
           exchange_proceeds: numberOrNull(payload.financials.exchange_proceeds),
           estimated_equity: numberOrNull(payload.financials.estimated_equity),
-          estimated_basis: numberOrNull(payload.financials.estimated_basis),
-          estimated_gain: numberOrNull(payload.financials.estimated_gain),
-          estimated_tax_liability: numberOrNull(payload.financials.estimated_tax_liability),
-          sale_close_date: stringOrNull(payload.financials.sale_close_date),
           status: "draft",
         })
         .select("id")
@@ -162,23 +138,8 @@ Deno.serve(async (req) => {
           target_states: arrayOrDefault(payload.criteria.target_states, []),
           target_price_min: numberOrZero(payload.criteria.target_price_min),
           target_price_max: numberOrZero(payload.criteria.target_price_max),
-          urgency: stringOrNull(payload.criteria.urgency),
           target_metros: arrayOrNull(payload.criteria.target_metros),
-          target_strategies: arrayOrNull(payload.criteria.target_strategies),
-          target_property_classes: arrayOrNull(payload.criteria.target_property_classes),
-          target_cap_rate_min: numberOrNull(payload.criteria.target_cap_rate_min),
-          target_cap_rate_max: numberOrNull(payload.criteria.target_cap_rate_max),
-          target_occupancy_min: numberOrNull(payload.criteria.target_occupancy_min),
           target_year_built_min: numberOrNull(payload.criteria.target_year_built_min),
-          target_units_min: numberOrNull(payload.criteria.target_units_min),
-          target_units_max: numberOrNull(payload.criteria.target_units_max),
-          target_sf_min: numberOrNull(payload.criteria.target_sf_min),
-          target_sf_max: numberOrNull(payload.criteria.target_sf_max),
-          open_to_dsts: boolOrDefault(payload.criteria.open_to_dsts, false),
-          open_to_tics: boolOrDefault(payload.criteria.open_to_tics, false),
-          must_replace_debt: boolOrDefault(payload.criteria.must_replace_debt, true),
-          min_debt_replacement: numberOrNull(payload.criteria.min_debt_replacement),
-          additional_notes: stringOrNull(payload.criteria.additional_notes),
         })
         .select("id")
         .single();
@@ -241,6 +202,7 @@ Deno.serve(async (req) => {
       if (criteriaId) await db.from("replacement_criteria").delete().eq("id", criteriaId);
       if (exchangeId) await db.from("exchanges").delete().eq("id", exchangeId);
       if (propertyId) {
+        await db.from("property_images").delete().eq("property_id", propertyId);
         await db.from("property_financials").delete().eq("property_id", propertyId);
         await db.from("pledged_properties").delete().eq("id", propertyId);
       }
@@ -290,9 +252,4 @@ function arrayOrNull(value: unknown): string[] | null {
 
 function arrayOrDefault(value: unknown, fallback: string[]): string[] {
   return arrayOrNull(value) ?? fallback;
-}
-
-function boolOrDefault(value: unknown, fallback: boolean): boolean {
-  if (typeof value === "boolean") return value;
-  return fallback;
 }
