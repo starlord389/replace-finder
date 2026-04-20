@@ -71,7 +71,7 @@ export async function seedAgentMockData(userId: string) {
   ].map((p) => ({
     ...p,
     agent_id: userId,
-    status: "listed" as const,
+    status: "active" as const,
     description: `${MOCK_TAG} ${p.property_name} — seeded demo property`,
     listed_at: new Date().toISOString(),
   }));
@@ -130,10 +130,9 @@ export async function seedAgentMockData(userId: string) {
   const buyerExchanges = exchanges!.filter((e) =>
     ["active", "in_identification"].includes(e.status as string)
   );
-  const matchesPayload: Array<Record<string, unknown>> = [];
-  buyerExchanges.forEach((ex, i) => {
+  const matchesPayload = buyerExchanges.map((ex, i) => {
     const cp = i % 2 === 0 ? cpA : cpB;
-    matchesPayload.push({
+    return {
       buyer_exchange_id: ex.id,
       seller_property_id: cp.property_id,
       total_score: 78 + i * 4,
@@ -142,12 +141,8 @@ export async function seedAgentMockData(userId: string) {
       scale_fit_score: 80, debt_fit_score: 70,
       buyer_agent_viewed: false,
       status: "active",
-    });
+    };
   });
-  // Seller side — counter-party buyer exchange targeting one of YOUR pledged properties
-  // We need a buyer_exchange owned by the counter-party. Skipping — requires seeding their exchanges.
-  // Instead, mark one of your own listed props as having an inbound match by reusing an existing buyer exchange.
-  // (Already covered above — pipeline + attention only need buyer-side matches.)
 
   const { data: matches, error: matchErr } = await supabase
     .from("matches")

@@ -22,6 +22,7 @@ import { useAgentAttentionQuery } from "@/features/agent/hooks/useAgentAttention
 import { useAgentPipelineQuery } from "@/features/agent/hooks/useAgentPipelineQuery";
 import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
 import { getAgentVerificationUiState } from "@/lib/agentVerification";
+import SeedMockDataPanel from "@/features/dev/SeedMockDataPanel";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
