@@ -251,7 +251,19 @@ export default function AgentConnections() {
                 const isIncoming = conn.seller_agent_id === user!.id;
                 const score = conn.match ? Math.round(Number(conn.match.total_score)) : null;
                 return (
-                  <div key={conn.id} className="rounded-xl border bg-card p-5">
+                  <div
+                    key={conn.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/agent/connections/${conn.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate(`/agent/connections/${conn.id}`);
+                      }
+                    }}
+                    className="cursor-pointer rounded-xl border bg-card p-5 transition-colors hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
@@ -290,7 +302,7 @@ export default function AgentConnections() {
                           {format(new Date(conn.initiated_at), "MMM d, yyyy")}
                         </p>
                       </div>
-                      <div className="flex flex-col gap-2 shrink-0">
+                      <div className="flex flex-col gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                         {isIncoming ? (
                           <>
                             <Button size="sm" onClick={() => handleAccept(conn.id)} disabled={acting}>
