@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 import { useAuth } from "@/hooks/useAuth";
 import { trackEvent } from "@/lib/telemetry";
 import { useToast } from "@/hooks/use-toast";
@@ -231,7 +232,7 @@ export default function AgentMatchDetail() {
     return { price, noi, capRate, occ, units, sf, pricePerUnit, noiPerUnit, equity, proceeds, debtSvc, loanBal, gsi, egi, expenses, revenue, expenseRatio };
   }, [relinquishedProp, relinquishedFin, buyerExchange]);
 
-  const imgUrls = sellerImages.map((img) => supabase.storage.from("property-images").getPublicUrl(img.storage_path).data.publicUrl);
+  const imgUrls = sellerImages.map((img) => resolvePropertyImageUrl(img.storage_path));
 
   // Check existing connection state
   useEffect(() => {
