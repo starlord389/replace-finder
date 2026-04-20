@@ -162,7 +162,7 @@ export async function seedAgentMockData(userId: string) {
       buyer_exchange_id: firstMatch.buyer_exchange_id,
       seller_exchange_id: null,
       status: "pending",
-      initiated_by: "seller",
+      initiated_by: "seller_agent",
     },
     {
       match_id: secondMatch.id,
@@ -171,7 +171,7 @@ export async function seedAgentMockData(userId: string) {
       buyer_exchange_id: secondMatch.buyer_exchange_id,
       seller_exchange_id: null,
       status: "accepted",
-      initiated_by: "buyer",
+      initiated_by: "buyer_agent",
       accepted_at: isoDaysAgo(2),
     },
   ];
@@ -197,11 +197,11 @@ export async function seedAgentMockData(userId: string) {
 
   // 8) Notifications
   const notifPayload = [
-    { user_id: userId, type: "match", title: "New match available", message: "Sunrise Apartments matched your active exchange.", link_to: "/agent/matches", read: false, metadata: { tag: MOCK_TAG } },
-    { user_id: userId, type: "connection", title: "Connection request", message: "Jordan Alvarez requested to connect on Sunrise Apartments.", link_to: "/agent/connections", read: false, metadata: { tag: MOCK_TAG } },
-    { user_id: userId, type: "deadline", title: "Closing deadline approaching", message: "Aurora Holdings exchange closes in 12 days.", link_to: "/agent/exchanges", read: false, metadata: { tag: MOCK_TAG } },
-    { user_id: userId, type: "message", title: "New message", message: "Priya Mehta sent you a message.", link_to: "/agent/messages", read: false, metadata: { tag: MOCK_TAG } },
-    { user_id: userId, type: "deadline", title: "Identification deadline approaching", message: "James Wilson exchange identification due in 9 days.", link_to: "/agent/exchanges", read: false, metadata: { tag: MOCK_TAG } },
+    { user_id: userId, type: "new_match",           title: "New match available",                  message: "Sunrise Apartments matched your active exchange.",           link_to: "/agent/matches",     read: false, metadata: { tag: MOCK_TAG } },
+    { user_id: userId, type: "connection_request",  title: "Connection request",                   message: "Jordan Alvarez requested to connect on Sunrise Apartments.", link_to: "/agent/connections", read: false, metadata: { tag: MOCK_TAG } },
+    { user_id: userId, type: "deadline_warning",    title: "Closing deadline approaching",         message: "Aurora Holdings exchange closes in 12 days.",                link_to: "/agent/exchanges",   read: false, metadata: { tag: MOCK_TAG } },
+    { user_id: userId, type: "connection_accepted", title: "Connection accepted",                  message: "Priya Mehta accepted your connection request.",              link_to: "/agent/messages",    read: false, metadata: { tag: MOCK_TAG } },
+    { user_id: userId, type: "deadline_critical",   title: "Identification deadline approaching",  message: "James Wilson exchange identification due in 9 days.",        link_to: "/agent/exchanges",   read: false, metadata: { tag: MOCK_TAG } },
   ];
   const { error: notifErr } = await supabase.from("notifications").insert(notifPayload);
   if (notifErr) throw notifErr;

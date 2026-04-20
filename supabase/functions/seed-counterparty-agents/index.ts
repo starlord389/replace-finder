@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
           .insert({
             agent_id: userId,
             ...m.property,
-            status: "listed",
+            status: "active",
             description: "__mock__ counter-party listing for demo matches",
             listed_at: new Date().toISOString(),
           })
