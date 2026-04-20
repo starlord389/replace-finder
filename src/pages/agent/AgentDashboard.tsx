@@ -412,6 +412,8 @@ export default function AgentDashboard() {
           </CardContent>
         </Card>
       )}
+
+      <SeedMockDataPanel />
     </div>
   );
 }
