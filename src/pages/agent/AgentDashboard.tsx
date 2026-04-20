@@ -22,7 +22,6 @@ import { useAgentAttentionQuery } from "@/features/agent/hooks/useAgentAttention
 import { useAgentPipelineQuery } from "@/features/agent/hooks/useAgentPipelineQuery";
 import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
 import { getAgentVerificationUiState } from "@/lib/agentVerification";
-import SeedDemoDataButton from "@/features/dev/SeedDemoDataButton";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -413,8 +412,6 @@ export default function AgentDashboard() {
           </CardContent>
         </Card>
       )}
-
-      <SeedDemoDataButton />
     </div>
   );
 }
