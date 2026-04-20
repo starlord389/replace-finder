@@ -96,9 +96,7 @@ async function fetchAgentMatches(userId: string): Promise<AgentMatchesData> {
       match.property = pMap.get(match.seller_property_id);
       match.financials = fMap.get(match.seller_property_id);
       const firstImg = iMap.get(match.seller_property_id);
-      match.coverUrl = firstImg
-        ? supabase.storage.from("property-images").getPublicUrl(firstImg.storage_path).data.publicUrl
-        : null;
+      match.coverUrl = firstImg ? resolvePropertyImageUrl(firstImg.storage_path) : null;
       match.clientName = exchangeMap.get(match.buyer_exchange_id) || "Client";
     });
 
