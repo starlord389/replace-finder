@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 import { useAuth } from "@/hooks/useAuth";
 import { trackEvent } from "@/lib/telemetry";
 import { useToast } from "@/hooks/use-toast";
