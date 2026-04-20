@@ -302,7 +302,7 @@ export default function AgentConnections() {
                           {format(new Date(conn.initiated_at), "MMM d, yyyy")}
                         </p>
                       </div>
-                      <div className="flex flex-col gap-2 shrink-0">
+                      <div className="flex flex-col gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                         {isIncoming ? (
                           <>
                             <Button size="sm" onClick={() => handleAccept(conn.id)} disabled={acting}>
