@@ -3,6 +3,7 @@ type TelemetryEvent =
   | "auth_login_success"
   | "auth_login_failure"
   | "exchange_create_requested"
+  | "exchange_update_requested"
   | "matching_invoked"
   | "connection_initiated"
   | "auth_callback_redirect";
