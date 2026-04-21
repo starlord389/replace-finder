@@ -30,6 +30,7 @@ import AgentClients from "@/pages/agent/AgentClients";
 import AgentClientDetail from "@/pages/agent/AgentClientDetail";
 import AgentExchanges from "@/pages/agent/AgentExchanges";
 import NewExchange from "@/pages/agent/NewExchange";
+import EditExchange from "@/pages/agent/EditExchange";
 import AgentExchangeDetail from "@/pages/agent/AgentExchangeDetail";
 import AgentMatches from "@/pages/agent/AgentMatches";
 import AgentMatchDetail from "@/pages/agent/AgentMatchDetail";
@@ -93,6 +94,7 @@ const App = () => (
               <Route path="/agent/clients/:id" element={<AgentClientDetail />} />
               <Route path="/agent/exchanges" element={<AgentExchanges />} />
               <Route path="/agent/exchanges/new" element={<NewExchange />} />
+              <Route path="/agent/exchanges/:id/edit" element={<EditExchange />} />
               <Route path="/agent/exchanges/:id" element={<AgentExchangeDetail />} />
               <Route path="/agent/matches" element={<AgentMatches />} />
               <Route path="/agent/matches/:id" element={<AgentMatchDetail />} />

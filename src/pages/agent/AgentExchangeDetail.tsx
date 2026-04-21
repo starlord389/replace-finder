@@ -93,17 +93,65 @@ export default function AgentExchangeDetail() {
     exchange.closing_deadline && { label: "Closing Deadline", date: exchange.closing_deadline },
   ].filter(Boolean) as { label: string; date: string }[];
 
+  const isDraft = exchange.status === "draft";
+  const isActive = exchange.status === "active";
+  const canDelete = isDraft && !hasMatchesOrConns;
+  const canMoveToDraft = isActive && !hasBlockingConnections;
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate("/agent/exchanges")}><ArrowLeft className="h-5 w-5" /></Button>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold text-foreground">{client?.client_name || "Exchange"}</h1>
-          <p className="text-sm text-muted-foreground">{property ? [property.address, property.city, property.state].filter(Boolean).join(", ") : "No property pledged"}</p>
+          <p className="text-sm text-muted-foreground truncate">{property ? [property.address, property.city, property.state].filter(Boolean).join(", ") : "No property pledged"}</p>
         </div>
         <Badge className={EXCHANGE_STATUS_COLORS[exchange.status] || "bg-muted text-muted-foreground"}>
           {EXCHANGE_STATUS_LABELS[exchange.status] || exchange.status}
         </Badge>
+      </div>
+
+      {/* Action bar */}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" onClick={() => navigate(`/agent/exchanges/${id}/edit`)} disabled={acting}>
+          <Pencil className="mr-2 h-4 w-4" /> Edit
+        </Button>
+        {isDraft && (
+          <Button size="sm" onClick={() => runAction("publish", "Exchange published — matching queued.")} disabled={acting}>
+            <Send className="mr-2 h-4 w-4" /> Publish
+          </Button>
+        )}
+        {canMoveToDraft && (
+          <Button variant="outline" size="sm" onClick={() => runAction("move_to_draft", "Moved to draft — matching paused.")} disabled={acting}>
+            <Archive className="mr-2 h-4 w-4" /> Save as Draft
+          </Button>
+        )}
+        {canDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={acting}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete draft
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this draft exchange?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently removes the property, financials, criteria, and timeline. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => runAction("delete_draft", "Draft exchange deleted.")}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       {/* Deadlines */}
