@@ -12,11 +12,19 @@ import { useAgentExchangesQuery } from "@/features/agent/hooks/useAgentExchanges
 export default function AgentExchanges() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: exchanges = [], isLoading } = useAgentExchangesQuery(user?.id);
+  const { data: exchanges = [], isLoading, error } = useAgentExchangesQuery(user?.id);
 
   const activeCount = exchanges.filter(e => ["active", "in_identification", "in_closing"].includes(e.status)).length;
 
   if (isLoading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+        Failed to load exchanges: {error instanceof Error ? error.message : "Unknown error"}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
