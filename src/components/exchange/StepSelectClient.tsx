@@ -13,6 +13,7 @@ interface Props {
   selectedClientId: string;
   onChange: (clientId: string) => void;
   onNext: () => void;
+  lockedClientName?: string;
 }
 
 interface Client {
@@ -24,7 +25,32 @@ interface Client {
   status: string;
 }
 
-export default function StepSelectClient({ selectedClientId, onChange, onNext }: Props) {
+export default function StepSelectClient({ selectedClientId, onChange, onNext, lockedClientName }: Props) {
+  if (lockedClientName) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Client</h2>
+          <p className="text-sm text-muted-foreground">The client is locked for an existing exchange and cannot be changed.</p>
+        </div>
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <User className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-foreground">{lockedClientName}</p>
+              <p className="text-xs text-muted-foreground">Locked</p>
+            </div>
+          </CardContent>
+        </Card>
+        <div className="flex justify-end pt-4">
+          <Button onClick={onNext}>Continue</Button>
+        </div>
+      </div>
+    );
+  }
+
   const { user, loading: authLoading } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);

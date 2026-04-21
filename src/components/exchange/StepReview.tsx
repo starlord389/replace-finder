@@ -10,12 +10,16 @@ import {
 } from "@/lib/exchangeWizardTypes";
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
 
+type ReviewMode = "create" | "edit-draft" | "edit-active";
+
 interface Props {
   data: WizardState;
   clientName: string;
   onBack: () => void;
   onSubmit: (activate: boolean) => void;
   saving: boolean;
+  mode?: ReviewMode;
+  onCancel?: () => void;
 }
 
 function Field({ label, value, recommended }: { label: string; value?: string | null; recommended?: boolean }) {
@@ -29,17 +33,25 @@ function Field({ label, value, recommended }: { label: string; value?: string | 
   );
 }
 
-export default function StepReview({ data, clientName, onBack, onSubmit, saving }: Props) {
+export default function StepReview({ data, clientName, onBack, onSubmit, saving, mode = "create", onCancel }: Props) {
   const { property: p, financials: f, criteria: c } = data;
   const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(f);
   const sellerCostRatePercent = Math.round(DEFAULT_SELLER_COST_ESTIMATE_RATE * 100);
 
+  // Button labels per mode
+  const labels = mode === "edit-draft"
+    ? { primary: saving ? "Publishing…" : "Save & Publish", secondary: saving ? "Saving…" : "Save Changes (Draft)", primaryActivate: true }
+    : mode === "edit-active"
+    ? { primary: saving ? "Saving…" : "Save Changes", secondary: saving ? "Saving…" : "Save & Move to Draft", primaryActivate: true }
+    : { primary: saving ? "Activating…" : "Activate Exchange", secondary: saving ? "Saving…" : "Save as Draft", primaryActivate: true };
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Review & Activate</h2>
-        <p className="text-sm text-muted-foreground">Review all details before saving. Activating puts the property into the network for matching.</p>
+        <h2 className="text-lg font-semibold text-foreground">{mode === "create" ? "Review & Activate" : "Review & Save"}</h2>
+        <p className="text-sm text-muted-foreground">Review all details before saving.{mode === "create" && " Activating puts the property into the network for matching."}</p>
       </div>
+
 
       {/* Client */}
       <Card>
@@ -129,10 +141,13 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving 
       </Card>
 
       <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-between">
-        <Button variant="outline" onClick={onBack} disabled={saving}>Back</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onBack} disabled={saving}>Back</Button>
+          {onCancel && <Button variant="ghost" onClick={onCancel} disabled={saving}>Cancel</Button>}
+        </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => onSubmit(false)} disabled={saving}>{saving ? "Saving…" : "Save as Draft"}</Button>
-          <Button size="lg" onClick={() => onSubmit(true)} disabled={saving} className="font-semibold">{saving ? "Activating…" : "Activate Exchange"}</Button>
+          <Button variant="outline" onClick={() => onSubmit(false)} disabled={saving}>{labels.secondary}</Button>
+          <Button size="lg" onClick={() => onSubmit(true)} disabled={saving} className="font-semibold">{labels.primary}</Button>
         </div>
       </div>
     </div>

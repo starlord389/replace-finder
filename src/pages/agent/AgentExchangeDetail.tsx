@@ -5,10 +5,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Clock } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft, Clock, Pencil, Send, Archive, Trash2 } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
 import { formatCurrency } from "@/lib/exchangeWizardTypes";
 import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS } from "@/lib/constants";
+import { useUpdateExchange } from "@/features/exchanges/hooks/useUpdateExchange";
+import { toast } from "sonner";
 
 export default function AgentExchangeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -21,32 +27,63 @@ export default function AgentExchangeDetail() {
   const [criteria, setCriteria] = useState<any>(null);
   const [client, setClient] = useState<any>(null);
   const [timeline, setTimeline] = useState<any[]>([]);
+  const [hasBlockingConnections, setHasBlockingConnections] = useState(false);
+  const [hasMatchesOrConns, setHasMatchesOrConns] = useState(false);
+  const updateExchange = useUpdateExchange();
+  const [acting, setActing] = useState(false);
+
+  const reload = async () => {
+    if (!id || !user) return;
+    const { data: ex } = await supabase.from("exchanges").select("*").eq("id", id).eq("agent_id", user.id).single();
+    if (!ex) { navigate("/agent/exchanges"); return; }
+    setExchange(ex);
+
+    const promises = [
+      supabase.from("agent_clients").select("*").eq("id", ex.client_id).single(),
+      ex.relinquished_property_id ? supabase.from("pledged_properties").select("*").eq("id", ex.relinquished_property_id).single() : Promise.resolve({ data: null }),
+      ex.relinquished_property_id ? supabase.from("property_financials").select("*").eq("property_id", ex.relinquished_property_id).single() : Promise.resolve({ data: null }),
+      ex.criteria_id ? supabase.from("replacement_criteria").select("*").eq("id", ex.criteria_id).single() : Promise.resolve({ data: null }),
+      supabase.from("exchange_timeline").select("*").eq("exchange_id", id).order("created_at", { ascending: false }),
+      supabase.from("exchange_connections").select("id, status", { count: "exact" }).eq("buyer_exchange_id", id),
+      supabase.from("matches").select("id", { count: "exact", head: true }).eq("buyer_exchange_id", id),
+    ];
+
+    const [clientRes, propRes, finRes, critRes, timeRes, connRes, matchRes] = await Promise.all(promises);
+    setClient((clientRes as any).data);
+    setProperty((propRes as any).data);
+    setFinancials((finRes as any).data);
+    setCriteria((critRes as any).data);
+    setTimeline((timeRes as any).data || []);
+
+    const conns = ((connRes as any).data ?? []) as Array<{ status: string }>;
+    setHasBlockingConnections(conns.some(c => c.status === "accepted" || c.status === "completed"));
+    setHasMatchesOrConns(conns.length > 0 || ((matchRes as any).count ?? 0) > 0);
+
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!id || !user) return;
-    const load = async () => {
-      const { data: ex } = await supabase.from("exchanges").select("*").eq("id", id).eq("agent_id", user.id).single();
-      if (!ex) { navigate("/agent/exchanges"); return; }
-      setExchange(ex);
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user]);
 
-      const promises = [
-        supabase.from("agent_clients").select("*").eq("id", ex.client_id).single(),
-        ex.relinquished_property_id ? supabase.from("pledged_properties").select("*").eq("id", ex.relinquished_property_id).single() : Promise.resolve({ data: null }),
-        ex.relinquished_property_id ? supabase.from("property_financials").select("*").eq("property_id", ex.relinquished_property_id).single() : Promise.resolve({ data: null }),
-        ex.criteria_id ? supabase.from("replacement_criteria").select("*").eq("id", ex.criteria_id).single() : Promise.resolve({ data: null }),
-        supabase.from("exchange_timeline").select("*").eq("exchange_id", id).order("created_at", { ascending: false }),
-      ];
-
-      const [clientRes, propRes, finRes, critRes, timeRes] = await Promise.all(promises);
-      setClient((clientRes as any).data);
-      setProperty((propRes as any).data);
-      setFinancials((finRes as any).data);
-      setCriteria((critRes as any).data);
-      setTimeline((timeRes as any).data || []);
-      setLoading(false);
-    };
-    load();
-  }, [id, user, navigate]);
+  const runAction = async (intent: "publish" | "move_to_draft" | "delete_draft", successMsg: string) => {
+    if (!id) return;
+    setActing(true);
+    try {
+      await updateExchange.mutateAsync({ exchangeId: id, intent });
+      toast.success(successMsg);
+      if (intent === "delete_draft") {
+        navigate("/agent/exchanges");
+      } else {
+        await reload();
+      }
+    } catch (err: any) {
+      toast.error("Action failed: " + (err.message || "Unknown error"));
+    } finally {
+      setActing(false);
+    }
+  };
 
   if (loading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
   if (!exchange) return null;
@@ -56,17 +93,65 @@ export default function AgentExchangeDetail() {
     exchange.closing_deadline && { label: "Closing Deadline", date: exchange.closing_deadline },
   ].filter(Boolean) as { label: string; date: string }[];
 
+  const isDraft = exchange.status === "draft";
+  const isActive = exchange.status === "active";
+  const canDelete = isDraft && !hasMatchesOrConns;
+  const canMoveToDraft = isActive && !hasBlockingConnections;
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate("/agent/exchanges")}><ArrowLeft className="h-5 w-5" /></Button>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold text-foreground">{client?.client_name || "Exchange"}</h1>
-          <p className="text-sm text-muted-foreground">{property ? [property.address, property.city, property.state].filter(Boolean).join(", ") : "No property pledged"}</p>
+          <p className="text-sm text-muted-foreground truncate">{property ? [property.address, property.city, property.state].filter(Boolean).join(", ") : "No property pledged"}</p>
         </div>
         <Badge className={EXCHANGE_STATUS_COLORS[exchange.status] || "bg-muted text-muted-foreground"}>
           {EXCHANGE_STATUS_LABELS[exchange.status] || exchange.status}
         </Badge>
+      </div>
+
+      {/* Action bar */}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" onClick={() => navigate(`/agent/exchanges/${id}/edit`)} disabled={acting}>
+          <Pencil className="mr-2 h-4 w-4" /> Edit
+        </Button>
+        {isDraft && (
+          <Button size="sm" onClick={() => runAction("publish", "Exchange published — matching queued.")} disabled={acting}>
+            <Send className="mr-2 h-4 w-4" /> Publish
+          </Button>
+        )}
+        {canMoveToDraft && (
+          <Button variant="outline" size="sm" onClick={() => runAction("move_to_draft", "Moved to draft — matching paused.")} disabled={acting}>
+            <Archive className="mr-2 h-4 w-4" /> Save as Draft
+          </Button>
+        )}
+        {canDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={acting}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete draft
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this draft exchange?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently removes the property, financials, criteria, and timeline. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => runAction("delete_draft", "Draft exchange deleted.")}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       {/* Deadlines */}
