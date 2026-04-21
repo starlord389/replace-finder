@@ -1,58 +1,76 @@
 
 
-## Build out the Messages tab as a real inbox
+## Edit, draft, and publish exchanges
 
-The `Messages` page in the sidebar is currently a hardcoded empty-state placeholder — it never queries the database. Your conversations exist (and work) inside each connection's detail page, but there's no unified inbox aggregating them. I'll convert it into a proper two-pane messaging inbox.
+Today exchanges are write-once: the wizard creates them, but the detail page is read-only and there's no way to change a property, financials, criteria, or move between draft ↔ active. I'll add a full edit flow that mirrors the create wizard and adds inline status controls.
 
-### What you'll see after the fix
+### What you'll see
 
-A Slack/iMessage-style **two-pane inbox** at `/agent/messages`:
+**On the exchange detail page (`/agent/exchanges/:id`)**
+- New header actions next to the status badge:
+  - **Edit** button — opens the wizard prefilled with the exchange's data
+  - **Publish** button — visible only when status is `draft`; flips status to `active`, queues matching, and adds a timeline event
+  - **Save as Draft** button — visible only when status is `active` (and no connections yet); flips back to `draft` and pauses matching
+  - **Delete draft** button — visible only on drafts with no matches/connections (small, destructive variant)
+- Status badge updates immediately after any action, with a toast confirming what happened
 
-**Left pane — Conversation list**
-- One row per `exchange_connection` you're part of (buyer or seller side) where messaging is allowed (status `accepted` or `completed`)
-- Each row shows: counter-party agent's name + avatar initial, property name (replacement property), last message preview (truncated), relative timestamp ("2h ago"), and an unread dot/count if the latest message wasn't sent by you and you haven't opened the thread
-- Sorted by most recent message first
-- Search box at top to filter by agent name or property
-- Active conversation highlighted
+**Edit page (`/agent/exchanges/:id/edit`)**
+- Same 4-step wizard UI as "New Exchange", prefilled with everything: client (locked — can't switch client on an existing exchange), property, financials, photos, replacement criteria
+- Step header label says "Edit Exchange" instead of "New Exchange"
+- Review step shows two buttons matching current status:
+  - If editing a draft: **Save Changes (Draft)** + **Save & Publish**
+  - If editing an active exchange: **Save Changes** + **Save & Move to Draft**
+- Cancel button returns to detail page without saving
+- Existing photos appear in the uploader with a remove button; new photos can be added
 
-**Right pane — Active thread**
-- Header: counter-party name, property name, "View connection →" link to the full connection detail page
-- Scrollable message history (same bubble UI as in `AgentConnectionDetail` — own messages right-aligned in primary color, theirs left-aligned in muted)
-- Composer at bottom: textarea + send button, Enter-to-send / Shift+Enter for newline (matches existing pattern)
-- Auto-scrolls to newest message
-- Empty state when no conversation selected: "Select a conversation to start messaging"
-
-**Mobile** — single-pane: list view, tap a row to open the thread, back button returns to list.
+**Toast / timeline behavior**
+- Every save inserts an `exchange_timeline` event: `exchange_updated`, `exchange_published`, or `exchange_moved_to_draft` with a description like "Property financials updated" or "Exchange published — matching queued"
+- Publishing an active exchange re-enqueues a match job so updated criteria/financials get rescored
 
 ### How it works
 
-1. **Data fetch**: One query loads all `exchange_connections` where `buyer_agent_id = me OR seller_agent_id = me` AND `status IN ('accepted','completed')`. For each, fetch the latest message + counter-party profile + replacement property name in parallel.
-2. **Thread loading**: When a conversation is selected, fetch all `messages` where `connection_id = selected.id` ordered by `created_at`.
-3. **Sending**: Insert into `messages` with `sender_id = auth.uid()`, `connection_id`, `content` (matches existing flow that already works in `AgentConnectionDetail`).
-4. **Realtime** (nice-to-have, included): Subscribe to `postgres_changes` on `messages` filtered by `connection_id IN (my connections)` so new messages appear without refresh. Requires adding `messages` to the `supabase_realtime` publication.
-5. **Unread tracking**: A message counts as unread for me if `sender_id != me` AND `read_at IS NULL`. When I open a thread, mark all incoming messages in it as read by updating `read_at = now()` where `connection_id = X AND sender_id != me AND read_at IS NULL`.
+**Frontend**
+- `src/pages/agent/EditExchange.tsx` (new) — copy of `NewExchange.tsx` adapted to:
+  - Take `:id` from URL
+  - Hydrate `WizardState` from existing rows (`exchanges` + `pledged_properties` + `property_financials` + `property_images` + `replacement_criteria`)
+  - Lock the client step (display only) — first wizard step becomes a read-only client card with "Continue"
+  - Call `useUpdateExchange` instead of `useCreateExchange`
+- `src/features/exchanges/api/updateExchange.ts` (new) — invokes a new `update-exchange` edge function with the same payload shape as create plus `exchangeId` and an `intent: "save_draft" | "publish" | "save_active" | "move_to_draft"`
+- `src/features/exchanges/hooks/useUpdateExchange.ts` (new) — mirrors `useCreateExchange`, invalidates the same queries plus `["exchange-detail", id]`
+- `src/pages/agent/AgentExchangeDetail.tsx` — add the action buttons; small mutations for inline publish / move-to-draft / delete draft that hit the same edge function with intent flags (no wizard required for those quick toggles)
+- `src/App.tsx` — register `/agent/exchanges/:id/edit` route
 
-### Technical changes
+**Backend**
+- New edge function `supabase/functions/update-exchange/index.ts`:
+  - Verifies caller owns the exchange (`agent_id = auth.uid()`)
+  - For wizard saves: `UPDATE` the `pledged_properties`, `property_financials`, `replacement_criteria`, and `exchanges` rows; reconcile `property_images` (delete removed, insert new)
+  - For status changes: just update `exchanges.status` (+ set `listed_at` on pledged_properties when publishing)
+  - On publish (whether from wizard or inline button), enqueue a row in `match_job_queue` so re-scoring runs
+  - Insert appropriate `exchange_timeline` event
+  - Insert `event_outbox` row (`exchange.updated` or `exchange.published`)
+- Inline `delete-draft` action (only allowed when status = `draft` AND no rows in `matches` or `exchange_connections` referencing it) — handled in the same edge function with `intent: "delete_draft"`; cascades cleanup of property/financials/images/criteria/timeline
+
+**Guardrails**
+- Can't move an exchange to draft once it has any `accepted` or `completed` `exchange_connections` — button is hidden in that case
+- Can't change the client on an existing exchange — first wizard step becomes read-only
+- Can't delete an exchange that already has matches generated — only fresh drafts
+
+### Files
 
 | File | Change |
 |---|---|
-| `src/pages/agent/AgentMessages.tsx` | Full rewrite — two-pane inbox component |
-| `src/features/messages/hooks/useConversations.ts` (new) | React Query hook fetching connection list + last message + counter-party profile + property |
-| `src/features/messages/hooks/useMessageThread.ts` (new) | React Query hook fetching messages for a connection + realtime subscription + send mutation |
-| `src/features/messages/hooks/useMarkRead.ts` (new) | Mutation to mark thread messages as read |
-| Migration | `ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;` and add UPDATE policy on `messages` so recipients can mark `read_at` (currently messages have no UPDATE policy at all — this is also why no read receipts work) |
-| `src/components/layout/AgentHeader.tsx` (small) | Show unread message count badge on the bell or sidebar Messages link (optional, nice polish) |
-
-### RLS / security notes
-
-- Reads already work — `Connection members can read messages` policy covers it
-- Sends already work — `Connection members can send messages` policy covers it
-- Need a new UPDATE policy on `messages`: allow recipient (connection member who is NOT the sender) to set `read_at` only
+| `src/pages/agent/EditExchange.tsx` | New — wizard in edit mode |
+| `src/features/exchanges/api/updateExchange.ts` | New — client-side wrapper |
+| `src/features/exchanges/hooks/useUpdateExchange.ts` | New — React Query mutation |
+| `src/pages/agent/AgentExchangeDetail.tsx` | Add Edit / Publish / Save-as-Draft / Delete buttons + handlers |
+| `src/App.tsx` | Register `/agent/exchanges/:id/edit` |
+| `src/components/exchange/StepSelectClient.tsx` | Optional `lockedClientName` prop to render read-only mode |
+| `src/components/exchange/StepReview.tsx` | Add `mode` prop ("create" \| "edit-draft" \| "edit-active") to render correct button labels |
+| `supabase/functions/update-exchange/index.ts` | New — handles update, publish, move-to-draft, delete-draft intents |
 
 ### Out of scope
 
-- Message attachments / images
-- Typing indicators
-- Message editing or deletion
-- Group threads (every connection is strictly 2-party)
+- Editing exchange after a connection is accepted (keeps audit trail clean — would need a change-request flow)
+- Bulk status changes from the list page
+- Versioning/history of property snapshots beyond the existing timeline events
 
