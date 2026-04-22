@@ -29,6 +29,13 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend,
 } from "recharts";
+import { SideBySidePanel } from "@/components/match/SideBySidePanel";
+import { ImpactStrip } from "@/components/match/ImpactStrip";
+import { MatchRadarChart } from "@/components/match/MatchRadarChart";
+import { ExpenseStackedChart } from "@/components/match/ExpenseStackedChart";
+import { CashFlowWaterfall } from "@/components/match/CashFlowWaterfall";
+import { FitGauge } from "@/components/match/FitGauge";
+import { LocationCard } from "@/components/match/LocationCard";
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -163,10 +170,15 @@ export default function AgentMatchDetail() {
       setRelinquishedProp(relPropRes.data);
       setClientName(clientRes.data?.client_name || "Client");
 
-      // Fetch relinquished property financials
+      // Fetch relinquished property financials + first image
       if (relPropRes.data) {
-        const { data: relFinData } = await supabase.from("property_financials").select("*").eq("property_id", relPropRes.data.id).maybeSingle();
-        setRelinquishedFin(relFinData);
+        const [relFinRes, relImgRes] = await Promise.all([
+          supabase.from("property_financials").select("*").eq("property_id", relPropRes.data.id).maybeSingle(),
+          supabase.from("property_images").select("storage_path").eq("property_id", relPropRes.data.id).order("sort_order").limit(1),
+        ]);
+        setRelinquishedFin(relFinRes.data);
+        const firstImg = relImgRes.data?.[0];
+        setRelinquishedCover(firstImg ? resolvePropertyImageUrl(firstImg.storage_path) : null);
       }
     }
 
