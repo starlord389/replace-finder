@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ArrowLeftRight, Handshake, Link2,
-  MessageSquare, Settings, HelpCircle, LogOut, Compass,
+  MessageSquare, Settings, HelpCircle, LogOut, Compass, Building2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,30 +12,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
+import { useSidebarBadges } from "@/features/notifications/hooks/useSidebarBadges";
+import { cn } from "@/lib/utils";
 
-const networkItems = [
-  { title: "Launchpad", url: "/agent/launchpad", icon: Compass },
-  { title: "Dashboard", url: "/agent", icon: LayoutDashboard, end: true },
-  { title: "My Clients", url: "/agent/clients", icon: Users },
-  { title: "Exchanges", url: "/agent/exchanges", icon: ArrowLeftRight },
-  { title: "Matches", url: "/agent/matches", icon: Handshake },
-  { title: "Connections", url: "/agent/connections", icon: Link2 },
-];
-
-const toolsItems = [
-  { title: "Messages", url: "/agent/messages", icon: MessageSquare },
-];
-
-const accountItems = [
-  { title: "Settings", url: "/agent/settings", icon: Settings },
-  { title: "Help", url: "/agent/help", icon: HelpCircle },
-];
+interface NavItem {
+  title: string;
+  url: string;
+  icon: typeof LayoutDashboard;
+  end?: boolean;
+  badge?: number;
+}
 
 export default function AgentSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { user, signOut, profileName } = useAuth();
   const [brokerageName, setBrokerageName] = useState<string | null>(null);
+  const { data: launchpadProgress } = useAgentLaunchpadProgress(user?.id);
+  const { data: badges } = useSidebarBadges();
+
+  const launchpadComplete = !!launchpadProgress?.profile.launchpad_completed_at;
 
   useEffect(() => {
     if (!user) return;
@@ -43,7 +40,35 @@ export default function AgentSidebar() {
       .then(({ data }) => setBrokerageName(data?.brokerage_name ?? null));
   }, [user]);
 
-  const renderGroup = (label: string, items: typeof networkItems) => (
+  const networkItems: NavItem[] = [
+    ...(!launchpadComplete
+      ? [{ title: "Launchpad", url: "/agent/launchpad", icon: Compass }]
+      : []),
+    { title: "Dashboard", url: "/agent", icon: LayoutDashboard, end: true },
+    { title: "My Clients", url: "/agent/clients", icon: Users },
+    { title: "Exchanges", url: "/agent/exchanges", icon: ArrowLeftRight },
+    { title: "Pledged Properties", url: "/agent/properties", icon: Building2 },
+    { title: "Matches", url: "/agent/matches", icon: Handshake },
+    {
+      title: "Connections",
+      url: "/agent/connections",
+      icon: Link2,
+      badge: badges?.pendingConnections ?? 0,
+    },
+    {
+      title: "Messages",
+      url: "/agent/messages",
+      icon: MessageSquare,
+      badge: badges?.unreadMessages ?? 0,
+    },
+  ];
+
+  const accountItems: NavItem[] = [
+    { title: "Settings", url: "/agent/settings", icon: Settings },
+    { title: "Help", url: "/agent/help", icon: HelpCircle },
+  ];
+
+  const renderGroup = (label: string, items: NavItem[]) => (
     <SidebarGroup>
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarGroupContent>
@@ -58,7 +83,21 @@ export default function AgentSidebar() {
                   activeClassName="bg-primary/10 text-primary"
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
-                  {!collapsed && <span>{item.title}</span>}
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1">{item.title}</span>
+                      {item.badge && item.badge > 0 ? (
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                          {item.badge > 9 ? "9+" : item.badge}
+                        </span>
+                      ) : null}
+                    </>
+                  )}
+                  {collapsed && item.badge && item.badge > 0 ? (
+                    <span className={cn(
+                      "absolute right-1 top-1 h-2 w-2 rounded-full bg-primary"
+                    )} />
+                  ) : null}
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -88,7 +127,6 @@ export default function AgentSidebar() {
           </div>
 
           {renderGroup("Exchange Network", networkItems)}
-          {renderGroup("Tools", toolsItems)}
           {renderGroup("Account", accountItems)}
         </div>
 

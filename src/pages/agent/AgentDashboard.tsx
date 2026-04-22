@@ -414,7 +414,7 @@ export default function AgentDashboard() {
         </Card>
       )}
 
-      <SeedMockDataPanel />
+      {import.meta.env.DEV && <SeedMockDataPanel />}
     </div>
   );
 }
