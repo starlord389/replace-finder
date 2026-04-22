@@ -899,6 +899,11 @@ export default function AgentMatchDetail() {
         </div>
       )}
 
+      {/* ═══ SECTION 5.5: MATCH RADAR ═══ */}
+      <div className="mt-6">
+        <MatchRadarChart match={match} />
+      </div>
+
       {/* ═══ SECTION 6: MATCH SCORE BREAKDOWN ═══ */}
       <div className="mt-6 rounded-xl border bg-card p-6">
         <h2 className="text-lg font-semibold text-foreground">Why This Property Was Matched</h2>
