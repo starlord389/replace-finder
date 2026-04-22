@@ -23,6 +23,16 @@ export interface AgentMatchRow {
   financials?: any;
   coverUrl?: string | null;
   clientName?: string;
+  /** snapshot of the buyer's relinquished property for side-by-side comparison */
+  relinquished?: {
+    price: number | null;
+    noi: number | null;
+    capRate: number | null;
+    units: number | null;
+    sf: number | null;
+    city: string | null;
+    state: string | null;
+  } | null;
 }
 
 interface AgentMatchesData {
