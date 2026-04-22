@@ -90,6 +90,7 @@ export default function AgentMatchDetail() {
   const [criteria, setCriteria] = useState<any>(null);
   const [relinquishedProp, setRelinquishedProp] = useState<any>(null);
   const [relinquishedFin, setRelinquishedFin] = useState<any>(null);
+  const [relinquishedCover, setRelinquishedCover] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [loading, setLoading] = useState(true);
 
