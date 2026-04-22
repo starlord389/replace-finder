@@ -127,6 +127,28 @@ async function fetchAgentMatches(userId: string): Promise<AgentMatchesData> {
       const firstImg = iMap.get(match.seller_property_id);
       match.coverUrl = firstImg ? resolvePropertyImageUrl(firstImg.storage_path) : null;
       match.clientName = exchangeMap.get(match.buyer_exchange_id) || "Client";
+
+      const relId = exRelMap.get(match.buyer_exchange_id);
+      const relProp: any = relId ? relPropMap.get(relId) : null;
+      const relFin: any = relId ? relFinMap.get(relId) : null;
+      if (relProp || relFin) {
+        const price = relFin?.asking_price ? Number(relFin.asking_price) : null;
+        const noi = relFin?.noi ? Number(relFin.noi) : null;
+        const capRate = relFin?.cap_rate
+          ? Number(relFin.cap_rate)
+          : noi && price ? (noi / price) * 100 : null;
+        match.relinquished = {
+          price,
+          noi,
+          capRate,
+          units: relProp?.units ?? null,
+          sf: relProp?.building_square_footage ? Number(relProp.building_square_footage) : null,
+          city: relProp?.city ?? null,
+          state: relProp?.state ?? null,
+        };
+      } else {
+        match.relinquished = null;
+      }
     });
 
     buyerData.sort((a, b) => {
