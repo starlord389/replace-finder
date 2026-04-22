@@ -13,6 +13,7 @@ import {
 } from "@/lib/constants";
 import type { Enums } from "@/integrations/supabase/types";
 import { useAgentMatchesQuery } from "@/features/agent/hooks/useAgentMatchesQuery";
+import { MiniCompareBar } from "@/components/match/MiniCompareBar";
 
 // ── Helpers ──────────────────────────────────────────────
 
