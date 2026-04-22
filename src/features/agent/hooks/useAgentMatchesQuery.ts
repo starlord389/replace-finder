@@ -48,6 +48,24 @@ async function fetchAgentMatches(userId: string): Promise<AgentMatchesData> {
     .eq("agent_id", userId);
   const exchangeIds = (exchanges ?? []).map((e) => e.id);
 
+  const { data: exchangesFull } = exchangeIds.length > 0
+    ? await supabase.from("exchanges").select("id, client_id, relinquished_property_id").in("id", exchangeIds)
+    : { data: [] as any[] };
+  const relinquishedIds = (exchangesFull ?? []).map((e: any) => e.relinquished_property_id).filter(Boolean);
+  const exRelMap = new Map<string, string>();
+  (exchangesFull ?? []).forEach((e: any) => {
+    if (e.relinquished_property_id) exRelMap.set(e.id, e.relinquished_property_id);
+  });
+
+  const [relPropsRes, relFinsRes] = relinquishedIds.length > 0
+    ? await Promise.all([
+        supabase.from("pledged_properties").select("id, units, building_square_footage, city, state").in("id", relinquishedIds),
+        supabase.from("property_financials").select("property_id, asking_price, noi, cap_rate").in("property_id", relinquishedIds),
+      ])
+    : [{ data: [] as any[] }, { data: [] as any[] }];
+  const relPropMap = new Map((relPropsRes.data ?? []).map((p: any) => [p.id, p]));
+  const relFinMap = new Map((relFinsRes.data ?? []).map((f: any) => [f.property_id, f]));
+
   const { data: props } = await supabase
     .from("pledged_properties")
     .select("id, property_name")
