@@ -1,76 +1,88 @@
 
 
-## Edit, draft, and publish exchanges
+## Build out the Help Center with full docs, FAQs, and ticket submission
 
-Today exchanges are write-once: the wizard creates them, but the detail page is read-only and there's no way to change a property, financials, criteria, or move between draft ↔ active. I'll add a full edit flow that mirrors the create wizard and adds inline status controls.
+Today `/agent/help` is a thin page: 5 FAQ items and a static support email. I'll turn it into a real help center with categorized documentation, expanded FAQs, a ticket submission form, and a view of the user's past tickets.
 
-### What you'll see
+### What you'll see at `/agent/help`
 
-**On the exchange detail page (`/agent/exchanges/:id`)**
-- New header actions next to the status badge:
-  - **Edit** button — opens the wizard prefilled with the exchange's data
-  - **Publish** button — visible only when status is `draft`; flips status to `active`, queues matching, and adds a timeline event
-  - **Save as Draft** button — visible only when status is `active` (and no connections yet); flips back to `draft` and pauses matching
-  - **Delete draft** button — visible only on drafts with no matches/connections (small, destructive variant)
-- Status badge updates immediately after any action, with a toast confirming what happened
+A tabbed interface with 4 tabs:
 
-**Edit page (`/agent/exchanges/:id/edit`)**
-- Same 4-step wizard UI as "New Exchange", prefilled with everything: client (locked — can't switch client on an existing exchange), property, financials, photos, replacement criteria
-- Step header label says "Edit Exchange" instead of "New Exchange"
-- Review step shows two buttons matching current status:
-  - If editing a draft: **Save Changes (Draft)** + **Save & Publish**
-  - If editing an active exchange: **Save Changes** + **Save & Move to Draft**
-- Cancel button returns to detail page without saving
-- Existing photos appear in the uploader with a remove button; new photos can be added
+**1. Getting Started** (default tab)
+- Quick-start walkthrough cards: Set up your profile → Add your first client → Create an exchange → Pledge a property → Review matches → Connect with another agent
+- Each card has a short description and a deep-link button into the relevant section of the app
+- Glossary section explaining 1031 terminology: Boot, Like-Kind, Identification Period, Exchange Period, Qualified Intermediary, Replacement Property, Relinquished Property, Equal-or-Up Rule, Reverse Exchange, Improvement Exchange
 
-**Toast / timeline behavior**
-- Every save inserts an `exchange_timeline` event: `exchange_updated`, `exchange_published`, or `exchange_moved_to_draft` with a description like "Property financials updated" or "Exchange published — matching queued"
-- Publishing an active exchange re-enqueues a match job so updated criteria/financials get rescored
+**2. FAQs**
+- Expanded from 5 → ~25 questions grouped by category with collapsible sections:
+  - **Account & Setup** (4): adding clients, agent verification, brokerage settings, profile photo
+  - **Exchanges** (5): create vs draft vs publish, editing exchanges, what fields are required, why an exchange might fail to publish, deleting exchanges
+  - **Matching** (5): how scoring works (with link to the 6-dimension breakdown), why a property scored low, refreshing matches, boot calculation, hiding/passing on matches
+  - **Connections & Messaging** (4): sending a connection request, what info is shared, accepting/declining, sending messages, marking as read
+  - **1031 Rules & Deadlines** (4): 45/180-day rules, identification rules (3-property/200%/95%), like-kind requirements, qualified intermediary requirement
+  - **Billing & Account** (3): pricing, canceling, data export
+- Search box at the top filters FAQs live by keyword
+
+**3. Documentation**
+- Long-form guides rendered as collapsible sections with subheadings:
+  - **Exchange Lifecycle Guide** — full walkthrough of statuses (draft → active → in_identification → in_closing → completed) with what each means and what triggers transitions
+  - **Match Score Explained** — breakdown of all 6 dimensions (price 25% / geo 20% / asset 20% / strategy 15% / financial 10% / timing 10%) with examples
+  - **Boot Calculation** — what cash boot and mortgage boot are, how the platform estimates them, when results are flagged "insufficient data"
+  - **Pledged Property Best Practices** — what fields most affect match quality, how photos help, when to mark as off-market
+  - **Working with Counter-party Agents** — etiquette for connections, what info gets shared at each stage, facilitation fees
+  - **Security & Privacy** — how client data is protected, what other agents can see, RLS-backed access control
+- Each guide has a "table of contents" sidebar linking to subsections (anchor scroll)
+
+**4. Submit a Ticket**
+- Form with fields:
+  - **Category** (select): `Bug Report`, `Feature Request`, `Account Issue`, `Billing`, `General Question`
+  - **Subject** (text, max 120 chars)
+  - **Message** (textarea, max 2000 chars) — placeholder hints to include steps to reproduce for bugs
+  - **Submit** button
+- On submit: insert into `support_tickets` with `user_id = auth.uid()`, status defaults to `open`. Toast confirms, form resets.
+- Below the form: **Your Tickets** section listing the user's previously submitted tickets with status badges (`open`, `in_progress`, `resolved`, `closed`), subject, category, date, and an expand toggle to reveal the message body, any admin notes, and a "Last updated" timestamp.
+- Empty state: "You haven't submitted any tickets yet."
+- Footer card stays: contact email + link to documentation
 
 ### How it works
 
-**Frontend**
-- `src/pages/agent/EditExchange.tsx` (new) — copy of `NewExchange.tsx` adapted to:
-  - Take `:id` from URL
-  - Hydrate `WizardState` from existing rows (`exchanges` + `pledged_properties` + `property_financials` + `property_images` + `replacement_criteria`)
-  - Lock the client step (display only) — first wizard step becomes a read-only client card with "Continue"
-  - Call `useUpdateExchange` instead of `useCreateExchange`
-- `src/features/exchanges/api/updateExchange.ts` (new) — invokes a new `update-exchange` edge function with the same payload shape as create plus `exchangeId` and an `intent: "save_draft" | "publish" | "save_active" | "move_to_draft"`
-- `src/features/exchanges/hooks/useUpdateExchange.ts` (new) — mirrors `useCreateExchange`, invalidates the same queries plus `["exchange-detail", id]`
-- `src/pages/agent/AgentExchangeDetail.tsx` — add the action buttons; small mutations for inline publish / move-to-draft / delete draft that hit the same edge function with intent flags (no wizard required for those quick toggles)
-- `src/App.tsx` — register `/agent/exchanges/:id/edit` route
+**Frontend changes**
+- `src/pages/agent/AgentHelp.tsx` — full rewrite using the existing `Tabs` component:
+  - Tab state in URL hash (`#getting-started`, `#faqs`, `#docs`, `#tickets`) so deep links work
+  - FAQ search uses simple `.toLowerCase().includes()` filter on question + answer
+  - Docs use `Accordion` for collapsible sections with anchor IDs
+- `src/features/support/hooks/useMyTickets.ts` (new) — React Query hook fetching `support_tickets` for `auth.uid()`, ordered by `created_at desc`
+- `src/features/support/hooks/useSubmitTicket.ts` (new) — React Query mutation inserting a ticket, invalidating `["my-tickets"]`
+- `src/features/support/types.ts` (new) — shared `TicketCategory` enum and helpers
+- Validation with `zod`: subject 1-120 chars, message 1-2000 chars, category required
+- Toast + form reset on success; inline field errors on validation failure
 
 **Backend**
-- New edge function `supabase/functions/update-exchange/index.ts`:
-  - Verifies caller owns the exchange (`agent_id = auth.uid()`)
-  - For wizard saves: `UPDATE` the `pledged_properties`, `property_financials`, `replacement_criteria`, and `exchanges` rows; reconcile `property_images` (delete removed, insert new)
-  - For status changes: just update `exchanges.status` (+ set `listed_at` on pledged_properties when publishing)
-  - On publish (whether from wizard or inline button), enqueue a row in `match_job_queue` so re-scoring runs
-  - Insert appropriate `exchange_timeline` event
-  - Insert `event_outbox` row (`exchange.updated` or `exchange.published`)
-- Inline `delete-draft` action (only allowed when status = `draft` AND no rows in `matches` or `exchange_connections` referencing it) — handled in the same edge function with `intent: "delete_draft"`; cascades cleanup of property/financials/images/criteria/timeline
+- No schema changes needed. `support_tickets` table already exists with the right RLS:
+  - Users can `INSERT` their own (`auth.uid() = user_id`)
+  - Users can `SELECT` their own
+  - Admins see all (already wired into the existing `/admin/support` page)
+- No new migration, no new edge function
 
-**Guardrails**
-- Can't move an exchange to draft once it has any `accepted` or `completed` `exchange_connections` — button is hidden in that case
-- Can't change the client on an existing exchange — first wizard step becomes read-only
-- Can't delete an exchange that already has matches generated — only fresh drafts
+**Optional client-side help (parallel)**
+- `src/pages/client/Help.tsx` already exists. I'll mirror the same component structure there with client-appropriate FAQ wording (no agent-specific items like "pledged properties" or "counter-party connections"), and the ticket form works identically for clients.
 
 ### Files
 
 | File | Change |
 |---|---|
-| `src/pages/agent/EditExchange.tsx` | New — wizard in edit mode |
-| `src/features/exchanges/api/updateExchange.ts` | New — client-side wrapper |
-| `src/features/exchanges/hooks/useUpdateExchange.ts` | New — React Query mutation |
-| `src/pages/agent/AgentExchangeDetail.tsx` | Add Edit / Publish / Save-as-Draft / Delete buttons + handlers |
-| `src/App.tsx` | Register `/agent/exchanges/:id/edit` |
-| `src/components/exchange/StepSelectClient.tsx` | Optional `lockedClientName` prop to render read-only mode |
-| `src/components/exchange/StepReview.tsx` | Add `mode` prop ("create" \| "edit-draft" \| "edit-active") to render correct button labels |
-| `supabase/functions/update-exchange/index.ts` | New — handles update, publish, move-to-draft, delete-draft intents |
+| `src/pages/agent/AgentHelp.tsx` | Full rewrite — 4-tab help center |
+| `src/pages/client/Help.tsx` | Mirror with client-tailored FAQ copy |
+| `src/features/support/hooks/useMyTickets.ts` | New — fetch user's tickets |
+| `src/features/support/hooks/useSubmitTicket.ts` | New — submit ticket mutation |
+| `src/features/support/types.ts` | New — categories, labels, status colors |
+| `src/content/helpFaqs.ts` | New — structured FAQ data (categories + items) |
+| `src/content/helpDocs.ts` | New — long-form documentation content |
 
 ### Out of scope
 
-- Editing exchange after a connection is accepted (keeps audit trail clean — would need a change-request flow)
-- Bulk status changes from the list page
-- Versioning/history of property snapshots beyond the existing timeline events
+- Threaded back-and-forth replies on tickets (current schema supports `admin_notes` only — would need a `ticket_messages` table)
+- File attachments on tickets
+- Email notifications when admin updates a ticket (would need an edge function + outbox row)
+- Public knowledge base (no auth) — current help is in-app only
 
