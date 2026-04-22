@@ -13,6 +13,7 @@ import {
 } from "@/lib/constants";
 import type { Enums } from "@/integrations/supabase/types";
 import { useAgentMatchesQuery } from "@/features/agent/hooks/useAgentMatchesQuery";
+import { MiniCompareBar } from "@/components/match/MiniCompareBar";
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -258,6 +259,19 @@ export default function AgentMatches() {
                         </span>
                       )}
                     </div>
+
+                    {match.relinquished && (
+                      <div className="mt-3 rounded-lg border bg-muted/30 p-2.5">
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">vs your property</p>
+                        <MiniCompareBar
+                          bars={[
+                            { label: "Price", yours: match.relinquished.price, theirs: fin?.asking_price ? Number(fin.asking_price) : null, format: "money", upIs: "neutral" },
+                            { label: "NOI", yours: match.relinquished.noi, theirs: fin?.noi ? Number(fin.noi) : null, format: "money", upIs: "favorable" },
+                            { label: "Cap", yours: match.relinquished.capRate, theirs: fin?.cap_rate ? Number(fin.cap_rate) : null, format: "pct", upIs: "favorable" },
+                          ]}
+                        />
+                      </div>
+                    )}
 
                     <p className="mt-3 text-[11px] text-muted-foreground">
                       For: {match.clientName}'s exchange

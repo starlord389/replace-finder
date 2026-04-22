@@ -29,6 +29,13 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend,
 } from "recharts";
+import { SideBySidePanel } from "@/components/match/SideBySidePanel";
+import { ImpactStrip } from "@/components/match/ImpactStrip";
+import { MatchRadarChart } from "@/components/match/MatchRadarChart";
+import { ExpenseStackedChart } from "@/components/match/ExpenseStackedChart";
+import { CashFlowWaterfall } from "@/components/match/CashFlowWaterfall";
+import { FitGauge } from "@/components/match/FitGauge";
+import { LocationCard } from "@/components/match/LocationCard";
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -90,6 +97,7 @@ export default function AgentMatchDetail() {
   const [criteria, setCriteria] = useState<any>(null);
   const [relinquishedProp, setRelinquishedProp] = useState<any>(null);
   const [relinquishedFin, setRelinquishedFin] = useState<any>(null);
+  const [relinquishedCover, setRelinquishedCover] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -162,10 +170,15 @@ export default function AgentMatchDetail() {
       setRelinquishedProp(relPropRes.data);
       setClientName(clientRes.data?.client_name || "Client");
 
-      // Fetch relinquished property financials
+      // Fetch relinquished property financials + first image
       if (relPropRes.data) {
-        const { data: relFinData } = await supabase.from("property_financials").select("*").eq("property_id", relPropRes.data.id).maybeSingle();
-        setRelinquishedFin(relFinData);
+        const [relFinRes, relImgRes] = await Promise.all([
+          supabase.from("property_financials").select("*").eq("property_id", relPropRes.data.id).maybeSingle(),
+          supabase.from("property_images").select("storage_path").eq("property_id", relPropRes.data.id).order("sort_order").limit(1),
+        ]);
+        setRelinquishedFin(relFinRes.data);
+        const firstImg = relImgRes.data?.[0];
+        setRelinquishedCover(firstImg ? resolvePropertyImageUrl(firstImg.storage_path) : null);
       }
     }
 
@@ -436,6 +449,106 @@ export default function AgentMatchDetail() {
           </div>
         </div>
       </div>
+
+      {/* ═══ SECTION 1.5: SIDE-BY-SIDE ═══ */}
+      {relinquishedProp && (
+        <div className="mt-6">
+          <SideBySidePanel
+            left={{
+              label: "Your Property",
+              name: relinquishedProp.property_name || relinquishedProp.address,
+              city: relinquishedProp.city,
+              state: relinquishedProp.state,
+              imgUrl: relinquishedCover,
+              price: reqMetrics?.price,
+              capRate: reqMetrics?.capRate,
+              noi: reqMetrics?.noi,
+              units: reqMetrics?.units,
+              sf: reqMetrics?.sf,
+              yearBuilt: relinquishedProp.year_built,
+              assetType: relinquishedProp.asset_type,
+            }}
+            right={{
+              label: "Replacement Property",
+              name: sellerProp.property_name || sellerProp.address,
+              city: sellerProp.city,
+              state: sellerProp.state,
+              imgUrl: imgUrls[0] ?? null,
+              price: metrics?.price,
+              capRate: metrics?.capRate,
+              noi: metrics?.noi,
+              units: sellerProp.units,
+              sf: sellerProp.building_square_footage ? Number(sellerProp.building_square_footage) : null,
+              yearBuilt: sellerProp.year_built,
+              assetType: sellerProp.asset_type,
+            }}
+          />
+        </div>
+      )}
+
+      {/* ═══ SECTION 1.6: AT-A-GLANCE IMPACT ═══ */}
+      {relinquishedProp && metrics && reqMetrics && (
+        <div className="mt-6">
+          <ImpactStrip
+            tiles={[
+              { label: "Δ Asking Price", yours: reqMetrics.price, theirs: metrics.price, format: "money", upIs: "neutral" },
+              { label: "Δ Annual NOI", yours: reqMetrics.noi, theirs: metrics.noi, format: "money", upIs: "favorable" },
+              { label: "Δ Cap Rate", yours: reqMetrics.capRate, theirs: metrics.capRate, format: "pct", upIs: "favorable" },
+              {
+                label: sellerProp.units ? "Δ Units" : "Δ Square Footage",
+                yours: sellerProp.units ? reqMetrics.units : reqMetrics.sf,
+                theirs: sellerProp.units ? sellerProp.units : (sellerProp.building_square_footage ? Number(sellerProp.building_square_footage) : null),
+                format: "count",
+                upIs: "favorable",
+              },
+            ]}
+          />
+        </div>
+      )}
+
+      {/* ═══ SECTION 1.7: LOCATION + FIT ═══ */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <LocationCard
+          address={sellerProp.address}
+          city={sellerProp.city}
+          state={sellerProp.state}
+          zip={sellerProp.zip}
+          yourCity={relinquishedProp?.city}
+          yourState={relinquishedProp?.state}
+        />
+        <FitGauge
+          score={(() => {
+            // Composite: average of price (replacement value coverage), financial, and inverse-boot penalty
+            const priceCoverage = reqMetrics?.proceeds && metrics?.price
+              ? Math.min(100, (Number(reqMetrics.proceeds) / Number(metrics.price)) * 100)
+              : null;
+            const fin = Number(match.financial_score ?? 0);
+            const totalBoot = match.estimated_total_boot ? Number(match.estimated_total_boot) : 0;
+            const proceeds = reqMetrics?.proceeds ?? reqMetrics?.price ?? 0;
+            const bootPenalty = proceeds > 0 ? Math.min(100, (totalBoot / proceeds) * 200) : 0;
+            const parts = [priceCoverage, fin, 100 - bootPenalty].filter((v): v is number => v != null);
+            if (parts.length === 0) return Math.round(Number(match.total_score));
+            return Math.round(parts.reduce((s, v) => s + v, 0) / parts.length);
+          })()}
+          label="Exchange Fit"
+          sublabel="Composite of value coverage, property quality, and boot exposure."
+        />
+      </div>
+
+      {/* ═══ SECTION 1.8: COMPARISON CHARTS (always visible) ═══ */}
+      {relinquishedProp && metrics && (
+        <div className="mt-6 rounded-xl border bg-card p-6">
+          <h2 className="text-lg font-semibold text-foreground">Comparison Charts</h2>
+          <p className="mt-1 mb-5 text-sm text-muted-foreground">Visualize how the two properties stack up.</p>
+          <div className="grid gap-8 lg:grid-cols-2">
+            <ExpenseStackedChart yours={relinquishedFin} theirs={sellerFin} />
+            <CashFlowWaterfall
+              yours={reqMetrics ? { revenue: reqMetrics.revenue, expenses: reqMetrics.expenses, noi: reqMetrics.noi, debtSvc: reqMetrics.debtSvc } : null}
+              theirs={metrics ? { revenue: metrics.revenue, expenses: metrics.expenses, noi: metrics.noi, debtSvc: metrics.debtSvc } : null}
+            />
+          </div>
+        </div>
+      )}
 
       {/* ═══ SECTION 2: EXCHANGE COMPARISON ═══ */}
       {relinquishedProp && (
@@ -785,6 +898,11 @@ export default function AgentMatchDetail() {
           </table>
         </div>
       )}
+
+      {/* ═══ SECTION 5.5: MATCH RADAR ═══ */}
+      <div className="mt-6">
+        <MatchRadarChart match={match} />
+      </div>
 
       {/* ═══ SECTION 6: MATCH SCORE BREAKDOWN ═══ */}
       <div className="mt-6 rounded-xl border bg-card p-6">
