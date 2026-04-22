@@ -1,88 +1,82 @@
 
 
-## Build out the Help Center with full docs, FAQs, and ticket submission
+# Platform deep-dive: feature audit & proposed changes
 
-Today `/agent/help` is a thin page: 5 FAQ items and a static support email. I'll turn it into a real help center with categorized documentation, expanded FAQs, a ticket submission form, and a view of the user's past tickets.
+I walked through the agent dashboard, sidebar, and every primary page (Dashboard, Clients, Exchanges, Matches, Connections, Messages, Settings, Help, Launchpad), plus the shared header and the underlying tables. Here's what's working, what's broken, and what I recommend we add, remove, or combine.
 
-### What you'll see at `/agent/help`
+## What's working well
 
-A tabbed interface with 4 tabs:
+- **Dashboard "Needs your attention"** — strong, real, deadline-driven hub
+- **Exchange wizard + edit flow** (just built) — full lifecycle support
+- **Matches** — 6-dimension scoring, boot calculation, filters
+- **Connections** — pending → accepted → progress steps, identity reveal on accept
+- **Messages inbox** — two-pane, mark-read, real-time-friendly
+- **Help Center** — tabs, FAQs, docs, ticket submission
+- **Launchpad** — new-agent onboarding gate
 
-**1. Getting Started** (default tab)
-- Quick-start walkthrough cards: Set up your profile → Add your first client → Create an exchange → Pledge a property → Review matches → Connect with another agent
-- Each card has a short description and a deep-link button into the relevant section of the app
-- Glossary section explaining 1031 terminology: Boot, Like-Kind, Identification Period, Exchange Period, Qualified Intermediary, Replacement Property, Relinquished Property, Equal-or-Up Rule, Reverse Exchange, Improvement Exchange
+## Issues I found (worth fixing)
 
-**2. FAQs**
-- Expanded from 5 → ~25 questions grouped by category with collapsible sections:
-  - **Account & Setup** (4): adding clients, agent verification, brokerage settings, profile photo
-  - **Exchanges** (5): create vs draft vs publish, editing exchanges, what fields are required, why an exchange might fail to publish, deleting exchanges
-  - **Matching** (5): how scoring works (with link to the 6-dimension breakdown), why a property scored low, refreshing matches, boot calculation, hiding/passing on matches
-  - **Connections & Messaging** (4): sending a connection request, what info is shared, accepting/declining, sending messages, marking as read
-  - **1031 Rules & Deadlines** (4): 45/180-day rules, identification rules (3-property/200%/95%), like-kind requirements, qualified intermediary requirement
-  - **Billing & Account** (3): pricing, canceling, data export
-- Search box at the top filters FAQs live by keyword
+| # | Problem | Where | Severity |
+|---|---|---|---|
+| 1 | **Notification bell is fake** — hardcoded "No notifications" even though we write to the `notifications` table on connection accept/decline, new matches, etc. | `AgentHeader.tsx` | High — silently breaks UX feedback loop |
+| 2 | **No unread badge** on sidebar Messages or Connections items | `AgentSidebar.tsx` | Medium — users miss new activity |
+| 3 | **No global search** — can't jump to a client/exchange/property from anywhere | Header | Medium |
+| 4 | **Dev seed panel ships in dashboard** for everyone | `AgentDashboard.tsx` line 417 | Low (cleanup) |
+| 5 | **Seller-side matches are second-class** — text-only cards, no photo, no link to the buyer's exchange details, no way to mark interest | `AgentMatches.tsx` | Medium |
+| 6 | **My Clients page** has no filters (active/inactive), no sort, no "exchanges in progress" status pill | `AgentClients.tsx` | Low |
+| 7 | **Settings page is shallow** — only profile fields. No notification preferences, no password change, no email/security, no danger zone (delete account), no data export | `AgentSettings.tsx` | Medium |
+| 8 | **Pledged Properties have no dedicated page** — they exist only as an attribute of an exchange, so an agent can't browse "all my listings", mark off-market, or reuse a property | None (gap) | Medium |
+| 9 | **No analytics/insights view** — agent can't see win rate, avg days to close, top markets, response times | None (gap) | Low–Medium |
+| 10 | **Closed connections don't roll up into client history** — when a deal closes, there's no aggregated "deal history" on the client page | `AgentClientDetail.tsx` | Low |
 
-**3. Documentation**
-- Long-form guides rendered as collapsible sections with subheadings:
-  - **Exchange Lifecycle Guide** — full walkthrough of statuses (draft → active → in_identification → in_closing → completed) with what each means and what triggers transitions
-  - **Match Score Explained** — breakdown of all 6 dimensions (price 25% / geo 20% / asset 20% / strategy 15% / financial 10% / timing 10%) with examples
-  - **Boot Calculation** — what cash boot and mortgage boot are, how the platform estimates them, when results are flagged "insufficient data"
-  - **Pledged Property Best Practices** — what fields most affect match quality, how photos help, when to mark as off-market
-  - **Working with Counter-party Agents** — etiquette for connections, what info gets shared at each stage, facilitation fees
-  - **Security & Privacy** — how client data is protected, what other agents can see, RLS-backed access control
-- Each guide has a "table of contents" sidebar linking to subsections (anchor scroll)
+## Proposed changes
 
-**4. Submit a Ticket**
-- Form with fields:
-  - **Category** (select): `Bug Report`, `Feature Request`, `Account Issue`, `Billing`, `General Question`
-  - **Subject** (text, max 120 chars)
-  - **Message** (textarea, max 2000 chars) — placeholder hints to include steps to reproduce for bugs
-  - **Submit** button
-- On submit: insert into `support_tickets` with `user_id = auth.uid()`, status defaults to `open`. Toast confirms, form resets.
-- Below the form: **Your Tickets** section listing the user's previously submitted tickets with status badges (`open`, `in_progress`, `resolved`, `closed`), subject, category, date, and an expand toggle to reveal the message body, any admin notes, and a "Last updated" timestamp.
-- Empty state: "You haven't submitted any tickets yet."
-- Footer card stays: contact email + link to documentation
+### A. Fix (must-do)
 
-### How it works
+1. **Live notification bell** — read from `notifications` table in `AgentHeader`, show unread count, mark-as-read on click, group by type (match / connection / message / system). Realtime subscribe to inserts.
+2. **Sidebar unread badges** — small count pills on Messages (unread message count) and Connections (pending incoming requests count). Reuse existing queries.
+3. **Hide dev seed panel** behind `import.meta.env.DEV` so it doesn't render in production.
 
-**Frontend changes**
-- `src/pages/agent/AgentHelp.tsx` — full rewrite using the existing `Tabs` component:
-  - Tab state in URL hash (`#getting-started`, `#faqs`, `#docs`, `#tickets`) so deep links work
-  - FAQ search uses simple `.toLowerCase().includes()` filter on question + answer
-  - Docs use `Accordion` for collapsible sections with anchor IDs
-- `src/features/support/hooks/useMyTickets.ts` (new) — React Query hook fetching `support_tickets` for `auth.uid()`, ordered by `created_at desc`
-- `src/features/support/hooks/useSubmitTicket.ts` (new) — React Query mutation inserting a ticket, invalidating `["my-tickets"]`
-- `src/features/support/types.ts` (new) — shared `TicketCategory` enum and helpers
-- Validation with `zod`: subject 1-120 chars, message 1-2000 chars, category required
-- Toast + form reset on success; inline field errors on validation failure
+### B. Add (nice-to-have, high value)
 
-**Backend**
-- No schema changes needed. `support_tickets` table already exists with the right RLS:
-  - Users can `INSERT` their own (`auth.uid() = user_id`)
-  - Users can `SELECT` their own
-  - Admins see all (already wired into the existing `/admin/support` page)
-- No new migration, no new edge function
+4. **Global ⌘K command palette in the header** — search clients, exchanges, pledged properties, matches; jump to settings/help; quick "New exchange / Add client" actions.
+5. **Pledged Properties section** — new sidebar item under Exchange Network. Lists every property the agent has pledged across exchanges, status (draft / active / under contract / off-market / withdrawn), photo, price, with quick actions (edit, mark off-market, withdraw, view matches). This consolidates a real concept that's currently buried.
+6. **Settings expansion** — add tabs: Profile · Notifications (email/in-app toggles per event type) · Security (change password, sign out other sessions) · Account (export my data, delete account). Notification prefs persist to a new `user_notification_preferences` table.
+7. **Insights tab on Dashboard** — small KPI strip: avg match score, response time, deals closed YTD, total facilitation fees earned, top 3 markets. Pulled from existing tables, no new schema.
+8. **Closed deals on client detail** — pull `exchange_connections` where `status='completed'` for that client, show a "Deal history" card with sale price, close date, counterparty agent.
 
-**Optional client-side help (parallel)**
-- `src/pages/client/Help.tsx` already exists. I'll mirror the same component structure there with client-appropriate FAQ wording (no agent-specific items like "pledged properties" or "counter-party connections"), and the ticket form works identically for clients.
+### C. Combine / restructure
 
-### Files
+9. **Merge "Connections" pending tab content into Messages inbox** as a "Requests" filter — keeps the Connections page for active/closed pipeline tracking but surfaces incoming requests in the place users already check daily (Messages). Pending count moves into the unread badge.
+10. **Move Launchpad** out of the main sidebar once completed — currently it stays forever even after finishing. Auto-hide when `launchpad_completed_at` is set, or show as a compact "Setup ✓" footer link.
 
-| File | Change |
-|---|---|
-| `src/pages/agent/AgentHelp.tsx` | Full rewrite — 4-tab help center |
-| `src/pages/client/Help.tsx` | Mirror with client-tailored FAQ copy |
-| `src/features/support/hooks/useMyTickets.ts` | New — fetch user's tickets |
-| `src/features/support/hooks/useSubmitTicket.ts` | New — submit ticket mutation |
-| `src/features/support/types.ts` | New — categories, labels, status colors |
-| `src/content/helpFaqs.ts` | New — structured FAQ data (categories + items) |
-| `src/content/helpDocs.ts` | New — long-form documentation content |
+### D. Remove / simplify
 
-### Out of scope
+11. **Drop the dev seed panel from `AgentDashboard`** in production (also fix #3).
+12. **Strip "Tools" sidebar group** — it only contains Messages. Move Messages into the Exchange Network group above Connections to reduce visual noise.
 
-- Threaded back-and-forth replies on tickets (current schema supports `admin_notes` only — would need a `ticket_messages` table)
-- File attachments on tickets
-- Email notifications when admin updates a ticket (would need an edge function + outbox row)
-- Public knowledge base (no auth) — current help is in-app only
+## Suggested build order (if approved)
+
+| Phase | Work | Effort |
+|---|---|---|
+| 1. Critical fixes | Live notifications bell + sidebar unread badges + hide dev panel + sidebar regrouping | Small |
+| 2. Pledged Properties section | New page + sidebar item + actions | Medium |
+| 3. Settings expansion | Notification prefs table + tabs + password change + export/delete | Medium |
+| 4. Global ⌘K search | Header palette wired across 4 entity types | Medium |
+| 5. Insights & client deal history | KPI strip on dashboard + deals card on client detail | Small |
+| 6. Connections ↔ Messages merge | "Requests" filter in inbox, hide pending tab on Connections | Small |
+
+## Out of scope (intentionally)
+
+- Threaded ticket replies (already noted in Help Center plan)
+- Email notifications (would need outbox + edge function)
+- Mobile-native push
+- Calendar integration for deadlines
+- Document collaboration / e-sign
+
+## Questions for you before I build
+
+- Do you want to tackle **all 6 phases**, or pick a subset? (Phase 1 is the highest-leverage and I'd recommend doing it regardless.)
+- For **notification preferences** (Phase 3), do you want **email + in-app**, or **in-app only** for now?
+- For **Pledged Properties** (Phase 2): should it allow creating a property *without* attaching it to an exchange yet (a true inventory listing), or stay tied to exchanges?
 
