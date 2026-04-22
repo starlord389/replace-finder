@@ -1,82 +1,82 @@
 
 
-# Platform deep-dive: feature audit & proposed changes
+## More comparison visuals on match detail + richer listing data
 
-I walked through the agent dashboard, sidebar, and every primary page (Dashboard, Clients, Exchanges, Matches, Connections, Messages, Settings, Help, Launchpad), plus the shared header and the underlying tables. Here's what's working, what's broken, and what I recommend we add, remove, or combine.
+The match detail page (`/agent/matches/:id`) already has a comparison table, position cards, and a few charts buried in a collapsed "Detailed Financial Comparison" section. I'll restructure it so the visual comparison is front-and-center, add several new visualizations, and enrich the match cards on the list page so the data story is clearer at every step.
 
-## What's working well
+### What you'll see
 
-- **Dashboard "Needs your attention"** — strong, real, deadline-driven hub
-- **Exchange wizard + edit flow** (just built) — full lifecycle support
-- **Matches** — 6-dimension scoring, boot calculation, filters
-- **Connections** — pending → accepted → progress steps, identity reveal on accept
-- **Messages inbox** — two-pane, mark-read, real-time-friendly
-- **Help Center** — tabs, FAQs, docs, ticket submission
-- **Launchpad** — new-agent onboarding gate
+**On every match card (`/agent/matches`)**
+- A compact 3-bar mini-comparison strip on each card: Price, Cap Rate, NOI — each bar shows your property vs this property side-by-side so you can scan a list and see directional fit instantly.
+- Delta chips (e.g. "+12% NOI", "-0.8% Cap") next to the score badge.
+- Small map thumbnail (static OpenStreetMap tile) showing replacement property location.
 
-## Issues I found (worth fixing)
+**On the match detail page (`/agent/matches/:id`)**
 
-| # | Problem | Where | Severity |
-|---|---|---|---|
-| 1 | **Notification bell is fake** — hardcoded "No notifications" even though we write to the `notifications` table on connection accept/decline, new matches, etc. | `AgentHeader.tsx` | High — silently breaks UX feedback loop |
-| 2 | **No unread badge** on sidebar Messages or Connections items | `AgentSidebar.tsx` | Medium — users miss new activity |
-| 3 | **No global search** — can't jump to a client/exchange/property from anywhere | Header | Medium |
-| 4 | **Dev seed panel ships in dashboard** for everyone | `AgentDashboard.tsx` line 417 | Low (cleanup) |
-| 5 | **Seller-side matches are second-class** — text-only cards, no photo, no link to the buyer's exchange details, no way to mark interest | `AgentMatches.tsx` | Medium |
-| 6 | **My Clients page** has no filters (active/inactive), no sort, no "exchanges in progress" status pill | `AgentClients.tsx` | Low |
-| 7 | **Settings page is shallow** — only profile fields. No notification preferences, no password change, no email/security, no danger zone (delete account), no data export | `AgentSettings.tsx` | Medium |
-| 8 | **Pledged Properties have no dedicated page** — they exist only as an attribute of an exchange, so an agent can't browse "all my listings", mark off-market, or reuse a property | None (gap) | Medium |
-| 9 | **No analytics/insights view** — agent can't see win rate, avg days to close, top markets, response times | None (gap) | Low–Medium |
-| 10 | **Closed connections don't roll up into client history** — when a deal closes, there's no aggregated "deal history" on the client page | `AgentClientDetail.tsx` | Low |
+A new **"Side-by-Side"** panel directly below the property hero (above everything else), replacing the position cards in their current spot:
 
-## Proposed changes
+```text
+┌──────────────────────────┬──────────────────────────┐
+│  YOUR PROPERTY           │  THIS PROPERTY           │
+│  [thumbnail / map]       │  [thumbnail / map]       │
+│  Address · City, ST      │  Address · City, ST      │
+│  $X.XM  |  X% cap        │  $X.XM  |  X% cap        │
+│  X units · X SF · 'YR    │  X units · X SF · 'YR    │
+└──────────────────────────┴──────────────────────────┘
+```
+Two equal cards side-by-side with a "swap arrow" between them.
 
-### A. Fix (must-do)
+A new **"At-a-glance impact"** strip with 4 large delta tiles:
+- Δ Asking Price (with up/down arrow + % change)
+- Δ NOI (annual cash flow change in $ and %)
+- Δ Cap Rate (basis-point change)
+- Δ Scale (units / SF change)
 
-1. **Live notification bell** — read from `notifications` table in `AgentHeader`, show unread count, mark-as-read on click, group by type (match / connection / message / system). Realtime subscribe to inserts.
-2. **Sidebar unread badges** — small count pills on Messages (unread message count) and Connections (pending incoming requests count). Reuse existing queries.
-3. **Hide dev seed panel** behind `import.meta.env.DEV` so it doesn't render in production.
+Each tile is colored green/amber/red based on whether the change is favorable for the exchange.
 
-### B. Add (nice-to-have, high value)
+A new **Match Quality Radar Chart** in the "Why this property was matched" section — replaces the linear bars with a 6-axis radar overlaying the actual scores against the 100-point ideal, so you can see strengths and weaknesses at a glance. (Linear bars stay below as backup detail.)
 
-4. **Global ⌘K command palette in the header** — search clients, exchanges, pledged properties, matches; jump to settings/help; quick "New exchange / Add client" actions.
-5. **Pledged Properties section** — new sidebar item under Exchange Network. Lists every property the agent has pledged across exchanges, status (draft / active / under contract / off-market / withdrawn), photo, price, with quick actions (edit, mark off-market, withdraw, view matches). This consolidates a real concept that's currently buried.
-6. **Settings expansion** — add tabs: Profile · Notifications (email/in-app toggles per event type) · Security (change password, sign out other sessions) · Account (export my data, delete account). Notification prefs persist to a new `user_notification_preferences` table.
-7. **Insights tab on Dashboard** — small KPI strip: avg match score, response time, deals closed YTD, total facilitation fees earned, top 3 markets. Pulled from existing tables, no new schema.
-8. **Closed deals on client detail** — pull `exchange_connections` where `status='completed'` for that client, show a "Deal history" card with sale price, close date, counterparty agent.
+A new **Comparison charts section** (always visible, no longer collapsed):
+- **NOI side-by-side bar** (already exists, promoted out of collapsible)
+- **Cap Rate vs market thresholds** — horizontal bar showing your prop, this prop, and shaded bands for "below market / market / above market"
+- **Expense composition stacked bars** — yours vs theirs, stacked by tax/insurance/utilities/management/maintenance, so you see where the operating cost differences live
+- **Cash flow waterfall** — Revenue → Expenses → NOI → Debt Service → Pre-tax cash flow, for each property side by side
 
-### C. Combine / restructure
+A new **"Exchange fit" gauge** above boot analysis: a single semicircular gauge showing 0–100% how well the proceeds + debt structure matches the replacement requirements (combines equity coverage, debt replacement, value match into one number).
 
-9. **Merge "Connections" pending tab content into Messages inbox** as a "Requests" filter — keeps the Connections page for active/closed pipeline tracking but surfaces incoming requests in the place users already check daily (Messages). Pending count moves into the unread badge.
-10. **Move Launchpad** out of the main sidebar once completed — currently it stays forever even after finishing. Auto-hide when `launchpad_completed_at` is set, or show as a compact "Setup ✓" footer link.
+A new **Location context** card: static map thumbnail of the property + simple "X miles from your relinquished property" line.
 
-### D. Remove / simplify
+**Data enrichment on listings** (visible on detail + cards)
+- Show **price-per-unit / price-per-SF** prominently
+- Show **trailing-vs-projected NOI** if both exist
+- Show **debt assumability** flag if loan terms are present
+- Show **time on market** since `listed_at`
+- Show **all amenities** as chips (currently buried)
+- Show a small **"Documents available"** indicator if `inventory_documents` exist
 
-11. **Drop the dev seed panel from `AgentDashboard`** in production (also fix #3).
-12. **Strip "Tools" sidebar group** — it only contains Messages. Move Messages into the Exchange Network group above Connections to reduce visual noise.
+### Technical details
 
-## Suggested build order (if approved)
+| File | Change |
+|---|---|
+| `src/pages/agent/AgentMatchDetail.tsx` | Major restructure. Add SideBySidePanel, ImpactStrip, RadarChart, expense-stacked chart, waterfall, fit gauge, location card. Promote charts out of collapsible (keep raw line-item table inside it). |
+| `src/components/match/SideBySidePanel.tsx` | New — two-card layout with thumbnails, key stats, swap arrow |
+| `src/components/match/ImpactStrip.tsx` | New — 4 delta tiles with directional coloring |
+| `src/components/match/MatchRadarChart.tsx` | New — recharts RadarChart over 6 score dimensions |
+| `src/components/match/ExpenseStackedChart.tsx` | New — stacked bar of operating expense categories, both properties |
+| `src/components/match/CashFlowWaterfall.tsx` | New — recharts composed bar showing revenue→NOI→cashflow chain |
+| `src/components/match/FitGauge.tsx` | New — semicircular SVG gauge (no extra dep) |
+| `src/components/match/LocationCard.tsx` | New — static map (OpenStreetMap static tile, no API key) + distance |
+| `src/components/match/MatchCardMini.tsx` (extracted from `AgentMatches.tsx`) | New — adds mini comparison bar strip + delta chips on each card |
+| `src/pages/agent/AgentMatches.tsx` | Use new MatchCardMini; fetch relinquished property snapshot per exchange so card can compare |
+| `src/features/agent/hooks/useAgentMatchesQuery.ts` | Extend query to also pull each exchange's relinquished property summary (price, NOI, cap rate) for card-level comparison |
+| `src/lib/distance.ts` | New — Haversine helper for property-to-property mileage (uses lat/lng if present, otherwise omitted) |
 
-| Phase | Work | Effort |
-|---|---|---|
-| 1. Critical fixes | Live notifications bell + sidebar unread badges + hide dev panel + sidebar regrouping | Small |
-| 2. Pledged Properties section | New page + sidebar item + actions | Medium |
-| 3. Settings expansion | Notification prefs table + tabs + password change + export/delete | Medium |
-| 4. Global ⌘K search | Header palette wired across 4 entity types | Medium |
-| 5. Insights & client deal history | KPI strip on dashboard + deals card on client detail | Small |
-| 6. Connections ↔ Messages merge | "Requests" filter in inbox, hide pending tab on Connections | Small |
+No schema or migration changes required — all data already exists in `pledged_properties`, `property_financials`, `inventory_documents`, and `matches`.
 
-## Out of scope (intentionally)
+### Out of scope
 
-- Threaded ticket replies (already noted in Help Center plan)
-- Email notifications (would need outbox + edge function)
-- Mobile-native push
-- Calendar integration for deadlines
-- Document collaboration / e-sign
-
-## Questions for you before I build
-
-- Do you want to tackle **all 6 phases**, or pick a subset? (Phase 1 is the highest-leverage and I'd recommend doing it regardless.)
-- For **notification preferences** (Phase 3), do you want **email + in-app**, or **in-app only** for now?
-- For **Pledged Properties** (Phase 2): should it allow creating a property *without* attaching it to an exchange yet (a true inventory listing), or stay tied to exchanges?
+- Geocoding addresses to lat/lng (will only show distance if coordinates are already present; otherwise the location card just shows the static map thumbnail and city/state)
+- Live market comp data (cap rate bands will be hardcoded reasonable ranges by asset type, not pulled from a market data API)
+- Editable comparison (read-only views only)
+- Comparing against multiple matches simultaneously (one-to-one only)
 
