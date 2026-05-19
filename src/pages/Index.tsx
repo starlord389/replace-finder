@@ -57,7 +57,18 @@ const NAVBAR_LOGO_LOCKUP = `
 const NAVBAR_STYLE = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
 
+  [data-exchangeup-navbar="true"] {
+    box-sizing: border-box !important;
+  }
+
+  [data-exchangeup-navbar="true"] *,
+  [data-exchangeup-navbar="true"] *::before,
+  [data-exchangeup-navbar="true"] *::after {
+    box-sizing: border-box !important;
+  }
+
   [data-exchangeup-navbar="true"] a,
+  [data-exchangeup-navbar="true"] button,
   [data-exchangeup-navbar="true"] p,
   [data-exchangeup-navbar="true"] span {
     font-family: ${NAVBAR_FONT_STACK} !important;
@@ -86,7 +97,216 @@ const NAVBAR_STYLE = `
     font-weight: 600 !important;
     letter-spacing: -0.02em !important;
   }
+
+  [data-exchangeup-mobile-nav] {
+    display: none !important;
+  }
+
+  @media (min-width: 810px) and (max-width: 1199.98px) {
+    [data-exchangeup-navbar="true"] {
+      width: min(730px, calc(100vw - 40px)) !important;
+      max-width: calc(100vw - 40px) !important;
+    }
+
+    [data-exchangeup-navbar="true"] [data-framer-name="Logo"] a {
+      gap: 5px !important;
+    }
+
+    [data-exchangeup-navbar="true"] [data-framer-name="Logo"] svg {
+      width: 30px !important;
+      height: 30px !important;
+    }
+
+    [data-exchangeup-navbar="true"] [data-framer-name="Logo"] span:last-child {
+      font-size: 14px !important;
+    }
+
+    [data-exchangeup-navbar="true"] [data-framer-name="Nav/Desktop"] p,
+    [data-exchangeup-navbar="true"] a[href="/signup"] p {
+      font-size: 13px !important;
+    }
+  }
+
+  @media (max-width: 809.98px) {
+    [data-exchangeup-navbar="true"] {
+      left: 50% !important;
+      right: auto !important;
+      width: calc(100vw - 24px) !important;
+      width: calc(100dvw - 24px) !important;
+      max-width: calc(100vw - 24px) !important;
+      max-width: calc(100dvw - 24px) !important;
+      min-width: 0 !important;
+      min-height: 52px !important;
+      height: auto !important;
+      padding: 0 !important;
+      border-radius: 28px !important;
+      transform: translateX(-50%) !important;
+      overflow: visible !important;
+    }
+
+    [data-exchangeup-navbar="true"] > :not([data-exchangeup-mobile-nav]) {
+      display: none !important;
+    }
+
+    [data-exchangeup-mobile-nav] {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      color: #1d1d1d !important;
+    }
+
+    [data-exchangeup-mobile-bar] {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      min-height: 52px !important;
+      gap: 10px !important;
+      padding: 8px 9px 8px 12px !important;
+    }
+
+    [data-exchangeup-mobile-brand] {
+      display: inline-flex !important;
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      max-width: calc(100% - 88px) !important;
+      align-items: center !important;
+      gap: 6px !important;
+      text-decoration: none !important;
+      color: #1d1d1d !important;
+    }
+
+    [data-exchangeup-mobile-brand] svg {
+      width: 30px !important;
+      height: 30px !important;
+      display: block !important;
+      flex: none !important;
+    }
+
+    [data-exchangeup-mobile-brand] span:last-child {
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      font-size: 14px !important;
+      font-weight: 650 !important;
+      letter-spacing: -0.035em !important;
+      line-height: 1 !important;
+    }
+
+    [data-exchangeup-mobile-toggle] {
+      appearance: none !important;
+      border: 0 !important;
+      display: inline-flex !important;
+      height: 36px !important;
+      flex: none !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      border-radius: 999px !important;
+      background: #1d1d1d !important;
+      color: #ffffff !important;
+      padding: 0 12px !important;
+      font-size: 13px !important;
+      font-weight: 650 !important;
+      letter-spacing: -0.02em !important;
+      line-height: 1 !important;
+      cursor: pointer !important;
+    }
+
+    [data-exchangeup-mobile-toggle] svg {
+      width: 15px !important;
+      height: 15px !important;
+      display: block !important;
+      flex: none !important;
+    }
+
+    [data-exchangeup-mobile-nav][data-state="open"] [data-mobile-icon="menu"],
+    [data-exchangeup-mobile-nav][data-state="closed"] [data-mobile-icon="close"] {
+      display: none !important;
+    }
+
+    [data-exchangeup-mobile-panel] {
+      display: none !important;
+      padding: 0 9px 10px !important;
+    }
+
+    [data-exchangeup-mobile-nav][data-state="open"] [data-exchangeup-mobile-panel] {
+      display: block !important;
+    }
+
+    [data-exchangeup-mobile-links] {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 7px !important;
+      border-top: 1px solid #e8e5de !important;
+      padding: 10px 0 0 !important;
+    }
+
+    [data-exchangeup-mobile-links] a {
+      display: flex !important;
+      min-height: 42px !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-radius: 18px !important;
+      color: #4f4a43 !important;
+      background: #f7f5f0 !important;
+      text-decoration: none !important;
+      font-size: 14px !important;
+      font-weight: 650 !important;
+      letter-spacing: -0.025em !important;
+      line-height: 1 !important;
+    }
+
+    [data-exchangeup-mobile-links] a[data-mobile-primary="true"] {
+      background: #1d1d1d !important;
+      color: #ffffff !important;
+    }
+  }
+
+  @media (max-width: 420px) {
+    [data-exchangeup-navbar="true"] {
+      width: calc(100vw - 18px) !important;
+      width: calc(100dvw - 18px) !important;
+      max-width: calc(100vw - 18px) !important;
+      max-width: calc(100dvw - 18px) !important;
+    }
+
+    [data-exchangeup-mobile-bar] {
+      padding-left: 10px !important;
+    }
+
+    [data-exchangeup-mobile-brand] span:last-child {
+      max-width: 154px !important;
+      font-size: 13px !important;
+    }
+  }
+
+  @media (max-width: 380px) {
+    [data-exchangeup-mobile-brand] span:last-child {
+      max-width: 136px !important;
+    }
+
+    [data-mobile-toggle-label] {
+      display: none !important;
+    }
+
+    [data-exchangeup-mobile-toggle] {
+      width: 36px !important;
+      padding: 0 !important;
+    }
+  }
 `;
+
+const MOBILE_NAV_LINKS = [
+  { label: "How It Works", href: "#process", scrollKey: "process" },
+  { label: "Features", href: "#feature", scrollKey: "feature" },
+  { label: "Contact", href: "#contact", scrollKey: "contact" },
+  { label: "Login", href: "/login" },
+  { label: "Get Started", href: "/signup", primary: true },
+] as const;
 
 type EasySetupCardId = "1" | "2" | "3";
 
@@ -310,6 +530,174 @@ const EASY_SETUP_STYLE = `
     [data-exchangeup-easy-setup-row] {
       transition: none !important;
       animation: none !important;
+    }
+  }
+
+  @media (max-width: 1199.98px) {
+    [data-exchangeup-easy-setup-shell] {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+
+    [data-exchangeup-easy-setup-card] {
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      min-height: 0 !important;
+      padding: 18px !important;
+      overflow: hidden !important;
+      gap: 16px !important;
+      box-sizing: border-box !important;
+      font-family: ${NAVBAR_FONT_STACK} !important;
+    }
+
+    [data-exchangeup-easy-setup-card] *,
+    [data-exchangeup-easy-setup-card] *::before,
+    [data-exchangeup-easy-setup-card] *::after {
+      box-sizing: border-box !important;
+      font-family: ${NAVBAR_FONT_STACK} !important;
+    }
+
+    [data-exchangeup-easy-setup-content],
+    [data-exchangeup-easy-setup-touch-content] {
+      position: relative !important;
+      z-index: 2 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: flex-start !important;
+      gap: 10px !important;
+    }
+
+    [data-exchangeup-easy-setup-touch-kicker] {
+      margin: 0 !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      line-height: 1 !important;
+      letter-spacing: 0.12em !important;
+      text-transform: uppercase !important;
+      color: rgba(86, 82, 75, 0.68) !important;
+    }
+
+    [data-exchangeup-easy-setup-touch-title] {
+      margin: 0 !important;
+      padding-bottom: 3px !important;
+      max-width: 100% !important;
+      height: auto !important;
+      max-height: none !important;
+      display: block !important;
+      overflow: visible !important;
+      overflow-wrap: anywhere !important;
+      white-space: normal !important;
+      font-size: clamp(22px, 4.4vw, 32px) !important;
+      font-weight: 650 !important;
+      line-height: 1.08 !important;
+      letter-spacing: -0.055em !important;
+      color: #1d1d1d !important;
+    }
+
+    [data-exchangeup-easy-setup-touch-body] {
+      margin: 0 !important;
+      max-width: 34rem !important;
+      height: auto !important;
+      max-height: none !important;
+      display: block !important;
+      overflow: visible !important;
+      overflow-wrap: anywhere !important;
+      white-space: normal !important;
+      font-size: clamp(14px, 2.1vw, 16px) !important;
+      font-weight: 500 !important;
+      line-height: 1.5 !important;
+      letter-spacing: -0.025em !important;
+      color: rgba(86, 82, 75, 0.88) !important;
+    }
+
+    [data-exchangeup-easy-setup-preview] {
+      position: relative !important;
+      inset: auto !important;
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: clamp(198px, 42vw, 278px) !important;
+      min-height: 0 !important;
+      margin-top: 0 !important;
+      opacity: 1 !important;
+      transform: none !important;
+      pointer-events: none !important;
+    }
+
+    [data-exchangeup-easy-setup-preview] [data-preview-glass] {
+      inset: 16px 14px 14px 28px;
+      overflow: hidden !important;
+    }
+
+    [data-exchangeup-preview-surface],
+    [data-preview-glass] {
+      max-width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    [data-exchangeup-easy-setup-preview] [data-preview-title],
+    [data-exchangeup-easy-setup-preview] [data-preview-subtle],
+    [data-exchangeup-easy-setup-preview] [data-preview-mini-match-title],
+    [data-exchangeup-easy-setup-preview] [data-preview-mini-match-meta],
+    [data-exchangeup-easy-setup-preview] [data-preview-match-strip-title],
+    [data-exchangeup-easy-setup-preview] [data-preview-match-strip-meta],
+    [data-exchangeup-easy-setup-preview] [data-preview-chat-text],
+    [data-exchangeup-easy-setup-preview] [data-preview-offer-row] {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+  }
+
+  @media (min-width: 810px) and (max-width: 1199.98px) {
+    [data-exchangeup-easy-setup-card] {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 18px !important;
+      padding: 22px !important;
+    }
+
+    [data-exchangeup-easy-setup-preview] {
+      height: clamp(230px, 26vw, 278px) !important;
+      margin-top: 0 !important;
+      align-self: stretch !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    [data-exchangeup-easy-setup-card] {
+      padding: 14px !important;
+    }
+
+    [data-exchangeup-easy-setup-preview] {
+      height: clamp(260px, 70vw, 310px) !important;
+      margin-top: 14px !important;
+    }
+
+    [data-exchangeup-easy-setup-touch-title] {
+      font-size: clamp(20px, 6vw, 24px) !important;
+      line-height: 1.1 !important;
+    }
+
+    [data-exchangeup-easy-setup-touch-body] {
+      font-size: 13px !important;
+      line-height: 1.46 !important;
+    }
+
+    [data-exchangeup-easy-setup-preview] [data-preview-glass] {
+      inset: 14px 10px 12px 22px;
+      padding: 12px;
     }
   }
 
@@ -731,6 +1119,41 @@ const FEATURE_SHOWCASE_ORIGINAL_SUBHEADING =
 const LANDING_DASHBOARD_IMAGE_SRC = "/landing-dashboard-render.png";
 const HERO_LIST_IMAGE_SRC = "/landing-hero-list-render.png";
 const HERO_KPI_IMAGE_SRC = "/landing-hero-kpi-render.png";
+const HERO_EYEBROW = "Built for real estate agents & brokers";
+const HERO_HEADLINE = "Find your client's next replacement property.";
+const HERO_SUBHEADLINE =
+  "An off-market marketplace of verified 1031 exchange replacement properties - so your client can find the next one before the old one ever gets listed.";
+
+function getHeroTouchCopyMarkup() {
+  return `
+    <p data-exchangeup-hero-touch-eyebrow>${HERO_EYEBROW}</p>
+    <h1>${HERO_HEADLINE}</h1>
+    <p data-exchangeup-hero-touch-subheadline>${HERO_SUBHEADLINE}</p>
+    <div data-exchangeup-hero-touch-actions>
+      <a href="/signup" target="_parent" data-exchangeup-hero-touch-primary>Get Started</a>
+      <a href="/book-demo" target="_parent">Book a Demo</a>
+    </div>
+  `;
+}
+
+function getVisibleElement<T extends HTMLElement>(nodes: Iterable<T>) {
+  const elements = Array.from(nodes);
+
+  return (
+    elements.find((node) => {
+      const rect = node.getBoundingClientRect();
+      const style = node.ownerDocument.defaultView?.getComputedStyle(node);
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        style?.display !== "none" &&
+        style?.visibility !== "hidden"
+      );
+    }) ??
+    elements[0] ??
+    null
+  );
+}
 
 function createLandingRenderImage(
   doc: Document,
@@ -1558,11 +1981,25 @@ const FEATURE_SHOWCASE_STYLE = `
     [data-exchangeup-feature-panel] {
       grid-template-columns: 1fr;
       margin-top: 14px;
+      overflow: visible;
     }
 
     [data-exchangeup-feature-visual] {
-      min-height: 320px;
-      padding: 20px 16px 0;
+      display: flex;
+      min-height: 0;
+      padding: 20px 16px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    [data-feature-window] {
+      position: relative;
+      inset: auto;
+      width: 100%;
+      max-width: 560px;
+      min-height: 300px;
+      height: auto;
+      box-sizing: border-box;
     }
 
     [data-exchangeup-feature-copy] {
@@ -1623,8 +2060,8 @@ const FEATURE_SHOWCASE_STYLE = `
     }
 
     [data-exchangeup-feature-visual] {
-      min-height: 240px;
-      padding: 16px 12px 0;
+      min-height: 0;
+      padding: 14px;
     }
 
     [data-exchangeup-feature-copy] {
@@ -1643,12 +2080,37 @@ const FEATURE_SHOWCASE_STYLE = `
     }
 
     [data-feature-window] {
-      left: 7px;
-      right: 12px;
-      top: 12px;
-      bottom: 7px;
+      width: 100%;
+      max-width: 100%;
+      min-height: 0;
       padding: 16px 14px 14px;
       gap: 10px;
+      border-radius: 17px;
+    }
+
+    [data-feature-window-header],
+    [data-feature-score-header],
+    [data-feature-filter-results-header],
+    [data-feature-upside-delta] {
+      min-width: 0;
+    }
+
+    [data-feature-market-grid] {
+      grid-auto-rows: minmax(112px, 1fr);
+    }
+
+    [data-feature-market-card] {
+      min-height: 112px;
+    }
+
+    [data-feature-market-photo] {
+      flex: none;
+      height: 58px;
+    }
+
+    [data-feature-market-body] {
+      min-height: 0;
+      padding: 8px 9px 9px;
     }
 
     [data-feature-score-title],
@@ -1668,6 +2130,14 @@ const FEATURE_SHOWCASE_STYLE = `
       gap: 8px;
     }
 
+    [data-feature-score-rows] {
+      gap: 7px;
+    }
+
+    [data-feature-score-footer] {
+      flex-wrap: wrap;
+    }
+
     [data-feature-score-label],
     [data-feature-score-value] {
       font-size: 10px;
@@ -1676,6 +2146,12 @@ const FEATURE_SHOWCASE_STYLE = `
     [data-feature-window][data-feature-window-variant="split"] {
       grid-template-columns: 1fr;
       gap: 10px;
+    }
+
+    [data-feature-filter-chips] {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
     }
 
     [data-feature-filter-result-card] {
@@ -1707,10 +2183,88 @@ const FEATURE_SHOWCASE_STYLE = `
       font-size: 14px;
     }
   }
+
+  @media (max-width: 420px) {
+    [data-exchangeup-feature-shell] {
+      width: calc(100vw - 14px);
+    }
+
+    [data-exchangeup-feature-tabs] {
+      grid-template-columns: 1fr;
+      border-radius: 20px;
+    }
+
+    [data-exchangeup-feature-tab] {
+      min-height: 42px;
+      justify-content: flex-start;
+      padding: 0 14px;
+      font-size: 13px;
+    }
+
+    [data-exchangeup-feature-visual] {
+      padding: 10px;
+    }
+
+    [data-feature-market-grid] {
+      gap: 7px;
+      grid-auto-rows: minmax(96px, 1fr);
+    }
+
+    [data-feature-market-card] {
+      min-height: 96px;
+    }
+
+    [data-feature-market-photo] {
+      height: 46px;
+    }
+
+    [data-feature-market-name] {
+      font-size: 11px;
+    }
+
+    [data-feature-market-meta],
+    [data-feature-filter-result-meta] {
+      font-size: 9px;
+    }
+
+    [data-feature-filter-chips] {
+      grid-template-columns: 1fr;
+    }
+  }
 `;
 
 function getLogoImgMarkup(brand: (typeof LOGO_BRANDS)[number]) {
   return `<img src="${brand.src}" alt="${brand.name}" loading="lazy" decoding="async" />`;
+}
+
+function getMobileNavMarkup() {
+  const links = MOBILE_NAV_LINKS.map((link) => {
+    const scrollAttribute = "scrollKey" in link ? ` data-exchangeup-scroll-key="${link.scrollKey}"` : "";
+    const targetAttribute = link.href.startsWith("/") ? ` target="_parent"` : "";
+    const primaryAttribute = "primary" in link && link.primary ? ` data-mobile-primary="true"` : "";
+
+    return `<a href="${link.href}"${scrollAttribute}${targetAttribute}${primaryAttribute}>${link.label}</a>`;
+  }).join("");
+
+  return `
+    <div data-exchangeup-mobile-bar>
+      <a href="/" target="_parent" data-exchangeup-mobile-brand aria-label="1031 Exchange Up home">
+        ${NAVBAR_LOGO_LOCKUP}
+      </a>
+      <button type="button" data-exchangeup-mobile-toggle aria-expanded="false" aria-label="Open menu">
+        <span data-mobile-toggle-label>Menu</span>
+        <svg data-mobile-icon="menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+        <svg data-mobile-icon="close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6 6 18"></path>
+        </svg>
+      </button>
+    </div>
+    <div data-exchangeup-mobile-panel>
+      <div data-exchangeup-mobile-links>${links}</div>
+    </div>
+  `;
 }
 
 function getFeatureShowcaseIconSvg(tabId: FeatureShowcaseTabId) {
@@ -2203,6 +2757,22 @@ const FAQ_STYLE = `
       height: 24px;
     }
   }
+
+  @media (max-width: 420px) {
+    [data-exchangeup-faq-shell] {
+      padding: 10px;
+      border-radius: 20px;
+    }
+
+    [data-exchangeup-faq-trigger] {
+      padding: 14px 14px 12px;
+    }
+
+    [data-exchangeup-faq-question] {
+      font-size: 14px;
+      line-height: 1.32;
+    }
+  }
 `;
 
 function getFaqMarkup() {
@@ -2242,6 +2812,29 @@ const CONTACT_SUPPORT_EMAIL = "support@1031exchangeup.com";
 const CONTACT_HEADING = "Talk to the 1031 Exchange Up team.";
 const CONTACT_BODY =
   "Questions about the marketplace, onboarding, or getting started? Send us a message and we'll follow up by email.";
+const CONTACT_STYLE = `
+  [data-exchangeup-contact="true"] {
+    overflow: hidden !important;
+  }
+
+  [data-exchangeup-contact="true"] form {
+    max-width: 100% !important;
+  }
+
+  @media (max-width: 809.98px) {
+    [data-exchangeup-contact="true"] form,
+    [data-exchangeup-contact="true"] input,
+    [data-exchangeup-contact="true"] textarea,
+    [data-exchangeup-contact="true"] button[type="submit"] {
+      max-width: 100% !important;
+    }
+
+    [data-exchangeup-contact="true"] input,
+    [data-exchangeup-contact="true"] textarea {
+      font-size: 16px !important;
+    }
+  }
+`;
 const FOOTER_SECTION_SELECTOR =
   'footer[data-framer-name="Desktop"], footer[data-framer-name="Tablet"], footer[data-framer-name="Phone"]';
 type FooterScrollKey = "process" | "feature" | "contact";
@@ -2313,6 +2906,20 @@ const FOOTER_STYLE = `
   }
 
   @media (max-width: 809.98px) {
+    [data-exchangeup-footer="true"] {
+      overflow: hidden !important;
+    }
+
+    [data-exchangeup-footer="true"] [data-framer-name="Nav"],
+    [data-exchangeup-footer="true"] [data-framer-name="Contact"] {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    [data-exchangeup-footer="true"] [data-framer-name="Nav List"] {
+      gap: 8px !important;
+    }
+
     [data-exchangeup-footer="true"] a[href^="mailto:"] {
       white-space: normal !important;
       word-break: break-word !important;
@@ -2538,6 +3145,12 @@ export default function Index() {
     const normalizeText = (value: string) =>
       value.replace(/\s+/g, " ").replace(/&nbsp;/g, " ").trim();
 
+    doc.querySelector("[data-exchangeup-contact-style]")?.remove();
+    const style = doc.createElement("style");
+    style.setAttribute("data-exchangeup-contact-style", "true");
+    style.textContent = CONTACT_STYLE;
+    doc.head.appendChild(style);
+
     const findLeafTextNodes = (root: ParentNode, text: string) =>
       Array.from(
         root.querySelectorAll<HTMLElement>("p, h1, h2, h3, h4, h5, h6, div, span, a"),
@@ -2572,6 +3185,7 @@ export default function Index() {
     };
 
     getContactSections(doc).forEach((section) => {
+      section.setAttribute("data-exchangeup-contact", "true");
       section
         .querySelectorAll<HTMLElement>("[data-exchangeup-contact-hidden='true']")
         .forEach((node) => {
@@ -3007,14 +3621,144 @@ export default function Index() {
         .querySelectorAll("[data-exchangeup-easy-setup-content]")
         .forEach((node) => node.removeAttribute("data-exchangeup-easy-setup-content"));
 
+      const cardIds: EasySetupCardId[] = ["1", "2", "3"];
+      const cardCopy: Record<EasySetupCardId, { kicker: string; title: string; body: string }> = {
+        "1": {
+          kicker: "Step 1",
+          title: "Add your client's property",
+          body: "Enter the property your client currently holds. It anchors every replacement the system scores.",
+        },
+        "2": {
+          kicker: "Step 2",
+          title: "Filter and find your match",
+          body: "Filter by ROI target, location, asset type, or cap rate. Every off-market property is auto-scored against your client's exchange.",
+        },
+        "3": {
+          kicker: "Step 3",
+          title: "Connect and offer",
+          body: "Open a private line with the listing agent, submit an offer, and lock it in before the old property lists.",
+        },
+      };
+      const originalTitles = ["Easy setup", "Collaborate", "Track growth"];
+      const legacyCardSignals: Record<EasySetupCardId, string[]> = {
+        "1": [
+          "Easy setup",
+          "Create account",
+          "Create your workspace and invite your team. Get everything ready in minutes.",
+        ],
+        "2": [
+          "Collaborate",
+          "To-do tasks",
+          "Assign tasks and keep communication clear. Everyone stays aligned.",
+        ],
+        "3": [
+          "Track growth",
+          "Use dashboards to monitor progress, trends, and what matters most.",
+        ],
+      };
+      const normalizeText = (value: string) =>
+        value.replace(/\s+/g, " ").replace(/&nbsp;/g, " ").trim();
+      const inferCardId = (text: string): EasySetupCardId | null => {
+        const normalizedText = normalizeText(text);
+        const match = (Object.keys(cardCopy) as EasySetupCardId[]).find((cardId) => {
+          const copy = cardCopy[cardId];
+          const cardSignals = [
+            copy.kicker,
+            copy.title,
+            copy.body,
+            ...legacyCardSignals[cardId],
+          ];
+
+          return (
+            cardSignals.some((signal) => normalizedText.includes(signal))
+          );
+        });
+
+        return match ?? null;
+      };
+
+      injectEasySetupStyles(doc);
+
       if (
         frame.clientWidth < 1200 ||
         !win.matchMedia("(hover: hover) and (pointer: fine)").matches
       ) {
+        const isVisibleCardCandidate = (node: HTMLElement) => {
+          const rect = node.getBoundingClientRect();
+          const style = win.getComputedStyle(node);
+          return (
+            rect.width > 0 &&
+            rect.height > 0 &&
+            style.display !== "none" &&
+            style.visibility !== "hidden"
+          );
+        };
+        const findFallbackTouchRoot = (cardId: EasySetupCardId) =>
+          Array.from(doc.querySelectorAll<HTMLElement>("div"))
+            .filter((node) => {
+              const rect = node.getBoundingClientRect();
+              return (
+                isVisibleCardCandidate(node) &&
+                rect.width >= 220 &&
+                rect.height >= 140 &&
+                inferCardId(node.textContent ?? "") === cardId
+              );
+            })
+            .sort((a, b) => {
+              const aRect = a.getBoundingClientRect();
+              const bRect = b.getBoundingClientRect();
+              return aRect.width * aRect.height - bRect.width * bRect.height;
+            })[0] ?? null;
+        const namedTouchRoots = Array.from(
+          doc.querySelectorAll<HTMLElement>(
+            '[data-framer-name="Vertical"], [data-framer-name="Horizontal"], [data-framer-name="Default/Open"], [data-framer-name="Default/Close"]',
+          ),
+        )
+          .filter((node) => {
+            return isVisibleCardCandidate(node) && Boolean(inferCardId(node.textContent ?? ""));
+          })
+          .sort((a, b) => {
+            const aRect = a.getBoundingClientRect();
+            const bRect = b.getBoundingClientRect();
+            return aRect.top - bRect.top || aRect.left - bRect.left;
+          });
+        const touchRootsById = new Map<EasySetupCardId, HTMLElement>();
+
+        namedTouchRoots.forEach((node) => {
+          const cardId = inferCardId(node.textContent ?? "");
+          if (cardId && !touchRootsById.has(cardId)) touchRootsById.set(cardId, node);
+        });
+
+        cardIds.forEach((cardId) => {
+          if (!touchRootsById.has(cardId)) {
+            const fallbackRoot = findFallbackTouchRoot(cardId);
+            if (fallbackRoot) touchRootsById.set(cardId, fallbackRoot);
+          }
+        });
+
+        cardIds.forEach((cardId) => {
+          const cardRoot = touchRootsById.get(cardId);
+          const copy = cardCopy[cardId];
+
+          if (!cardRoot || !copy) return;
+
+          const shell = cardRoot.parentElement as HTMLElement | null;
+          shell?.setAttribute("data-exchangeup-easy-setup-shell", cardId);
+          cardRoot.setAttribute("data-exchangeup-easy-setup-card", cardId);
+          cardRoot.setAttribute("data-exchangeup-touch-card", "true");
+          cardRoot.innerHTML = `
+            <div data-exchangeup-easy-setup-touch-content>
+              <p data-exchangeup-easy-setup-touch-kicker>${copy.kicker}</p>
+              <h3 data-exchangeup-easy-setup-touch-title>${copy.title}</h3>
+              <p data-exchangeup-easy-setup-touch-body>${copy.body}</p>
+            </div>
+            <div data-exchangeup-easy-setup-preview data-exchangeup-injected="true">
+              ${EASY_SETUP_PREVIEW_MARKUP[cardId]}
+            </div>
+          `;
+        });
         return;
       }
-
-      injectEasySetupStyles(doc);
 
       const cardRoots = Array.from(
         doc.querySelectorAll(
@@ -3049,21 +3793,6 @@ export default function Index() {
       ) as HTMLElement | null;
       if (!row || !group) return;
 
-      const cardIds: EasySetupCardId[] = ["1", "2", "3"];
-      const cardCopy: Record<EasySetupCardId, { title: string; body: string }> = {
-        "1": {
-          title: "Add your client's property",
-          body: "Enter the property your client currently holds. It anchors every replacement the system scores.",
-        },
-        "2": {
-          title: "Filter and find your match",
-          body: "Filter by ROI target, location, asset type, or cap rate. Every off-market property is auto-scored against your client's exchange.",
-        },
-        "3": {
-          title: "Connect and offer",
-          body: "Open a private line with the listing agent, submit an offer, and lock it in before the old property lists.",
-        },
-      };
       row.setAttribute("data-exchangeup-easy-setup-row", "true");
       row.setAttribute("data-exchangeup-active-card", "1");
       group.setAttribute("data-exchangeup-easy-setup-group", "true");
@@ -3079,7 +3808,6 @@ export default function Index() {
         content.setAttribute("data-exchangeup-easy-setup-content", "true");
 
         const copy = cardCopy[cardId];
-        const originalTitles = ["Easy setup", "Collaborate", "Track growth"];
         const richTextNodes = Array.from(
           content.querySelectorAll(
             "[data-framer-component-type='RichTextContainer'] p, [data-framer-component-type='RichTextContainer'] h1, [data-framer-component-type='RichTextContainer'] h2, [data-framer-component-type='RichTextContainer'] h3, [data-framer-component-type='RichTextContainer'] h4, [data-framer-component-type='RichTextContainer'] h5, [data-framer-component-type='RichTextContainer'] h6",
@@ -3171,7 +3899,7 @@ export default function Index() {
 
     headlineContainers.forEach((container) => {
       const lines = container.querySelectorAll("h1");
-      if (lines[0]) lines[0].textContent = "Find your client's next replacement property.";
+      if (lines[0]) lines[0].textContent = HERO_HEADLINE;
       if (lines[1]) {
         lines[1].textContent = "";
         (lines[1] as HTMLElement).style.display = "none";
@@ -3187,7 +3915,7 @@ export default function Index() {
           eyebrow.setAttribute("data-exchangeup-hero-eyebrow", "true");
           parent.insertBefore(eyebrow, lines[0]);
         }
-        eyebrow.textContent = "Built for real estate agents & brokers";
+        eyebrow.textContent = HERO_EYEBROW;
         eyebrow.style.margin = "0 0 14px 0";
         eyebrow.style.padding = "6px 14px";
         eyebrow.style.display = "inline-flex";
@@ -3207,9 +3935,6 @@ export default function Index() {
       }
     });
 
-    const subheadlineText =
-      "An off-market marketplace of verified 1031 exchange replacement properties \u2014 so your client can find the next one before the old one ever gets listed.";
-
     const subheadlineContainers = Array.from(
       doc.querySelectorAll(
         '[data-framer-name="Grovia partners with startups and small businesses to streamline operations, elevate team performance, and build a foundation for lasting success."]',
@@ -3219,7 +3944,7 @@ export default function Index() {
     subheadlineContainers.forEach((container) => {
       const paragraph = container.querySelector("p");
       if (paragraph) {
-        paragraph.textContent = subheadlineText;
+        paragraph.textContent = HERO_SUBHEADLINE;
       }
     });
 
@@ -3308,6 +4033,7 @@ export default function Index() {
   const replaceHeroRenders = useCallback((doc: Document) => {
     doc.querySelector("[data-exchangeup-hero-renders-style]")?.remove();
     doc.querySelector("[data-exchangeup-hero-renders]")?.remove();
+    doc.querySelector("[data-exchangeup-hero-touch-copy]")?.remove();
 
     doc
       .querySelectorAll("[data-exchangeup-hero-original-hidden='true']")
@@ -3316,9 +4042,9 @@ export default function Index() {
         (node as HTMLElement).style.removeProperty("display");
       });
 
-    const heroSection = doc.querySelector(
-      'header[data-framer-name="Hero Section"]',
-    ) as HTMLElement | null;
+    const heroSection = getVisibleElement(
+      doc.querySelectorAll<HTMLElement>('header[data-framer-name="Hero Section"]'),
+    );
     if (!heroSection) return;
 
     const heroListWidgets = Array.from(
@@ -3381,18 +4107,85 @@ export default function Index() {
         filter: drop-shadow(0 20px 34px rgba(77, 63, 41, 0.14));
       }
 
+      [data-exchangeup-hero-touch-copy] {
+        display: none;
+      }
+
+      @media (min-width: 810px) and (max-width: 1199.98px) {
+        header[data-framer-name="Hero Section"] {
+          min-height: clamp(820px, 94vh, 900px) !important;
+        }
+
+        header[data-framer-name="Hero Section"] [data-framer-name="Strategy and growth for modern teams"],
+        header[data-framer-name="Hero Section"] [data-framer-name="Grovia partners with startups and small businesses to streamline operations, elevate team performance, and build a foundation for lasting success."],
+        header[data-framer-name="Hero Section"] [data-framer-name="Buttons"] {
+          display: none !important;
+        }
+
+        [data-exchangeup-hero-touch-copy] {
+          position: absolute;
+          left: 48px;
+          right: 48px;
+          top: 118px;
+          z-index: 4;
+          display: flex;
+          max-width: 620px;
+          flex-direction: column;
+          align-items: flex-start;
+          color: #1d1d1d;
+        }
+
+        [data-exchangeup-hero-renders] {
+          left: 50%;
+          right: auto;
+          top: 430px;
+          width: min(560px, calc(100vw - 96px));
+          height: 330px;
+          transform: translateX(-50%);
+        }
+
+        [data-exchangeup-hero-card="list"] {
+          inset: 0 36px 64px 0;
+          width: calc(100% - 36px);
+          height: calc(100% - 64px);
+        }
+
+        [data-exchangeup-hero-card="kpi"] {
+          width: 56%;
+        }
+      }
+
       @media (max-width: 809.98px) {
         header[data-framer-name="Hero Section"] {
-          min-height: 860px !important;
+          min-height: clamp(720px, 92vh, 820px) !important;
+        }
+
+        header[data-framer-name="Hero Section"] [data-framer-name="Strategy and growth for modern teams"],
+        header[data-framer-name="Hero Section"] [data-framer-name="Grovia partners with startups and small businesses to streamline operations, elevate team performance, and build a foundation for lasting success."],
+        header[data-framer-name="Hero Section"] [data-framer-name="Buttons"] {
+          display: none !important;
+        }
+
+        [data-exchangeup-hero-touch-copy] {
+          position: absolute;
+          left: 18px;
+          right: 18px;
+          top: 92px;
+          z-index: 4;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          color: #1d1d1d;
+          text-align: center;
         }
 
         [data-exchangeup-hero-renders] {
           left: 18px;
           right: 18px;
           top: auto;
-          bottom: 22px;
+          bottom: 18px;
           width: auto;
-          height: 312px;
+          height: clamp(252px, 38vh, 312px);
         }
 
         [data-exchangeup-hero-card="list"] {
@@ -3407,8 +4200,130 @@ export default function Index() {
           bottom: -2px;
         }
       }
+
+      @media (max-width: 420px) {
+        header[data-framer-name="Hero Section"] {
+          min-height: clamp(690px, 90vh, 770px) !important;
+        }
+
+        [data-exchangeup-hero-touch-copy] {
+          left: 16px;
+          right: 16px;
+          top: 86px;
+        }
+
+        [data-exchangeup-hero-renders] {
+          left: 14px;
+          right: 14px;
+          height: clamp(230px, 35vh, 284px);
+        }
+
+        [data-exchangeup-hero-card="list"] {
+          inset: 0 32px 66px 0;
+          width: calc(100% - 32px);
+          height: calc(100% - 66px);
+        }
+      }
+
+      [data-exchangeup-hero-touch-eyebrow] {
+        display: inline-flex;
+        width: fit-content;
+        margin: 0 0 14px;
+        padding: 6px 13px;
+        border: 1px solid rgba(29, 29, 29, 0.12);
+        border-radius: 999px;
+        background: rgba(29, 29, 29, 0.04);
+        font-family: ${NAVBAR_FONT_STACK};
+        font-size: 11px;
+        font-weight: 650;
+        line-height: 1;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      [data-exchangeup-hero-touch-copy] h1 {
+        margin: 0;
+        max-width: 650px;
+        font-family: ${NAVBAR_FONT_STACK};
+        font-size: clamp(34px, 8.4vw, 56px);
+        font-weight: 400;
+        line-height: 0.96;
+        letter-spacing: -0.065em;
+        color: #161616;
+      }
+
+      [data-exchangeup-hero-touch-subheadline] {
+        margin: 18px 0 0;
+        max-width: 560px;
+        font-family: ${NAVBAR_FONT_STACK};
+        font-size: clamp(14px, 2.4vw, 17px);
+        font-weight: 500;
+        line-height: 1.5;
+        letter-spacing: -0.025em;
+        color: rgba(86, 82, 75, 0.9);
+      }
+
+      [data-exchangeup-hero-touch-actions] {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      [data-exchangeup-hero-touch-actions] a {
+        display: inline-flex;
+        min-height: 46px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 0 20px;
+        font-family: ${NAVBAR_FONT_STACK};
+        font-size: 14px;
+        font-weight: 650;
+        line-height: 1;
+        letter-spacing: -0.025em;
+        text-decoration: none;
+        color: #1d1d1d;
+        background: rgba(255, 255, 255, 0.86);
+        box-shadow: inset 0 0 0 1px rgba(218, 211, 201, 0.95), 0 10px 22px rgba(80, 71, 58, 0.08);
+      }
+
+      [data-exchangeup-hero-touch-actions] a[data-exchangeup-hero-touch-primary] {
+        color: #ffffff;
+        background: #1d1d1d;
+        box-shadow: 0 12px 24px rgba(29, 29, 29, 0.18);
+      }
+
+      @media (max-width: 420px) {
+        [data-exchangeup-hero-touch-copy] h1 {
+          font-size: clamp(30px, 8.8vw, 36px);
+          line-height: 1;
+        }
+
+        [data-exchangeup-hero-touch-subheadline] {
+          margin-top: 14px;
+          font-size: 13px;
+          line-height: 1.48;
+        }
+
+        [data-exchangeup-hero-touch-actions] {
+          width: 100%;
+          margin-top: 20px;
+          justify-content: center;
+        }
+
+        [data-exchangeup-hero-touch-actions] a {
+          min-height: 44px;
+          padding: 0 18px;
+        }
+      }
     `;
     doc.head.appendChild(style);
+
+    const heroTouchCopy = doc.createElement("div");
+    heroTouchCopy.setAttribute("data-exchangeup-hero-touch-copy", "true");
+    heroTouchCopy.innerHTML = getHeroTouchCopyMarkup();
+    heroSection.appendChild(heroTouchCopy);
 
     const heroRenders = doc.createElement("div");
     heroRenders.setAttribute("data-exchangeup-hero-renders", "true");
@@ -3434,9 +4349,9 @@ export default function Index() {
     doc.querySelector("[data-exchangeup-logo-slider]")?.remove();
     doc.querySelector("[data-exchangeup-logo-slider-style]")?.remove();
 
-    const heroSection = doc.querySelector(
-      'header[data-framer-name="Hero Section"]',
-    ) as HTMLElement | null;
+    const heroSection = getVisibleElement(
+      doc.querySelectorAll<HTMLElement>('header[data-framer-name="Hero Section"]'),
+    );
     if (!heroSection || !heroSection.parentElement) return;
 
     const style = doc.createElement("style");
@@ -3513,13 +4428,38 @@ export default function Index() {
         mix-blend-mode: multiply;
       }
 
-      @media (max-width: 809.98px) {
+      @media (min-width: 810px) and (max-width: 1199.98px) {
         header[data-framer-name="Hero Section"] {
-          margin-bottom: -14px;
+          margin-bottom: 0;
         }
 
         [data-exchangeup-logo-slider] {
-          padding: 2px 0 4px;
+          order: 1 !important;
+          margin-top: 0;
+          padding: 18px 0 18px;
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
+          width: calc(100vw - 80px);
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-slider-group] {
+          gap: 64px;
+          padding-right: 64px;
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-item] {
+          height: 62px;
+        }
+      }
+
+      @media (max-width: 809.98px) {
+        header[data-framer-name="Hero Section"] {
+          margin-bottom: 0;
+        }
+
+        [data-exchangeup-logo-slider] {
+          padding: 16px 0 14px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
@@ -3537,6 +4477,25 @@ export default function Index() {
 
         [data-exchangeup-logo-slider] [data-logo-item] img {
           height: var(--brand-h-mobile, 24px);
+        }
+      }
+
+      @media (max-width: 420px) {
+        [data-exchangeup-logo-slider] {
+          padding: 14px 0 14px;
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
+          width: calc(100vw - 28px);
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-slider-group] {
+          gap: 42px;
+          padding-right: 42px;
+        }
+
+        [data-exchangeup-logo-slider] [data-logo-item] {
+          height: 48px;
         }
       }
     `;
@@ -3651,12 +4610,17 @@ export default function Index() {
       .querySelectorAll("[data-exchangeup-injected-login]")
       .forEach((node) => node.remove());
 
-    const navEl = doc.querySelector(".framer-9FYxx") as HTMLElement | null;
-    if (navEl) {
+    const navRoots = Array.from(
+      doc.querySelectorAll<HTMLElement>(".framer-9FYxx"),
+    );
+    navRoots.forEach((navEl) => {
       navEl.setAttribute("data-exchangeup-navbar", "true");
       if (frame.clientWidth >= 960) {
         navEl.style.width = "730px";
         navEl.style.maxWidth = "calc(100vw - 48px)";
+      } else {
+        navEl.style.removeProperty("width");
+        navEl.style.removeProperty("max-width");
       }
 
       const logoWrap = navEl.querySelector(
@@ -3700,7 +4664,55 @@ export default function Index() {
 
         contactBtn.parentElement?.insertBefore(loginLink, contactBtn);
       }
-    }
+
+      navEl
+        .querySelectorAll<HTMLElement>("[data-exchangeup-mobile-nav]")
+        .forEach((node) => node.remove());
+
+      const mobileNav = doc.createElement("div");
+      mobileNav.setAttribute("data-exchangeup-mobile-nav", "true");
+      mobileNav.setAttribute("data-state", "closed");
+      mobileNav.innerHTML = getMobileNavMarkup();
+      navEl.appendChild(mobileNav);
+
+      const toggle = mobileNav.querySelector<HTMLButtonElement>(
+        "[data-exchangeup-mobile-toggle]",
+      );
+      const toggleLabel = mobileNav.querySelector<HTMLElement>(
+        "[data-mobile-toggle-label]",
+      );
+      const setMobileNavOpen = (open: boolean) => {
+        mobileNav.setAttribute("data-state", open ? "open" : "closed");
+        toggle?.setAttribute("aria-expanded", String(open));
+        toggle?.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+        if (toggleLabel) toggleLabel.textContent = open ? "Close" : "Menu";
+      };
+
+      toggle?.addEventListener("click", () => {
+        setMobileNavOpen(mobileNav.getAttribute("data-state") !== "open");
+      });
+
+      mobileNav.querySelectorAll<HTMLAnchorElement>("a").forEach((anchor) => {
+        anchor.addEventListener("click", () => setMobileNavOpen(false));
+      });
+    });
+
+    doc
+      .querySelectorAll<HTMLAnchorElement>("[data-exchangeup-scroll-key]")
+      .forEach((anchor) => {
+        if (anchor.dataset.exchangeupScrollBound === "true") return;
+        anchor.dataset.exchangeupScrollBound = "true";
+        anchor.addEventListener("click", (event) => {
+          const key = anchor.getAttribute(
+            "data-exchangeup-scroll-key",
+          ) as "process" | "feature" | "contact" | null;
+          if (!key) return;
+          const target = resolveScrollTarget(doc, key);
+          if (!target) return;
+          event.preventDefault();
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
 
     rewriteHeroCopy(doc);
     replaceHeroRenders(doc);

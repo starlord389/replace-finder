@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:landing:breakpoints": "playwright test tests/landing-breakpoints.spec.ts",
     "test:watch": "vitest",
     "verify:domain": "node scripts/verify-canonical-domain.mjs"
   },
