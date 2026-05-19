@@ -1,11 +1,6 @@
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  CheckCircle2,
-  LifeBuoy,
-  Loader2,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, LifeBuoy, Loader2 } from "lucide-react";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,33 +10,35 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const introPoints = [
-  "Get a tailored walkthrough of how 1031 Exchange Up supports your exchange process from discovery to decision-making.",
-  "See how replacement opportunities, deadlines, and advisor collaboration can stay organized in one place.",
+  "See how agents can manage active 1031 clients, replacement criteria, and deal activity without juggling spreadsheets or inbox threads.",
+  "Walk through how off-market replacement properties, match scoring, client requirements, and deadlines stay organized in one shared workspace.",
 ] as const;
 
 const highlightCards = [
   {
-    emphasis: "3x faster",
-    headline: "to shortlist replacement opportunities.",
+    emphasis: "1031 agent",
+    headline: "“It helps me find replacement properties that actually match what my client is looking for.”",
     description:
-      "Teams can move from initial discovery to a cleaner internal review process without scattered notes and spreadsheets.",
-    company: "Northline Exchange",
-    badge: "NE",
+      "Sarah uses 1031 Exchange Up to search private replacement opportunities and focus on the ones that fit her client's exchange goals.",
+    quote:
+      "Instead of sending random options, I can bring my client a tighter list of properties that make sense for their situation.",
+    company: "Sarah M., Commercial Agent",
   },
   {
-    emphasis: "98% faster",
-    headline: "team alignment before identification deadlines.",
+    emphasis: "1031 agent",
+    headline: "“It helped me narrow a long list of options down to the properties that actually fit.”",
     description:
-      "Keep investors, advisors, and internal stakeholders centered around one organized view of the exchange workflow.",
-    company: "Summit 1031 Group",
-    badge: "S1",
+      "Daniel uses the workspace to compare replacement opportunities against each client's target markets, budget, and asset preferences.",
+    quote:
+      "Instead of guessing which properties to send first, I can quickly see which options make the most sense for the client.",
+    company: "Daniel R., Real Estate Agent",
   },
 ] as const;
 
 const benefitPoints = [
-  "Review how investors and advisors can stay aligned without scattered email threads.",
-  "Understand how your team can compare replacement opportunities more efficiently.",
-  "Get answers on onboarding, implementation, and how the platform fits your workflow.",
+  "Create an exchange profile around the client's relinquished property, target markets, budget, debt needs, and timeline.",
+  "Compare off-market replacement properties side by side with fit scores and financial context.",
+  "Open private connections, coordinate offers, and keep activity tied to the right client exchange.",
 ] as const;
 
 const timelineOptions = [
@@ -70,61 +67,6 @@ const INITIAL_FORM_STATE: DemoFormState = {
   timeline: "",
   useCase: "",
 };
-
-function ExchangeLogoMark({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="100 60 312 392"
-      className={className}
-      aria-hidden="true"
-    >
-      <rect
-        x="126"
-        y="86"
-        width="52"
-        height="340"
-        rx="26"
-        ry="26"
-        fill="#1A1A1A"
-        transform="rotate(20 256 256)"
-      />
-      <rect
-        x="334"
-        y="86"
-        width="52"
-        height="340"
-        rx="26"
-        ry="26"
-        fill="#1A1A1A"
-        transform="rotate(-20 256 256)"
-      />
-      <circle cx="382" cy="124" r="34" fill="#FADC6A" />
-    </svg>
-  );
-}
-
-function ProofCardBadge({
-  badge,
-  variant,
-}: {
-  badge: string;
-  variant: "dark" | "accent";
-}) {
-  if (variant === "accent") {
-    return (
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7cf67] text-[11px] font-semibold tracking-[-0.03em] text-[#1d1d1d] shadow-[0_6px_18px_rgba(38,34,28,0.08)]">
-        {badge}
-      </span>
-    );
-  }
-
-  return (
-    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d1d1d] text-[11px] font-semibold tracking-[-0.03em] text-white shadow-[0_6px_18px_rgba(38,34,28,0.08)]">
-      {badge}
-    </span>
-  );
-}
 
 export default function BookDemo() {
   const [formState, setFormState] = useState(INITIAL_FORM_STATE);
@@ -228,20 +170,26 @@ export default function BookDemo() {
     <section className="bg-[#f4f2ee] px-4 pb-20 pt-20 sm:px-6 sm:pt-24">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,0.96fr)_minmax(0,0.84fr)] lg:items-start">
-          <div className="rounded-[34px] border border-[#ddd8cf] bg-white/82 p-7 shadow-[0_18px_42px_rgba(38,34,28,0.06)] backdrop-blur-sm sm:p-10">
-            <div className="inline-flex items-center gap-3 rounded-full border border-[#e4dfd5] bg-white px-4 py-2 text-sm font-medium tracking-[-0.02em] text-[#1d1d1d] shadow-[0_8px_24px_rgba(38,34,28,0.05)]">
-              <ExchangeLogoMark className="h-8 w-8 shrink-0" />
-              <span>1031 Exchange Up</span>
-            </div>
-
-            <h1 className="mt-8 max-w-xl text-[2.45rem] font-semibold tracking-[-0.05em] text-[#1d1d1d] sm:text-[3rem]">
+          <div className="relative overflow-hidden rounded-[34px] border border-[#ddd8cf] bg-white/88 p-7 shadow-[0_22px_54px_rgba(38,34,28,0.08)] backdrop-blur-sm sm:p-10">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute right-[-7rem] top-[-8rem] h-64 w-64 rounded-full bg-[#efe8dc]/55 blur-3xl"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-[-9rem] left-[-8rem] h-72 w-72 rounded-full bg-[#efe8dc]/70 blur-3xl"
+            />
+            <div className="relative">
+            <h1 className="max-w-xl text-[2.45rem] font-semibold tracking-[-0.05em] text-[#1d1d1d] sm:text-[3rem]">
               Talk to our sales team.
             </h1>
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-3 rounded-[26px] border border-[#e8e1d7] bg-[#fbfaf7]/88 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:p-5">
               {introPoints.map((point) => (
                 <div key={point} className="flex items-start gap-3 text-sm leading-7 text-[#5f5a53] sm:text-[15px]">
-                  <CheckCircle2 className="mt-1 h-[18px] w-[18px] shrink-0 text-[#1d1d1d]" />
+                  <span className="mt-1 flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full bg-[#fadc6a]/75 text-[#1d1d1d]">
+                    <CheckCircle2 className="h-[13px] w-[13px]" />
+                  </span>
                   <p>{point}</p>
                 </div>
               ))}
@@ -251,51 +199,53 @@ export default function BookDemo() {
               {highlightCards.map((card, index) => (
                 <article
                   key={card.company}
-                  className="relative flex min-h-[234px] flex-col justify-between overflow-hidden rounded-[24px] border border-[#e4ded4] bg-[#fbfaf7] p-5 shadow-[0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(219,214,205,0.5)]"
+                  className="group relative flex min-h-[258px] flex-col justify-between overflow-hidden rounded-[26px] border border-[#e4ded4] bg-white p-5 shadow-[0_14px_34px_rgba(38,34,28,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]"
                 >
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute bottom-0 right-0 h-28 w-28 opacity-70"
+                    className="pointer-events-none absolute right-[-34px] top-[-34px] h-28 w-28 rounded-full opacity-80"
                     style={{
-                      backgroundImage:
-                        "linear-gradient(rgba(221,216,207,0.65) 1px, transparent 1px), linear-gradient(90deg, rgba(221,216,207,0.65) 1px, transparent 1px)",
-                      backgroundSize: "18px 18px",
-                      maskImage: "linear-gradient(135deg, transparent 18%, black 72%)",
-                      WebkitMaskImage:
-                        "linear-gradient(135deg, transparent 18%, black 72%)",
+                      background:
+                        index === 0
+                          ? "radial-gradient(circle, rgba(228,222,212,0.8), transparent 70%)"
+                          : "radial-gradient(circle, rgba(228,222,212,0.8), transparent 70%)",
                     }}
                   />
                   <div>
-                    <p className="max-w-[14rem] text-[1.12rem] font-medium leading-8 tracking-[-0.045em] text-[#1d1d1d] sm:text-[1.24rem]">
-                      <span className="font-semibold text-[#111111]">{card.emphasis}</span>{" "}
-                      <span className="font-normal text-[#3f3b36]">{card.headline}</span>
+                    <div className="inline-flex rounded-full bg-[#f6f1e8] px-3 py-1.5 text-[13px] font-semibold tracking-[-0.03em] text-[#1d1d1d]">
+                      {card.emphasis}
+                    </div>
+                    <p className="mt-4 max-w-[14rem] text-[1.1rem] font-medium leading-7 tracking-[-0.045em] text-[#1d1d1d] sm:text-[1.2rem]">
+                      {card.headline}
                     </p>
-                    <p className="mt-4 max-w-[15rem] text-sm leading-6 text-[#66615b]">
-                      {card.description}
+                    <p className="mt-4 max-w-[15rem] text-sm leading-6 text-[#6b655e]">
+                      “{card.quote}”
                     </p>
                   </div>
 
-                  <div className="relative z-[1] mt-6 flex items-center gap-3">
-                    <ProofCardBadge
-                      badge={card.badge}
-                      variant={index === 0 ? "dark" : "accent"}
-                    />
+                  <div className="relative z-[1] mt-6 border-t border-[#eee8de] pt-4">
                     <p className="text-[1.02rem] font-semibold tracking-[-0.035em] text-[#1d1d1d]">
                       {card.company}
+                    </p>
+                    <p className="mt-1.5 text-xs font-medium leading-5 text-[#7d766e]">
+                      {card.description}
                     </p>
                   </div>
                 </article>
               ))}
             </div>
 
-            <ul className="mt-9 space-y-3">
+            <ul className="mt-9 space-y-3 rounded-[26px] border border-[#e8e1d7] bg-[#fbfaf7]/88 p-5">
               {benefitPoints.map((point) => (
                 <li key={point} className="flex items-start gap-3 text-sm leading-6 text-[#4d4943]">
-                  <span className="mt-[7px] h-2.5 w-2.5 shrink-0 rounded-full bg-[#4d79ff]" />
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1d1d1d] text-white">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  </span>
                   <span>{point}</span>
                 </li>
               ))}
             </ul>
+            </div>
           </div>
 
           <div className="lg:pt-4">
