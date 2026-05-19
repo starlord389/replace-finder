@@ -4800,12 +4800,46 @@ export default function Index() {
       aria-label="Grovia template homepage"
       className="relative h-full min-h-screen w-full"
     >
+      <style>{`
+        @keyframes exchangeupPreloaderDot {
+          0%, 100% { transform: translateY(0); opacity: 0.42; }
+          50% { transform: translateY(-5px); opacity: 1; }
+        }
+
+        @media (min-width: 1200px) {
+          [data-exchangeup-mobile-preloader] {
+            display: none !important;
+          }
+        }
+      `}</style>
       <div
         aria-hidden="true"
         className={`absolute inset-0 bg-[#f8f5ef] transition-opacity duration-200 ${
           frameReady ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       />
+      <div
+        data-exchangeup-mobile-preloader
+        role="status"
+        aria-label="Loading landing page"
+        aria-live="polite"
+        className={`absolute inset-0 z-20 flex min-h-[100dvh] items-center justify-center bg-[#F4F2EE] px-6 transition-opacity duration-300 ${
+          frameReady ? "pointer-events-none opacity-0" : "opacity-100"
+        }`}
+      >
+        <div className="flex items-center gap-3" aria-hidden="true">
+          {[0, 1, 2].map((dot) => (
+            <span
+              key={dot}
+              className="h-3 w-3 rounded-full bg-[#1d1d1d]"
+              style={{
+                animation: "exchangeupPreloaderDot 1.1s ease-in-out infinite",
+                animationDelay: `${dot * 0.14}s`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
       <iframe
         ref={frameRef}
         title="Grovia homepage"
