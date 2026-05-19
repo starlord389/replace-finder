@@ -72,7 +72,9 @@ export default function Navbar() {
       <div className="h-16" />
 
       <nav
-        className="fixed left-1/2 top-3 z-50 w-[calc(100%-2rem)] max-w-[730px] -translate-x-1/2 rounded-full border border-[#e0ddd6] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)]"
+        className={`fixed left-1/2 top-3 z-50 w-[calc(100%-1.5rem)] max-w-[730px] -translate-x-1/2 border border-[#e0ddd6] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)] sm:w-[calc(100%-2rem)] ${
+          mobileOpen ? "rounded-[28px]" : "rounded-full"
+        }`}
         aria-label="Main navigation"
       >
         <div className="flex h-12 items-center justify-between px-3 sm:px-3.5">
@@ -155,29 +157,30 @@ export default function Navbar() {
 
           {/* Mobile toggle */}
           <button
-            className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-[#f0ede7] md:hidden"
+            className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#1d1d1d] px-3 text-[13px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black md:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-expanded={mobileOpen}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
+            <span>{mobileOpen ? "Close" : "Menu"}</span>
             {mobileOpen ? (
-              <X className="h-[18px] w-[18px] text-[#1d1d1d]" />
+              <X className="h-[15px] w-[15px]" />
             ) : (
-              <Menu className="h-[18px] w-[18px] text-[#1d1d1d]" />
+              <Menu className="h-[15px] w-[15px]" />
             )}
           </button>
         </div>
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="border-t border-[#e8e5de] px-5 pb-5 pt-3 md:hidden">
-            <div className="flex flex-col gap-1">
+          <div className="px-2 pb-2 pt-1 md:hidden">
+            <div className="flex flex-col gap-2 border-t border-[#e8e5de] pt-3">
               <Link
                 to={ROUTES.home}
-                className={`rounded-lg px-3 py-2.5 text-sm font-medium ${
+                className={`flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
                   location.pathname === ROUTES.home
                     ? "bg-[#1d1d1d] text-white"
-                    : "text-[#5d5d5d] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
+                    : "bg-[#f7f5f0] text-[#4f4a43] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
                 }`}
               >
                 Home
@@ -186,10 +189,10 @@ export default function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`rounded-lg px-3 py-2.5 text-sm font-medium ${
+                  className={`flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
                     location.pathname === link.to
                       ? "bg-[#1d1d1d] text-white"
-                      : "text-[#5d5d5d] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
+                      : "bg-[#f7f5f0] text-[#4f4a43] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
                   }`}
                 >
                   {link.label}
@@ -199,30 +202,30 @@ export default function Navbar() {
                 <>
                   <Link
                     to={dashboardLink}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#5d5d5d] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
+                    className="flex min-h-[42px] items-center justify-center rounded-[18px] bg-[#f7f5f0] px-4 text-sm font-semibold tracking-[-0.02em] text-[#4f4a43] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
                   >
                     {dashboardLabel}
                   </Link>
-                  <div className="mt-2 border-t border-[#e8e5de] pt-3">
+                  <div className="pt-1">
                     <button
                       onClick={signOut}
-                      className="w-full rounded-full bg-[#1d1d1d] py-2.5 text-sm font-medium text-white transition-colors hover:bg-black"
+                      className="min-h-[42px] w-full rounded-full bg-[#1d1d1d] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black"
                     >
                       Sign Out
                     </button>
                   </div>
                 </>
               ) : (
-                <div className="mt-2 flex flex-col gap-2 border-t border-[#e8e5de] pt-3">
+                <div className="flex flex-col gap-2 pt-1">
                   <Link
                     to={ROUTES.login}
-                    className="w-full rounded-full border border-[#d8d5ce] bg-white py-2.5 text-center text-sm font-medium text-[#1d1d1d] transition-colors hover:bg-[#f6f4ef]"
+                    className="flex min-h-[42px] w-full items-center justify-center rounded-[18px] bg-[#f7f5f0] px-4 text-center text-sm font-semibold tracking-[-0.02em] text-[#4f4a43] transition-colors hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
                   >
                     Login
                   </Link>
                   <Link
                     to={ROUTES.signup}
-                    className="w-full rounded-full bg-[#1d1d1d] py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-black"
+                    className="flex min-h-[42px] w-full items-center justify-center rounded-full bg-[#1d1d1d] px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-black"
                   >
                     Get Started
                   </Link>
