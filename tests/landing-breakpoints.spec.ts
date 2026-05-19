@@ -209,6 +209,20 @@ async function getViewportSnapshot(frame: Frame) {
       navRect: rectFor(visibleNav),
       heroCopyRect: rectFor(heroCopy),
       heroRendersRect: rectFor(heroRenders),
+      heroNavGap:
+        visibleNav && heroCopy
+          ? Math.round(
+              heroCopy.getBoundingClientRect().top -
+                visibleNav.getBoundingClientRect().bottom,
+            )
+          : null,
+      heroCopyImageGap:
+        heroCopy && heroRenders
+          ? Math.round(
+              heroRenders.getBoundingClientRect().top -
+                heroCopy.getBoundingClientRect().bottom,
+            )
+          : null,
       logoSliderRect: rectFor(logoSlider),
       touchCardCount: touchCards.length,
       touchTitleText: touchTitles.map((element) => element.textContent?.trim()),
@@ -265,6 +279,11 @@ test.describe("landing page breakpoint regressions", () => {
         expect(snapshot.logoSliderRect!.top).toBeGreaterThan(
           snapshot.heroRendersRect!.bottom,
         );
+        if (viewport.width <= 480) {
+          expect(snapshot.heroNavGap).toBeGreaterThanOrEqual(40);
+          expect(snapshot.heroCopyImageGap).toBeGreaterThanOrEqual(44);
+          expect(snapshot.heroCopyImageGap).toBeLessThanOrEqual(90);
+        }
         expect(snapshot.touchCardCount).toBe(3);
         expect(snapshot.touchTitleText).toEqual(
           expect.arrayContaining(APPROVED_HOW_IT_WORKS_TITLES),

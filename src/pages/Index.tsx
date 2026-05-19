@@ -4201,6 +4201,16 @@ export default function Index() {
         }
       }
 
+      @media (max-width: 480px) {
+        [data-exchangeup-hero-touch-copy] {
+          top: 124px;
+        }
+
+        [data-exchangeup-hero-renders] {
+          bottom: 62px;
+        }
+      }
+
       @media (max-width: 420px) {
         header[data-framer-name="Hero Section"] {
           min-height: clamp(690px, 90vh, 770px) !important;
@@ -4209,7 +4219,7 @@ export default function Index() {
         [data-exchangeup-hero-touch-copy] {
           left: 16px;
           right: 16px;
-          top: 86px;
+          top: 118px;
         }
 
         [data-exchangeup-hero-renders] {
