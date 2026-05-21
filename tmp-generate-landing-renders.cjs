@@ -1169,7 +1169,7 @@ const html = String.raw`
                       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                     </div>
                     <div>
-                      <strong>Willow Creek Apartments</strong>
+                      <strong>North Shore Apartments</strong>
                       <div class="deadline-sub">Identification deadline</div>
                     </div>
                     <div class="deadline-count">5d</div>
@@ -1179,7 +1179,7 @@ const html = String.raw`
                       <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
                     </div>
                     <div>
-                      <strong>Harbor Retail Center</strong>
+                      <strong>Back Bay Retail Center</strong>
                       <div class="deadline-sub">Closing deadline</div>
                     </div>
                     <div class="deadline-count">11d</div>
@@ -1189,7 +1189,7 @@ const html = String.raw`
                       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                     </div>
                     <div>
-                      <strong>Mesa Industrial Park</strong>
+                      <strong>Merrimack Logistics Center</strong>
                       <div class="deadline-sub">Identification deadline</div>
                     </div>
                     <div class="deadline-count">16d</div>
@@ -1199,7 +1199,7 @@ const html = String.raw`
                       <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
                     </div>
                     <div>
-                      <strong>Pine Ridge Storage</strong>
+                      <strong>Seaport Storage</strong>
                       <div class="deadline-sub">Closing deadline</div>
                     </div>
                     <div class="deadline-count">23d</div>
@@ -1261,7 +1261,7 @@ const html = String.raw`
         <div class="hero-head">
           <div>
             <h3 class="title">Property matches</h3>
-            <div class="subtitle">Willow Creek Apartments exchange · sorted by score</div>
+            <div class="subtitle">North Shore Apartments exchange · sorted by score</div>
           </div>
           <div class="head-right">
             <span class="head-pill">Sort by Score</span>
@@ -1288,7 +1288,7 @@ const html = String.raw`
             <div class="score-badge green">92</div>
             <div class="match-photo"></div>
             <div class="match-info">
-              <strong>Summit Ridge Office Park</strong>
+              <strong>Harbor Point Office Park</strong>
               <div class="match-details">
                 <span>$4,200,000</span>
                 <span class="dot"></span>
@@ -1296,7 +1296,7 @@ const html = String.raw`
                 <span class="dot"></span>
                 <span>42,000 SF</span>
               </div>
-              <div class="match-location">Scottsdale, AZ</div>
+              <div class="match-location">Boston, MA</div>
             </div>
             <div class="match-meta">
               <span class="status-pill no-boot">No Boot</span>
@@ -1307,7 +1307,7 @@ const html = String.raw`
             <div class="score-badge green">88</div>
             <div class="match-photo"></div>
             <div class="match-info">
-              <strong>Parkview Retail Center</strong>
+              <strong>Back Bay Retail Center</strong>
               <div class="match-details">
                 <span>$3,750,000</span>
                 <span class="dot"></span>
@@ -1315,7 +1315,7 @@ const html = String.raw`
                 <span class="dot"></span>
                 <span>28,500 SF</span>
               </div>
-              <div class="match-location">Chandler, AZ</div>
+              <div class="match-location">Newton, MA</div>
             </div>
             <div class="match-meta">
               <span class="status-pill no-boot">No Boot</span>
@@ -1326,7 +1326,7 @@ const html = String.raw`
             <div class="score-badge amber">74</div>
             <div class="match-photo"></div>
             <div class="match-info">
-              <strong>Lakeshore Industrial</strong>
+              <strong>Merrimack Logistics</strong>
               <div class="match-details">
                 <span>$5,100,000</span>
                 <span class="dot"></span>
@@ -1334,7 +1334,7 @@ const html = String.raw`
                 <span class="dot"></span>
                 <span>64,200 SF</span>
               </div>
-              <div class="match-location">Mesa, AZ</div>
+              <div class="match-location">Lowell, MA</div>
             </div>
             <div class="match-meta">
               <span class="status-pill minor-boot">Minor Boot</span>
@@ -1345,7 +1345,7 @@ const html = String.raw`
             <div class="score-badge amber">71</div>
             <div class="match-photo"></div>
             <div class="match-info">
-              <strong>Canyon Vista Apartments</strong>
+              <strong>Seaport Landing Apartments</strong>
               <div class="match-details">
                 <span>$6,800,000</span>
                 <span class="dot"></span>
@@ -1353,7 +1353,7 @@ const html = String.raw`
                 <span class="dot"></span>
                 <span>48 units</span>
               </div>
-              <div class="match-location">Tempe, AZ</div>
+              <div class="match-location">Quincy, MA</div>
             </div>
             <div class="match-meta">
               <span class="status-pill minor-boot">Minor Boot</span>
@@ -1371,8 +1371,8 @@ const html = String.raw`
       <section id="hero-kpi-render" class="hero-card hero-kpi-card">
         <div class="breakdown-header">
           <div>
-            <div class="prop-name">Summit Ridge Office Park</div>
-            <div class="prop-loc">Scottsdale, AZ</div>
+            <div class="prop-name">Harbor Point Office Park</div>
+            <div class="prop-loc">Boston, MA</div>
           </div>
           <div class="overall-score">92</div>
         </div>

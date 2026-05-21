@@ -332,7 +332,7 @@ const EASY_SETUP_PREVIEW_MARKUP: Record<EasySetupCardId, string> = {
         </div>
         <div data-preview-input-group>
           <div data-preview-input-label>Relinquished property</div>
-          <div data-preview-input-field>Phoenix, AZ office</div>
+          <div data-preview-input-field>Cambridge, MA office</div>
         </div>
         <div data-preview-input-group>
           <div data-preview-input-label>Asset type</div>
@@ -351,15 +351,15 @@ const EASY_SETUP_PREVIEW_MARKUP: Record<EasySetupCardId, string> = {
           <div data-preview-mini-match data-preview-mini-match-variant="featured">
             <div data-preview-score-chip data-preview-score-variant="high">92</div>
             <div>
-              <div data-preview-mini-match-title>Summit Ridge Office</div>
-              <div data-preview-mini-match-meta>$4.2M &middot; Scottsdale, AZ</div>
+              <div data-preview-mini-match-title>Harbor Point Office</div>
+              <div data-preview-mini-match-meta>$4.2M &middot; Boston, MA</div>
             </div>
           </div>
           <div data-preview-mini-match>
             <div data-preview-score-chip data-preview-score-variant="good">88</div>
             <div>
-              <div data-preview-mini-match-title>Parkview Retail</div>
-              <div data-preview-mini-match-meta>$3.75M &middot; Chandler, AZ</div>
+              <div data-preview-mini-match-title>Back Bay Retail</div>
+              <div data-preview-mini-match-meta>$3.75M &middot; Newton, MA</div>
             </div>
           </div>
         </div>
@@ -375,8 +375,8 @@ const EASY_SETUP_PREVIEW_MARKUP: Record<EasySetupCardId, string> = {
         <div data-preview-match-strip>
           <div data-preview-match-strip-dot>92</div>
           <div>
-            <div data-preview-match-strip-title>Summit Ridge Office</div>
-            <div data-preview-match-strip-meta>$4.2M &middot; Scottsdale, AZ</div>
+            <div data-preview-match-strip-title>Harbor Point Office</div>
+            <div data-preview-match-strip-meta>$4.2M &middot; Boston, MA</div>
           </div>
         </div>
         <div data-preview-chat-bubble data-preview-chat-side="them">
@@ -2315,32 +2315,32 @@ function getFeatureOffMarketMarkup() {
           <div data-feature-market-photo></div>
           <div data-feature-market-pill>Private</div>
           <div data-feature-market-body>
-            <div data-feature-market-name>Summit Ridge Office</div>
-            <div data-feature-market-meta>$4.2M &middot; Scottsdale, AZ</div>
+            <div data-feature-market-name>Harbor Point Office</div>
+            <div data-feature-market-meta>$4.2M &middot; Boston, MA</div>
           </div>
         </div>
         <div data-feature-market-card data-feature-market-variant="2">
           <div data-feature-market-photo></div>
           <div data-feature-market-pill>Private</div>
           <div data-feature-market-body>
-            <div data-feature-market-name>Parkview Retail</div>
-            <div data-feature-market-meta>$3.75M &middot; Chandler, AZ</div>
+            <div data-feature-market-name>Back Bay Retail</div>
+            <div data-feature-market-meta>$3.75M &middot; Newton, MA</div>
           </div>
         </div>
         <div data-feature-market-card data-feature-market-variant="3">
           <div data-feature-market-photo></div>
           <div data-feature-market-pill>Private</div>
           <div data-feature-market-body>
-            <div data-feature-market-name>Lakeshore Industrial</div>
-            <div data-feature-market-meta>$5.1M &middot; Mesa, AZ</div>
+            <div data-feature-market-name>Merrimack Logistics</div>
+            <div data-feature-market-meta>$5.1M &middot; Lowell, MA</div>
           </div>
         </div>
         <div data-feature-market-card data-feature-market-variant="4">
           <div data-feature-market-photo></div>
           <div data-feature-market-pill>Private</div>
           <div data-feature-market-body>
-            <div data-feature-market-name>Canyon Vista Apts</div>
-            <div data-feature-market-meta>$6.8M &middot; Tempe, AZ</div>
+            <div data-feature-market-name>Seaport Landing Apts</div>
+            <div data-feature-market-meta>$6.8M &middot; Quincy, MA</div>
           </div>
         </div>
       </div>
@@ -2376,7 +2376,7 @@ function getFeatureScoringMarkup() {
     <div data-feature-window>
       <div data-feature-score-header>
         <div>
-          <div data-feature-score-title>Summit Ridge Office Park</div>
+          <div data-feature-score-title>Harbor Point Office Park</div>
           <div data-feature-score-sub>Match score breakdown</div>
         </div>
         <div data-feature-score-overall>92</div>
@@ -2402,7 +2402,7 @@ function getFeatureFiltersMarkup() {
         <div data-feature-filter-chips>
           <div data-feature-filter-chip>
             <span>Geography</span>
-            <strong>Phoenix MSA</strong>
+            <strong>Greater Boston</strong>
           </div>
           <div data-feature-filter-chip>
             <span>Asset type</span>
@@ -2430,22 +2430,22 @@ function getFeatureFiltersMarkup() {
         <div data-feature-filter-result-card data-feature-filter-result-variant="featured">
           <div data-feature-filter-result-score>94</div>
           <div>
-            <div data-feature-filter-result-title>Summit Ridge Office</div>
-            <div data-feature-filter-result-meta>$4.2M &middot; 6.8% cap &middot; Scottsdale</div>
+            <div data-feature-filter-result-title>Harbor Point Office</div>
+            <div data-feature-filter-result-meta>$4.2M &middot; 6.8% cap &middot; Boston</div>
           </div>
         </div>
         <div data-feature-filter-result-card>
           <div data-feature-filter-result-score>88</div>
           <div>
-            <div data-feature-filter-result-title>Parkview Retail</div>
-            <div data-feature-filter-result-meta>$3.75M &middot; 7.2% cap &middot; Chandler</div>
+            <div data-feature-filter-result-title>Back Bay Retail</div>
+            <div data-feature-filter-result-meta>$3.75M &middot; 7.2% cap &middot; Newton</div>
           </div>
         </div>
         <div data-feature-filter-result-card>
           <div data-feature-filter-result-score>85</div>
           <div>
-            <div data-feature-filter-result-title>Desert Square Plaza</div>
-            <div data-feature-filter-result-meta>$4.8M &middot; 6.9% cap &middot; Gilbert</div>
+            <div data-feature-filter-result-title>Worcester Square Plaza</div>
+            <div data-feature-filter-result-meta>$4.8M &middot; 6.9% cap &middot; Worcester</div>
           </div>
         </div>
       </div>
@@ -2463,8 +2463,8 @@ function getFeatureUpsideMarkup() {
       <div data-feature-upside-compare>
         <div data-feature-upside-card data-feature-upside-card-variant="current">
           <div data-feature-upside-card-label>Current property</div>
-          <div data-feature-upside-card-name>Camelback Office Plaza</div>
-          <div data-feature-upside-card-meta>Phoenix, AZ</div>
+          <div data-feature-upside-card-name>Cambridge Office Plaza</div>
+          <div data-feature-upside-card-meta>Cambridge, MA</div>
           <div data-feature-upside-card-rows>
             <div><span>Value</span><strong>$3.2M</strong></div>
             <div><span>NOI</span><strong>$180K/yr</strong></div>
@@ -2474,8 +2474,8 @@ function getFeatureUpsideMarkup() {
         <div data-feature-upside-card data-feature-upside-card-variant="candidate">
           <div data-feature-upside-card-badge>Candidate</div>
           <div data-feature-upside-card-label>Replacement</div>
-          <div data-feature-upside-card-name>Summit Ridge Office</div>
-          <div data-feature-upside-card-meta>Scottsdale, AZ</div>
+          <div data-feature-upside-card-name>Harbor Point Office</div>
+          <div data-feature-upside-card-meta>Boston, MA</div>
           <div data-feature-upside-card-rows>
             <div><span>Value</span><strong>$4.2M</strong></div>
             <div><span>NOI</span><strong>$245K/yr</strong></div>
