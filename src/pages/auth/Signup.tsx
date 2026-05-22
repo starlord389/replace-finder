@@ -296,7 +296,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
               I certify that my real estate license is active and the details above are accurate.
             </Label>
             <p className="text-xs text-muted-foreground">
-              Your workspace is activated through self-certification. Suspended accounts are reserved for compliance issues, not routine signup review.
+              Suspended accounts are reserved for compliance issues, not routine signup review.
             </p>
             {fieldError("attested")}
           </div>
