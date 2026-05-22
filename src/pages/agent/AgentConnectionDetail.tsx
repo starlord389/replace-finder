@@ -338,36 +338,68 @@ export default function AgentConnectionDetail() {
 
       {/* Progress Tracker */}
       <div className="mt-6 rounded-xl border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-foreground">Exchange Progress</h3>
-          {conn.status === "accepted" && next && (
-            <Button size="sm" onClick={() => setProgressOpen(true)}>
-              Update Progress
-            </Button>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h3 className="font-semibold text-foreground">Exchange Progress</h3>
+            {currentStage && (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Current stage: <span className="font-medium text-foreground">{currentStage.label}</span>
+              </p>
+            )}
+          </div>
+          {conn.status === "completed" && (
+            <Badge className="bg-green-600 text-white">Deal Closed</Badge>
+          )}
+          {conn.status === "cancelled" && (
+            <Badge variant="destructive">Cancelled</Badge>
           )}
         </div>
-        <div className="mt-4 flex flex-wrap gap-4">
-          {MILESTONES.map((m, i) => {
+
+        <div className="mt-5 space-y-2">
+          {MILESTONES.map((m) => {
             const done = !!conn[m.key];
+            const dateVal = conn[m.key] ? format(new Date(conn[m.key]), "MMM d, yyyy") : null;
             return (
-              <div key={m.key} className="flex items-center gap-2">
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${done ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                  {done ? "✓" : i + 1}
-                </div>
-                <div>
-                  <p className={`text-sm ${done ? "font-medium text-foreground" : "text-muted-foreground"}`}>{m.label}</p>
-                  {done && conn[m.key] && (
-                    <p className="text-[10px] text-muted-foreground">{format(new Date(conn[m.key]), "MMM d")}</p>
+              <div key={m.key} className="flex items-start gap-3 rounded-lg border bg-background/50 p-3">
+                <div className="mt-0.5">
+                  {done ? (
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  ) : (
+                    <Circle className="h-5 w-5 text-muted-foreground/40" />
                   )}
                 </div>
-                {i < MILESTONES.length - 1 && <div className={`hidden sm:block h-px w-6 ${done ? "bg-primary" : "bg-border"}`} />}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <p className={`text-sm ${done ? "font-medium text-foreground" : "text-muted-foreground"}`}>{m.label}</p>
+                    {dateVal && <span className="text-xs text-muted-foreground">{dateVal}</span>}
+                  </div>
+                  <p className="text-xs text-muted-foreground/80 mt-0.5">{m.description}</p>
+                </div>
+                {m.editable && lifecycleActive && (
+                  <div className="flex items-center gap-1">
+                    {done ? (
+                      <>
+                        <Button size="sm" variant="ghost" onClick={() => openStageDialog(m.key, "edit")} disabled={acting}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleClearStage(m.key)} disabled={acting} title="Clear stage">
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button size="sm" variant="outline" onClick={() => openStageDialog(m.key, "set")} disabled={acting}>
+                        Mark Complete
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
 
         {/* Special actions */}
-        {conn.status === "accepted" && (
+        {lifecycleActive && (
           <div className="mt-4 flex gap-2 border-t pt-4">
             <Button size="sm" variant="outline" className="text-destructive border-destructive/30" onClick={() => setFailOpen(true)}>
               <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />Mark as Failed
