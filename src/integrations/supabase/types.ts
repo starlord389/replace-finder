@@ -711,7 +711,6 @@ export type Database = {
           mls_number: string | null
           phone: string | null
           profile_photo_url: string | null
-          role: string
           specializations: string[] | null
           updated_at: string
           verification_status: string
@@ -734,7 +733,6 @@ export type Database = {
           mls_number?: string | null
           phone?: string | null
           profile_photo_url?: string | null
-          role?: string
           specializations?: string[] | null
           updated_at?: string
           verification_status?: string
@@ -757,7 +755,6 @@ export type Database = {
           mls_number?: string | null
           phone?: string | null
           profile_photo_url?: string | null
-          role?: string
           specializations?: string[] | null
           updated_at?: string
           verification_status?: string
