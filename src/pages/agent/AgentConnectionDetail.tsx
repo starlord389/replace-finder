@@ -453,28 +453,46 @@ export default function AgentConnectionDetail() {
         </div>
       )}
 
-      {/* Update Progress Dialog */}
-      <Dialog open={progressOpen} onOpenChange={setProgressOpen}>
+      {/* Stage Edit Dialog */}
+      <Dialog open={stageDialog.open} onOpenChange={(o) => { if (!o) closeStageDialog(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Progress: {next?.label}</DialogTitle>
-            <DialogDescription>Set the date for this milestone.</DialogDescription>
+            <DialogTitle>
+              {stageDialog.mode === "edit" ? "Edit" : "Mark Complete"}: {MILESTONES.find((m) => m.key === stageDialog.key)?.label}
+            </DialogTitle>
+            <DialogDescription>
+              {MILESTONES.find((m) => m.key === stageDialog.key)?.description}
+            </DialogDescription>
           </DialogHeader>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={`w-full justify-start text-left font-normal ${!milestoneDate ? "text-muted-foreground" : ""}`}>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {milestoneDate ? format(milestoneDate, "PPP") : "Pick a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={milestoneDate} onSelect={setMilestoneDate} initialFocus className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Date</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={`w-full justify-start text-left font-normal ${!milestoneDate ? "text-muted-foreground" : ""}`}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {milestoneDate ? format(milestoneDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={milestoneDate} onSelect={setMilestoneDate} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Note (optional)</label>
+              <Textarea
+                value={milestoneNote}
+                onChange={(e) => setMilestoneNote(e.target.value)}
+                placeholder="Add context for this milestone..."
+                rows={2}
+              />
+            </div>
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setProgressOpen(false)}>Cancel</Button>
-            <Button onClick={handleUpdateProgress} disabled={!milestoneDate || acting}>
-              {acting ? "Updating..." : "Confirm"}
+            <Button variant="outline" onClick={closeStageDialog}>Cancel</Button>
+            <Button onClick={handleSaveStage} disabled={!milestoneDate || acting}>
+              {acting ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>
