@@ -54,6 +54,7 @@ function statusBadge(status: string) {
   switch (status) {
     case "pending": return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Pending</Badge>;
     case "accepted": return <Badge className="bg-green-600 text-white">Active</Badge>;
+    case "in_progress": return <Badge className="bg-blue-600 text-white">In Progress</Badge>;
     case "completed": return <Badge className="bg-[#39484d] text-white">Completed</Badge>;
     case "declined": return <Badge variant="destructive">Declined</Badge>;
     case "cancelled": return <Badge variant="outline">Cancelled</Badge>;
@@ -128,7 +129,7 @@ export default function AgentConnections() {
 
     const hydrated = conns.map((c) => {
       const match = matchMap.get(c.match_id);
-      const revealed = c.status === "accepted" || c.status === "completed";
+      const revealed = c.status === "accepted" || c.status === "in_progress" || c.status === "completed";
       return {
         ...c,
         match,
@@ -217,7 +218,7 @@ export default function AgentConnections() {
   };
 
   const pending = connections.filter((c) => c.status === "pending");
-  const active = connections.filter((c) => c.status === "accepted");
+  const active = connections.filter((c) => c.status === "accepted" || c.status === "in_progress");
   const closed = connections.filter((c) => ["completed", "declined", "cancelled"].includes(c.status));
 
   if (loading) return <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;

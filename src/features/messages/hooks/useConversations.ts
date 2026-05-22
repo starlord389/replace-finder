@@ -26,7 +26,7 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
     .from("exchange_connections")
     .select("*")
     .or(`buyer_agent_id.eq.${userId},seller_agent_id.eq.${userId}`)
-    .in("status", ["accepted", "completed"])
+    .in("status", ["accepted", "in_progress", "completed"])
     .order("updated_at", { ascending: false });
 
   if (error) throw error;
