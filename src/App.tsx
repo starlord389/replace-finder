@@ -113,8 +113,6 @@ const App = () => (
               <Route path="/admin/support" element={<SupportTickets />} />
             </Route>
 
-            {/* Redirect old client routes */}
-            <Route path="/dashboard/*" element={<Navigate to={ROUTES.unavailable} replace />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

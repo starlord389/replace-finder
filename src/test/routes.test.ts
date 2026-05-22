@@ -6,7 +6,6 @@ describe("route policy helpers", () => {
   it("returns default route by role", () => {
     expect(getDefaultRouteForRole("agent")).toBe(ROUTES.agentHome);
     expect(getDefaultRouteForRole("admin")).toBe(ROUTES.adminHome);
-    expect(getDefaultRouteForRole("client")).toBe(ROUTES.clientHome);
     expect(getDefaultRouteForRole("unknown")).toBe(ROUTES.agentHome);
   });
 
@@ -19,7 +18,7 @@ describe("route policy helpers", () => {
   it("flags known roles", () => {
     expect(isKnownRole("agent")).toBe(true);
     expect(isKnownRole("admin")).toBe(true);
-    expect(isKnownRole("client")).toBe(true);
+    expect(isKnownRole("client")).toBe(false);
     expect(isKnownRole("broker")).toBe(false);
   });
 
