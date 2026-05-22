@@ -218,7 +218,7 @@ export default function AgentConnections() {
   };
 
   const pending = connections.filter((c) => c.status === "pending");
-  const active = connections.filter((c) => c.status === "accepted");
+  const active = connections.filter((c) => c.status === "accepted" || c.status === "in_progress");
   const closed = connections.filter((c) => ["completed", "declined", "cancelled"].includes(c.status));
 
   if (loading) return <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
