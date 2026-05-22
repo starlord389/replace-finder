@@ -199,7 +199,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Create Agent Account</h1>
           <p className="text-sm text-muted-foreground">
-            Self-certify the essentials now and finish the rest of your profile later.
+            Enter the essentials now and finish the rest of your profile later.
           </p>
         </div>
       </div>
