@@ -137,56 +137,88 @@ export default function AgentConnectionDetail() {
     setSending(false);
   };
 
-  const nextMilestone = () => {
-    if (!conn) return null;
-    for (const m of MILESTONES) {
-      if (m.key === "initiated_at") continue;
-      if (m.key === "accepted_at") continue; // Already accepted
-      if (!conn[m.key]) return m;
-    }
-    return null;
+  const openStageDialog = (key: MilestoneKey, mode: "set" | "edit") => {
+    const existing = conn?.[key];
+    setStageDialog({ open: true, key, mode });
+    setMilestoneDate(existing ? new Date(existing) : new Date());
+    setMilestoneNote("");
   };
 
-  const handleUpdateProgress = async () => {
-    const next = nextMilestone();
-    if (!next || !milestoneDate || !conn) return;
+  const closeStageDialog = () => {
+    setStageDialog({ open: false, key: null, mode: "set" });
+    setMilestoneDate(undefined);
+    setMilestoneNote("");
+  };
+
+  const handleSaveStage = async () => {
+    if (!stageDialog.key || !milestoneDate || !conn) return;
     setActing(true);
+    const stage = MILESTONES.find((m) => m.key === stageDialog.key)!;
+    const isoDate = milestoneDate.toISOString();
 
-    const updates: Record<string, any> = {
-      [next.key]: milestoneDate.toISOString(),
-    };
+    const updates: Record<string, any> = { [stage.key]: isoDate };
 
-    if (next.key === "closed_at") {
+    // Derive connection status from stage
+    if (stage.key === "under_contract_at" && conn.status === "accepted") {
+      updates.status = "in_progress";
+    }
+    if (stage.key === "closed_at") {
       updates.status = "completed";
       updates.facilitation_fee_status = "invoiced";
     }
 
     await supabase.from("exchange_connections").update(updates).eq("id", conn.id);
 
-    // Notify other agent
     const otherId = conn.buyer_agent_id === user!.id ? conn.seller_agent_id : conn.buyer_agent_id;
     await supabase.from("notifications").insert({
       user_id: otherId,
       type: "connection_milestone",
-      title: `Exchange Progress: ${next.label}`,
-      message: `The exchange connection has been updated to "${next.label}".`,
+      title: `${stageDialog.mode === "edit" ? "Updated" : "Reached"}: ${stage.label}`,
+      message: `${stage.label} ${stageDialog.mode === "edit" ? "date updated" : "marked complete"} on ${format(milestoneDate, "MMM d, yyyy")}.${milestoneNote ? ` Note: ${milestoneNote}` : ""}`,
       link_to: `/agent/connections/${conn.id}`,
     });
 
-    // Timeline entries
-    const timelineEntry = { event_type: "connection_milestone", description: `Milestone reached: ${next.label}`, actor_id: user!.id };
+    const timelineEntry = {
+      event_type: "connection_milestone",
+      description: `${stageDialog.mode === "edit" ? "Updated" : "Completed"}: ${stage.label}${milestoneNote ? ` — ${milestoneNote}` : ""}`,
+      actor_id: user!.id,
+      metadata: { milestone: stage.key, date: isoDate, note: milestoneNote || null },
+    };
     if (conn.buyer_exchange_id) await supabase.from("exchange_timeline").insert({ ...timelineEntry, exchange_id: conn.buyer_exchange_id });
     if (conn.seller_exchange_id) await supabase.from("exchange_timeline").insert({ ...timelineEntry, exchange_id: conn.seller_exchange_id });
 
-    // If closing, update both exchanges
-    if (next.key === "closed_at") {
-      if (conn.buyer_exchange_id) await supabase.from("exchanges").update({ status: "completed" as any, actual_close_date: milestoneDate.toISOString().split("T")[0] }).eq("id", conn.buyer_exchange_id);
-      if (conn.seller_exchange_id) await supabase.from("exchanges").update({ status: "completed" as any, actual_close_date: milestoneDate.toISOString().split("T")[0] }).eq("id", conn.seller_exchange_id);
+    if (stage.key === "closed_at") {
+      const dateOnly = isoDate.split("T")[0];
+      if (conn.buyer_exchange_id) await supabase.from("exchanges").update({ status: "completed" as any, actual_close_date: dateOnly }).eq("id", conn.buyer_exchange_id);
+      if (conn.seller_exchange_id) await supabase.from("exchanges").update({ status: "completed" as any, actual_close_date: dateOnly }).eq("id", conn.seller_exchange_id);
     }
 
-    toast({ title: "Progress updated!", description: `${next.label} milestone set.` });
-    setProgressOpen(false);
-    setMilestoneDate(undefined);
+    toast({ title: stageDialog.mode === "edit" ? "Stage updated" : "Stage completed", description: `${stage.label} → ${format(milestoneDate, "MMM d, yyyy")}` });
+    closeStageDialog();
+    setActing(false);
+    loadData();
+  };
+
+  const handleClearStage = async (key: MilestoneKey) => {
+    if (!conn) return;
+    const stage = MILESTONES.find((m) => m.key === key)!;
+    if (!confirm(`Clear "${stage.label}" stage? This will reset the date.`)) return;
+    setActing(true);
+    const updates: Record<string, any> = { [key]: null };
+    if (key === "closed_at") updates.status = "in_progress";
+    if (key === "under_contract_at") updates.status = "accepted";
+    await supabase.from("exchange_connections").update(updates).eq("id", conn.id);
+
+    const timelineEntry = {
+      event_type: "connection_milestone",
+      description: `Cleared: ${stage.label}`,
+      actor_id: user!.id,
+      metadata: { milestone: key, cleared: true },
+    };
+    if (conn.buyer_exchange_id) await supabase.from("exchange_timeline").insert({ ...timelineEntry, exchange_id: conn.buyer_exchange_id });
+    if (conn.seller_exchange_id) await supabase.from("exchange_timeline").insert({ ...timelineEntry, exchange_id: conn.seller_exchange_id });
+
+    toast({ title: "Stage cleared", description: `${stage.label} reset.` });
     setActing(false);
     loadData();
   };
