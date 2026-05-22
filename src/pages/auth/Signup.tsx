@@ -156,7 +156,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
       setSubmittedEmail(form.email.trim());
       toast({
         title: "Check your email",
-        description: "Confirm your email to unlock your self-certified agent workspace.",
+        description: "Confirm your email to unlock your agent workspace.",
       });
     }
   };
