@@ -13,7 +13,10 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => Promise<void>;
   hasRole: (role: AppRole) => boolean;
-  profileRole: string | null;
+  /** Primary role for the user, derived from user_roles (single source of truth). */
+  role: AppRole | null;
+  /** @deprecated use `role` */
+  profileRole: AppRole | null;
   profileName: string | null;
   isAgent: boolean;
   isVerifiedAgent: boolean;
@@ -28,6 +31,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   signOut: async () => {},
   hasRole: () => false,
+  role: null,
   profileRole: null,
   profileName: null,
   isAgent: false,
@@ -36,18 +40,25 @@ const AuthContext = createContext<AuthContextType>({
   agentVerificationStatus: null,
 });
 
+/** Admin wins, then agent, then anything else. */
+function pickPrimaryRole(roles: AppRole[]): AppRole | null {
+  if (roles.includes("admin" as AppRole)) return "admin" as AppRole;
+  if (roles.includes("agent" as AppRole)) return "agent" as AppRole;
+  return roles[0] ?? null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [authLoading, setAuthLoading] = useState(true);
   const [rolesLoading, setRolesLoading] = useState(true);
-  const [profileRole, setProfileRole] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [agentVerificationStatus, setAgentVerificationStatus] = useState<string | null>(null);
 
   const loading = authLoading || rolesLoading;
-  const isAgent = profileRole === "agent";
+  const role = pickPrimaryRole(roles);
+  const isAgent = role === ("agent" as AppRole);
   const isSuspendedAgent = isAgent && agentVerificationStatus === "suspended";
   const isVerifiedAgent = isAgent && hasOperationalAgentAccess(agentVerificationStatus);
 
@@ -55,11 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRolesLoading(true);
     const [rolesResult, profileResult] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", userId),
-      supabase.from("profiles").select("role, full_name, verification_status").eq("id", userId).single(),
+      supabase.from("profiles").select("full_name, verification_status").eq("id", userId).single(),
     ]);
 
     setRoles(rolesResult.data?.map((r) => r.role) ?? []);
-    setProfileRole(profileResult.data?.role ?? null);
     setProfileName(profileResult.data?.full_name ?? null);
     setAgentVerificationStatus(profileResult.data?.verification_status ?? null);
     setRolesLoading(false);
@@ -75,7 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           fetchUserData(session.user.id);
         } else {
           setRoles([]);
-          setProfileRole(null);
           setProfileName(null);
           setAgentVerificationStatus(null);
           setRolesLoading(false);
@@ -101,12 +110,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
-  const hasRole = (role: AppRole) => roles.includes(role);
+  const hasRole = (r: AppRole) => roles.includes(r);
 
   return (
     <AuthContext.Provider value={{
       session, user, roles, loading, signOut, hasRole,
-      profileRole, profileName, isAgent, isVerifiedAgent, isSuspendedAgent, agentVerificationStatus,
+      role, profileRole: role, profileName, isAgent, isVerifiedAgent, isSuspendedAgent, agentVerificationStatus,
     }}>
       {children}
     </AuthContext.Provider>
