@@ -304,7 +304,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
       </div>
 
       <Button type="submit" className="w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]" disabled={loading}>
-        {loading ? "Creating account…" : "Create Self-Certified Agent Account"}
+        {loading ? "Creating account…" : "Create Account"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
