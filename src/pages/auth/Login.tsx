@@ -61,7 +61,7 @@ export default function Login() {
               <div className="text-center">
                 <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Sign in to access your self-certified agent workspace.
+                  Sign in to access your agent workspace.
                 </p>
               </div>
               <form onSubmit={handleLogin} className="mt-8 space-y-4">

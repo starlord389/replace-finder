@@ -156,7 +156,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
       setSubmittedEmail(form.email.trim());
       toast({
         title: "Check your email",
-        description: "Confirm your email to unlock your self-certified agent workspace.",
+        description: "Confirm your email to unlock your agent workspace.",
       });
     }
   };
@@ -175,7 +175,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
             <h1 className="text-2xl font-bold text-foreground">Confirm your email to enter your workspace</h1>
             <p className="text-sm text-muted-foreground">
               We sent a confirmation link to <span className="font-medium text-foreground">{submittedEmail}</span>.
-              Your self-certified agent profile has been saved, and there is no manual approval queue.
+              Your agent profile has been saved, and there is no manual approval queue.
             </p>
             <p className="text-sm text-muted-foreground">
               After you confirm, sign in to land directly in your agent dashboard. You can finish the rest of your profile later in Settings.
@@ -199,7 +199,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Create Agent Account</h1>
           <p className="text-sm text-muted-foreground">
-            Self-certify the essentials now and finish the rest of your profile later.
+            Enter the essentials now and finish the rest of your profile later.
           </p>
         </div>
       </div>
@@ -296,7 +296,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
               I certify that my real estate license is active and the details above are accurate.
             </Label>
             <p className="text-xs text-muted-foreground">
-              Your workspace is activated through self-certification. Suspended accounts are reserved for compliance issues, not routine signup review.
+              Suspended accounts are reserved for compliance issues, not routine signup review.
             </p>
             {fieldError("attested")}
           </div>
@@ -304,7 +304,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
       </div>
 
       <Button type="submit" className="w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]" disabled={loading}>
-        {loading ? "Creating account…" : "Create Self-Certified Agent Account"}
+        {loading ? "Creating account…" : "Create Account"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
