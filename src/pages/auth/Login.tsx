@@ -34,17 +34,22 @@ export default function Login() {
       return;
     }
 
-    // Route based on profile role
+    // Route based on role (from user_roles) + profile flags
     let target = "/agent";
     if (data.user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, launchpad_completed_at, verification_status")
-        .eq("id", data.user.id)
-        .single();
-      target = profile?.role === "agent"
-        ? getAgentPostLoginRoute(profile.launchpad_completed_at, profile.verification_status)
-        : getDefaultRouteForRole(profile?.role);
+      const [{ data: roleRows }, { data: profile }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", data.user.id),
+        supabase
+          .from("profiles")
+          .select("launchpad_completed_at, verification_status")
+          .eq("id", data.user.id)
+          .single(),
+      ]);
+      const roles = roleRows?.map((r) => r.role) ?? [];
+      const primary = roles.includes("admin") ? "admin" : roles.includes("agent") ? "agent" : roles[0];
+      target = primary === "agent"
+        ? getAgentPostLoginRoute(profile?.launchpad_completed_at, profile?.verification_status)
+        : getDefaultRouteForRole(primary);
     }
 
     setLoading(false);
