@@ -26,19 +26,24 @@ export default function AuthCallback() {
     resolvedRef.current = true;
 
     (async () => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, launchpad_completed_at, verification_status")
-        .eq("id", user.id)
-        .single();
+      const [{ data: roleRows }, { data: profile }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", user.id),
+        supabase
+          .from("profiles")
+          .select("launchpad_completed_at, verification_status")
+          .eq("id", user.id)
+          .single(),
+      ]);
+      const roles = roleRows?.map((r) => r.role) ?? [];
+      const primary = roles.includes("admin") ? "admin" : roles.includes("agent") ? "agent" : roles[0];
 
       const target =
-        profile?.role === "agent"
+        primary === "agent"
           ? getAgentPostLoginRoute(
-              profile.launchpad_completed_at,
-              profile.verification_status,
+              profile?.launchpad_completed_at,
+              profile?.verification_status,
             )
-          : getDefaultRouteForRole(profile?.role);
+          : getDefaultRouteForRole(primary);
 
       trackEvent("auth_callback_redirect", { target });
       navigate(target, { replace: true });

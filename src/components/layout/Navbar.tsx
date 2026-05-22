@@ -53,9 +53,7 @@ export default function Navbar() {
       ? "Admin"
       : profileRole === "agent"
         ? "Dashboard"
-        : profileRole === "client"
-          ? "My Exchange"
-          : "Dashboard";
+        : "Dashboard";
 
   useEffect(() => {
     setMobileOpen(false);
