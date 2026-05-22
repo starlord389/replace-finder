@@ -251,8 +251,9 @@ export default function AgentConnectionDetail() {
   if (!conn) return <p className="py-20 text-center text-muted-foreground">Connection not found.</p>;
 
   const totalScore = match ? Math.round(Number(match.total_score)) : 0;
-  const revealed = conn.status === "accepted" || conn.status === "completed";
-  const next = nextMilestone();
+  const revealed = conn.status === "accepted" || conn.status === "in_progress" || conn.status === "completed";
+  const lifecycleActive = conn.status === "accepted" || conn.status === "in_progress";
+  const currentStage = [...MILESTONES].reverse().find((m) => conn[m.key]);
 
   return (
     <div>
