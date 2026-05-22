@@ -59,8 +59,9 @@ export default function AgentConnectionDetail() {
 
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const [progressOpen, setProgressOpen] = useState(false);
+  const [stageDialog, setStageDialog] = useState<{ open: boolean; key: MilestoneKey | null; mode: "set" | "edit" }>({ open: false, key: null, mode: "set" });
   const [milestoneDate, setMilestoneDate] = useState<Date | undefined>(undefined);
+  const [milestoneNote, setMilestoneNote] = useState("");
   const [failOpen, setFailOpen] = useState(false);
   const [failReason, setFailReason] = useState("");
   const [acting, setActing] = useState(false);
