@@ -129,7 +129,7 @@ export default function AgentConnections() {
 
     const hydrated = conns.map((c) => {
       const match = matchMap.get(c.match_id);
-      const revealed = c.status === "accepted" || c.status === "completed";
+      const revealed = c.status === "accepted" || c.status === "in_progress" || c.status === "completed";
       return {
         ...c,
         match,
