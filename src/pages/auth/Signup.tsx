@@ -175,7 +175,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
             <h1 className="text-2xl font-bold text-foreground">Confirm your email to enter your workspace</h1>
             <p className="text-sm text-muted-foreground">
               We sent a confirmation link to <span className="font-medium text-foreground">{submittedEmail}</span>.
-              Your self-certified agent profile has been saved, and there is no manual approval queue.
+              Your agent profile has been saved, and there is no manual approval queue.
             </p>
             <p className="text-sm text-muted-foreground">
               After you confirm, sign in to land directly in your agent dashboard. You can finish the rest of your profile later in Settings.
