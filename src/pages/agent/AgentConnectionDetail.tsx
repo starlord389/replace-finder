@@ -29,13 +29,15 @@ function scoreColor(score: number) {
 }
 
 const MILESTONES = [
-  { key: "initiated_at", label: "Requested" },
-  { key: "accepted_at", label: "Accepted" },
-  { key: "under_contract_at", label: "Under Contract" },
-  { key: "inspection_complete_at", label: "Inspection Complete" },
-  { key: "financing_approved_at", label: "Financing Approved" },
-  { key: "closed_at", label: "Closed" },
+  { key: "initiated_at", label: "Requested", editable: false, description: "Initial connection request sent." },
+  { key: "accepted_at", label: "Accepted", editable: false, description: "Both agents accepted the connection." },
+  { key: "under_contract_at", label: "Under Contract", editable: true, description: "Purchase agreement signed." },
+  { key: "inspection_complete_at", label: "Inspection Complete", editable: true, description: "Property inspection finished and reviewed." },
+  { key: "financing_approved_at", label: "Financing Approved", editable: true, description: "Buyer's financing has cleared." },
+  { key: "closed_at", label: "Closed", editable: true, description: "Deal closed and ownership transferred." },
 ] as const;
+
+type MilestoneKey = typeof MILESTONES[number]["key"];
 
 export default function AgentConnectionDetail() {
   const { id } = useParams<{ id: string }>();
