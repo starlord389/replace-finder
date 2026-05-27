@@ -64,15 +64,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserData = async (userId: string) => {
     setRolesLoading(true);
-    const [rolesResult, profileResult] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", userId),
-      supabase.from("profiles").select("full_name, verification_status").eq("id", userId).single(),
-    ]);
+    try {
+      const [rolesResult, profileResult] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+        supabase.from("profiles").select("full_name, verification_status").eq("id", userId).maybeSingle(),
+      ]);
 
-    setRoles(rolesResult.data?.map((r) => r.role) ?? []);
-    setProfileName(profileResult.data?.full_name ?? null);
-    setAgentVerificationStatus(profileResult.data?.verification_status ?? null);
-    setRolesLoading(false);
+      setRoles(rolesResult.data?.map((r) => r.role) ?? []);
+      setProfileName(profileResult.data?.full_name ?? null);
+      setAgentVerificationStatus(profileResult.data?.verification_status ?? null);
+    } catch (err) {
+      console.error("[useAuth] fetchUserData failed", err);
+      setRoles([]);
+      setProfileName(null);
+      setAgentVerificationStatus(null);
+    } finally {
+      setRolesLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -82,7 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         setAuthLoading(false);
         if (session?.user) {
-          fetchUserData(session.user.id);
+          // Defer Supabase calls — awaiting inside onAuthStateChange deadlocks the client
+          // and leaves rolesLoading stuck at true (blank-spinner-forever on /auth/callback).
+          const uid = session.user.id;
+          setTimeout(() => { fetchUserData(uid); }, 0);
         } else {
           setRoles([]);
           setProfileName(null);

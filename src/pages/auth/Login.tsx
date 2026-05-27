@@ -37,19 +37,23 @@ export default function Login() {
     // Route based on role (from user_roles) + profile flags
     let target = "/agent";
     if (data.user) {
-      const [{ data: roleRows }, { data: profile }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", data.user.id),
-        supabase
-          .from("profiles")
-          .select("launchpad_completed_at, verification_status")
-          .eq("id", data.user.id)
-          .single(),
-      ]);
-      const roles = roleRows?.map((r) => r.role) ?? [];
-      const primary = roles.includes("admin") ? "admin" : roles.includes("agent") ? "agent" : roles[0];
-      target = primary === "agent"
-        ? getAgentPostLoginRoute(profile?.launchpad_completed_at, profile?.verification_status)
-        : getDefaultRouteForRole(primary);
+      try {
+        const [{ data: roleRows }, { data: profile }] = await Promise.all([
+          supabase.from("user_roles").select("role").eq("user_id", data.user.id),
+          supabase
+            .from("profiles")
+            .select("launchpad_completed_at, verification_status")
+            .eq("id", data.user.id)
+            .maybeSingle(),
+        ]);
+        const roles = roleRows?.map((r) => r.role) ?? [];
+        const primary = roles.includes("admin") ? "admin" : roles.includes("agent") ? "agent" : roles[0];
+        target = primary === "agent"
+          ? getAgentPostLoginRoute(profile?.launchpad_completed_at, profile?.verification_status)
+          : getDefaultRouteForRole(primary);
+      } catch (err) {
+        console.error("[Login] post-login routing query failed", err);
+      }
     }
 
     setLoading(false);
