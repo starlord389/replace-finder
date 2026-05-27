@@ -26,27 +26,34 @@ export default function AuthCallback() {
     resolvedRef.current = true;
 
     (async () => {
-      const [{ data: roleRows }, { data: profile }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", user.id),
-        supabase
-          .from("profiles")
-          .select("launchpad_completed_at, verification_status")
-          .eq("id", user.id)
-          .single(),
-      ]);
-      const roles = roleRows?.map((r) => r.role) ?? [];
-      const primary = roles.includes("admin") ? "admin" : roles.includes("agent") ? "agent" : roles[0];
+      try {
+        const [{ data: roleRows }, { data: profile }] = await Promise.all([
+          supabase.from("user_roles").select("role").eq("user_id", user.id),
+          supabase
+            .from("profiles")
+            .select("launchpad_completed_at, verification_status")
+            .eq("id", user.id)
+            .maybeSingle(),
+        ]);
+        const roles = roleRows?.map((r) => r.role) ?? [];
+        const primary = roles.includes("admin") ? "admin" : roles.includes("agent") ? "agent" : roles[0];
 
-      const target =
-        primary === "agent"
-          ? getAgentPostLoginRoute(
-              profile?.launchpad_completed_at,
-              profile?.verification_status,
-            )
-          : getDefaultRouteForRole(primary);
+        const target =
+          primary === "agent"
+            ? getAgentPostLoginRoute(
+                profile?.launchpad_completed_at,
+                profile?.verification_status,
+              )
+            : getDefaultRouteForRole(primary);
 
-      trackEvent("auth_callback_redirect", { target });
-      navigate(target, { replace: true });
+        trackEvent("auth_callback_redirect", { target });
+        navigate(target, { replace: true });
+      } catch (err) {
+        console.error("[AuthCallback] post-confirmation routing failed", err);
+        // Never strand the user on a blank spinner — send them to the agent
+        // dashboard; route guards will redirect again if needed.
+        navigate("/agent", { replace: true });
+      }
     })();
   }, [loading, user, navigate]);
 
