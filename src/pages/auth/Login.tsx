@@ -146,6 +146,30 @@ export default function Login() {
                   {loading ? "Signing in…" : "Sign In"}
                 </Button>
               </form>
+              {needsConfirmation && (
+                <div className="mt-4 rounded-xl border border-[#e4dcd0] bg-[#FADC6A]/15 p-4 text-left">
+                  <p className="text-sm font-medium text-foreground">
+                    Your email isn't verified yet
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Click the link in the confirmation email we sent to{" "}
+                    <span className="font-medium text-foreground">{email || "your inbox"}</span>.
+                    Check spam too. If you can't find it, resend below.
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resending || cooldown > 0 || !email}
+                    className="mt-3 w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]"
+                  >
+                    {resending
+                      ? "Resending…"
+                      : cooldown > 0
+                        ? `Resend in ${cooldown}s`
+                        : "Resend verification email"}
+                  </Button>
+                </div>
+              )}
               <p className="mt-6 text-center text-sm text-muted-foreground">
                 Don&apos;t have an account?{" "}
                 <Link to="/signup" className="font-medium text-[#1d1d1d] hover:underline">
