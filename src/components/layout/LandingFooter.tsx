@@ -1,14 +1,5 @@
 import { Link } from "react-router-dom";
-import { ROUTES } from "@/app/routes/routeManifest";
-
-const footerLinks = [
-  { label: "Home", to: ROUTES.home },
-  { label: "How It Works", to: `${ROUTES.home}#process` },
-  { label: "Features", to: `${ROUTES.home}#feature` },
-  { label: "Contact", to: `${ROUTES.home}#contact` },
-  { label: "Login", to: ROUTES.login },
-  { label: "Get Started", to: ROUTES.signup },
-] as const;
+import { PUBLIC_FOOTER_LINKS } from "@/content/publicNavLinks";
 
 export default function LandingFooter() {
   return (
@@ -57,7 +48,7 @@ export default function LandingFooter() {
               Pages
             </p>
             <div className="mt-4 flex flex-col items-start gap-3">
-              {footerLinks.map((link) => (
+              {PUBLIC_FOOTER_LINKS.map((link) => (
                 <Link
                   key={link.label}
                   to={link.to}

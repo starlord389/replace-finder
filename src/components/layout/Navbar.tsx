@@ -3,6 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getDefaultRouteForRole, ROUTES } from "@/app/routes/routeManifest";
+import {
+  PUBLIC_NAV_LINKS,
+  type PublicNavSectionHash,
+} from "@/content/publicNavLinks";
 
 function ExchangeLogoIcon({ className }: { className?: string }) {
   return (
@@ -37,6 +41,15 @@ function ExchangeLogoIcon({ className }: { className?: string }) {
   );
 }
 
+function isSectionNavActive(
+  pathname: string,
+  hash: string,
+  sectionHash: PublicNavSectionHash,
+): boolean {
+  if (pathname !== ROUTES.home) return false;
+  return hash.replace(/^#/, "") === sectionHash;
+}
+
 export default function Navbar() {
   const { user, signOut, profileRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -46,6 +59,12 @@ export default function Navbar() {
   const secondaryDesktopText = "text-[#5d5d5d] hover:text-[#1d1d1d]";
   const primaryDesktopButton =
     "flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1d1d1d] py-1.5 pl-3.5 pr-1.5 text-[14px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black";
+  const mobileNavLinkClass = (active: boolean) =>
+    `flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
+      active
+        ? "bg-[#1d1d1d] text-white"
+        : "bg-[#f7f5f0] text-[#4f4a43] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
+    }`;
 
   const dashboardLink = getDefaultRouteForRole(profileRole);
   const dashboardLabel =
@@ -57,13 +76,7 @@ export default function Navbar() {
 
   useEffect(() => {
     setMobileOpen(false);
-  }, [location.pathname]);
-
-  const navLinks = [
-    { label: "How It Works", to: ROUTES.howItWorks },
-    { label: "Features", to: ROUTES.features },
-    { label: "Pricing", to: ROUTES.pricing },
-  ];
+  }, [location.pathname, location.hash]);
 
   return (
     <>
@@ -86,19 +99,24 @@ export default function Navbar() {
 
           {/* Center nav links */}
           <div className="hidden flex-1 items-center justify-center gap-0 md:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`${desktopLinkClass} ${
-                  location.pathname === link.to
-                    ? "text-[#1d1d1d]"
-                    : secondaryDesktopText
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {PUBLIC_NAV_LINKS.map((link) => {
+              const active = isSectionNavActive(
+                location.pathname,
+                location.hash,
+                link.hash,
+              );
+              return (
+                <Link
+                  key={link.hash}
+                  to={link.to}
+                  className={`${desktopLinkClass} ${
+                    active ? "text-[#1d1d1d]" : secondaryDesktopText
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Right side actions */}
@@ -173,29 +191,22 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="px-2 pb-2 pt-1 md:hidden">
             <div className="flex flex-col gap-2 border-t border-[#e8e5de] pt-3">
-              <Link
-                to={ROUTES.home}
-                className={`flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
-                  location.pathname === ROUTES.home
-                    ? "bg-[#1d1d1d] text-white"
-                    : "bg-[#f7f5f0] text-[#4f4a43] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
-                }`}
-              >
-                Home
-              </Link>
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
-                    location.pathname === link.to
-                      ? "bg-[#1d1d1d] text-white"
-                      : "bg-[#f7f5f0] text-[#4f4a43] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {PUBLIC_NAV_LINKS.map((link) => {
+                const active = isSectionNavActive(
+                  location.pathname,
+                  location.hash,
+                  link.hash,
+                );
+                return (
+                  <Link
+                    key={link.hash}
+                    to={link.to}
+                    className={mobileNavLinkClass(active)}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
               {user ? (
                 <>
                   <Link
