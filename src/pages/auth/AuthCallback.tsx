@@ -12,24 +12,76 @@ import { Button } from "@/components/ui/button";
 
 type CallbackState = "loading" | "routing" | "error";
 
+const CALLBACK_TAG = "[AuthCallback]";
+const STALL_WARN_MS = 8000;
+
+function log(event: string, data?: Record<string, unknown>) {
+  // Structured single-line logs so they're greppable in prod consoles
+  // and forwarded telemetry.
+  try {
+    // eslint-disable-next-line no-console
+    console.info(`${CALLBACK_TAG} ${event}`, {
+      t: new Date().toISOString(),
+      url: typeof window !== "undefined" ? window.location.href : undefined,
+      hash: typeof window !== "undefined" ? window.location.hash : undefined,
+      ...data,
+    });
+  } catch {}
+  try {
+    trackEvent(`auth_callback_${event}`, data ?? {});
+  } catch {}
+}
+
 export default function AuthCallback() {
   const { loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
   const resolvedRef = useRef(false);
+  const mountedAtRef = useRef<number>(Date.now());
+  const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<CallbackState>("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
+  const clearStallTimer = () => {
+    if (stallTimerRef.current) {
+      clearTimeout(stallTimerRef.current);
+      stallTimerRef.current = null;
+    }
+  };
+
+  const armStallTimer = (phase: string) => {
+    clearStallTimer();
+    stallTimerRef.current = setTimeout(() => {
+      log("stall_detected", {
+        phase,
+        ms_since_mount: Date.now() - mountedAtRef.current,
+        auth_loading: authLoading,
+        has_user: !!user,
+      });
+    }, STALL_WARN_MS);
+  };
+
   const resolveRoute = async () => {
+    const startedAt = Date.now();
+    log("resolve_start", {
+      has_user: !!user,
+      user_id: user?.id,
+      auth_loading: authLoading,
+    });
+
     if (!user) {
+      log("resolve_no_user_redirect_login");
+      clearStallTimer();
       navigate("/login", { replace: true });
       return;
     }
 
     setState("routing");
     setErrorMessage("");
+    armStallTimer("query");
 
     try {
-      const [{ data: roleRows }, { data: profile }] = await Promise.all([
+      log("query_start", { user_id: user.id });
+      const [rolesRes, profileRes] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", user.id),
         supabase
           .from("profiles")
@@ -38,7 +90,18 @@ export default function AuthCallback() {
           .maybeSingle(),
       ]);
 
-      const roles = roleRows?.map((r) => r.role) ?? [];
+      log("query_complete", {
+        ms: Date.now() - startedAt,
+        roles_error: rolesRes.error?.message,
+        profile_error: profileRes.error?.message,
+        roles_count: rolesRes.data?.length ?? 0,
+        profile_found: !!profileRes.data,
+      });
+
+      if (rolesRes.error) throw rolesRes.error;
+      if (profileRes.error) throw profileRes.error;
+
+      const roles = rolesRes.data?.map((r) => r.role) ?? [];
       const primary = roles.includes("admin")
         ? "admin"
         : roles.includes("agent")
@@ -48,15 +111,27 @@ export default function AuthCallback() {
       const target =
         primary === "agent"
           ? getAgentPostLoginRoute(
-              profile?.launchpad_completed_at,
-              profile?.verification_status,
+              profileRes.data?.launchpad_completed_at,
+              profileRes.data?.verification_status,
             )
           : getDefaultRouteForRole(primary);
 
-      trackEvent("auth_callback_redirect", { target });
+      log("redirect", {
+        target,
+        primary_role: primary,
+        ms: Date.now() - startedAt,
+      });
+      clearStallTimer();
       navigate(target, { replace: true });
     } catch (err: any) {
-      console.error("[AuthCallback] post-confirmation routing failed", err);
+      clearStallTimer();
+      console.error(`${CALLBACK_TAG} post-confirmation routing failed`, err);
+      log("resolve_error", {
+        message: err?.message,
+        code: err?.code,
+        status: err?.status,
+        ms: Date.now() - startedAt,
+      });
       setState("error");
       setErrorMessage(
         err?.message ?? "Something went wrong while setting up your account.",
@@ -65,8 +140,21 @@ export default function AuthCallback() {
   };
 
   useEffect(() => {
+    log("mount", { auth_loading: authLoading, has_user: !!user });
+    armStallTimer("auth_loading");
+    return () => {
+      clearStallTimer();
+      log("unmount", { ms_alive: Date.now() - mountedAtRef.current });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (resolvedRef.current) return;
-    if (authLoading) return;
+    if (authLoading) {
+      log("waiting_for_auth");
+      return;
+    }
 
     resolvedRef.current = true;
     resolveRoute();
@@ -74,9 +162,11 @@ export default function AuthCallback() {
   }, [authLoading, user]);
 
   const handleRetry = () => {
+    log("retry_clicked");
     resolvedRef.current = false;
     resolveRoute();
   };
+
 
   const handleGoHome = () => {
     navigate("/", { replace: true });
