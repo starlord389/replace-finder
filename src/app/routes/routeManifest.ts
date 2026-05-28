@@ -2,19 +2,13 @@ export type AppRouteRole = "public" | "agent" | "admin";
 
 export const ROUTES = {
   home: "/",
-  bookDemo: "/book-demo",
-  contact: "/contact",
-  features: "/features",
-  pricing: "/pricing",
   login: "/login",
   signup: "/signup",
-  howItWorks: "/how-it-works",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
   agentHome: "/agent",
   agentLaunchpad: "/agent/launchpad",
   adminHome: "/admin",
-  unavailable: "/unavailable",
 } as const;
 
 export function getDefaultRouteForRole(role: string | null | undefined): string {

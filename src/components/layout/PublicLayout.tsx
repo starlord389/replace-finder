@@ -12,12 +12,10 @@ export default function PublicLayout() {
     pathname === ROUTES.signup ||
     pathname === ROUTES.login ||
     pathname === ROUTES.forgotPassword ||
-    pathname === ROUTES.resetPassword ||
-    pathname === ROUTES.bookDemo;
+    pathname === ROUTES.resetPassword;
   const usesLandingFooter =
     pathname === ROUTES.signup ||
-    pathname === ROUTES.login ||
-    pathname === ROUTES.bookDemo;
+    pathname === ROUTES.login;
 
   return (
     <div
