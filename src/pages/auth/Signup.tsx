@@ -418,3 +418,105 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
     </form>
   );
 }
+
+function PostSignupVerify({ email, onBack }: { email: string; onBack: () => void }) {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [lastSentAt, setLastSentAt] = useState<Date | null>(null);
+
+  // Cooldown ticker
+  useState(() => {
+    // noop; cooldown handled via effect below
+  });
+
+  const handleResend = async () => {
+    if (cooldown > 0 || resending) return;
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    setResending(false);
+    if (error) {
+      toast({ title: "Couldn't resend email", description: error.message, variant: "destructive" });
+      return;
+    }
+    setLastSentAt(new Date());
+    setCooldown(60);
+    const id = window.setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) {
+          window.clearInterval(id);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    toast({ title: "Verification email sent", description: `We resent the confirmation link to ${email}.` });
+  };
+
+  return (
+    <Card className="border-[#d7c9b1] bg-white/90">
+      <CardContent className="space-y-6 p-6 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FADC6A]/25 text-[#1d1d1d]">
+          <CheckCircle2 className="h-7 w-7" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">Confirm your email to enter your workspace</h1>
+          <p className="text-sm text-muted-foreground">
+            We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>.
+            Click it from this same browser so your session can complete automatically.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-[#e4dcd0] bg-white/70 p-4 text-left text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Didn't get the email?</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            <li>Check your spam or promotions folder.</li>
+            <li>Make sure <span className="font-medium text-foreground">{email}</span> is spelled correctly.</li>
+            <li>Open the link in this browser — opening it elsewhere can break the secure handshake.</li>
+            <li>Wait a minute, then resend below.</li>
+          </ul>
+          {lastSentAt && (
+            <p className="mt-3 text-xs">Last sent at {lastSentAt.toLocaleTimeString()}.</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <Button
+            type="button"
+            onClick={handleResend}
+            disabled={resending || cooldown > 0}
+            className="bg-[#1d1d1d] text-white hover:bg-[#39484d]"
+          >
+            {resending
+              ? "Resending…"
+              : cooldown > 0
+                ? `Resend in ${cooldown}s`
+                : "Resend verification email"}
+          </Button>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => navigate("/login")}
+            className="border-[#d7c9b1] text-[#1d1d1d] hover:bg-[#f0ebe3] hover:text-[#1d1d1d]"
+          >
+            I've Confirmed My Email
+          </Button>
+        </div>
+        <Button
+          variant="ghost"
+          type="button"
+          onClick={onBack}
+          className="text-[#5d5d5d] hover:text-[#1d1d1d]"
+        >
+          Use a different email
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
