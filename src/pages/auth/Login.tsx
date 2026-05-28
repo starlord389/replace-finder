@@ -14,20 +14,52 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleResend = async () => {
+    if (cooldown > 0 || resending || !email) return;
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    setResending(false);
+    if (error) {
+      toast({ title: "Couldn't resend email", description: error.message, variant: "destructive" });
+      return;
+    }
+    setCooldown(60);
+    const id = window.setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) {
+          window.clearInterval(id);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    toast({ title: "Verification email sent", description: `We resent the confirmation link to ${email}.` });
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setNeedsConfirmation(false);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
       trackEvent("auth_login_failure", { message: error.message });
+      const unconfirmed = isEmailConfirmationError(error.message);
+      if (unconfirmed) setNeedsConfirmation(true);
       toast({
-        title: isEmailConfirmationError(error.message) ? "Confirm your email first" : "Login failed",
-        description: isEmailConfirmationError(error.message)
-          ? "Open the confirmation email we sent when you created your account, then sign in to access your agent workspace."
+        title: unconfirmed ? "Confirm your email first" : "Login failed",
+        description: unconfirmed
+          ? "Open the confirmation email we sent when you created your account, or resend it below."
           : error.message,
         variant: "destructive",
       });
@@ -114,6 +146,30 @@ export default function Login() {
                   {loading ? "Signing in…" : "Sign In"}
                 </Button>
               </form>
+              {needsConfirmation && (
+                <div className="mt-4 rounded-xl border border-[#e4dcd0] bg-[#FADC6A]/15 p-4 text-left">
+                  <p className="text-sm font-medium text-foreground">
+                    Your email isn't verified yet
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Click the link in the confirmation email we sent to{" "}
+                    <span className="font-medium text-foreground">{email || "your inbox"}</span>.
+                    Check spam too. If you can't find it, resend below.
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resending || cooldown > 0 || !email}
+                    className="mt-3 w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]"
+                  >
+                    {resending
+                      ? "Resending…"
+                      : cooldown > 0
+                        ? `Resend in ${cooldown}s`
+                        : "Resend verification email"}
+                  </Button>
+                </div>
+              )}
               <p className="mt-6 text-center text-sm text-muted-foreground">
                 Don&apos;t have an account?{" "}
                 <Link to="/signup" className="font-medium text-[#1d1d1d] hover:underline">
