@@ -153,34 +153,9 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
 
     setLoading(false);
     if (data.user) {
-      setSubmittedEmail(form.email.trim());
-      toast({
-        title: "Check your email",
-        description: "Confirm your email to unlock your agent workspace.",
-      });
-    }
-  };
-
-  const fieldError = (key: string) =>
-    errors[key] ? <p className="text-sm text-destructive">{errors[key]}</p> : null;
-
   if (submittedEmail) {
-    return (
-      <Card className="border-[#d7c9b1] bg-white/90">
-        <CardContent className="space-y-6 p-6 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FADC6A]/25 text-[#1d1d1d]">
-            <CheckCircle2 className="h-7 w-7" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-foreground">Confirm your email to enter your workspace</h1>
-            <p className="text-sm text-muted-foreground">
-              We sent a confirmation link to <span className="font-medium text-foreground">{submittedEmail}</span>.
-              Your agent profile has been saved, and there is no manual approval queue.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              After you confirm, sign in to land directly in your agent dashboard. You can finish the rest of your profile later in Settings.
-            </p>
-          </div>
+    return <PostSignupVerify email={submittedEmail} onBack={onBack} navigate={navigate} />;
+  }
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button onClick={() => navigate("/login")} className="bg-[#1d1d1d] text-white hover:bg-[#39484d]">I've Confirmed My Email</Button>
             <Button variant="outline" type="button" onClick={onBack} className="border-[#d7c9b1] text-[#1d1d1d] hover:bg-[#f0ebe3] hover:text-[#1d1d1d]">Back</Button>
