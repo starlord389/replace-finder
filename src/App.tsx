@@ -12,11 +12,6 @@ import AgentLayout from "@/components/layout/AgentLayout";
 import RequireGuest from "@/components/layout/RequireGuest";
 
 import Index from "@/pages/Index";
-import BookDemo from "@/pages/BookDemo";
-import HowItWorks from "@/pages/HowItWorks";
-import Contact from "@/pages/Contact";
-import Features from "@/pages/Features";
-import Pricing from "@/pages/Pricing";
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
@@ -41,7 +36,6 @@ import AgentMessages from "@/pages/agent/AgentMessages";
 import AgentSettings from "@/pages/agent/AgentSettings";
 import AgentHelp from "@/pages/agent/AgentHelp";
 import NotFound from "@/pages/NotFound";
-import Unavailable from "@/pages/Unavailable";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,23 +52,20 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
             {/* Public (marketing + auth entry) — signed-in users are redirected to their dashboard */}
             <Route element={<RequireGuest />}>
               <Route element={<PublicLayout />}>
                 <Route path={ROUTES.home} element={<Index />} />
-                <Route path={ROUTES.bookDemo} element={<BookDemo />} />
-                <Route path={ROUTES.howItWorks} element={<HowItWorks />} />
-                <Route path={ROUTES.contact} element={<Contact />} />
-                <Route path={ROUTES.features} element={<Features />} />
-                <Route path={ROUTES.pricing} element={<Pricing />} />
                 <Route path={ROUTES.login} element={<Login />} />
                 <Route path={ROUTES.signup} element={<Signup />} />
               </Route>
             </Route>
 
+            {/* Recovery / informational routes — accessible whether signed in or not */}
+            <Route element={<PublicLayout />}>
+              <Route path={ROUTES.forgotPassword} element={<ForgotPassword />} />
+              <Route path={ROUTES.resetPassword} element={<ResetPassword />} />
+            </Route>
             {/* Recovery / informational routes — accessible whether signed in or not */}
             <Route element={<PublicLayout />}>
               <Route path={ROUTES.forgotPassword} element={<ForgotPassword />} />
