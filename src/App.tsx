@@ -12,6 +12,7 @@ import AgentLayout from "@/components/layout/AgentLayout";
 import RequireGuest from "@/components/layout/RequireGuest";
 
 import Index from "@/pages/Index";
+import BookDemo from "@/pages/BookDemo";
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
@@ -59,6 +60,7 @@ const App = () => (
             <Route element={<RequireGuest />}>
               <Route element={<PublicLayout />}>
                 <Route path={ROUTES.home} element={<Index />} />
+                <Route path={ROUTES.bookDemo} element={<BookDemo />} />
                 <Route path={ROUTES.login} element={<Login />} />
                 <Route path={ROUTES.signup} element={<Signup />} />
               </Route>
