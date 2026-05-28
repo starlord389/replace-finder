@@ -387,13 +387,6 @@ export default function BookDemo() {
                           className="underline underline-offset-4"
                         >
                           Email support
-                        </a>{" "}
-                        or{" "}
-                        <a
-                          href="mailto:support@1031exchangeup.com"
-                          className="underline underline-offset-4"
-                        >
-                          email us
                         </a>
                         .
                       </span>
