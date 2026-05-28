@@ -30,6 +30,7 @@ function log(event: string, data?: Record<string, unknown>) {
   try {
     trackEvent("auth_callback_redirect", { phase: event, ...(data ?? {}) });
   } catch {}
+}
 
 
 export default function AuthCallback() {
