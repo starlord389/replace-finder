@@ -28,9 +28,9 @@ function log(event: string, data?: Record<string, unknown>) {
     });
   } catch {}
   try {
-    trackEvent(`auth_callback_${event}`, data ?? {});
+    trackEvent("auth_callback_redirect", { phase: event, ...(data ?? {}) });
   } catch {}
-}
+
 
 export default function AuthCallback() {
   const { loading: authLoading, user } = useAuth();
