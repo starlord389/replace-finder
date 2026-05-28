@@ -153,16 +153,19 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
 
     setLoading(false);
     if (data.user) {
+      setSubmittedEmail(form.email.trim());
+      toast({
+        title: "Check your email",
+        description: "Confirm your email to unlock your agent workspace.",
+      });
+    }
+  };
+
+  const fieldError = (key: string) =>
+    errors[key] ? <p className="text-sm text-destructive">{errors[key]}</p> : null;
+
   if (submittedEmail) {
-    return <PostSignupVerify email={submittedEmail} onBack={onBack} navigate={navigate} />;
-  }
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button onClick={() => navigate("/login")} className="bg-[#1d1d1d] text-white hover:bg-[#39484d]">I've Confirmed My Email</Button>
-            <Button variant="outline" type="button" onClick={onBack} className="border-[#d7c9b1] text-[#1d1d1d] hover:bg-[#f0ebe3] hover:text-[#1d1d1d]">Back</Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <PostSignupVerify email={submittedEmail} onBack={onBack} />;
   }
 
   return (
