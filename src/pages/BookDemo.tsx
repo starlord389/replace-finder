@@ -382,9 +382,12 @@ export default function BookDemo() {
                       <LifeBuoy className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1d1d1d]" />
                       <span>
                         Need help instead?{" "}
-                        <Link to={ROUTES.contact} className="underline underline-offset-4">
-                          Contact support
-                        </Link>{" "}
+                        <a
+                          href="mailto:support@1031exchangeup.com"
+                          className="underline underline-offset-4"
+                        >
+                          Email support
+                        </a>{" "}
                         or{" "}
                         <a
                           href="mailto:support@1031exchangeup.com"
