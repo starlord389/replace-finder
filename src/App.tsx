@@ -60,6 +60,7 @@ const App = () => (
             <Route element={<RequireGuest />}>
               <Route element={<PublicLayout />}>
                 <Route path={ROUTES.home} element={<Index />} />
+                <Route path={ROUTES.bookDemo} element={<BookDemo />} />
                 <Route path={ROUTES.login} element={<Login />} />
                 <Route path={ROUTES.signup} element={<Signup />} />
               </Route>
