@@ -426,10 +426,6 @@ function PostSignupVerify({ email, onBack }: { email: string; onBack: () => void
   const [cooldown, setCooldown] = useState(0);
   const [lastSentAt, setLastSentAt] = useState<Date | null>(null);
 
-  // Cooldown ticker
-  useState(() => {
-    // noop; cooldown handled via effect below
-  });
 
   const handleResend = async () => {
     if (cooldown > 0 || resending) return;
