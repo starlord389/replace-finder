@@ -10,7 +10,6 @@ export const ROUTES = {
   agentLaunchpad: "/agent/launchpad",
   adminHome: "/admin",
 } as const;
-} as const;
 
 export function getDefaultRouteForRole(role: string | null | undefined): string {
   if (role === "admin") return ROUTES.adminHome;

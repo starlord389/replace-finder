@@ -52,6 +52,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
             {/* Public (marketing + auth entry) — signed-in users are redirected to their dashboard */}
             <Route element={<RequireGuest />}>
               <Route element={<PublicLayout />}>
@@ -66,16 +69,9 @@ const App = () => (
               <Route path={ROUTES.forgotPassword} element={<ForgotPassword />} />
               <Route path={ROUTES.resetPassword} element={<ResetPassword />} />
             </Route>
-            {/* Recovery / informational routes — accessible whether signed in or not */}
-            <Route element={<PublicLayout />}>
-              <Route path={ROUTES.forgotPassword} element={<ForgotPassword />} />
-              <Route path={ROUTES.resetPassword} element={<ResetPassword />} />
-              <Route path={ROUTES.unavailable} element={<Unavailable />} />
-            </Route>
 
             {/* Auth callback — handles email-confirmation redirect, routes to dashboard */}
             <Route path="/auth/callback" element={<AuthCallback />} />
-
 
             {/* Agent (agent role required) */}
             <Route element={<AgentLayout />}>
@@ -104,7 +100,6 @@ const App = () => (
               <Route path="/admin/support" element={<SupportTickets />} />
             </Route>
 
-
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
@@ -112,5 +107,7 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+export default App;
 
 export default App;
