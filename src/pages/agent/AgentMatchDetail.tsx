@@ -348,9 +348,9 @@ export default function AgentMatchDetail() {
       {/* ═══ Sticky Action Bar ═══ */}
       {showStickyBar && (
         <div className="sticky top-0 z-30 -mx-6 border-b bg-background/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0">
-              <p className="font-semibold text-foreground truncate">{sellerProp.property_name || "Property"}</p>
+          <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 min-w-0">
+              <p className="font-semibold text-foreground truncate max-w-full">{sellerProp.property_name || "Property"}</p>
               <span className="text-sm text-muted-foreground">{fmt(sellerFin?.asking_price)}</span>
               <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold text-white ${scoreColor(totalScore)}`}>
                 {totalScore}
