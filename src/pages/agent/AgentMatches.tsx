@@ -128,10 +128,9 @@ export default function AgentMatches() {
       {buyerMatches.length > 0 && (
         <>
           {/* Filters */}
-          <div className="mt-6 overflow-x-auto pb-2">
-            <div className="flex min-w-max items-center gap-3">
+          <div className="mt-6 grid grid-cols-1 gap-2 pb-2 sm:grid-cols-2 md:flex md:flex-wrap md:items-center md:gap-3">
             <Select value={exchangeFilter} onValueChange={setExchangeFilter}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full md:w-[200px]">
                 <SelectValue placeholder="All exchanges" />
               </SelectTrigger>
               <SelectContent>
@@ -143,7 +142,7 @@ export default function AgentMatches() {
             </Select>
 
             <Select value={scoreFilter} onValueChange={setScoreFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full md:w-[160px]">
                 <SelectValue placeholder="All scores" />
               </SelectTrigger>
               <SelectContent>
@@ -155,7 +154,7 @@ export default function AgentMatches() {
             </Select>
 
             <Select value={bootFilter} onValueChange={setBootFilter}>
-              <SelectTrigger className="w-[170px]">
+              <SelectTrigger className="w-full md:w-[170px]">
                 <SelectValue placeholder="All boot status" />
               </SelectTrigger>
               <SelectContent>
@@ -167,7 +166,7 @@ export default function AgentMatches() {
             </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full md:w-[180px]">
                 <ArrowUpDown className="mr-1.5 h-3.5 w-3.5" />
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -178,7 +177,6 @@ export default function AgentMatches() {
                 <SelectItem value="newest">Newest</SelectItem>
               </SelectContent>
             </Select>
-            </div>
           </div>
 
           {/* Match cards */}

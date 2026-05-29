@@ -221,8 +221,8 @@ export default function AgentPledgedProperties() {
         </Card>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[240px] max-w-md">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="relative w-full sm:flex-1 sm:max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search by name, address, city, client…"
@@ -232,7 +232,7 @@ export default function AgentPledgedProperties() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
