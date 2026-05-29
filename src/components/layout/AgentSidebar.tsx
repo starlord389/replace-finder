@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ArrowLeftRight, Handshake, Link2,
-  MessageSquare, Settings, HelpCircle, LogOut, Compass, Building2,
+  MessageSquare, Settings, HelpCircle, LogOut, Compass,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -47,7 +47,6 @@ export default function AgentSidebar() {
     { title: "Dashboard", url: "/agent", icon: LayoutDashboard, end: true },
     { title: "My Clients", url: "/agent/clients", icon: Users },
     { title: "Exchanges", url: "/agent/exchanges", icon: ArrowLeftRight },
-    { title: "Pledged Properties", url: "/agent/properties", icon: Building2 },
     { title: "Matches", url: "/agent/matches", icon: Handshake },
     {
       title: "Connections",
