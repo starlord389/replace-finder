@@ -1,65 +1,41 @@
-## Goal
+# Fix mobile responsiveness — user-facing (agent) pages only
 
-Collapse the "Pledged Properties" tab into the "Exchanges" tab. Keep the visual style of the Pledged Properties page (image preview cards, price, badges, dropdown actions) and keep the Exchanges functionality (deadlines, status, "New Exchange" CTA, navigate to exchange detail).
+## What's happening
 
-## End state
+On mobile, agent pages load zoomed-out and scroll sideways. Root causes:
 
-- Single sidebar item: **Exchanges** (`/agent/exchanges`)
-- "Pledged Properties" sidebar item removed
-- `/agent/properties` route removed (or 301-style redirect to `/agent/exchanges`)
-- Exchanges page shows a card grid (one card per exchange) using the pledged-property card design, enriched with exchange data (client name, status, deadline countdown, proceeds)
-- "New Exchange" button preserved in the header
-- Empty state preserved from Exchanges ("No exchanges yet → Create First Exchange")
+1. **Content wider than viewport** — filter rows with `min-w-max` + stacked fixed-width selects (`AgentMatches`, `AgentPledgedProperties`), and a few header rows that don't wrap (`AgentMatchDetail`, `AgentExchangeDetail`).
+2. **No global overflow guard** — nothing on `html/body` or the layout `<main>` prevents a single wide child from forcing horizontal scroll on the whole page.
+3. **Viewport meta** missing `viewport-fit=cover` (iOS gutter).
+4. **iOS focus auto-zoom** — `<Select>` and `<Textarea>` use `text-sm` (14px), which makes iOS Safari zoom in on focus. `Input` already handles this correctly with `text-base md:text-sm`.
 
-## Page design (per card)
+Scope: agent app only (`/agent/*`). No admin pages, no public/marketing pages.
 
-Reuse the Pledged Properties card layout:
-- Cover image (from `property_images`) or `Building2` placeholder
-- Top-left badge: **exchange status** (replaces pledged-property status) using `EXCHANGE_STATUS_COLORS` / `EXCHANGE_STATUS_LABELS`
-- Top-right: dropdown menu (View exchange, Edit details, Withdraw/Reactivate)
-- Body:
-  - Asking price (large)
-  - Cap rate · units · year built row
-  - Property name / address
-  - City, State with `MapPin`
-  - Chips row: asset type, match count, **deadline countdown** ("12d to ID" with color thresholds), **proceeds**
-  - "for {client_name}" line
-  - "Open exchange" button → `/agent/exchanges/{id}`
+## Fix plan
 
-Filters row (kept from pledged page, retuned for exchanges):
-- Search (client name, property name, address, city)
-- Status filter using **exchange statuses** (All / Draft / Active / In Identification / In Closing / Completed / Cancelled) with counts
+### 1. Viewport + global safety net
+- `index.html`: viewport meta → `width=device-width, initial-scale=1.0, viewport-fit=cover`.
+- `src/index.css`: add `html, body { overflow-x: hidden; }` and `body { -webkit-text-size-adjust: 100%; }`.
 
-Exchanges without a pledged property yet still render a card (placeholder image, "No property pledged yet", same actions).
+### 2. Agent layout container
+- `AgentLayout.tsx`: add `min-w-0 overflow-x-hidden` to the flex column and `<main>` so a wide child can't blow out the page.
 
-## Data
+### 3. Agent page fixes (surgical, no redesign)
+- **`AgentMatches.tsx`** — convert the `min-w-max` filter row of four `w-[200px]`/`w-[180px]` selects to `grid grid-cols-2 gap-2 md:flex md:flex-wrap`, selects `w-full md:w-[180px]`. Drop the outer `overflow-x-auto`.
+- **`AgentPledgedProperties.tsx`** — search + select row to `flex-col sm:flex-row`; search `w-full`, select `w-full sm:w-[180px]`.
+- **`AgentMatchDetail.tsx`** — header band: add `flex-wrap` + `min-w-0` so the title row doesn't push width. Keep the two existing `overflow-x-auto` table wrappers.
+- **`AgentExchangeDetail.tsx`** — title row: add `flex-wrap` + `min-w-0`.
+- **`AgentMessages.tsx`** — verify the two-pane layout collapses to a single column under `md`; if both panes still render side-by-side, gate one with `hidden md:flex` based on whether a conversation is open.
+- **`AgentConnections.tsx` / `AgentClients.tsx` / `AgentDashboard.tsx` / `AgentSettings.tsx`** — spot-fix any header/card rows where `min-w-0` is missing on flex children with long text. No structural changes.
 
-Build one query that returns exchanges + their relinquished pledged property + financials + cover image + match count + client name. Approach: extend `useAgentExchangesQuery` (or add a sibling hook `useAgentExchangesWithPropertyQuery`) that:
-1. Fetches exchanges (current behavior) — already returns client name and pledged property address.
-2. For exchanges with `relinquished_property_id`, batch-fetches:
-   - `property_financials` (asking_price, cap_rate)
-   - `property_images` first image → public URL
-   - `pledged_properties` extra fields (property_name, asset_type, units, year_built, status)
-   - `matches` count grouped by `seller_property_id`
+### 4. iOS focus auto-zoom on form controls (used inside agent pages)
+- `src/components/ui/select.tsx` (SelectTrigger): `text-sm` → `text-base md:text-sm`.
+- `src/components/ui/textarea.tsx`: `text-sm` → `text-base md:text-sm`.
 
-Mirror the batching pattern already in `AgentPledgedProperties.fetchProperties`.
-
-Withdraw/Reactivate actions update `pledged_properties.status` (same mutation as today). No business logic changes.
-
-## File changes
-
-- **Edit** `src/pages/agent/AgentExchanges.tsx` — rewrite to render the card grid + filters described above.
-- **Edit** `src/features/agent/hooks/useAgentExchangesQuery.ts` — extend row shape with `property_name, asset_type, units, year_built, asking_price, cap_rate, cover_url, match_count, pledged_status` (or add a second hook and keep the existing one for places that only need the slim shape — easier and safer).
-- **Delete** `src/pages/agent/AgentPledgedProperties.tsx`.
-- **Edit** `src/App.tsx` — remove `AgentPledgedProperties` import and `/agent/properties` route (or replace with `<Navigate to="/agent/exchanges" replace />`).
-- **Edit** `src/components/layout/AgentSidebar.tsx` — remove the "Pledged Properties" nav item.
-- **Edit** `src/pages/agent/AgentHelp.tsx` — point "Pledge a property" link to `/agent/exchanges` (already correct).
-- **Edit** `src/app/routes/routeManifest.ts` — drop `/agent/properties` entry.
-- **Check** `src/test/routes.test.ts` — update if it asserts the removed route.
+### 5. Verification
+Set preview to mobile (375px) and walk through every `/agent/*` page: Dashboard, Launchpad, Matches, Match Detail, Exchanges, Exchange Detail, New/Edit Exchange, Pledged Properties, Connections, Connection Detail, Clients, Client Detail, Messages, Settings, Help. Confirm: no horizontal scroll, pages render at natural 1× zoom, no input triggers iOS focus zoom. Re-check at 768px to make sure desktop layouts still look right.
 
 ## Out of scope
-
-- Admin pages
-- Public marketing pages
-- Matching engine / business logic
-- Any redesign beyond reusing the existing card style
+- Admin pages (`/admin/*`).
+- Public/marketing pages (already work on mobile).
+- Any redesign, business-logic, or data changes.
