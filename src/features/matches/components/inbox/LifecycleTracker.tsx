@@ -2,9 +2,47 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LIFECYCLE_ORDER, UI_STATUS_LABEL, type UiStatus } from "./inboxHelpers";
 
-export function LifecycleTracker({ status }: { status: UiStatus }) {
+interface Props {
+  status: UiStatus;
+  variant?: "compact" | "full";
+}
+
+export function LifecycleTracker({ status, variant = "compact" }: Props) {
   const isArchived = status === "archived";
   const currentIdx = isArchived ? -1 : LIFECYCLE_ORDER.indexOf(status);
+
+  if (variant === "compact") {
+    return (
+      <div className="rounded-xl border bg-card p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Lifecycle
+          </h3>
+          <span className="text-[11px] font-medium text-foreground">
+            {isArchived ? "Archived" : UI_STATUS_LABEL[status]}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          {LIFECYCLE_ORDER.map((s, i) => {
+            const done = !isArchived && i < currentIdx;
+            const current = !isArchived && i === currentIdx;
+            return (
+              <div
+                key={s}
+                title={UI_STATUS_LABEL[s]}
+                className={cn(
+                  "h-1.5 flex-1 rounded-full",
+                  done && "bg-emerald-500",
+                  current && "bg-primary",
+                  !done && !current && "bg-muted",
+                )}
+              />
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border bg-card p-4">
