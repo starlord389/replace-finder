@@ -71,6 +71,7 @@ function DrawerBody({ rel }: { rel: Relationship }) {
             counterpartyName={displayName}
             subtitle={rel.propertyName}
             embedded
+            hideHeader
           />
         </div>
       ) : (
