@@ -133,7 +133,7 @@ export default function AgentMatchesHub() {
       ) : rels.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-[360px_minmax(0,1fr)] lg:grid-cols-[380px_minmax(0,1fr)_360px]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 md:grid-cols-[340px_minmax(640px,1fr)] xl:grid-cols-[340px_minmax(640px,1fr)_320px] 2xl:grid-cols-[380px_minmax(640px,1fr)_340px]">
           {/* LEFT: Inbox */}
           <div
             className={
@@ -168,23 +168,43 @@ export default function AgentMatchesHub() {
                   <Button variant="ghost" size="sm" onClick={() => setMobileDetailOpen(false)}>
                     ← Back to inbox
                   </Button>
-                  <Button size="sm" onClick={() => setTabletActionOpen(true)}>
-                    Take action
-                  </Button>
-                </div>
-                {/* md-only (768–1023): Deal Room is hidden, so expose drawer trigger */}
-                <div className="hidden shrink-0 items-center justify-end md:flex lg:hidden">
-                  <Button size="sm" onClick={() => setTabletActionOpen(true)}>
-                    Take action
-                  </Button>
                 </div>
                 <div className="min-h-0 flex-1">
-                  <PropertyReviewPanel rel={selected} />
+                  <PropertyReviewPanel
+                    rel={selected}
+                    onOpenActions={() => setTabletActionOpen(true)}
+                    hasSideActions={isXl}
+                  />
                 </div>
               </>
             ) : (
               <EmptySelection />
             )}
+          </div>
+
+          {/* RIGHT: Deal Room (xl+ only — keeps center ≥ 640px) */}
+          <div className="hidden min-h-0 min-w-0 xl:flex">
+            {selected ? <DealRoomPanel rel={selected} /> : null}
+          </div>
+        </div>
+      )}
+
+      {/* Tablet / Medium-desktop Deal Room drawer */}
+      <Sheet open={tabletActionOpen && !!selected} onOpenChange={setTabletActionOpen}>
+        <SheetContent side="right" className="w-full overflow-y-auto p-3 sm:max-w-sm">
+          {selected && <DealRoomPanel rel={selected} />}
+        </SheetContent>
+      </Sheet>
+
+      {/* Mobile sticky action bar */}
+      {selected && mobileDetailOpen && (
+        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card p-3 shadow-lg md:hidden">
+          <Button className="w-full" onClick={() => setTabletActionOpen(true)}>
+            Take action
+          </Button>
+        </div>
+      )}
+
           </div>
 
           {/* RIGHT: Deal Room (lg+) */}

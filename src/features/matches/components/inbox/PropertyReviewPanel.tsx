@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, ExternalLink, FileText, Activity, Info } from "lucide-react";
+import { MapPin, ExternalLink, FileText, Activity, Info, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -8,27 +8,38 @@ import { currency, scoreDotClass } from "../helpers";
 import { WhyThisMatched } from "./WhyThisMatched";
 import { MatchBreakdownChart } from "./MatchBreakdownChart";
 import {
-  deriveUiStatus,
   financialMetrics,
   UI_STATUS_CLASS,
   UI_STATUS_LABEL,
 } from "./inboxHelpers";
-import { useMatchLocalState } from "./useMatchLocalState";
+import { useMatchActions } from "./useMatchActions";
 import { propertyImage } from "./propertyImage";
 
 interface Props {
   rel: Relationship;
+  /** Trigger to open the Actions drawer on widths where the right panel is hidden. */
+  onOpenActions?: () => void;
+  /** Whether the right Deal Room panel is visible (xl+). When false, header shows an Actions button. */
+  hasSideActions?: boolean;
 }
 
-export function PropertyReviewPanel({ rel }: Props) {
-  const { state } = useMatchLocalState(rel.matchId);
-  const status = deriveUiStatus(rel, state);
-  const metrics = financialMetrics(rel);
+const KEY_METRIC_KEYS = ["noi", "cap", "coc", "dscr", "occupancy", "equity"];
+
+export function PropertyReviewPanel({ rel, onOpenActions, hasSideActions }: Props) {
+  const allMetrics = financialMetrics(rel);
+  const keyMetrics = KEY_METRIC_KEYS
+    .map((k) => allMetrics.find((m) => m.key === k))
+    .filter(Boolean) as ReturnType<typeof financialMetrics>;
+
+  const { status, primary, handle, busy } = useMatchActions(rel, {
+    onOpenConversation: onOpenActions,
+    onSendToClient: onOpenActions,
+  });
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border bg-card">
       {/* Hero image */}
-      <div className="relative h-44 w-full shrink-0 overflow-hidden bg-muted">
+      <div className="relative h-56 w-full shrink-0 overflow-hidden bg-muted">
         <img
           src={propertyImage(rel.propertyImageUrl, rel.id)}
           alt=""
@@ -44,10 +55,10 @@ export function PropertyReviewPanel({ rel }: Props) {
         </span>
       </div>
 
-      {/* Header */}
+      {/* Header: title + price + score + primary action */}
       <div className="shrink-0 border-b border-border px-5 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <h2 className="truncate text-xl font-semibold text-foreground">
               {rel.propertyName}
             </h2>
@@ -56,41 +67,83 @@ export function PropertyReviewPanel({ rel }: Props) {
               <span className="truncate">
                 {[rel.propertyCity, rel.propertyState].filter(Boolean).join(", ") || "—"}
               </span>
+              {rel.clientName && (
+                <span className="ml-2 shrink-0 truncate">· For {rel.clientName}</span>
+              )}
             </p>
           </div>
-          <Button asChild variant="outline" size="sm" className="shrink-0">
+
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="text-right">
+              <p className="text-lg font-semibold leading-none text-foreground">
+                {currency(rel.askingPrice)}
+              </p>
+              {rel.capRate != null && (
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {rel.capRate.toFixed(2)}% cap
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col items-center">
+              <span
+                className={cn(
+                  "flex h-9 min-w-9 items-center justify-center rounded-full px-2 text-sm font-bold text-white",
+                  scoreDotClass(rel.score),
+                )}
+              >
+                {Math.round(rel.score)}
+              </span>
+              <span className="mt-0.5 text-[10px] text-muted-foreground">score</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action row */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {primary ? (
+            <Button
+              size="sm"
+              onClick={() => handle(primary.id, primary.label)}
+              disabled={busy === primary.id}
+            >
+              {primary.label}
+            </Button>
+          ) : (
+            <span className="text-xs text-muted-foreground">No further action required</span>
+          )}
+          {!hasSideActions && (
+            <Button variant="outline" size="sm" onClick={onOpenActions}>
+              <Settings2 className="mr-1 h-3.5 w-3.5" />
+              All actions
+            </Button>
+          )}
+          <Button asChild variant="ghost" size="sm" className="ml-auto">
             <Link to={`/agent/matches/${rel.matchId}`}>
               Full details <ExternalLink className="ml-1 h-3 w-3" />
             </Link>
           </Button>
         </div>
+      </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-          <span className="font-semibold text-foreground">{currency(rel.askingPrice)}</span>
-          {rel.capRate != null && (
-            <span className="text-muted-foreground">{rel.capRate.toFixed(2)}% cap</span>
-          )}
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span
-              className={cn(
-                "flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white",
-                scoreDotClass(rel.score),
-              )}
-            >
-              {Math.round(rel.score)}
-            </span>
-            match score
-          </span>
-          {rel.clientName && (
-            <span className="truncate text-muted-foreground">For {rel.clientName}</span>
-          )}
+      {/* Key metrics strip (above the fold) */}
+      <div className="shrink-0 border-b border-border px-5 py-3">
+        <div className="grid grid-cols-3 gap-2 lg:grid-cols-6">
+          {keyMetrics.map((m) => (
+            <div key={m.key} className="rounded-lg border bg-background px-2.5 py-2">
+              <div className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                <span className="truncate">{m.label}</span>
+                {m.estimated && <Info className="h-2.5 w-2.5 shrink-0" aria-label="Estimated" />}
+              </div>
+              <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{m.value}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Tabs (only the content area scrolls) */}
+      {/* Tabs (only the content area scrolls; tabs wrap, no horizontal overflow) */}
       <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col">
-        <div className="shrink-0 overflow-x-auto border-b border-border px-5 pt-3">
-          <TabsList className="w-fit">
+        <div className="shrink-0 border-b border-border px-5 pt-3">
+          <TabsList className="h-auto flex-wrap justify-start gap-1 bg-transparent p-0">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="financials">Financials</TabsTrigger>
             <TabsTrigger value="breakdown">Match Breakdown</TabsTrigger>
@@ -102,11 +155,10 @@ export function PropertyReviewPanel({ rel }: Props) {
         <div className="min-h-0 flex-1 overflow-y-auto">
           <TabsContent value="overview" className="m-0 space-y-4 p-5">
             <WhyThisMatched rel={rel} />
-            <FinancialGrid metrics={metrics.slice(0, 6)} />
           </TabsContent>
 
           <TabsContent value="financials" className="m-0 p-5">
-            <FinancialGrid metrics={metrics} />
+            <FinancialGrid metrics={allMetrics} />
           </TabsContent>
 
           <TabsContent value="breakdown" className="m-0 p-5">
@@ -139,10 +191,7 @@ function FinancialGrid({ metrics }: { metrics: ReturnType<typeof financialMetric
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {metrics.map((m) => (
-        <div
-          key={m.key}
-          className="rounded-lg border bg-background p-3"
-        >
+        <div key={m.key} className="rounded-lg border bg-background p-3">
           <div className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
             {m.label}
             {m.estimated && <Info className="h-3 w-3" aria-label="Estimated value" />}
