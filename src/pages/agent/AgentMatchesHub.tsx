@@ -31,7 +31,6 @@ export default function AgentMatchesHub() {
   const [search, setSearch] = useState("");
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
-  const [mobileInboxOpen, setMobileInboxOpen] = useState(false);
 
   const rawFilter = searchParams.get("filter") ?? searchParams.get("stage") ?? "all";
   const filter = (LEGACY_FILTER_MAP[rawFilter] ?? (rawFilter as UiStatus | "all")) as "all" | UiStatus;
