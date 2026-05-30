@@ -110,6 +110,8 @@ export default function AgentMatchDetail() {
   const [connectionState, setConnectionState] = useState<"none" | "pending" | "accepted" | "declined">("none");
   const [connectionId, setConnectionId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConnectionId, setConfirmConnectionId] = useState<string | null>(null);
   const [feeAgreed, setFeeAgreed] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -327,7 +329,8 @@ export default function AgentMatchDetail() {
       setConnectionId(connData.id);
       setModalOpen(false);
       trackEvent("connection_initiated", { matchId: match.id, connectionId: connData.id });
-      toast({ title: "Request sent!", description: "You'll be notified when they respond." });
+      setConfirmConnectionId(connData.id);
+      setConfirmOpen(true);
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to send request.", variant: "destructive" });
     } finally {
