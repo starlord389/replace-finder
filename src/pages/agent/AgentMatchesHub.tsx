@@ -110,9 +110,9 @@ export default function AgentMatchesHub() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] flex-col gap-4">
+    <div className="flex h-[calc(100vh-7rem)] min-h-0 flex-col gap-4 overflow-hidden">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Matches</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -133,28 +133,38 @@ export default function AgentMatchesHub() {
       ) : rels.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-[minmax(300px,26%)_1fr] lg:grid-cols-[minmax(300px,24%)_minmax(0,1fr)_minmax(320px,26%)]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-[360px_minmax(0,1fr)] lg:grid-cols-[380px_minmax(0,1fr)_360px]">
           {/* LEFT: Inbox */}
-          <div className={mobileDetailOpen ? "hidden md:flex md:min-h-0" : "flex min-h-0"}>
-            <div className="flex w-full min-h-0">
-              <InboxList
-                rels={visibleRels}
-                selectedId={selected?.id ?? null}
-                onSelect={select}
-                search={search}
-                onSearchChange={setSearch}
-                filter={filter}
-                onFilterChange={setFilter}
-                counts={counts}
-              />
-            </div>
+          <div
+            className={
+              mobileDetailOpen
+                ? "hidden md:flex md:min-h-0 md:min-w-0"
+                : "flex min-h-0 min-w-0"
+            }
+          >
+            <InboxList
+              rels={visibleRels}
+              selectedId={selected?.id ?? null}
+              onSelect={select}
+              search={search}
+              onSearchChange={setSearch}
+              filter={filter}
+              onFilterChange={setFilter}
+              counts={counts}
+            />
           </div>
 
           {/* CENTER: Property review */}
-          <div className={mobileDetailOpen ? "flex min-h-0" : "hidden md:flex md:min-h-0"}>
+          <div
+            className={
+              mobileDetailOpen
+                ? "flex min-h-0 min-w-0 flex-col gap-3"
+                : "hidden md:flex md:min-h-0 md:min-w-0 md:flex-col md:gap-3"
+            }
+          >
             {selected ? (
-              <div className="flex w-full min-h-0 flex-col gap-3">
-                <div className="flex items-center justify-between gap-2 md:hidden">
+              <>
+                <div className="flex shrink-0 items-center justify-between gap-2 md:hidden">
                   <Button variant="ghost" size="sm" onClick={() => setMobileDetailOpen(false)}>
                     ← Back to inbox
                   </Button>
@@ -163,25 +173,25 @@ export default function AgentMatchesHub() {
                   </Button>
                 </div>
                 {/* md-only (768–1023): Deal Room is hidden, so expose drawer trigger */}
-                <div className="hidden md:flex lg:hidden items-center justify-end">
+                <div className="hidden shrink-0 items-center justify-end md:flex lg:hidden">
                   <Button size="sm" onClick={() => setTabletActionOpen(true)}>
                     Take action
                   </Button>
                 </div>
-                <PropertyReviewPanel rel={selected} />
-              </div>
+                <div className="min-h-0 flex-1">
+                  <PropertyReviewPanel rel={selected} />
+                </div>
+              </>
             ) : (
               <EmptySelection />
             )}
           </div>
 
-
           {/* RIGHT: Deal Room (lg+) */}
-          <div className="hidden min-h-0 lg:flex">
+          <div className="hidden min-h-0 min-w-0 lg:flex">
             {selected ? <DealRoomPanel rel={selected} /> : null}
           </div>
         </div>
-
       )}
 
       {/* Tablet / Mobile Deal Room drawer */}
