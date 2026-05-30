@@ -16,9 +16,10 @@ interface Props {
   selected: boolean;
   onSelect: () => void;
   assetType?: string | null;
+  showClientLabel?: boolean;
 }
 
-export function PropertyMatchCard({ rel, selected, onSelect, assetType }: Props) {
+export function PropertyMatchCard({ rel, selected, onSelect, assetType, showClientLabel = false }: Props) {
   const local = readMatchLocalState(rel.matchId);
   const status = deriveUiStatus(rel, local);
   const action = nextActionsFor(status).primary;
