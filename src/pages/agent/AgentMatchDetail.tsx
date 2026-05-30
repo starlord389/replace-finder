@@ -1025,6 +1025,44 @@ export default function AgentMatchDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Post-initiation confirmation */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Connection request sent</DialogTitle>
+            <DialogDescription>
+              We've notified the seller's agent. Here's what happens next:
+            </DialogDescription>
+          </DialogHeader>
+          <ol className="space-y-3 text-sm text-foreground">
+            <li className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">1</span>
+              <span>The seller's agent receives a notification and reviews your request.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">2</span>
+              <span>Once accepted, a private connection opens with messaging and shared timeline.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">3</span>
+              <span>You'll get a notification the moment they respond — no need to wait here.</span>
+            </li>
+          </ol>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Stay on this match</Button>
+            <Button
+              onClick={() => {
+                setConfirmOpen(false);
+                if (confirmConnectionId) navigate(`/agent/connections/${confirmConnectionId}`);
+                else navigate("/agent/connections");
+              }}
+            >
+              Go to connection
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
