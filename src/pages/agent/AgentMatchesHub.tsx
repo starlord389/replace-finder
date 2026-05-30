@@ -161,41 +161,24 @@ export default function AgentMatchesHub() {
         <EmptyState />
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)]">
-          {/* LEFT: Inbox (desktop) / sheet (tablet+mobile) */}
+          {/* LEFT: Inbox */}
           <div
-            className={
-              mobileDetailOpen
-                ? "hidden lg:flex lg:min-h-0 lg:min-w-0"
-                : "flex min-h-0 min-w-0 lg:flex"
-            }
+            className={cn(
+              "min-h-0 min-w-0",
+              mobileDetailOpen ? "hidden lg:block" : "block",
+            )}
           >
-            <div className="hidden h-full w-full lg:block">
-              <InboxList
-                rels={visibleRels}
-                selectedId={selected?.id ?? null}
-                onSelect={select}
-                search={search}
-                onSearchChange={setSearch}
-                filter={filter}
-                onFilterChange={setFilter}
-                counts={counts}
-                showClientLabel={showClientLabel}
-              />
-            </div>
-            {/* mobile inline list when no selection */}
-            <div className="block h-full w-full lg:hidden">
-              <InboxList
-                rels={visibleRels}
-                selectedId={selected?.id ?? null}
-                onSelect={select}
-                search={search}
-                onSearchChange={setSearch}
-                filter={filter}
-                onFilterChange={setFilter}
-                counts={counts}
-                showClientLabel={showClientLabel}
-              />
-            </div>
+            <InboxList
+              rels={visibleRels}
+              selectedId={selected?.id ?? null}
+              onSelect={select}
+              search={search}
+              onSearchChange={setSearch}
+              filter={filter}
+              onFilterChange={setFilter}
+              counts={counts}
+              showClientLabel={showClientLabel}
+            />
           </div>
 
           {/* RIGHT: Property review (dominant) */}
