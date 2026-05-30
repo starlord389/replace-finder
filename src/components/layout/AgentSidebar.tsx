@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ArrowLeftRight, Handshake, Link2,
-  MessageSquare, Settings, HelpCircle, LogOut, Compass,
+  MessageSquare, Settings, HelpCircle, LogOut, Compass, UserCircle,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,6 +63,7 @@ export default function AgentSidebar() {
   ];
 
   const accountItems: NavItem[] = [
+    { title: "My Profile", url: "/agent/profile", icon: UserCircle },
     { title: "Settings", url: "/agent/settings", icon: Settings },
     { title: "Help", url: "/agent/help", icon: HelpCircle },
   ];
