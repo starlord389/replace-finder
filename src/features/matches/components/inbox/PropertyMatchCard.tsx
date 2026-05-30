@@ -1,0 +1,112 @@
+import { Building2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ASSET_TYPE_LABELS } from "@/lib/constants";
+import { currency, scoreDotClass } from "../helpers";
+import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
+import {
+  deriveUiStatus,
+  nextActionsFor,
+  UI_STATUS_CLASS,
+  UI_STATUS_LABEL,
+} from "./inboxHelpers";
+import { readMatchLocalState } from "./useMatchLocalState";
+
+interface Props {
+  rel: Relationship;
+  selected: boolean;
+  onSelect: () => void;
+  assetType?: string | null;
+}
+
+export function PropertyMatchCard({ rel, selected, onSelect, assetType }: Props) {
+  const local = readMatchLocalState(rel.matchId);
+  const status = deriveUiStatus(rel, local);
+  const action = nextActionsFor(status).primary;
+
+  const noi =
+    rel.askingPrice && rel.capRate
+      ? `${currency(rel.askingPrice * (rel.capRate / 100))} NOI`
+      : null;
+
+  const assetLabel = assetType
+    ? ASSET_TYPE_LABELS[assetType as keyof typeof ASSET_TYPE_LABELS] ?? assetType
+    : null;
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        "group relative flex w-full gap-3 rounded-xl border bg-card p-3 text-left transition-all",
+        "hover:border-primary/40 hover:shadow-sm",
+        selected
+          ? "border-primary ring-2 ring-primary/15 shadow-sm"
+          : "border-border",
+      )}
+    >
+      {/* Thumbnail */}
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
+        {rel.propertyImageUrl ? (
+          <img
+            src={rel.propertyImageUrl}
+            alt={rel.propertyName}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <Building2 className="h-7 w-7 text-muted-foreground/40" />
+          </div>
+        )}
+        <span
+          className={cn(
+            "absolute bottom-1 left-1 flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white shadow",
+            scoreDotClass(rel.score),
+          )}
+          title={`Match score ${Math.round(rel.score)}`}
+        >
+          {Math.round(rel.score)}
+        </span>
+      </div>
+
+      {/* Body */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {rel.propertyName}
+          </p>
+          {rel.unreadCount > 0 && (
+            <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+          )}
+        </div>
+        <p className="truncate text-xs text-muted-foreground">
+          {[rel.propertyCity, rel.propertyState].filter(Boolean).join(", ") || "—"}
+          {assetLabel && <span> · {assetLabel}</span>}
+        </p>
+
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
+          <span className="font-semibold text-foreground">{currency(rel.askingPrice)}</span>
+          {rel.capRate != null && (
+            <span className="text-muted-foreground">{rel.capRate.toFixed(1)}% cap</span>
+          )}
+          {noi && <span className="text-muted-foreground">{noi}</span>}
+        </div>
+
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium",
+              UI_STATUS_CLASS[status],
+            )}
+          >
+            {UI_STATUS_LABEL[status]}
+          </span>
+          {action && (
+            <span className="truncate text-[10px] font-medium text-primary">
+              → {action.label}
+            </span>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+}

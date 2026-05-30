@@ -1,108 +1,96 @@
-## Redesign: Matches → Pipeline
+## Goal
 
-Rebuild the Matches hub as a **kanban pipeline** (Linear / Pipedrive style) with a focused side-drawer for detail. Drops the noisy two-pane inbox.
-
-### New layout
+Replace the kanban Matches page with a premium **Match Inbox + Deal Room**: a 3-panel desktop layout that lets agents triage matches, review the property + numbers, and take the right next action — all without leaving the page.
 
 ```text
-┌───────────────────────────────────────────────────────────────────┐
-│ Matches                                       [ + New exchange ]  │
-│ Drag deals across stages, or click a card to open.                │
-│                                                                   │
-│ [ All · New · Pending · Active · Closed ]   🔍 search   ⚙ filter │
-├───────────────────────────────────────────────────────────────────┤
-│  NEW (11)     │ PENDING (2)   │ ACTIVE (1)    │ CLOSED (0)        │
-│  ─────────    │ ─────────     │ ─────────     │ ─────────         │
-│  ┌─────────┐  │ ┌─────────┐   │ ┌─────────┐   │                   │
-│  │ A  82●  │  │ │ P  86●  │   │ │ M  91●  │   │   (empty state)   │
-│  │ Coral…  │  │ │ Crossp… │   │ │ Park…   │   │                   │
-│  │ $6.2M   │  │ │ Charlot │   │ │ Conv… 2 │   │                   │
-│  │ Miami   │  │ │ ▸ Reply │   │ │ ▸ Open  │   │                   │
-│  └─────────┘  │ └─────────┘   │ └─────────┘   │                   │
-│  ┌─────────┐  │               │               │                   │
-│  │ …       │  │               │               │                   │
-└───────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────┐
+│  Filters: All · New · Sent · Interested · Connected · Offers · Closed ·…  │
+├──────────────┬──────────────────────────────────┬─────────────────────────┤
+│ INBOX (28%)  │  PROPERTY REVIEW (44%)           │ DEAL ROOM (28%)         │
+│              │                                  │                         │
+│ search       │  gallery / hero                  │ Lifecycle tracker       │
+│ property card│  name · city · price · score     │                         │
+│ property card│  status badge                    │ Next action (primary +  │
+│ property card│  tabs: Overview · Financials ·   │   secondaries by stage) │
+│ property card│        Match Breakdown · Docs ·  │                         │
+│  …           │        Activity                  │ Client Sharing card     │
+│              │  Why this matched (bullets)      │ Agent Communication     │
+│              │  Financial metric cards          │   card (preview + quick │
+│              │                                  │    messages + composer) │
+└──────────────┴──────────────────────────────────┴─────────────────────────┘
 ```
 
-Click a card → right-side **drawer** (Sheet) slides in, ~520px wide, with:
-- Sticky header: counterparty + stage chip + score + "View full" link
-- **Conversation is the default body** once connected (chat-first, not a tab)
-- Collapsible **Context** rail above chat: property mini-card, match score breakdown, exchange/client, boot warning, timeline — all visible without tab switching
-- Sticky footer = the message composer or the primary action button (Accept / Send request / Schedule)
+## Scope
 
-### Stage model (simplified)
+In: redesigning `/agent/matches`. Out: backend/matching changes, new tables, new routes (the existing `/agent/matches/:id` deep page stays as a "View full details" escape hatch), DnD, bulk actions.
 
-Collapse 8 internal stages into 4 user-visible columns:
+Preserved as-is: AgentLayout, sidebar, auth, roles, routing, `useUnifiedRelationships`, `ThreadView`, all mutation endpoints, `/agent/matches/:id` page.
 
-| Column   | Internal stages                          |
-|----------|------------------------------------------|
-| New      | `new`, `incoming`                        |
-| Pending  | `pending_in`, `pending_out`              |
-| Active   | `connected`, `conversing`                |
-| Closed   | `closed_won`, `closed_lost`              |
+## UX model
 
-- Single segmented control above the board filters which column(s) show. "All" = all 4 columns visible (default).
-- Each card shows ONE status line, not three. Score is a small colored dot + number. "New"/unread is a single blue dot on the avatar — no separate badge.
-- Each card surfaces ONE primary CTA based on stage: `Accept request` / `Send request` / `Reply` / `Open`.
+Mental model: **Find match → Review numbers → Send to client → Connect with agent → Move forward or archive.**
 
-### Drawer detail (replaces 4-tab pane)
+Status taxonomy (UI-facing, mapped from existing stages + 3 new client-share sub-states held in local state / `localStorage` until backend fields exist):
 
-```text
-┌──────────────────────────────────────────────┐
-│ ← P  Priya Mehta              [CONVERSING]   │
-│    Crosspoint Industrial · 86 match          │
-├──────────────────────────────────────────────┤
-│ ▾ Context  (collapsed by default if chat)    │
-│   [property thumb] Crosspoint Industrial     │
-│   Charlotte, NC · $8.2M · 6.1% cap           │
-│   Score 86: price ✓ geo ✓ asset ✓ …          │
-│   Client: Acme Holdings · Exchange #4821     │
-├──────────────────────────────────────────────┤
-│ Conversation                                 │
-│   ┌──────────────────────────────────────┐   │
-│   │  (message thread)                    │   │
-│   └──────────────────────────────────────┘   │
-├──────────────────────────────────────────────┤
-│ [ Type a message…              ]   ▸ Send   │
-└──────────────────────────────────────────────┘
-```
+| UI status            | Source                                                                 |
+|----------------------|------------------------------------------------------------------------|
+| New Match            | `stage = new` / `incoming`                                             |
+| Sent to Client       | local flag `sentToClientAt` (mock until DB field)                      |
+| Client Interested    | local flag `clientInterestedAt` (mock)                                 |
+| Agent Connected      | `stage = connected` / `conversing`                                     |
+| Reviewing Docs       | `stage = conversing` + local flag `reviewingDocs`                      |
+| LOI / Offer          | local flag `loiSentAt` (mock; later → connection milestone)            |
+| Under Contract       | `connection.under_contract_at` not null                                |
+| Closed               | `stage = closed_won`                                                   |
+| Archived             | `stage = closed_lost` OR local `archivedAt`                            |
 
-- Pre-connection stages: Context is **expanded by default**, footer shows the primary action (Accept / Send request / Decline), no composer.
-- Post-connection: Context **collapsed by default**, footer is the composer. Click "Context" header to expand.
-- Property/timeline/score breakdown all live inside the Context accordion — no separate tabs.
-- "View full" link in header opens existing dedicated detail page for deep work.
+Mock flags persist via a small `useMatchLocalState(matchId)` hook backed by `localStorage` so the lifecycle feels real for demo without a migration.
 
-### Mobile
+## Files
 
-- Kanban → horizontal scroll-snap columns (one column per viewport width)
-- Drawer becomes full-screen Sheet from right
-- Segmented control becomes a select dropdown
+### New (`src/features/matches/components/inbox/`)
+- `InboxList.tsx` — search input + filter tabs row + scrollable list of `PropertyMatchCard`
+- `PropertyMatchCard.tsx` — property-first card: thumb, name, city/state, price, asset type, score chip, cap rate, NOI, status badge, next-action label
+- `PropertyReviewPanel.tsx` — center: gallery placeholder, header, status badge, **Why this matched** bullets, financial metric cards grid (Price, NOI, Cap, CoC, DSCR, Occupancy, Required Equity, Est. Loan, Projected Cash Flow), tabs (Overview / Financials / Match Breakdown / Docs / Activity)
+- `WhyThisMatched.tsx` — derives bullets from match score dimensions + boot status + price/timeline
+- `MatchBreakdownChart.tsx` — category bars (Location, Price, Equity, Debt, Timeline, Asset, Return) using existing score breakdown where present, mocked weights otherwise
+- `DealRoomPanel.tsx` — right: lifecycle tracker, stage-aware Next Action stack, Client Sharing card, Agent Communication card
+- `LifecycleTracker.tsx` — horizontal step rail with current step highlighted; side-exit chips (Not a Fit · Client Passed · Seller Unavailable · Archived)
+- `NextActionCard.tsx` — renders primary + secondaries from a stage→actions map; wires to existing mutations when available, otherwise local-state transitions
+- `ClientSharingCard.tsx` — Send to Client (opens dialog → marks `sentToClientAt`), Copy Client Link (toast + clipboard), Download One-Page Summary (mock PDF — generate simple `Blob` placeholder), Add Agent Note (textarea persisted to local state)
+- `AgentCommsCard.tsx` — wraps `ThreadView` in connected state, shows locked CTA otherwise; quick-message buttons inject canned text into the composer (uses new `initialDraft` prop on ThreadView)
+- `useMatchLocalState.ts` — `localStorage`-backed hook for mock lifecycle flags + agent notes per matchId
+- `inboxHelpers.ts` — `deriveUiStatus(rel, local)`, `nextActionFor(status)`, `whyThisMatched(rel)`, financial mock fillers
 
-### Files
+### Edited
+- `src/pages/agent/AgentMatchesHub.tsx` — replace `PipelineBoard` + `RelationshipDrawer` with the new 3-panel layout; keep `?id=` URL sync, search, and filter tabs; tablet → 2-panel (inbox + detail) with right panel as Sheet; mobile → stacked with sticky primary action bar
+- `src/features/messages/components/ThreadView.tsx` — add optional `initialDraft?: string` prop so quick-message buttons can prefill the composer
+- `src/features/matches/components/helpers.tsx` — add UI status taxonomy + label/colour map (extends current `StageBadge`)
 
-**New**
-- `src/features/matches/components/PipelineBoard.tsx` — 4 columns, virtualized vertical scroll per column
-- `src/features/matches/components/PipelineColumn.tsx` — header (label + count), scrollable body, empty state
-- `src/features/matches/components/RelationshipCard.tsx` — compact card (avatar, score dot, property + city, $price, one CTA, unread dot)
-- `src/features/matches/components/RelationshipDrawer.tsx` — Sheet with sticky header, Context accordion, conversation body, sticky footer
-- `src/features/matches/components/ContextPanel.tsx` — collapsible context (property, score breakdown, exchange, boot, timeline)
-- `src/features/matches/components/StageActionButton.tsx` — renders the right primary action per stage
+### Removed (no longer used by the hub)
+- `PipelineBoard.tsx`, `PipelineColumn.tsx`, `RelationshipCard.tsx`, `RelationshipDrawer.tsx`, `ContextPanel.tsx`, `StageActionButton.tsx` (kanban-era components — delete after the new layout is wired)
 
-**Edited**
-- `src/pages/agent/AgentMatchesHub.tsx` — replace two-pane inbox with `PipelineBoard` + `RelationshipDrawer`; drop `Tabs` tab system; keep search + `?id=` URL sync
-- `src/features/matches/hooks/useUnifiedRelationships.ts` — add `column: "new" | "pending" | "active" | "closed"` derived field; no schema change
+## Mock / placeholder data
 
-**Reused as-is**
-- `ThreadView` (chat body + composer) — embedded in drawer
-- `useUnifiedRelationships` data
-- Existing accept/decline/send-request mutations
+Where real fields don't exist, we mock minimally and clearly:
+- Financial metrics not in `property_financials` (CoC, DSCR, Occupancy, Required Equity, Est. Loan, Projected Cash Flow) → derived from `asking_price` + `cap_rate` with documented formulas in `inboxHelpers.ts`; each mocked value tagged `est.` in the UI tooltip
+- Documents tab → empty state with "No documents shared yet" + disabled upload button
+- Activity tab → reuses connection + message timeline already available; falls back to "Match created" event
+- Client share link → generated as `/share/match/{matchId}` (route stub returning placeholder page is out of scope; button copies the URL and toasts)
+- One-pager PDF → client-side `Blob` with a simple text summary (no server), so the button works end-to-end
 
-### Out of scope
+## Responsive
 
-- Drag-and-drop between columns (stage changes are still driven by actions, not drag) — can add later
-- Bulk actions, saved views, ⌘K
-- Backend / matching logic changes
+- ≥1280px: 3 columns (28% / 44% / 28%)
+- 768–1279px: inbox + center; right Deal Room opens as Sheet via "Take action" button
+- <768px: single column stacked (filters → cards). Tapping a card pushes detail view with sticky bottom bar showing the stage's primary action
 
-### Design tokens
+## Design
 
-Stays on the locked palette: Inter, blue-600 primary, light theme. Column headers use muted-foreground with a thin accent bar in primary. Cards use `bg-card` with `border-border`, hover lifts to `shadow-sm` + `border-primary/30`. Score dot: emerald ≥85, amber ≥70, rose <70 (existing scale).
+Stays on locked tokens (Inter, blue-600 primary, light theme). Cards use `bg-card` + `border-border`, hover → `shadow-sm` + `border-primary/30`. Status badges reuse existing colour ramp; score chip keeps emerald/amber/rose ramp. Generous spacing, single H1, semantic HTML.
+
+## Validation
+
+- Verify build + console clean on `/agent/matches`
+- Smoke: open a match → tabs switch, Why-bullets render, financial cards populated, quick-messages prefill composer, Send to Client flips status locally, lifecycle tracker reflects change
+- Tablet + mobile breakpoints visually checked via preview viewport
