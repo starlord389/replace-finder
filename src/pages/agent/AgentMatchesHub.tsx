@@ -13,6 +13,7 @@ import {
   type UiStatus,
 } from "@/features/matches/components/inbox/inboxHelpers";
 import { readMatchLocalState } from "@/features/matches/components/inbox/useMatchLocalState";
+import { cn } from "@/lib/utils";
 
 // Legacy stage param → new UI filter
 const LEGACY_FILTER_MAP: Record<string, "all" | UiStatus> = {
