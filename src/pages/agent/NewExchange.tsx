@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -19,10 +19,16 @@ export default function NewExchange() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const createExchange = useCreateExchange();
+  const [searchParams] = useSearchParams();
+  const preselectedClientId = searchParams.get("client");
   const [step, setStep] = useState(1);
-  const [data, setData] = useState<WizardState>(initialWizardState);
+  const [data, setData] = useState<WizardState>({
+    ...initialWizardState,
+    selectedClientId: preselectedClientId ?? initialWizardState.selectedClientId,
+  });
   const [saving, setSaving] = useState(false);
   const [clientName, setClientName] = useState("");
+  const clientLocked = Boolean(preselectedClientId);
 
   // resolve client name when selected
   useEffect(() => {
@@ -85,7 +91,8 @@ export default function NewExchange() {
       {step === 1 && (
         <StepSelectClient selectedClientId={data.selectedClientId}
           onChange={id => setData(d => ({ ...d, selectedClientId: id }))}
-          onNext={() => setStep(2)} />
+          onNext={() => setStep(2)}
+          lockedClientName={clientLocked ? (clientName || "Selected client") : undefined} />
       )}
       {step === 2 && (
         <StepPropertyAndFinancials
