@@ -7,6 +7,7 @@ import { useUnifiedRelationships, type Relationship } from "@/features/matches/h
 import { InboxList } from "@/features/matches/components/inbox/InboxList";
 import { PropertyReviewPanel } from "@/features/matches/components/inbox/PropertyReviewPanel";
 import { DealRoomPanel } from "@/features/matches/components/inbox/DealRoomPanel";
+import { ExchangeContextBar } from "@/features/matches/components/inbox/ExchangeContextBar";
 import {
   deriveUiStatus,
   type UiStatus,
@@ -28,22 +29,13 @@ export default function AgentMatchesHub() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
-  const [tabletActionOpen, setTabletActionOpen] = useState(false);
-  const [isXl, setIsXl] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(min-width: 1280px)").matches : false,
-  );
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(min-width: 1280px)");
-    const handler = (e: MediaQueryListEvent) => setIsXl(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [mobileInboxOpen, setMobileInboxOpen] = useState(false);
 
   const rawFilter = searchParams.get("filter") ?? searchParams.get("stage") ?? "all";
   const filter = (LEGACY_FILTER_MAP[rawFilter] ?? (rawFilter as UiStatus | "all")) as "all" | UiStatus;
   const selectedId = searchParams.get("id");
+  const exchangeParam = (searchParams.get("exchange") ?? "all") as string | "all";
 
   // Translate legacy ?connection=/ ?match= → ?id=
   useEffect(() => {
@@ -57,17 +49,22 @@ export default function AgentMatchesHub() {
     }
   }, [searchParams, setSearchParams]);
 
-  // Annotate each rel with its UI status (computed from rel + localStorage)
+  // Scope by exchange first
+  const exchangeScopedRels = useMemo(() => {
+    if (exchangeParam === "all") return rels;
+    return rels.filter((r) => r.buyerExchangeId === exchangeParam);
+  }, [rels, exchangeParam]);
+
+  // Annotate each rel with its UI status
   const annotated = useMemo(
     () =>
-      rels.map((r) => ({
+      exchangeScopedRels.map((r) => ({
         rel: r,
         status: deriveUiStatus(r, readMatchLocalState(r.matchId)),
       })),
-    [rels],
+    [exchangeScopedRels],
   );
 
-  // Counts by filter (ignoring search)
   const counts = useMemo(() => {
     const c: Record<"all" | UiStatus, number> = {
       all: annotated.length,
@@ -85,7 +82,6 @@ export default function AgentMatchesHub() {
     return c;
   }, [annotated]);
 
-  // Apply filter + search
   const visibleRels = useMemo(() => {
     const q = search.trim().toLowerCase();
     return annotated
@@ -103,7 +99,9 @@ export default function AgentMatchesHub() {
       .map((a) => a.rel);
   }, [annotated, filter, search]);
 
-  const selected = rels.find((r) => r.id === selectedId) ?? visibleRels[0] ?? null;
+  const selected = useMemo(() => {
+    return visibleRels.find((r) => r.id === selectedId) ?? visibleRels[0] ?? null;
+  }, [visibleRels, selectedId]);
 
   function setFilter(f: "all" | UiStatus) {
     const next = new URLSearchParams(searchParams);
@@ -113,15 +111,26 @@ export default function AgentMatchesHub() {
     setSearchParams(next);
   }
 
+  function setExchange(id: string | "all") {
+    const next = new URLSearchParams(searchParams);
+    if (id === "all") next.delete("exchange");
+    else next.set("exchange", id);
+    next.delete("id"); // reset selection when scope changes
+    setSearchParams(next);
+  }
+
   function select(rel: Relationship) {
     const next = new URLSearchParams(searchParams);
     next.set("id", rel.id);
     setSearchParams(next);
     setMobileDetailOpen(true);
+    setMobileInboxOpen(false);
   }
 
+  const showClientLabel = exchangeParam === "all";
+
   return (
-    <div className="flex h-[calc(100vh-7rem)] min-h-0 flex-col gap-4 overflow-hidden">
+    <div className="flex h-[calc(100vh-7rem)] min-h-0 flex-col gap-3 overflow-hidden">
       {/* Header */}
       <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>
@@ -137,6 +146,13 @@ export default function AgentMatchesHub() {
         </Button>
       </div>
 
+      {/* Context bar */}
+      <ExchangeContextBar
+        selectedExchangeId={exchangeParam}
+        onChange={setExchange}
+        totalCount={rels.length}
+      />
+
       {isLoading ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -144,47 +160,63 @@ export default function AgentMatchesHub() {
       ) : rels.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 md:grid-cols-[340px_minmax(640px,1fr)] xl:grid-cols-[340px_minmax(640px,1fr)_320px] 2xl:grid-cols-[380px_minmax(640px,1fr)_340px]">
-          {/* LEFT: Inbox */}
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)]">
+          {/* LEFT: Inbox (desktop) / sheet (tablet+mobile) */}
           <div
             className={
               mobileDetailOpen
-                ? "hidden md:flex md:min-h-0 md:min-w-0"
-                : "flex min-h-0 min-w-0"
+                ? "hidden lg:flex lg:min-h-0 lg:min-w-0"
+                : "flex min-h-0 min-w-0 lg:flex"
             }
           >
-            <InboxList
-              rels={visibleRels}
-              selectedId={selected?.id ?? null}
-              onSelect={select}
-              search={search}
-              onSearchChange={setSearch}
-              filter={filter}
-              onFilterChange={setFilter}
-              counts={counts}
-            />
+            <div className="hidden h-full w-full lg:block">
+              <InboxList
+                rels={visibleRels}
+                selectedId={selected?.id ?? null}
+                onSelect={select}
+                search={search}
+                onSearchChange={setSearch}
+                filter={filter}
+                onFilterChange={setFilter}
+                counts={counts}
+                showClientLabel={showClientLabel}
+              />
+            </div>
+            {/* mobile inline list when no selection */}
+            <div className="block h-full w-full lg:hidden">
+              <InboxList
+                rels={visibleRels}
+                selectedId={selected?.id ?? null}
+                onSelect={select}
+                search={search}
+                onSearchChange={setSearch}
+                filter={filter}
+                onFilterChange={setFilter}
+                counts={counts}
+                showClientLabel={showClientLabel}
+              />
+            </div>
           </div>
 
-          {/* CENTER: Property review */}
+          {/* RIGHT: Property review (dominant) */}
           <div
             className={
               mobileDetailOpen
-                ? "flex min-h-0 min-w-0 flex-col gap-3"
-                : "hidden md:flex md:min-h-0 md:min-w-0 md:flex-col md:gap-3"
+                ? "flex min-h-0 min-w-0 flex-col gap-2"
+                : "hidden min-h-0 min-w-0 lg:flex lg:flex-col lg:gap-2"
             }
           >
             {selected ? (
               <>
-                <div className="flex shrink-0 items-center justify-between gap-2 md:hidden">
+                <div className="flex shrink-0 items-center justify-between gap-2 lg:hidden">
                   <Button variant="ghost" size="sm" onClick={() => setMobileDetailOpen(false)}>
-                    ← Back to inbox
+                    ← Back to matches
                   </Button>
                 </div>
                 <div className="min-h-0 flex-1">
                   <PropertyReviewPanel
                     rel={selected}
-                    onOpenActions={() => setTabletActionOpen(true)}
-                    hasSideActions={isXl}
+                    onOpenActions={() => setActionsOpen(true)}
                   />
                 </div>
               </>
@@ -192,31 +224,36 @@ export default function AgentMatchesHub() {
               <EmptySelection />
             )}
           </div>
-
-          {/* RIGHT: Deal Room (xl+ only — keeps center ≥ 640px) */}
-          <div className="hidden min-h-0 min-w-0 xl:flex">
-            {selected ? <DealRoomPanel rel={selected} /> : null}
-          </div>
         </div>
       )}
 
-      {/* Tablet / Medium-desktop Deal Room drawer */}
-      <Sheet open={tabletActionOpen && !!selected} onOpenChange={setTabletActionOpen}>
-        <SheetContent side="right" className="w-full overflow-y-auto p-3 sm:max-w-sm">
-          {selected && <DealRoomPanel rel={selected} />}
+      {/* Actions drawer (right side) */}
+      <Sheet open={actionsOpen && !!selected} onOpenChange={setActionsOpen}>
+        <SheetContent side="right" className="w-full overflow-hidden p-0 sm:max-w-md">
+          {selected && (
+            <div className="flex h-full flex-col">
+              <div className="shrink-0 border-b px-4 py-3">
+                <h2 className="text-sm font-semibold">Actions & deal room</h2>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {selected.propertyName}
+                </p>
+              </div>
+              <div className="min-h-0 flex-1 p-3">
+                <DealRoomPanel rel={selected} />
+              </div>
+            </div>
+          )}
         </SheetContent>
       </Sheet>
 
       {/* Mobile sticky action bar */}
       {selected && mobileDetailOpen && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card p-3 shadow-lg md:hidden">
-          <Button className="w-full" onClick={() => setTabletActionOpen(true)}>
-            Take action
+        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card p-3 shadow-lg lg:hidden">
+          <Button className="w-full" onClick={() => setActionsOpen(true)}>
+            All actions
           </Button>
         </div>
       )}
-
-
     </div>
   );
 }
