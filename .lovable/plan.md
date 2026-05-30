@@ -1,65 +1,101 @@
-# Matches layout hierarchy pass
+# Matches Page — UX Restructure & Layout Stabilization
 
-Goal: make the center Property Review the visual primary, shrink the inbox and Deal Room, and eliminate horizontal scroll inside panels. No new features, no schema/auth/routing changes.
+Goal: make Matches feel like a CRM deal-review screen. Agent first picks an exchange/client, then reviews matches for it, then opens a property detail. Eliminate the cramped 3-column layout and all horizontal overflow.
 
-## 1. Desktop grid (`AgentMatchesHub.tsx`)
+## 1. Top context bar — Selected Exchange
 
-Replace the current grid with width tiers driven by available space, so the center column always has ~640px+ before the right column appears:
+New component: `src/features/matches/components/inbox/ExchangeContextBar.tsx`.
+
+Renders above the inbox + detail grid, full-width inside the page container. Shows:
+- Client name (e.g. "Marcus Rodriguez LLC")
+- Relinquished property name / address
+- Location (city, state)
+- Relinquished value (`exchange_proceeds`)
+- Days remaining to identification deadline (and closing deadline as secondary)
+- Target criteria summary (geo + price band) — derived from `exchanges.target_*` columns where present, otherwise omitted gracefully
+- "Change exchange" button → opens a `Popover`/`Command` list of the agent's exchanges (`useAgentExchangesQuery`) plus an "All exchanges" option at the top
+
+Selection persists in the URL as `?exchange=<id>` (or `exchange=all`). Default = first active exchange the agent has.
+
+When `exchange === "all"`, the bar shows a compact "All exchanges" summary (counts) and the inbox cards each surface a `Matched for {client}` subtitle. When a specific exchange is selected, that subtitle is omitted from the cards (it's already in the bar).
+
+## 2. Filter relationships by selected exchange
+
+In `AgentMatchesHub.tsx`, after `useUnifiedRelationships()`:
+
+- Filter `rels` to `rel.buyerExchangeId === selectedExchangeId` unless `exchange === "all"`.
+- Recompute `counts` and `visibleRels` against this filtered set so the chips reflect the exchange-scoped numbers.
+- Auto-select the first match in the new set when the exchange changes.
+
+## 3. New 2-column layout
+
+Replace the 3-column grid with a stable 2-column shell:
 
 ```text
-< 768px        : stacked (inbox OR detail, mobile flow unchanged)
-768–1279px     : [340px  | minmax(640px,1fr)]   right panel = drawer
->= 1280px      : [340px  | minmax(640px,1fr) | 320px]
->= 1536px      : [380px  | minmax(640px,1fr) | 340px]
+[ Context Bar — full width                                       ]
+[ Inbox (lg: 380px, xl: 420px) | Property Detail (minmax(0,1fr)) ]
 ```
 
-- Gap: `gap-5` (20px).
-- Right column is rendered only at `xl` (1280px+). Below that, expose an "Actions" button in the detail header that opens the existing `Sheet` drawer containing `DealRoomPanel`. This means the current 1202px viewport will show 2 columns + drawer (no more squeeze).
-- All column wrappers keep `min-w-0 min-h-0`.
+- Outer page: `flex h-[calc(100vh-7rem)] min-h-0 flex-col gap-4 overflow-hidden`.
+- Grid: `grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)] gap-5 min-h-0 flex-1`.
+- Both columns: `min-w-0 min-h-0` so they actually shrink and scroll instead of overflowing.
+- Remove the permanent right Deal Room column entirely.
 
-## 2. Property Review (`PropertyReviewPanel.tsx`)
+## 4. Property Detail header — actions inline + drawer
 
-Restructure into fixed "above-the-fold" zones so financials are visible without scrolling:
+In `PropertyReviewPanel.tsx`:
 
-1. Hero image: `h-56` (224px), `shrink-0`, `object-cover`, status badge top-right.
-2. Header block (`shrink-0`, border-b): title + location on the left; **price + match score + primary action button** on the right. Primary action mirrors `NextActionCard`'s current CTA (computed from status) so it's always visible in the header.
-3. Key metrics strip (`shrink-0`, border-b): 6 metric cards in a single row on `lg` (NOI, Cap Rate, Cash-on-Cash, DSCR, Occupancy, Required Equity). Grid: `grid-cols-3 lg:grid-cols-6`. Compact padding (`p-3`), small uppercase label, semibold value.
-4. Tabs zone (`min-h-0 flex-1`): TabsList in a wrapping flex container (no `overflow-x-auto`). On narrow widths tabs wrap to a second row instead of scrolling horizontally. Only the TabsContent area scrolls (`overflow-y-auto`). The "Overview" tab no longer duplicates the metrics — it shows `WhyThisMatched` + activity preview.
+- Hero stays `h-56 shrink-0`, image `object-cover`, status badge top-right.
+- Header row: title + location + new client/exchange context line: `Matched for {clientName}'s 1031 exchange · {relinquishedAddress}` (omit segments that are missing).
+- Right side of header: price / cap / score + **primary action** button (from `nextActionsFor(status).primary`) + **"All actions"** outline button.
+- "All actions" opens a `Sheet` (right side) containing the existing `LifecycleTracker`, `NextActionCard`, `ClientSharingCard`, `AgentCommsCard`, and Archive/Not a Fit/Client Passed outcomes — this replaces today's `DealRoomPanel` column. We keep `DealRoomPanel.tsx` as-is and just mount it inside the Sheet.
 
-A shared `derivePrimaryAction(rel, status)` helper in `inboxHelpers.ts` returns `{ label, onClick }` so both the header button and `NextActionCard` render the same CTA.
+Remove `hasSideActions`/`onOpenActions` branching — actions drawer is always the secondary surface.
 
-## 3. Inbox (`InboxList.tsx`)
+## 5. Key metrics strip
 
-- Filter chips: replace `overflow-x-auto` with `flex flex-wrap gap-1`. Show only the 5 most relevant statuses as chips (All, New, Interested, Connected, Closed); move the rest behind a "More" popover (uses existing `Popover` UI). Counts unchanged.
-- Search and filter rows stay `shrink-0`; only the list scrolls.
+Already present, keep the 6-card strip but extend to 8 metrics (NOI, Cap, CoC, DSCR, Occupancy, Required Equity, Est. Loan, Annual Cash Flow). On `lg` show `grid-cols-4`, on `2xl` show `grid-cols-8`. Compact padding `p-2.5`.
 
-## 4. Deal Room (`DealRoomPanel.tsx`)
+## 6. Tabs
 
-- Reduce outer padding from `p-4` to `p-3` and inter-card spacing from `space-y-4` to `space-y-3`.
-- Drop the in-panel `LifecycleTracker` to a compact horizontal variant (single-row pill steps) so it doesn't dominate vertically.
-- Same component is reused inside the Sheet drawer for tablet/medium-desktop.
+Order: `Overview`, `Financials`, `Why This Matched`, `Documents`, `Activity`, `Conversation`.
 
-## 5. AgentMatchesHub drawer wiring
+- "Why This Matched" becomes its own tab (currently inside Overview). It uses `whyThisMatched(rel)` but each bullet is rewritten to reference the selected exchange's client / target criteria when available.
+- "Conversation" tab embeds a compact `AgentCommsCard` so the agent doesn't have to open the drawer to reply.
+- `TabsList`: `flex flex-wrap gap-1`, no `overflow-x-auto`. Only `TabsContent` scrolls (`overflow-y-auto`).
 
-- Always render a "Actions" button in the detail header for `< xl`. Remove the now-redundant tablet-only button block.
-- Sheet width: `sm:max-w-sm` (was `sm:max-w-md`) since right panel is now narrower.
+## 7. Scroll & overflow rules (applied everywhere)
 
-## 6. Acceptance checks
+- Every column wrapper: `min-w-0 min-h-0 overflow-hidden`.
+- Inbox: search + filter chips `shrink-0`; list `flex-1 overflow-y-auto`.
+- Property detail card: hero `shrink-0`, header `shrink-0`, metrics `shrink-0`, tabs container `flex-1 min-h-0`, tab content `overflow-y-auto`.
+- No `overflow-x-auto` anywhere on the page.
+- Filter chips wrap; "More" popover unchanged.
+- Match cards: stable single-row layout, no width that depends on content (`min-w-0` on inner flex).
 
-- At 1202px (current viewport): 2-column layout, center detail ≥ 640px wide, right panel hidden behind "Actions" drawer.
-- At 1440px+: 3 columns, center remains the widest.
-- No `overflow-x-auto` inside inbox filters or detail tabs; both wrap.
-- NOI / Cap Rate / CoC / DSCR / Occupancy / Equity visible without scrolling on a 720px tall viewport.
-- Primary CTA visible in detail header at all widths.
+## 8. Inbox match card adjustments
 
-## Files to change
+`PropertyMatchCard.tsx`:
+- Conditionally show `Matched for {clientName}` only when viewing All exchanges (prop `showClientLabel`).
+- Show: thumbnail (64px), name, city/state, price, cap rate, NOI (computed), score chip, status pill. Compact, no horizontal scroll.
 
-- `src/pages/agent/AgentMatchesHub.tsx` — grid widths, drawer trigger, breakpoints.
-- `src/features/matches/components/inbox/PropertyReviewPanel.tsx` — header with CTA, metrics strip above tabs, wrapping tabs, no horizontal scroll.
-- `src/features/matches/components/inbox/InboxList.tsx` — wrapping filter chips + "More" popover.
-- `src/features/matches/components/inbox/DealRoomPanel.tsx` — tighter spacing.
-- `src/features/matches/components/inbox/LifecycleTracker.tsx` — compact horizontal variant.
-- `src/features/matches/components/inbox/inboxHelpers.ts` — add `derivePrimaryAction` helper.
-- `src/features/matches/components/inbox/NextActionCard.tsx` — consume shared helper (no behavior change).
+## 9. Responsive behavior
 
-No DB, auth, sidebar, or routing changes.
+- `< md` (mobile): stack — context bar → exchange selector → match list → (when selected) detail page replaces list. Sticky bottom bar with primary action + "All actions". This already works; keep it.
+- `md`–`lg` (tablet): single-column inbox collapses behind a "Matches" sheet trigger in the context bar; detail dominates full width.
+- `lg+`: 2-column as described.
+
+## 10. Files
+
+**Created**
+- `src/features/matches/components/inbox/ExchangeContextBar.tsx`
+
+**Modified**
+- `src/pages/agent/AgentMatchesHub.tsx` — exchange selection state, 2-col grid, drawer wiring, removes permanent Deal Room column
+- `src/features/matches/components/inbox/PropertyReviewPanel.tsx` — header context line, inline primary + "All actions" button, new tab order with Why This Matched & Conversation, 8-metric strip
+- `src/features/matches/components/inbox/InboxList.tsx` — accepts `showClientLabel`, passes through
+- `src/features/matches/components/inbox/PropertyMatchCard.tsx` — conditional "Matched for" line, ensure NOI shown, lock overflow
+- `src/features/matches/components/inbox/DealRoomPanel.tsx` — minor: render comfortably inside a Sheet (no outer border when in drawer)
+
+**Unchanged**
+- DB schema, auth, routing, sidebar, edge functions, `useUnifiedRelationships`, helpers, scoring logic
