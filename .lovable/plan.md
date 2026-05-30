@@ -1,110 +1,108 @@
-# Unify Matches + Connections + Messages
+## Redesign: Matches → Pipeline
 
-## The insight
+Rebuild the Matches hub as a **kanban pipeline** (Linear / Pipedrive style) with a focused side-drawer for detail. Drops the noisy two-pane inbox.
 
-Today's three tabs are actually three **stages of one relationship**:
-
-```
-Match found → Connection requested → Conversation underway → Deal closed
-   (lead)         (handshake)            (active dialogue)        (won/lost)
-```
-
-Splitting them forces agents to mentally re-stitch the same counterparty across three pages. A buyer's agent who matched on a property, sent a connection, and is now negotiating in chat has to open three tabs to see one story. We collapse it into a single **Matches** hub where each row is the counterparty relationship and the stage is just metadata.
-
-## New IA
-
-Sidebar loses "Connections" and "Messages". One entry remains:
-
-- **Matches**  ·  badge = pending connections + unread messages combined
-
-Old routes redirect:
-- `/agent/connections` → `/agent/matches?stage=connected`
-- `/agent/connections/:id` → `/agent/matches/:id` (same detail view, opens Conversation tab by default if connected)
-- `/agent/messages` → `/agent/matches?stage=conversing`
-- `/agent/messages/:threadId` → `/agent/matches/:id` (opens Conversation tab)
-
-## The page: `/agent/matches`
-
-A **master–detail (two-pane) layout**, inbox-style. This is the key UX shift — no more navigating away to "see the next match".
+### New layout
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│  Matches                                              [+ New Exchange]  │
-├──────────────────────────────────────┬──────────────────────────────────┤
-│ Stage:  All · New · Connected ·      │                                  │
-│         Conversing · Closed          │   ── DETAIL PANE ──              │
-│ Side:   Buy · Sell    Sort: Recent ▾ │                                  │
-│ 🔍 Search counterparty, property…    │   Counterparty header            │
-├──────────────────────────────────────┤   ┌──────────────────────────┐   │
-│ ● Jane Doe · Acme Realty       2m   │   │ Overview │ Conversation │   │
-│   123 Main St · $4.2M · 92%         │   │ Property │ Timeline     │   │
-│   [Conversing] · 3 unread     ●●●   │   └──────────────────────────┘   │
-├──────────────────────────────────────┤                                  │
-│ ○ Mark Singh · Coast Group    1h    │   (contents of selected tab)     │
-│   456 Oak Ave · $2.8M · 87%         │                                  │
-│   [Connected] · awaiting reply       │                                  │
-├──────────────────────────────────────┤                                  │
-│ ○ Lin Park · Apex CRE         3d    │                                  │
-│   New match · 81%                    │                                  │
-│   [New] · [Connect]                  │                                  │
-└──────────────────────────────────────┴──────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│ Matches                                       [ + New exchange ]  │
+│ Drag deals across stages, or click a card to open.                │
+│                                                                   │
+│ [ All · New · Pending · Active · Closed ]   🔍 search   ⚙ filter │
+├───────────────────────────────────────────────────────────────────┤
+│  NEW (11)     │ PENDING (2)   │ ACTIVE (1)    │ CLOSED (0)        │
+│  ─────────    │ ─────────     │ ─────────     │ ─────────         │
+│  ┌─────────┐  │ ┌─────────┐   │ ┌─────────┐   │                   │
+│  │ A  82●  │  │ │ P  86●  │   │ │ M  91●  │   │   (empty state)   │
+│  │ Coral…  │  │ │ Crossp… │   │ │ Park…   │   │                   │
+│  │ $6.2M   │  │ │ Charlot │   │ │ Conv… 2 │   │                   │
+│  │ Miami   │  │ │ ▸ Reply │   │ │ ▸ Open  │   │                   │
+│  └─────────┘  │ └─────────┘   │ └─────────┘   │                   │
+│  ┌─────────┐  │               │               │                   │
+│  │ …       │  │               │               │                   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
-### Left list (one row per relationship)
+Click a card → right-side **drawer** (Sheet) slides in, ~520px wide, with:
+- Sticky header: counterparty + stage chip + score + "View full" link
+- **Conversation is the default body** once connected (chat-first, not a tab)
+- Collapsible **Context** rail above chat: property mini-card, match score breakdown, exchange/client, boot warning, timeline — all visible without tab switching
+- Sticky footer = the message composer or the primary action button (Accept / Send request / Schedule)
 
-Each row shows:
-- Counterparty name + brokerage, avatar
-- Subject property + price + match score
-- **Stage chip**: `New` · `Connected` · `Conversing` · `Closed-Won` · `Closed-Lost`
-- Right-side signal: unread count, "awaiting your reply", "their turn", or the primary CTA (`Connect`, `Accept`, `Reopen`)
-- Last activity timestamp
+### Stage model (simplified)
 
-Stage filter pills across the top double as the old tabs. Default view = "All, sorted by last activity" so the agent's day starts at the top of the list.
+Collapse 8 internal stages into 4 user-visible columns:
 
-### Right detail pane — four tabs
+| Column   | Internal stages                          |
+|----------|------------------------------------------|
+| New      | `new`, `incoming`                        |
+| Pending  | `pending_in`, `pending_out`              |
+| Active   | `connected`, `conversing`                |
+| Closed   | `closed_won`, `closed_lost`              |
 
-Tab opens contextually based on stage (New → Overview, Connected → Conversation, etc.):
+- Single segmented control above the board filters which column(s) show. "All" = all 4 columns visible (default).
+- Each card shows ONE status line, not three. Score is a small colored dot + number. "New"/unread is a single blue dot on the avatar — no separate badge.
+- Each card surfaces ONE primary CTA based on stage: `Accept request` / `Send request` / `Reply` / `Open`.
 
-1. **Overview** — match score breakdown, counterparty agent profile card, mutual exchange context, primary action button (Connect / Decline / Mark Closed).
-2. **Conversation** — the message thread (the old `AgentMessages` thread view, embedded). Disabled until stage ≥ Connected with a "Connect first to message" empty state.
-3. **Property** — the subject property card pulled from the old match detail page.
-4. **Timeline** — chronological feed: matched → connection sent → accepted → first message → … → closed. Single source of truth for "what happened with this deal".
+### Drawer detail (replaces 4-tab pane)
 
-## Why this works
+```text
+┌──────────────────────────────────────────────┐
+│ ← P  Priya Mehta              [CONVERSING]   │
+│    Crosspoint Industrial · 86 match          │
+├──────────────────────────────────────────────┤
+│ ▾ Context  (collapsed by default if chat)    │
+│   [property thumb] Crosspoint Industrial     │
+│   Charlotte, NC · $8.2M · 6.1% cap           │
+│   Score 86: price ✓ geo ✓ asset ✓ …          │
+│   Client: Acme Holdings · Exchange #4821     │
+├──────────────────────────────────────────────┤
+│ Conversation                                 │
+│   ┌──────────────────────────────────────┐   │
+│   │  (message thread)                    │   │
+│   └──────────────────────────────────────┘   │
+├──────────────────────────────────────────────┤
+│ [ Type a message…              ]   ▸ Send   │
+└──────────────────────────────────────────────┘
+```
 
-- **One row = one relationship.** Stage is just a filter, not a separate page.
-- **Inbox pattern is familiar** (Linear, Front, Superhuman, HubSpot). Agents spend their day here, so it should behave like an inbox, not three CRM tabs.
-- **Keyboard-friendly**: `j/k` to move through list, `Enter` to open Conversation, `c` to Connect, `e` to archive. Future-friendly for the ⌘K work already on the backlog.
-- **Badge consolidation** removes the "which red dot do I click first?" decision.
-- **Mobile** collapses to single-pane: list view → tap → detail view → back.
+- Pre-connection stages: Context is **expanded by default**, footer shows the primary action (Accept / Send request / Decline), no composer.
+- Post-connection: Context **collapsed by default**, footer is the composer. Click "Context" header to expand.
+- Property/timeline/score breakdown all live inside the Context accordion — no separate tabs.
+- "View full" link in header opens existing dedicated detail page for deep work.
 
-## Implementation
+### Mobile
 
-### New
-- `src/pages/agent/AgentMatchesHub.tsx` — owns layout, list state, URL sync (`?stage=`, `?id=`, `?tab=`).
-- `src/features/matches/components/MatchListItem.tsx` — unified row.
-- `src/features/matches/components/MatchDetailPane.tsx` — tab shell.
-- `src/features/matches/components/tabs/{OverviewTab,ConversationTab,PropertyTab,TimelineTab}.tsx` — extracted from existing pages.
-- `src/features/matches/hooks/useUnifiedMatches.ts` — one query joining `matches`, `connections`, and `message_threads`, returning a `relationship[]` with a derived `stage` field.
+- Kanban → horizontal scroll-snap columns (one column per viewport width)
+- Drawer becomes full-screen Sheet from right
+- Segmented control becomes a select dropdown
 
-### Reused (no logic change)
-- Match scoring, connection mutations, message-send mutation, realtime channel — all lift-and-shifted into the tab components.
+### Files
 
-### Removed from sidebar / routes
-- `AgentConnections.tsx`, `AgentMessages.tsx` deleted after redirects are in place.
-- `AgentMatches.tsx`, `AgentMatchDetail.tsx`, `AgentConnectionDetail.tsx` retired in favor of the hub (their JSX is recycled inside the tab components).
+**New**
+- `src/features/matches/components/PipelineBoard.tsx` — 4 columns, virtualized vertical scroll per column
+- `src/features/matches/components/PipelineColumn.tsx` — header (label + count), scrollable body, empty state
+- `src/features/matches/components/RelationshipCard.tsx` — compact card (avatar, score dot, property + city, $price, one CTA, unread dot)
+- `src/features/matches/components/RelationshipDrawer.tsx` — Sheet with sticky header, Context accordion, conversation body, sticky footer
+- `src/features/matches/components/ContextPanel.tsx` — collapsible context (property, score breakdown, exchange, boot, timeline)
+- `src/features/matches/components/StageActionButton.tsx` — renders the right primary action per stage
 
-### Sidebar
-- `AgentSidebar.tsx`: drop the Connections and Messages items; Matches badge = `pendingConnections + unreadMessages`.
+**Edited**
+- `src/pages/agent/AgentMatchesHub.tsx` — replace two-pane inbox with `PipelineBoard` + `RelationshipDrawer`; drop `Tabs` tab system; keep search + `?id=` URL sync
+- `src/features/matches/hooks/useUnifiedRelationships.ts` — add `column: "new" | "pending" | "active" | "closed"` derived field; no schema change
 
-### Backwards compat
-- All old URLs redirect via `<Navigate>` in `App.tsx` so existing notifications and email deep-links still resolve.
+**Reused as-is**
+- `ThreadView` (chat body + composer) — embedded in drawer
+- `useUnifiedRelationships` data
+- Existing accept/decline/send-request mutations
 
-## Out of scope (for this round)
-- Bulk actions on the list (multi-select archive, etc.).
-- Saved views / custom filters.
-- The ⌘K global search (already on the backlog as M8) will plug into this hub later.
+### Out of scope
 
-## Open question
+- Drag-and-drop between columns (stage changes are still driven by actions, not drag) — can add later
+- Bulk actions, saved views, ⌘K
+- Backend / matching logic changes
 
-Do you want **Closed** deals visible by default in "All", or hidden behind a toggle (like Gmail's archived)? Recommendation: hidden by default, surfaced via the stage filter — keeps the working list focused on live deals.
+### Design tokens
+
+Stays on the locked palette: Inter, blue-600 primary, light theme. Column headers use muted-foreground with a thin accent bar in primary. Cards use `bg-card` with `border-border`, hover lifts to `shadow-sm` + `border-primary/30`. Score dot: emerald ≥85, amber ≥70, rose <70 (existing scale).
