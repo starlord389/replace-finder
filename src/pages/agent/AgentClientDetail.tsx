@@ -78,17 +78,71 @@ export default function AgentClientDetail() {
       setClientUserId(data.client_user_id);
       setStatus(data.status);
 
-      const { data: exs } = await supabase
-        .from("exchanges")
-        .select("id, status, created_at")
-        .eq("client_id", id)
-        .order("created_at", { ascending: false });
+      const [{ data: exs }, { data: inviteRows }] = await Promise.all([
+        supabase
+          .from("exchanges")
+          .select("id, status, created_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("client_invites")
+          .select("id, token, status, expires_at, accepted_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false })
+          .limit(1),
+      ]);
 
       setExchanges(exs ?? []);
+      setInvite(inviteRows?.[0] ?? null);
       setLoading(false);
     };
     fetch();
   }, [id, user]);
+
+  const generateToken = () => {
+    const arr = new Uint8Array(24);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
+  };
+
+  const handleCreateInvite = async () => {
+    if (!user || !id || !email.trim()) {
+      toast.error("Add an email for this client before inviting them.");
+      return;
+    }
+    setCreatingInvite(true);
+    const token = generateToken();
+    const { data, error } = await supabase
+      .from("client_invites")
+      .insert({
+        client_id: id,
+        agent_id: user.id,
+        email: email.trim(),
+        token,
+        status: "pending",
+      })
+      .select("id, token, status, expires_at, accepted_at")
+      .single();
+    setCreatingInvite(false);
+    if (error || !data) {
+      toast.error("Failed to create invite: " + (error?.message || "Unknown error"));
+      return;
+    }
+    setInvite(data);
+    setInviteOpen(true);
+  };
+
+  const inviteUrl = invite
+    ? `${window.location.origin}/auth/accept-invite?token=${invite.token}`
+    : "";
+
+  const handleCopyInvite = async () => {
+    if (!inviteUrl) return;
+    await navigator.clipboard.writeText(inviteUrl);
+    setCopied(true);
+    toast.success("Invite link copied");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
