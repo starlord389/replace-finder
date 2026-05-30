@@ -63,7 +63,6 @@ export default function AgentSidebar() {
   ];
 
   const accountItems: NavItem[] = [
-    { title: "My Profile", url: "/agent/profile", icon: UserCircle },
     { title: "Settings", url: "/agent/settings", icon: Settings },
     { title: "Help", url: "/agent/help", icon: HelpCircle },
   ];
