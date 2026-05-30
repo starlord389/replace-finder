@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -14,10 +14,11 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  ArrowLeft, User, Mail, Phone, Send, CalendarIcon, AlertTriangle, CheckCircle2, Circle, Pencil, X,
+  ArrowLeft, MessageSquare, CalendarIcon, AlertTriangle, CheckCircle2, Circle, Pencil, X, CheckCircle, XCircle,
 } from "lucide-react";
 import { BOOT_STATUS_LABELS, BOOT_STATUS_COLORS } from "@/lib/constants";
 import { format } from "date-fns";
+import { AgentProfileCard } from "@/components/profile/AgentProfileCard";
 
 const fmt = (v: number | null | undefined) =>
   v != null && v !== 0 ? `$${Math.round(Number(v)).toLocaleString()}` : "—";
@@ -54,27 +55,20 @@ export default function AgentConnectionDetail() {
   const [buyerProfile, setBuyerProfile] = useState<any>(null);
   const [sellerProfile, setSellerProfile] = useState<any>(null);
   const [clientName, setClientName] = useState("");
-  const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [newMessage, setNewMessage] = useState("");
-  const [sending, setSending] = useState(false);
   const [stageDialog, setStageDialog] = useState<{ open: boolean; key: MilestoneKey | null; mode: "set" | "edit" }>({ open: false, key: null, mode: "set" });
   const [milestoneDate, setMilestoneDate] = useState<Date | undefined>(undefined);
   const [milestoneNote, setMilestoneNote] = useState("");
   const [failOpen, setFailOpen] = useState(false);
   const [failReason, setFailReason] = useState("");
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
   const [acting, setActing] = useState(false);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id && user) loadData();
   }, [id, user]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   const loadData = async () => {
     const { data: connData } = await supabase
@@ -82,17 +76,15 @@ export default function AgentConnectionDetail() {
     if (!connData) { setLoading(false); return; }
     setConn(connData);
 
-    const [matchRes, buyerProfRes, sellerProfRes, msgRes] = await Promise.all([
+    const [matchRes, buyerProfRes, sellerProfRes] = await Promise.all([
       supabase.from("matches").select("*").eq("id", connData.match_id).single(),
-      supabase.from("profiles").select("*").eq("id", connData.buyer_agent_id).single(),
-      supabase.from("profiles").select("*").eq("id", connData.seller_agent_id).single(),
-      supabase.from("messages").select("*").eq("connection_id", id!).order("created_at", { ascending: true }),
+      supabase.from("profiles").select("*").eq("id", connData.buyer_agent_id).maybeSingle(),
+      supabase.from("profiles").select("*").eq("id", connData.seller_agent_id).maybeSingle(),
     ]);
 
     setMatch(matchRes.data);
     setBuyerProfile(buyerProfRes.data);
     setSellerProfile(sellerProfRes.data);
-    setMessages(msgRes.data ?? []);
 
     if (matchRes.data) {
       const [sellerPropRes, sellerFinRes] = await Promise.all([
@@ -119,22 +111,46 @@ export default function AgentConnectionDetail() {
     setLoading(false);
   };
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !user || !id) return;
-    setSending(true);
-    const { data, error } = await supabase.from("messages").insert({
-      connection_id: id,
-      sender_id: user.id,
-      content: newMessage.trim(),
-    }).select().single();
+  const handleAccept = async () => {
+    if (!conn) return;
+    setActing(true);
+    await supabase.from("exchange_connections").update({
+      status: "accepted",
+      accepted_at: new Date().toISOString(),
+      facilitation_fee_agreed: true,
+    }).eq("id", conn.id);
+    await supabase.from("notifications").insert({
+      user_id: conn.buyer_agent_id,
+      type: "connection_accepted",
+      title: "Connection Accepted",
+      message: "Your connection request has been accepted. You can now view agent details and start messaging.",
+      link_to: `/agent/connections/${conn.id}`,
+    });
+    toast({ title: "Connection accepted!", description: "You can now message the other agent." });
+    setActing(false);
+    loadData();
+  };
 
-    if (!error && data) {
-      setMessages((prev) => [...prev, data]);
-      setNewMessage("");
-    } else {
-      toast({ title: "Error", description: "Failed to send message.", variant: "destructive" });
-    }
-    setSending(false);
+  const handleDecline = async () => {
+    if (!conn) return;
+    setActing(true);
+    await supabase.from("exchange_connections").update({
+      status: "declined",
+      declined_at: new Date().toISOString(),
+      decline_reason: declineReason || null,
+    }).eq("id", conn.id);
+    await supabase.from("notifications").insert({
+      user_id: conn.buyer_agent_id,
+      type: "connection_declined",
+      title: "Connection Declined",
+      message: "Your connection request was declined.",
+      link_to: "/agent/connections",
+    });
+    toast({ title: "Connection declined." });
+    setActing(false);
+    setDeclineOpen(false);
+    setDeclineReason("");
+    loadData();
   };
 
   const openStageDialog = (key: MilestoneKey, mode: "set" | "edit") => {
