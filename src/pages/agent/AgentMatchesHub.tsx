@@ -162,12 +162,19 @@ export default function AgentMatchesHub() {
                     Take action
                   </Button>
                 </div>
+                {/* md-only (768–1023): Deal Room is hidden, so expose drawer trigger */}
+                <div className="hidden md:flex lg:hidden items-center justify-end">
+                  <Button size="sm" onClick={() => setTabletActionOpen(true)}>
+                    Take action
+                  </Button>
+                </div>
                 <PropertyReviewPanel rel={selected} />
               </div>
             ) : (
               <EmptySelection />
             )}
           </div>
+
 
           {/* RIGHT: Deal Room (lg+) */}
           <div className="hidden min-h-0 lg:flex">
