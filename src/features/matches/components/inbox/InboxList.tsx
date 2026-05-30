@@ -140,6 +140,7 @@ export function InboxList({
                   rel={r}
                   selected={r.id === selectedId}
                   onSelect={() => onSelect(r)}
+                  showClientLabel={showClientLabel}
                 />
               </li>
             ))}
