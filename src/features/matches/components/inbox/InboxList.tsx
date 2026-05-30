@@ -16,6 +16,7 @@ interface Props {
   filter: "all" | UiStatus;
   onFilterChange: (f: "all" | UiStatus) => void;
   counts: Record<"all" | UiStatus, number>;
+  showClientLabel?: boolean;
 }
 
 // Primary chips shown inline; remainder go in a "More" popover.
@@ -36,6 +37,7 @@ export function InboxList({
   filter,
   onFilterChange,
   counts,
+  showClientLabel = false,
 }: Props) {
   const primaryTabs = FILTER_TABS.filter((t) => PRIMARY_KEYS.includes(t.key));
   const moreTabs = FILTER_TABS.filter((t) => !PRIMARY_KEYS.includes(t.key));
@@ -138,6 +140,7 @@ export function InboxList({
                   rel={r}
                   selected={r.id === selectedId}
                   onSelect={() => onSelect(r)}
+                  showClientLabel={showClientLabel}
                 />
               </li>
             ))}

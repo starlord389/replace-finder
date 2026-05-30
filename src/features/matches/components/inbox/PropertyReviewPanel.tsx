@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, ExternalLink, FileText, Activity, Info, Settings2 } from "lucide-react";
+import { MapPin, ExternalLink, FileText, Activity, Info, Settings2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,7 @@ import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationsh
 import { currency, scoreDotClass } from "../helpers";
 import { WhyThisMatched } from "./WhyThisMatched";
 import { MatchBreakdownChart } from "./MatchBreakdownChart";
+import { AgentCommsCard } from "./AgentCommsCard";
 import {
   financialMetrics,
   UI_STATUS_CLASS,
@@ -17,15 +18,13 @@ import { propertyImage } from "./propertyImage";
 
 interface Props {
   rel: Relationship;
-  /** Trigger to open the Actions drawer on widths where the right panel is hidden. */
+  /** Open the secondary actions/deal-room drawer. */
   onOpenActions?: () => void;
-  /** Whether the right Deal Room panel is visible (xl+). When false, header shows an Actions button. */
-  hasSideActions?: boolean;
 }
 
-const KEY_METRIC_KEYS = ["noi", "cap", "coc", "dscr", "occupancy", "equity"];
+const KEY_METRIC_KEYS = ["noi", "cap", "coc", "dscr", "occupancy", "equity", "loan", "cashflow"];
 
-export function PropertyReviewPanel({ rel, onOpenActions, hasSideActions }: Props) {
+export function PropertyReviewPanel({ rel, onOpenActions }: Props) {
   const allMetrics = financialMetrics(rel);
   const keyMetrics = KEY_METRIC_KEYS
     .map((k) => allMetrics.find((m) => m.key === k))
@@ -55,7 +54,7 @@ export function PropertyReviewPanel({ rel, onOpenActions, hasSideActions }: Prop
         </span>
       </div>
 
-      {/* Header: title + price + score + primary action */}
+      {/* Header */}
       <div className="shrink-0 border-b border-border px-5 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -67,10 +66,15 @@ export function PropertyReviewPanel({ rel, onOpenActions, hasSideActions }: Prop
               <span className="truncate">
                 {[rel.propertyCity, rel.propertyState].filter(Boolean).join(", ") || "—"}
               </span>
-              {rel.clientName && (
-                <span className="ml-2 shrink-0 truncate">· For {rel.clientName}</span>
-              )}
             </p>
+            {rel.clientName && (
+              <p className="mt-1 flex items-center gap-1 truncate text-xs text-primary/80">
+                <User className="h-3 w-3 shrink-0" />
+                <span className="truncate">
+                  Matched for {rel.clientName}'s 1031 exchange
+                </span>
+              </p>
+            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-3">
@@ -111,12 +115,10 @@ export function PropertyReviewPanel({ rel, onOpenActions, hasSideActions }: Prop
           ) : (
             <span className="text-xs text-muted-foreground">No further action required</span>
           )}
-          {!hasSideActions && (
-            <Button variant="outline" size="sm" onClick={onOpenActions}>
-              <Settings2 className="mr-1 h-3.5 w-3.5" />
-              All actions
-            </Button>
-          )}
+          <Button variant="outline" size="sm" onClick={onOpenActions}>
+            <Settings2 className="mr-1 h-3.5 w-3.5" />
+            All actions
+          </Button>
           <Button asChild variant="ghost" size="sm" className="ml-auto">
             <Link to={`/agent/matches/${rel.matchId}`}>
               Full details <ExternalLink className="ml-1 h-3 w-3" />
@@ -125,9 +127,9 @@ export function PropertyReviewPanel({ rel, onOpenActions, hasSideActions }: Prop
         </div>
       </div>
 
-      {/* Key metrics strip (above the fold) */}
+      {/* Key metrics strip */}
       <div className="shrink-0 border-b border-border px-5 py-3">
-        <div className="grid grid-cols-3 gap-2 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 2xl:grid-cols-8">
           {keyMetrics.map((m) => (
             <div key={m.key} className="rounded-lg border bg-background px-2.5 py-2">
               <div className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -140,15 +142,17 @@ export function PropertyReviewPanel({ rel, onOpenActions, hasSideActions }: Prop
         </div>
       </div>
 
-      {/* Tabs (only the content area scrolls; tabs wrap, no horizontal overflow) */}
+      {/* Tabs */}
       <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col">
         <div className="shrink-0 border-b border-border px-5 pt-3">
           <TabsList className="h-auto flex-wrap justify-start gap-1 bg-transparent p-0">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="financials">Financials</TabsTrigger>
-            <TabsTrigger value="breakdown">Match Breakdown</TabsTrigger>
+            <TabsTrigger value="why">Why This Matched</TabsTrigger>
+            <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="conversation">Conversation</TabsTrigger>
           </TabsList>
         </div>
 
@@ -159,6 +163,10 @@ export function PropertyReviewPanel({ rel, onOpenActions, hasSideActions }: Prop
 
           <TabsContent value="financials" className="m-0 p-5">
             <FinancialGrid metrics={allMetrics} />
+          </TabsContent>
+
+          <TabsContent value="why" className="m-0 p-5">
+            <WhyThisMatched rel={rel} />
           </TabsContent>
 
           <TabsContent value="breakdown" className="m-0 p-5">
@@ -180,6 +188,10 @@ export function PropertyReviewPanel({ rel, onOpenActions, hasSideActions }: Prop
 
           <TabsContent value="activity" className="m-0 p-5">
             <ActivityTimeline rel={rel} />
+          </TabsContent>
+
+          <TabsContent value="conversation" className="m-0 p-5">
+            <AgentCommsCard rel={rel} />
           </TabsContent>
         </div>
       </Tabs>

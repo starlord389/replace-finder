@@ -16,9 +16,10 @@ interface Props {
   selected: boolean;
   onSelect: () => void;
   assetType?: string | null;
+  showClientLabel?: boolean;
 }
 
-export function PropertyMatchCard({ rel, selected, onSelect, assetType }: Props) {
+export function PropertyMatchCard({ rel, selected, onSelect, assetType, showClientLabel = false }: Props) {
   const local = readMatchLocalState(rel.matchId);
   const status = deriveUiStatus(rel, local);
   const action = nextActionsFor(status).primary;
@@ -77,6 +78,11 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType }: Props)
           {[rel.propertyCity, rel.propertyState].filter(Boolean).join(", ") || "—"}
           {assetLabel && <span> · {assetLabel}</span>}
         </p>
+        {showClientLabel && rel.clientName && (
+          <p className="truncate text-[11px] font-medium text-primary/80">
+            Matched for {rel.clientName}
+          </p>
+        )}
 
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
           <span className="font-semibold text-foreground">{currency(rel.askingPrice)}</span>
