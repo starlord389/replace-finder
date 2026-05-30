@@ -28,12 +28,9 @@ import AgentExchanges from "@/pages/agent/AgentExchanges";
 import NewExchange from "@/pages/agent/NewExchange";
 import EditExchange from "@/pages/agent/EditExchange";
 import AgentExchangeDetail from "@/pages/agent/AgentExchangeDetail";
-import AgentMatches from "@/pages/agent/AgentMatches";
-
+import AgentMatchesHub from "@/pages/agent/AgentMatchesHub";
 import AgentMatchDetail from "@/pages/agent/AgentMatchDetail";
-import AgentConnections from "@/pages/agent/AgentConnections";
 import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
-import AgentMessages from "@/pages/agent/AgentMessages";
 import AgentSettings from "@/pages/agent/AgentSettings";
 import AgentHelp from "@/pages/agent/AgentHelp";
 import AgentNotifications from "@/pages/agent/AgentNotifications";
@@ -92,11 +89,12 @@ const App = () => (
               <Route path="/agent/exchanges/:id/edit" element={<EditExchange />} />
               <Route path="/agent/exchanges/:id" element={<AgentExchangeDetail />} />
               <Route path="/agent/properties" element={<Navigate to="/agent/exchanges" replace />} />
-              <Route path="/agent/matches" element={<AgentMatches />} />
+              {/* Unified Matches hub (replaces Matches + Connections + Messages list pages) */}
+              <Route path="/agent/matches" element={<AgentMatchesHub />} />
               <Route path="/agent/matches/:id" element={<AgentMatchDetail />} />
-              <Route path="/agent/connections" element={<AgentConnections />} />
+              <Route path="/agent/connections" element={<Navigate to="/agent/matches?stage=pending" replace />} />
               <Route path="/agent/connections/:id" element={<AgentConnectionDetail />} />
-              <Route path="/agent/messages" element={<AgentMessages />} />
+              <Route path="/agent/messages" element={<Navigate to="/agent/matches?stage=active" replace />} />
               <Route path="/agent/notifications" element={<AgentNotifications />} />
               <Route path="/agent/profile" element={<Navigate to="/agent/settings" replace />} />
               <Route path="/agent/settings" element={<AgentSettings />} />
