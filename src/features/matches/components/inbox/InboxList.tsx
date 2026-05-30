@@ -37,6 +37,7 @@ export function InboxList({
   filter,
   onFilterChange,
   counts,
+  showClientLabel = false,
 }: Props) {
   const primaryTabs = FILTER_TABS.filter((t) => PRIMARY_KEYS.includes(t.key));
   const moreTabs = FILTER_TABS.filter((t) => !PRIMARY_KEYS.includes(t.key));
