@@ -129,7 +129,7 @@ export default function AgentMatchesHub() {
   const showClientLabel = exchangeParam === "all";
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] min-h-0 flex-col gap-3 overflow-hidden">
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden">
       {/* Header */}
       <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>

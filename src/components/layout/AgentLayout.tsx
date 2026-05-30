@@ -26,11 +26,11 @@ export default function AgentLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full overflow-x-hidden">
+      <div className="flex h-screen w-full overflow-hidden">
         <AgentSidebar />
-        <div className="flex flex-1 flex-col min-w-0">
+        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
           <AgentHeader />
-          <main className="flex-1 min-w-0 overflow-x-hidden bg-[#F4F2EE] px-4 py-6 sm:px-6 sm:py-8">
+          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#F4F2EE] px-4 py-6 sm:px-6 sm:py-8">
             <Outlet />
           </main>
         </div>
