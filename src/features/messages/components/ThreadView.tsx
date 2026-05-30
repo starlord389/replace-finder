@@ -16,11 +16,13 @@ interface ThreadViewProps {
   onBack?: () => void;
   headerExtra?: React.ReactNode;
   embedded?: boolean;
+  hideHeader?: boolean;
 }
 
 /**
- * Reusable message thread. Used both standalone (Messages page legacy) and
- * embedded inside the Matches hub Conversation tab.
+ * Reusable message thread. Used both standalone and embedded inside the
+ * Matches hub drawer. Pass `hideHeader` when the parent already shows the
+ * counterparty name (e.g. the drawer header).
  */
 export function ThreadView({
   connectionId,
@@ -29,6 +31,7 @@ export function ThreadView({
   onBack,
   headerExtra,
   embedded = false,
+  hideHeader = false,
 }: ThreadViewProps) {
   const { user } = useAuth();
   const { data: messages = [], isLoading, send } = useMessageThread(connectionId);
@@ -61,25 +64,27 @@ export function ThreadView({
 
   return (
     <div className={cn("flex h-full flex-col", embedded && "min-h-0")}>
-      <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-        <div className="flex min-w-0 items-center gap-3">
-          {onBack && (
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          )}
-          <Avatar className="h-9 w-9 shrink-0">
-            <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
-              {counterpartyName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-foreground">{counterpartyName}</p>
-            {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
+      {!hideHeader && (
+        <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            {onBack && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <Avatar className="h-9 w-9 shrink-0">
+              <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+                {counterpartyName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">{counterpartyName}</p>
+              {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
+            </div>
           </div>
-        </div>
-        {headerExtra}
-      </header>
+          {headerExtra}
+        </header>
+      )}
 
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {isLoading ? (
