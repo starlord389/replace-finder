@@ -292,35 +292,39 @@ export default function AgentConnectionDetail() {
         {clientName}'s exchange · Started {format(new Date(conn.initiated_at), "MMM d, yyyy")}
       </p>
 
-      {/* Agent Contact Cards — revealed only after acceptance */}
+      {/* Pending: accept/decline actions */}
+      {conn.status === "pending" && (
+        <div className="mt-6 rounded-xl border bg-amber-50 border-amber-200 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="font-semibold text-foreground">
+                {conn.seller_agent_id === user!.id ? "Incoming Connection Request" : "Awaiting Response"}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {conn.seller_agent_id === user!.id
+                  ? "Review the match and respond to the requesting agent."
+                  : "The other agent will be notified. You'll see their response here."}
+              </p>
+            </div>
+            {conn.seller_agent_id === user!.id && (
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleAccept} disabled={acting}>
+                  <CheckCircle className="mr-1.5 h-3.5 w-3.5" />Accept
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setDeclineOpen(true)} disabled={acting}>
+                  <XCircle className="mr-1.5 h-3.5 w-3.5" />Decline
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Agent Profile Cards — revealed only after acceptance */}
       {revealed && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {[{ label: "Buyer Agent", profile: buyerProfile }, { label: "Seller Agent", profile: sellerProfile }].map(({ label, profile }) => (
-            <div key={label} className="rounded-xl border bg-card p-5">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{label}</h3>
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium text-foreground">{profile?.full_name || "—"}</span>
-                </div>
-                {profile?.brokerage_name && (
-                  <p className="text-sm text-muted-foreground pl-6">{profile.brokerage_name}</p>
-                )}
-                {profile?.email && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <a href={`mailto:${profile.email}`} className="text-primary hover:underline">{profile.email}</a>
-                  </div>
-                )}
-                {profile?.phone && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    <a href={`tel:${profile.phone}`} className="text-primary hover:underline">{profile.phone}</a>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+          <AgentProfileCard label="Buyer Agent" profile={buyerProfile} />
+          <AgentProfileCard label="Seller Agent" profile={sellerProfile} />
         </div>
       )}
 
@@ -424,50 +428,46 @@ export default function AgentConnectionDetail() {
         )}
       </div>
 
-      {/* Messaging Section */}
+      {/* Conversation link — replaces inline chat */}
       {revealed && (
-        <div className="mt-6 rounded-xl border bg-card">
-          <div className="border-b px-5 py-3">
-            <h3 className="font-semibold text-foreground">Messages</h3>
-          </div>
-          <div className="max-h-80 overflow-y-auto p-5 space-y-3">
-            {messages.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">No messages yet. Start the conversation!</p>
-            )}
-            {messages.map((msg) => {
-              const isMe = msg.sender_id === user!.id;
-              const senderName = msg.sender_id === conn.buyer_agent_id
-                ? buyerProfile?.full_name
-                : sellerProfile?.full_name;
-              return (
-                <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[75%] rounded-lg px-3 py-2 ${isMe ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                    <p className={`text-xs font-medium ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{senderName || "Agent"}</p>
-                    <p className="text-sm mt-0.5">{msg.content}</p>
-                    <p className={`text-[10px] mt-1 ${isMe ? "text-primary-foreground/50" : "text-muted-foreground/60"}`}>
-                      {format(new Date(msg.created_at), "MMM d, h:mm a")}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-          <div className="border-t p-3 flex gap-2">
-            <Textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
-              rows={1}
-              className="min-h-[40px] resize-none"
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-            />
-            <Button size="icon" onClick={handleSendMessage} disabled={!newMessage.trim() || sending}>
-              <Send className="h-4 w-4" />
+        <div className="mt-6 rounded-xl border bg-card p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="font-semibold text-foreground">Messages</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Chat with the other agent in the full messages view.
+              </p>
+            </div>
+            <Button asChild>
+              <Link to={`/agent/messages?connection=${conn.id}`}>
+                <MessageSquare className="mr-1.5 h-4 w-4" /> Open conversation
+              </Link>
             </Button>
           </div>
         </div>
       )}
+
+      {/* Decline Dialog */}
+      <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Decline Connection</DialogTitle>
+            <DialogDescription>Optionally provide a reason for declining.</DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={declineReason}
+            onChange={(e) => setDeclineReason(e.target.value)}
+            placeholder="Reason (optional)..."
+            rows={3}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeclineOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDecline} disabled={acting}>
+              {acting ? "Declining..." : "Decline"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Stage Edit Dialog */}
       <Dialog open={stageDialog.open} onOpenChange={(o) => { if (!o) closeStageDialog(); }}>
