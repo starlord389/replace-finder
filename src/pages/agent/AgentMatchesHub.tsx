@@ -133,7 +133,7 @@ export default function AgentMatchesHub() {
       ) : rels.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-[minmax(320px,28%)_1fr] xl:grid-cols-[minmax(320px,28%)_minmax(0,1fr)_minmax(340px,28%)]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-[minmax(300px,26%)_1fr] lg:grid-cols-[minmax(300px,24%)_minmax(0,1fr)_minmax(320px,26%)]">
           {/* LEFT: Inbox */}
           <div className={mobileDetailOpen ? "hidden md:flex md:min-h-0" : "flex min-h-0"}>
             <div className="flex w-full min-h-0">
@@ -158,8 +158,12 @@ export default function AgentMatchesHub() {
                   <Button variant="ghost" size="sm" onClick={() => setMobileDetailOpen(false)}>
                     ← Back to inbox
                   </Button>
+                  <Button size="sm" onClick={() => setTabletActionOpen(true)}>
+                    Take action
+                  </Button>
                 </div>
-                <div className="hidden items-center justify-end md:flex xl:hidden">
+                {/* md-only (768–1023): Deal Room is hidden, so expose drawer trigger */}
+                <div className="hidden md:flex lg:hidden items-center justify-end">
                   <Button size="sm" onClick={() => setTabletActionOpen(true)}>
                     Take action
                   </Button>
@@ -171,11 +175,13 @@ export default function AgentMatchesHub() {
             )}
           </div>
 
-          {/* RIGHT: Deal Room */}
-          <div className="hidden min-h-0 xl:flex">
+
+          {/* RIGHT: Deal Room (lg+) */}
+          <div className="hidden min-h-0 lg:flex">
             {selected ? <DealRoomPanel rel={selected} /> : null}
           </div>
         </div>
+
       )}
 
       {/* Tablet / Mobile Deal Room drawer */}

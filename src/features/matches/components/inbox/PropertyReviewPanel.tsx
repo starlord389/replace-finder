@@ -96,13 +96,16 @@ export function PropertyReviewPanel({ rel }: Props) {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="flex flex-1 flex-col">
-        <TabsList className="mx-5 mt-4 w-fit">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="financials">Financials</TabsTrigger>
-          <TabsTrigger value="breakdown">Match Breakdown</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto px-5 pt-4">
+          <TabsList className="w-fit">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="financials">Financials</TabsTrigger>
+            <TabsTrigger value="breakdown">Match Breakdown</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+          </TabsList>
+        </div>
+
 
         <TabsContent value="overview" className="space-y-4 p-5 pt-4">
           <WhyThisMatched rel={rel} />
