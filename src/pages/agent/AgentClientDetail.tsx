@@ -264,7 +264,7 @@ export default function AgentClientDetail() {
                 </div>
               )}
               <Button variant="outline" size="sm" className="mt-3" asChild>
-                <Link to="/agent/exchanges/new">New Exchange for This Client</Link>
+                <Link to={`/agent/exchanges/new?client=${id}`}>New Exchange for This Client</Link>
               </Button>
             </CardContent>
           </Card>
@@ -277,14 +277,56 @@ export default function AgentClientDetail() {
               </CardHeader>
               <CardContent>
                 <p className="mb-3 text-sm text-muted-foreground">
-                  Invite {name} to create an account so they can view their exchange progress.
+                  {invite && invite.status === "pending"
+                    ? `An invite has been generated for ${name}. Share the link below so they can create their account.`
+                    : `Invite ${name} to create an account so they can view their exchange progress.`}
                 </p>
-                <Button variant="outline" onClick={() => toast.info("Client invitations coming soon")}>
-                  <Send className="mr-2 h-4 w-4" /> Invite {name}
-                </Button>
+                {invite && invite.status === "pending" ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input readOnly value={inviteUrl} className="font-mono text-xs" />
+                      <Button variant="outline" size="icon" onClick={handleCopyInvite}>
+                        {copied ? <CheckIcon className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Expires {new Date(invite.expires_at).toLocaleDateString()}.
+                    </p>
+                    <Button variant="ghost" size="sm" onClick={handleCreateInvite} disabled={creatingInvite}>
+                      {creatingInvite ? "Generating…" : "Regenerate link"}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" onClick={handleCreateInvite} disabled={creatingInvite || !email.trim()}>
+                    <Send className="mr-2 h-4 w-4" />
+                    {creatingInvite ? "Generating…" : `Invite ${name}`}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
+
+          {/* Invite-generated dialog */}
+          <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite ready for {name}</DialogTitle>
+                <DialogDescription>
+                  Copy the link below and send it to {email}. They can use it to create their account and view this exchange.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center gap-2">
+                <Input readOnly value={inviteUrl} className="font-mono text-xs" />
+                <Button variant="outline" size="icon" onClick={handleCopyInvite}>
+                  {copied ? <CheckIcon className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => setInviteOpen(false)}>Done</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
 
           {/* Deactivate */}
           {status === "active" && (
