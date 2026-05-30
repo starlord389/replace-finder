@@ -17,6 +17,8 @@ interface ThreadViewProps {
   headerExtra?: React.ReactNode;
   embedded?: boolean;
   hideHeader?: boolean;
+  /** Optional text to prefill the composer (e.g. quick-message buttons). */
+  initialDraft?: string;
 }
 
 /**
@@ -32,13 +34,18 @@ export function ThreadView({
   headerExtra,
   embedded = false,
   hideHeader = false,
+  initialDraft,
 }: ThreadViewProps) {
   const { user } = useAuth();
   const { data: messages = [], isLoading, send } = useMessageThread(connectionId);
   useMarkRead(connectionId);
 
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(initialDraft ?? "");
   const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (initialDraft != null) setDraft(initialDraft);
+  }, [initialDraft]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
