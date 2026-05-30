@@ -124,7 +124,6 @@ export default function AgentMatchesHub() {
     next.set("id", rel.id);
     setSearchParams(next);
     setMobileDetailOpen(true);
-    setMobileInboxOpen(false);
   }
 
   const showClientLabel = exchangeParam === "all";
