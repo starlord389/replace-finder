@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Send, UserMinus } from "lucide-react";
+import { ArrowLeft, Send, UserMinus, Copy, Check as CheckIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,17 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+
+interface ClientInvite {
+  id: string;
+  token: string;
+  status: string;
+  expires_at: string;
+  accepted_at: string | null;
+}
 
 interface Exchange {
   id: string;
@@ -38,6 +49,10 @@ export default function AgentClientDetail() {
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [invite, setInvite] = useState<ClientInvite | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [creatingInvite, setCreatingInvite] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (isNew || !user) return;
@@ -63,17 +78,71 @@ export default function AgentClientDetail() {
       setClientUserId(data.client_user_id);
       setStatus(data.status);
 
-      const { data: exs } = await supabase
-        .from("exchanges")
-        .select("id, status, created_at")
-        .eq("client_id", id)
-        .order("created_at", { ascending: false });
+      const [{ data: exs }, { data: inviteRows }] = await Promise.all([
+        supabase
+          .from("exchanges")
+          .select("id, status, created_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("client_invites")
+          .select("id, token, status, expires_at, accepted_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false })
+          .limit(1),
+      ]);
 
       setExchanges(exs ?? []);
+      setInvite(inviteRows?.[0] ?? null);
       setLoading(false);
     };
     fetch();
   }, [id, user]);
+
+  const generateToken = () => {
+    const arr = new Uint8Array(24);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
+  };
+
+  const handleCreateInvite = async () => {
+    if (!user || !id || !email.trim()) {
+      toast.error("Add an email for this client before inviting them.");
+      return;
+    }
+    setCreatingInvite(true);
+    const token = generateToken();
+    const { data, error } = await supabase
+      .from("client_invites")
+      .insert({
+        client_id: id,
+        agent_id: user.id,
+        email: email.trim(),
+        token,
+        status: "pending",
+      })
+      .select("id, token, status, expires_at, accepted_at")
+      .single();
+    setCreatingInvite(false);
+    if (error || !data) {
+      toast.error("Failed to create invite: " + (error?.message || "Unknown error"));
+      return;
+    }
+    setInvite(data);
+    setInviteOpen(true);
+  };
+
+  const inviteUrl = invite
+    ? `${window.location.origin}/auth/accept-invite?token=${invite.token}`
+    : "";
+
+  const handleCopyInvite = async () => {
+    if (!inviteUrl) return;
+    await navigator.clipboard.writeText(inviteUrl);
+    setCopied(true);
+    toast.success("Invite link copied");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,7 +264,7 @@ export default function AgentClientDetail() {
                 </div>
               )}
               <Button variant="outline" size="sm" className="mt-3" asChild>
-                <Link to="/agent/exchanges/new">New Exchange for This Client</Link>
+                <Link to={`/agent/exchanges/new?client=${id}`}>New Exchange for This Client</Link>
               </Button>
             </CardContent>
           </Card>
@@ -208,14 +277,56 @@ export default function AgentClientDetail() {
               </CardHeader>
               <CardContent>
                 <p className="mb-3 text-sm text-muted-foreground">
-                  Invite {name} to create an account so they can view their exchange progress.
+                  {invite && invite.status === "pending"
+                    ? `An invite has been generated for ${name}. Share the link below so they can create their account.`
+                    : `Invite ${name} to create an account so they can view their exchange progress.`}
                 </p>
-                <Button variant="outline" onClick={() => toast.info("Client invitations coming soon")}>
-                  <Send className="mr-2 h-4 w-4" /> Invite {name}
-                </Button>
+                {invite && invite.status === "pending" ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input readOnly value={inviteUrl} className="font-mono text-xs" />
+                      <Button variant="outline" size="icon" onClick={handleCopyInvite}>
+                        {copied ? <CheckIcon className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Expires {new Date(invite.expires_at).toLocaleDateString()}.
+                    </p>
+                    <Button variant="ghost" size="sm" onClick={handleCreateInvite} disabled={creatingInvite}>
+                      {creatingInvite ? "Generating…" : "Regenerate link"}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" onClick={handleCreateInvite} disabled={creatingInvite || !email.trim()}>
+                    <Send className="mr-2 h-4 w-4" />
+                    {creatingInvite ? "Generating…" : `Invite ${name}`}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
+
+          {/* Invite-generated dialog */}
+          <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite ready for {name}</DialogTitle>
+                <DialogDescription>
+                  Copy the link below and send it to {email}. They can use it to create their account and view this exchange.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center gap-2">
+                <Input readOnly value={inviteUrl} className="font-mono text-xs" />
+                <Button variant="outline" size="icon" onClick={handleCopyInvite}>
+                  {copied ? <CheckIcon className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => setInviteOpen(false)}>Done</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
 
           {/* Deactivate */}
           {status === "active" && (

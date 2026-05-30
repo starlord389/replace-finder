@@ -298,9 +298,10 @@ export default function AgentMatches() {
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {sellerMatches.map((match) => (
-              <div
+              <Link
                 key={match.id}
-                className="rounded-xl border bg-card p-4 transition-all hover:shadow-md"
+                to={`/agent/matches/${match.id}`}
+                className="block rounded-xl border bg-card p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
               >
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-foreground">
@@ -316,7 +317,7 @@ export default function AgentMatches() {
                 <Badge className={`mt-2 ${BOOT_STATUS_COLORS[match.boot_status] || "bg-muted text-muted-foreground"}`}>
                   {BOOT_STATUS_LABELS[match.boot_status] || match.boot_status}
                 </Badge>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

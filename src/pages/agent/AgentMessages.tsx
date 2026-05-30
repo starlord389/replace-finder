@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, KeyboardEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare, Search, Send, ArrowLeft, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,7 +18,9 @@ export default function AgentMessages() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const { data: conversations = [], isLoading } = useConversations();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const connectionParam = searchParams.get("connection");
+  const [selectedId, setSelectedId] = useState<string | null>(connectionParam);
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -31,12 +33,19 @@ export default function AgentMessages() {
     );
   }, [conversations, search]);
 
-  // Auto-select first conversation on desktop
+  // Auto-select from ?connection= param (if it matches a real convo), then fall back to first on desktop
   useEffect(() => {
+    if (connectionParam && conversations.some((c) => c.connectionId === connectionParam)) {
+      setSelectedId(connectionParam);
+      // Clear the param after we've consumed it so back navigation feels natural
+      searchParams.delete("connection");
+      setSearchParams(searchParams, { replace: true });
+      return;
+    }
     if (!isMobile && !selectedId && filtered.length > 0) {
       setSelectedId(filtered[0].connectionId);
     }
-  }, [isMobile, selectedId, filtered]);
+  }, [isMobile, selectedId, filtered, connectionParam, conversations, searchParams, setSearchParams]);
 
   const selected = conversations.find((c) => c.connectionId === selectedId) ?? null;
 
