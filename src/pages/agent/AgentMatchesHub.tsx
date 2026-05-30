@@ -29,6 +29,17 @@ export default function AgentMatchesHub() {
   const [search, setSearch] = useState("");
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [tabletActionOpen, setTabletActionOpen] = useState(false);
+  const [isXl, setIsXl] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1280px)").matches : false,
+  );
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 1280px)");
+    const handler = (e: MediaQueryListEvent) => setIsXl(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
 
   const rawFilter = searchParams.get("filter") ?? searchParams.get("stage") ?? "all";
   const filter = (LEGACY_FILTER_MAP[rawFilter] ?? (rawFilter as UiStatus | "all")) as "all" | UiStatus;
@@ -133,7 +144,7 @@ export default function AgentMatchesHub() {
       ) : rels.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-[360px_minmax(0,1fr)] lg:grid-cols-[380px_minmax(0,1fr)_360px]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 md:grid-cols-[340px_minmax(640px,1fr)] xl:grid-cols-[340px_minmax(640px,1fr)_320px] 2xl:grid-cols-[380px_minmax(640px,1fr)_340px]">
           {/* LEFT: Inbox */}
           <div
             className={
@@ -168,18 +179,13 @@ export default function AgentMatchesHub() {
                   <Button variant="ghost" size="sm" onClick={() => setMobileDetailOpen(false)}>
                     ← Back to inbox
                   </Button>
-                  <Button size="sm" onClick={() => setTabletActionOpen(true)}>
-                    Take action
-                  </Button>
-                </div>
-                {/* md-only (768–1023): Deal Room is hidden, so expose drawer trigger */}
-                <div className="hidden shrink-0 items-center justify-end md:flex lg:hidden">
-                  <Button size="sm" onClick={() => setTabletActionOpen(true)}>
-                    Take action
-                  </Button>
                 </div>
                 <div className="min-h-0 flex-1">
-                  <PropertyReviewPanel rel={selected} />
+                  <PropertyReviewPanel
+                    rel={selected}
+                    onOpenActions={() => setTabletActionOpen(true)}
+                    hasSideActions={isXl}
+                  />
                 </div>
               </>
             ) : (
@@ -187,16 +193,16 @@ export default function AgentMatchesHub() {
             )}
           </div>
 
-          {/* RIGHT: Deal Room (lg+) */}
-          <div className="hidden min-h-0 min-w-0 lg:flex">
+          {/* RIGHT: Deal Room (xl+ only — keeps center ≥ 640px) */}
+          <div className="hidden min-h-0 min-w-0 xl:flex">
             {selected ? <DealRoomPanel rel={selected} /> : null}
           </div>
         </div>
       )}
 
-      {/* Tablet / Mobile Deal Room drawer */}
+      {/* Tablet / Medium-desktop Deal Room drawer */}
       <Sheet open={tabletActionOpen && !!selected} onOpenChange={setTabletActionOpen}>
-        <SheetContent side="right" className="w-full overflow-y-auto p-4 sm:max-w-md">
+        <SheetContent side="right" className="w-full overflow-y-auto p-3 sm:max-w-sm">
           {selected && <DealRoomPanel rel={selected} />}
         </SheetContent>
       </Sheet>
@@ -209,6 +215,8 @@ export default function AgentMatchesHub() {
           </Button>
         </div>
       )}
+
+
     </div>
   );
 }

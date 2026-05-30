@@ -1,5 +1,7 @@
-import { Search } from "lucide-react";
+import { Search, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { PropertyMatchCard } from "./PropertyMatchCard";
@@ -16,6 +18,15 @@ interface Props {
   counts: Record<"all" | UiStatus, number>;
 }
 
+// Primary chips shown inline; remainder go in a "More" popover.
+const PRIMARY_KEYS: Array<"all" | UiStatus> = [
+  "all",
+  "new",
+  "client_interested",
+  "agent_connected",
+  "closed",
+];
+
 export function InboxList({
   rels,
   selectedId,
@@ -26,25 +37,29 @@ export function InboxList({
   onFilterChange,
   counts,
 }: Props) {
+  const primaryTabs = FILTER_TABS.filter((t) => PRIMARY_KEYS.includes(t.key));
+  const moreTabs = FILTER_TABS.filter((t) => !PRIMARY_KEYS.includes(t.key));
+  const moreActive = moreTabs.some((t) => t.key === filter);
+
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border bg-card">
       {/* Search */}
-      <div className="border-b border-border p-3">
+      <div className="shrink-0 border-b border-border p-3">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search property, city, client, agent…"
+            placeholder="Search property, city, client…"
             className="h-9 pl-8 text-sm"
           />
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="border-b border-border">
-        <div className="flex gap-0.5 overflow-x-auto px-2 py-2 scrollbar-thin">
-          {FILTER_TABS.map((t) => {
+      {/* Filter chips (wrap, no horizontal scroll) */}
+      <div className="shrink-0 border-b border-border px-2 py-2">
+        <div className="flex flex-wrap items-center gap-1">
+          {primaryTabs.map((t) => {
             const count = counts[t.key] ?? 0;
             const active = filter === t.key;
             return (
@@ -53,7 +68,7 @@ export function InboxList({
                 type="button"
                 onClick={() => onFilterChange(t.key)}
                 className={cn(
-                  "shrink-0 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  "rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors",
                   active
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -66,6 +81,43 @@ export function InboxList({
               </button>
             );
           })}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
+                  moreActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <MoreHorizontal className="h-3 w-3" />
+                More
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-48 p-1">
+              {moreTabs.map((t) => {
+                const count = counts[t.key] ?? 0;
+                const active = filter === t.key;
+                return (
+                  <Button
+                    key={t.key}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onFilterChange(t.key)}
+                    className={cn(
+                      "w-full justify-between text-xs",
+                      active && "bg-muted text-foreground",
+                    )}
+                  >
+                    <span>{t.label}</span>
+                    <span className="text-[10px] text-muted-foreground">{count}</span>
+                  </Button>
+                );
+              })}
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
