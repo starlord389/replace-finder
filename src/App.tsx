@@ -37,7 +37,7 @@ import AgentMessages from "@/pages/agent/AgentMessages";
 import AgentSettings from "@/pages/agent/AgentSettings";
 import AgentHelp from "@/pages/agent/AgentHelp";
 import AgentNotifications from "@/pages/agent/AgentNotifications";
-import AgentProfile from "@/pages/agent/AgentProfile";
+
 import AcceptInvite from "@/pages/auth/AcceptInvite";
 import NotFound from "@/pages/NotFound";
 
@@ -98,7 +98,7 @@ const App = () => (
               <Route path="/agent/connections/:id" element={<AgentConnectionDetail />} />
               <Route path="/agent/messages" element={<AgentMessages />} />
               <Route path="/agent/notifications" element={<AgentNotifications />} />
-              <Route path="/agent/profile" element={<AgentProfile />} />
+              <Route path="/agent/profile" element={<Navigate to="/agent/settings" replace />} />
               <Route path="/agent/settings" element={<AgentSettings />} />
               <Route path="/agent/help" element={<AgentHelp />} />
             </Route>
