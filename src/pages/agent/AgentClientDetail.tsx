@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Send, UserMinus } from "lucide-react";
+import { ArrowLeft, Send, UserMinus, Copy, Check as CheckIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,17 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+
+interface ClientInvite {
+  id: string;
+  token: string;
+  status: string;
+  expires_at: string;
+  accepted_at: string | null;
+}
 
 interface Exchange {
   id: string;
@@ -38,6 +49,10 @@ export default function AgentClientDetail() {
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [invite, setInvite] = useState<ClientInvite | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [creatingInvite, setCreatingInvite] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (isNew || !user) return;
