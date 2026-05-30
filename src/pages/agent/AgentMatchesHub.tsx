@@ -205,30 +205,7 @@ export default function AgentMatchesHub() {
         </div>
       )}
 
-          </div>
 
-          {/* RIGHT: Deal Room (lg+) */}
-          <div className="hidden min-h-0 min-w-0 lg:flex">
-            {selected ? <DealRoomPanel rel={selected} /> : null}
-          </div>
-        </div>
-      )}
-
-      {/* Tablet / Mobile Deal Room drawer */}
-      <Sheet open={tabletActionOpen && !!selected} onOpenChange={setTabletActionOpen}>
-        <SheetContent side="right" className="w-full overflow-y-auto p-4 sm:max-w-md">
-          {selected && <DealRoomPanel rel={selected} />}
-        </SheetContent>
-      </Sheet>
-
-      {/* Mobile sticky action bar */}
-      {selected && mobileDetailOpen && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card p-3 shadow-lg md:hidden">
-          <Button className="w-full" onClick={() => setTabletActionOpen(true)}>
-            Take action
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
