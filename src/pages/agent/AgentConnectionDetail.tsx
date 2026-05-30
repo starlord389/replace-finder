@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -14,10 +14,11 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  ArrowLeft, User, Mail, Phone, Send, CalendarIcon, AlertTriangle, CheckCircle2, Circle, Pencil, X,
+  ArrowLeft, MessageSquare, CalendarIcon, AlertTriangle, CheckCircle2, Circle, Pencil, X, CheckCircle, XCircle,
 } from "lucide-react";
 import { BOOT_STATUS_LABELS, BOOT_STATUS_COLORS } from "@/lib/constants";
 import { format } from "date-fns";
+import { AgentProfileCard } from "@/components/profile/AgentProfileCard";
 
 const fmt = (v: number | null | undefined) =>
   v != null && v !== 0 ? `$${Math.round(Number(v)).toLocaleString()}` : "—";
@@ -54,27 +55,20 @@ export default function AgentConnectionDetail() {
   const [buyerProfile, setBuyerProfile] = useState<any>(null);
   const [sellerProfile, setSellerProfile] = useState<any>(null);
   const [clientName, setClientName] = useState("");
-  const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [newMessage, setNewMessage] = useState("");
-  const [sending, setSending] = useState(false);
   const [stageDialog, setStageDialog] = useState<{ open: boolean; key: MilestoneKey | null; mode: "set" | "edit" }>({ open: false, key: null, mode: "set" });
   const [milestoneDate, setMilestoneDate] = useState<Date | undefined>(undefined);
   const [milestoneNote, setMilestoneNote] = useState("");
   const [failOpen, setFailOpen] = useState(false);
   const [failReason, setFailReason] = useState("");
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
   const [acting, setActing] = useState(false);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id && user) loadData();
   }, [id, user]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   const loadData = async () => {
     const { data: connData } = await supabase
@@ -82,17 +76,15 @@ export default function AgentConnectionDetail() {
     if (!connData) { setLoading(false); return; }
     setConn(connData);
 
-    const [matchRes, buyerProfRes, sellerProfRes, msgRes] = await Promise.all([
+    const [matchRes, buyerProfRes, sellerProfRes] = await Promise.all([
       supabase.from("matches").select("*").eq("id", connData.match_id).single(),
-      supabase.from("profiles").select("*").eq("id", connData.buyer_agent_id).single(),
-      supabase.from("profiles").select("*").eq("id", connData.seller_agent_id).single(),
-      supabase.from("messages").select("*").eq("connection_id", id!).order("created_at", { ascending: true }),
+      supabase.from("profiles").select("*").eq("id", connData.buyer_agent_id).maybeSingle(),
+      supabase.from("profiles").select("*").eq("id", connData.seller_agent_id).maybeSingle(),
     ]);
 
     setMatch(matchRes.data);
     setBuyerProfile(buyerProfRes.data);
     setSellerProfile(sellerProfRes.data);
-    setMessages(msgRes.data ?? []);
 
     if (matchRes.data) {
       const [sellerPropRes, sellerFinRes] = await Promise.all([
@@ -119,22 +111,46 @@ export default function AgentConnectionDetail() {
     setLoading(false);
   };
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !user || !id) return;
-    setSending(true);
-    const { data, error } = await supabase.from("messages").insert({
-      connection_id: id,
-      sender_id: user.id,
-      content: newMessage.trim(),
-    }).select().single();
+  const handleAccept = async () => {
+    if (!conn) return;
+    setActing(true);
+    await supabase.from("exchange_connections").update({
+      status: "accepted",
+      accepted_at: new Date().toISOString(),
+      facilitation_fee_agreed: true,
+    }).eq("id", conn.id);
+    await supabase.from("notifications").insert({
+      user_id: conn.buyer_agent_id,
+      type: "connection_accepted",
+      title: "Connection Accepted",
+      message: "Your connection request has been accepted. You can now view agent details and start messaging.",
+      link_to: `/agent/connections/${conn.id}`,
+    });
+    toast({ title: "Connection accepted!", description: "You can now message the other agent." });
+    setActing(false);
+    loadData();
+  };
 
-    if (!error && data) {
-      setMessages((prev) => [...prev, data]);
-      setNewMessage("");
-    } else {
-      toast({ title: "Error", description: "Failed to send message.", variant: "destructive" });
-    }
-    setSending(false);
+  const handleDecline = async () => {
+    if (!conn) return;
+    setActing(true);
+    await supabase.from("exchange_connections").update({
+      status: "declined",
+      declined_at: new Date().toISOString(),
+      decline_reason: declineReason || null,
+    }).eq("id", conn.id);
+    await supabase.from("notifications").insert({
+      user_id: conn.buyer_agent_id,
+      type: "connection_declined",
+      title: "Connection Declined",
+      message: "Your connection request was declined.",
+      link_to: "/agent/connections",
+    });
+    toast({ title: "Connection declined." });
+    setActing(false);
+    setDeclineOpen(false);
+    setDeclineReason("");
+    loadData();
   };
 
   const openStageDialog = (key: MilestoneKey, mode: "set" | "edit") => {
@@ -276,35 +292,39 @@ export default function AgentConnectionDetail() {
         {clientName}'s exchange · Started {format(new Date(conn.initiated_at), "MMM d, yyyy")}
       </p>
 
-      {/* Agent Contact Cards — revealed only after acceptance */}
+      {/* Pending: accept/decline actions */}
+      {conn.status === "pending" && (
+        <div className="mt-6 rounded-xl border bg-amber-50 border-amber-200 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="font-semibold text-foreground">
+                {conn.seller_agent_id === user!.id ? "Incoming Connection Request" : "Awaiting Response"}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {conn.seller_agent_id === user!.id
+                  ? "Review the match and respond to the requesting agent."
+                  : "The other agent will be notified. You'll see their response here."}
+              </p>
+            </div>
+            {conn.seller_agent_id === user!.id && (
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleAccept} disabled={acting}>
+                  <CheckCircle className="mr-1.5 h-3.5 w-3.5" />Accept
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setDeclineOpen(true)} disabled={acting}>
+                  <XCircle className="mr-1.5 h-3.5 w-3.5" />Decline
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Agent Profile Cards — revealed only after acceptance */}
       {revealed && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {[{ label: "Buyer Agent", profile: buyerProfile }, { label: "Seller Agent", profile: sellerProfile }].map(({ label, profile }) => (
-            <div key={label} className="rounded-xl border bg-card p-5">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{label}</h3>
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium text-foreground">{profile?.full_name || "—"}</span>
-                </div>
-                {profile?.brokerage_name && (
-                  <p className="text-sm text-muted-foreground pl-6">{profile.brokerage_name}</p>
-                )}
-                {profile?.email && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <a href={`mailto:${profile.email}`} className="text-primary hover:underline">{profile.email}</a>
-                  </div>
-                )}
-                {profile?.phone && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    <a href={`tel:${profile.phone}`} className="text-primary hover:underline">{profile.phone}</a>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+          <AgentProfileCard label="Buyer Agent" profile={buyerProfile} />
+          <AgentProfileCard label="Seller Agent" profile={sellerProfile} />
         </div>
       )}
 
@@ -408,50 +428,46 @@ export default function AgentConnectionDetail() {
         )}
       </div>
 
-      {/* Messaging Section */}
+      {/* Conversation link — replaces inline chat */}
       {revealed && (
-        <div className="mt-6 rounded-xl border bg-card">
-          <div className="border-b px-5 py-3">
-            <h3 className="font-semibold text-foreground">Messages</h3>
-          </div>
-          <div className="max-h-80 overflow-y-auto p-5 space-y-3">
-            {messages.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">No messages yet. Start the conversation!</p>
-            )}
-            {messages.map((msg) => {
-              const isMe = msg.sender_id === user!.id;
-              const senderName = msg.sender_id === conn.buyer_agent_id
-                ? buyerProfile?.full_name
-                : sellerProfile?.full_name;
-              return (
-                <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[75%] rounded-lg px-3 py-2 ${isMe ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                    <p className={`text-xs font-medium ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{senderName || "Agent"}</p>
-                    <p className="text-sm mt-0.5">{msg.content}</p>
-                    <p className={`text-[10px] mt-1 ${isMe ? "text-primary-foreground/50" : "text-muted-foreground/60"}`}>
-                      {format(new Date(msg.created_at), "MMM d, h:mm a")}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-          <div className="border-t p-3 flex gap-2">
-            <Textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
-              rows={1}
-              className="min-h-[40px] resize-none"
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-            />
-            <Button size="icon" onClick={handleSendMessage} disabled={!newMessage.trim() || sending}>
-              <Send className="h-4 w-4" />
+        <div className="mt-6 rounded-xl border bg-card p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="font-semibold text-foreground">Messages</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Chat with the other agent in the full messages view.
+              </p>
+            </div>
+            <Button asChild>
+              <Link to={`/agent/messages?connection=${conn.id}`}>
+                <MessageSquare className="mr-1.5 h-4 w-4" /> Open conversation
+              </Link>
             </Button>
           </div>
         </div>
       )}
+
+      {/* Decline Dialog */}
+      <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Decline Connection</DialogTitle>
+            <DialogDescription>Optionally provide a reason for declining.</DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={declineReason}
+            onChange={(e) => setDeclineReason(e.target.value)}
+            placeholder="Reason (optional)..."
+            rows={3}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeclineOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDecline} disabled={acting}>
+              {acting ? "Declining..." : "Decline"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Stage Edit Dialog */}
       <Dialog open={stageDialog.open} onOpenChange={(o) => { if (!o) closeStageDialog(); }}>

@@ -62,6 +62,48 @@ export type Database = {
         }
         Relationships: []
       }
+      client_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_user_id: string | null
+          agent_id: string
+          client_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_user_id?: string | null
+          agent_id: string
+          client_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          status?: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_user_id?: string | null
+          agent_id?: string
+          client_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string
@@ -707,6 +749,7 @@ export type Database = {
           id: string
           launchpad_completed_at: string | null
           launchpad_version: string | null
+          license_number: string | null
           license_state: string | null
           mls_number: string | null
           phone: string | null
@@ -729,6 +772,7 @@ export type Database = {
           id: string
           launchpad_completed_at?: string | null
           launchpad_version?: string | null
+          license_number?: string | null
           license_state?: string | null
           mls_number?: string | null
           phone?: string | null
@@ -751,6 +795,7 @@ export type Database = {
           id?: string
           launchpad_completed_at?: string | null
           launchpad_version?: string | null
+          license_number?: string | null
           license_state?: string | null
           mls_number?: string | null
           phone?: string | null
@@ -1227,6 +1272,10 @@ export type Database = {
       }
       is_exchange_agent: {
         Args: { _exchange_id: string; _user_id: string }
+        Returns: boolean
+      }
+      users_share_active_connection: {
+        Args: { _user_a: string; _user_b: string }
         Returns: boolean
       }
     }

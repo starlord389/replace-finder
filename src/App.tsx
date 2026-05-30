@@ -36,6 +36,9 @@ import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
 import AgentMessages from "@/pages/agent/AgentMessages";
 import AgentSettings from "@/pages/agent/AgentSettings";
 import AgentHelp from "@/pages/agent/AgentHelp";
+import AgentNotifications from "@/pages/agent/AgentNotifications";
+import AgentProfile from "@/pages/agent/AgentProfile";
+import AcceptInvite from "@/pages/auth/AcceptInvite";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -74,6 +77,7 @@ const App = () => (
 
             {/* Auth callback — handles email-confirmation redirect, routes to dashboard */}
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/accept-invite" element={<AcceptInvite />} />
 
             {/* Agent (agent role required) */}
             <Route element={<AgentLayout />}>
@@ -93,6 +97,8 @@ const App = () => (
               <Route path="/agent/connections" element={<AgentConnections />} />
               <Route path="/agent/connections/:id" element={<AgentConnectionDetail />} />
               <Route path="/agent/messages" element={<AgentMessages />} />
+              <Route path="/agent/notifications" element={<AgentNotifications />} />
+              <Route path="/agent/profile" element={<AgentProfile />} />
               <Route path="/agent/settings" element={<AgentSettings />} />
               <Route path="/agent/help" element={<AgentHelp />} />
             </Route>
