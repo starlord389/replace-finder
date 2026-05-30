@@ -124,19 +124,17 @@ export default function AgentDashboard() {
           <h1 className="text-2xl font-bold text-foreground">
             Welcome back{profileName ? `, ${profileName}` : ""}
           </h1>
-          <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-            {brokerageName && <span>{brokerageName}</span>}
-            {brokerageName && <span>·</span>}
-            {isVerifiedAgent ? (
-              <span className="inline-flex items-center gap-1 text-green-600">
-                <ShieldCheck className="h-3.5 w-3.5" /> {verificationUi.badgeLabel}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-red-600">
-                <AlertTriangle className="h-3.5 w-3.5" /> Suspended
-              </span>
-            )}
-          </div>
+          {(brokerageName || !isVerifiedAgent) && (
+            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+              {brokerageName && <span>{brokerageName}</span>}
+              {brokerageName && !isVerifiedAgent && <span>·</span>}
+              {!isVerifiedAgent && (
+                <span className="inline-flex items-center gap-1 text-red-600">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Suspended
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild size="sm">
