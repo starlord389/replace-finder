@@ -16,6 +16,7 @@ interface Props {
   filter: "all" | UiStatus;
   onFilterChange: (f: "all" | UiStatus) => void;
   counts: Record<"all" | UiStatus, number>;
+  showClientLabel?: boolean;
 }
 
 // Primary chips shown inline; remainder go in a "More" popover.
