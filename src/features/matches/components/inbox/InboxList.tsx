@@ -27,7 +27,7 @@ export function InboxList({
   counts,
 }: Props) {
   return (
-    <div className="flex h-full min-h-0 flex-col rounded-xl border bg-card">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border bg-card">
       {/* Search */}
       <div className="border-b border-border p-3">
         <div className="relative">

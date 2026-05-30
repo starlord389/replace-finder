@@ -1,96 +1,82 @@
 ## Goal
 
-Replace the kanban Matches page with a premium **Match Inbox + Deal Room**: a 3-panel desktop layout that lets agents triage matches, review the property + numbers, and take the right next action — all without leaving the page.
+Stabilize the existing Matches page layout. No new features, no redesign — fix containment, overflow, scrolling, and image bugs so the 3-panel layout looks professional.
 
-```text
-┌───────────────────────────────────────────────────────────────────────────┐
-│  Filters: All · New · Sent · Interested · Connected · Offers · Closed ·…  │
-├──────────────┬──────────────────────────────────┬─────────────────────────┤
-│ INBOX (28%)  │  PROPERTY REVIEW (44%)           │ DEAL ROOM (28%)         │
-│              │                                  │                         │
-│ search       │  gallery / hero                  │ Lifecycle tracker       │
-│ property card│  name · city · price · score     │                         │
-│ property card│  status badge                    │ Next action (primary +  │
-│ property card│  tabs: Overview · Financials ·   │   secondaries by stage) │
-│ property card│        Match Breakdown · Docs ·  │                         │
-│  …           │        Activity                  │ Client Sharing card     │
-│              │  Why this matched (bullets)      │ Agent Communication     │
-│              │  Financial metric cards          │   card (preview + quick │
-│              │                                  │    messages + composer) │
-└──────────────┴──────────────────────────────────┴─────────────────────────┘
+## Files to change
+
+1. `src/pages/agent/AgentMatchesHub.tsx` — outer grid containment
+2. `src/features/matches/components/inbox/InboxList.tsx` — leave mostly as-is, verify overflow
+3. `src/features/matches/components/inbox/PropertyMatchCard.tsx` — keep compact; ensure no overflow
+4. `src/features/matches/components/inbox/PropertyReviewPanel.tsx` — fix internal scroll structure (only content area scrolls, not whole panel; hero + header sticky-ish at top)
+5. `src/features/matches/components/inbox/DealRoomPanel.tsx` — wrap in a single card container with internal scroll
+6. New helper `src/features/matches/components/inbox/propertyImage.ts` — neutral real-estate placeholder fallback used by both card + hero
+
+## Layout fixes
+
+### Outer page (`AgentMatchesHub.tsx`)
+- Wrap in `flex h-[calc(100vh-7rem)] min-h-0 flex-col gap-4 overflow-hidden` so the page itself never scrolls horizontally and the grid takes remaining height.
+- Grid: `grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-[360px_minmax(0,1fr)] lg:grid-cols-[380px_minmax(0,1fr)_360px]`.
+  - Fixed left + right widths (no percentages → no bleed at 1202px).
+  - Center uses `minmax(0,1fr)` so it can shrink without pushing siblings.
+- Each column wrapper: `min-w-0 min-h-0 flex` (prevents grid blowout from long content).
+- Remove the dangling `lg:hidden` "Take action" button — Deal Room is visible at lg+, so this only shows md range. Keep it.
+- Remove header from inside the grid height calc by keeping it outside `flex-1`.
+
+### Left — `InboxList.tsx`
+- Container already `rounded-xl border bg-card overflow-hidden` (add `overflow-hidden`).
+- Search + filter tabs stay at top, only list scrolls (already correct).
+- Verify filter tab row uses `overflow-x-auto` and doesn't push the panel width — wrap in `min-w-0`.
+
+### Inbox card — `PropertyMatchCard.tsx`
+- Already compact 80px thumb. Add `min-w-0` to body, keep `overflow-hidden` on root, ensure thumbnail uses placeholder fallback (see image fix).
+- No giant hero image inside card — already the case.
+
+### Center — `PropertyReviewPanel.tsx`
+- Restructure into 3 zones inside `flex h-full min-h-0 flex-col rounded-xl border bg-card overflow-hidden`:
+  1. Hero image: `h-48 shrink-0 overflow-hidden` with `img object-cover w-full h-full`.
+  2. Header (title/price/score): `shrink-0 border-b px-5 py-4`.
+  3. Tabs: `flex min-h-0 flex-1 flex-col`. Tabs list `shrink-0`. Tab content panes use `min-h-0 flex-1 overflow-y-auto p-5`.
+- This removes the current `overflow-y-auto` on the outer container, so we get exactly ONE internal scroll (content area), not the whole panel scrolling.
+
+### Right — `DealRoomPanel.tsx`
+- Wrap in `flex h-full min-h-0 flex-col rounded-xl border bg-card overflow-hidden`.
+- Inside: `min-h-0 flex-1 overflow-y-auto p-4 space-y-4` containing the four cards.
+- Removes the cramped feel by giving consistent padding and one scroll container.
+
+## Image fix
+
+Create `propertyImage.ts`:
+
+```ts
+const PLACEHOLDERS = [
+  "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=70&auto=format&fit=crop", // neutral commercial building
+  "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800&q=70&auto=format&fit=crop", // multifamily
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=70&auto=format&fit=crop", // office
+];
+export function propertyImage(url: string | null, key: string) {
+  if (url) return url;
+  const h = [...key].reduce((a, c) => a + c.charCodeAt(0), 0);
+  return PLACEHOLDERS[h % PLACEHOLDERS.length];
+}
 ```
 
-## Scope
-
-In: redesigning `/agent/matches`. Out: backend/matching changes, new tables, new routes (the existing `/agent/matches/:id` deep page stays as a "View full details" escape hatch), DnD, bulk actions.
-
-Preserved as-is: AgentLayout, sidebar, auth, roles, routing, `useUnifiedRelationships`, `ThreadView`, all mutation endpoints, `/agent/matches/:id` page.
-
-## UX model
-
-Mental model: **Find match → Review numbers → Send to client → Connect with agent → Move forward or archive.**
-
-Status taxonomy (UI-facing, mapped from existing stages + 3 new client-share sub-states held in local state / `localStorage` until backend fields exist):
-
-| UI status            | Source                                                                 |
-|----------------------|------------------------------------------------------------------------|
-| New Match            | `stage = new` / `incoming`                                             |
-| Sent to Client       | local flag `sentToClientAt` (mock until DB field)                      |
-| Client Interested    | local flag `clientInterestedAt` (mock)                                 |
-| Agent Connected      | `stage = connected` / `conversing`                                     |
-| Reviewing Docs       | `stage = conversing` + local flag `reviewingDocs`                      |
-| LOI / Offer          | local flag `loiSentAt` (mock; later → connection milestone)            |
-| Under Contract       | `connection.under_contract_at` not null                                |
-| Closed               | `stage = closed_won`                                                   |
-| Archived             | `stage = closed_lost` OR local `archivedAt`                            |
-
-Mock flags persist via a small `useMatchLocalState(matchId)` hook backed by `localStorage` so the lifecycle feels real for demo without a migration.
-
-## Files
-
-### New (`src/features/matches/components/inbox/`)
-- `InboxList.tsx` — search input + filter tabs row + scrollable list of `PropertyMatchCard`
-- `PropertyMatchCard.tsx` — property-first card: thumb, name, city/state, price, asset type, score chip, cap rate, NOI, status badge, next-action label
-- `PropertyReviewPanel.tsx` — center: gallery placeholder, header, status badge, **Why this matched** bullets, financial metric cards grid (Price, NOI, Cap, CoC, DSCR, Occupancy, Required Equity, Est. Loan, Projected Cash Flow), tabs (Overview / Financials / Match Breakdown / Docs / Activity)
-- `WhyThisMatched.tsx` — derives bullets from match score dimensions + boot status + price/timeline
-- `MatchBreakdownChart.tsx` — category bars (Location, Price, Equity, Debt, Timeline, Asset, Return) using existing score breakdown where present, mocked weights otherwise
-- `DealRoomPanel.tsx` — right: lifecycle tracker, stage-aware Next Action stack, Client Sharing card, Agent Communication card
-- `LifecycleTracker.tsx` — horizontal step rail with current step highlighted; side-exit chips (Not a Fit · Client Passed · Seller Unavailable · Archived)
-- `NextActionCard.tsx` — renders primary + secondaries from a stage→actions map; wires to existing mutations when available, otherwise local-state transitions
-- `ClientSharingCard.tsx` — Send to Client (opens dialog → marks `sentToClientAt`), Copy Client Link (toast + clipboard), Download One-Page Summary (mock PDF — generate simple `Blob` placeholder), Add Agent Note (textarea persisted to local state)
-- `AgentCommsCard.tsx` — wraps `ThreadView` in connected state, shows locked CTA otherwise; quick-message buttons inject canned text into the composer (uses new `initialDraft` prop on ThreadView)
-- `useMatchLocalState.ts` — `localStorage`-backed hook for mock lifecycle flags + agent notes per matchId
-- `inboxHelpers.ts` — `deriveUiStatus(rel, local)`, `nextActionFor(status)`, `whyThisMatched(rel)`, financial mock fillers
-
-### Edited
-- `src/pages/agent/AgentMatchesHub.tsx` — replace `PipelineBoard` + `RelationshipDrawer` with the new 3-panel layout; keep `?id=` URL sync, search, and filter tabs; tablet → 2-panel (inbox + detail) with right panel as Sheet; mobile → stacked with sticky primary action bar
-- `src/features/messages/components/ThreadView.tsx` — add optional `initialDraft?: string` prop so quick-message buttons can prefill the composer
-- `src/features/matches/components/helpers.tsx` — add UI status taxonomy + label/colour map (extends current `StageBadge`)
-
-### Removed (no longer used by the hub)
-- `PipelineBoard.tsx`, `PipelineColumn.tsx`, `RelationshipCard.tsx`, `RelationshipDrawer.tsx`, `ContextPanel.tsx`, `StageActionButton.tsx` (kanban-era components — delete after the new layout is wired)
-
-## Mock / placeholder data
-
-Where real fields don't exist, we mock minimally and clearly:
-- Financial metrics not in `property_financials` (CoC, DSCR, Occupancy, Required Equity, Est. Loan, Projected Cash Flow) → derived from `asking_price` + `cap_rate` with documented formulas in `inboxHelpers.ts`; each mocked value tagged `est.` in the UI tooltip
-- Documents tab → empty state with "No documents shared yet" + disabled upload button
-- Activity tab → reuses connection + message timeline already available; falls back to "Match created" event
-- Client share link → generated as `/share/match/{matchId}` (route stub returning placeholder page is out of scope; button copies the URL and toasts)
-- One-pager PDF → client-side `Blob` with a simple text summary (no server), so the button works end-to-end
+Use in `PropertyMatchCard` and `PropertyReviewPanel` instead of the `Building2` icon fallback (icon kept as ultimate `onError` fallback). Always render an `<img>` and let it be cropped via `object-cover` inside a fixed-aspect container.
 
 ## Responsive
 
-- ≥1280px: 3 columns (28% / 44% / 28%)
-- 768–1279px: inbox + center; right Deal Room opens as Sheet via "Take action" button
-- <768px: single column stacked (filters → cards). Tapping a card pushes detail view with sticky bottom bar showing the stage's primary action
+- `lg` (≥1024px): 3 columns with fixed left/right widths.
+- `md` (768–1023px): 2 columns (inbox + detail); Deal Room becomes the existing Sheet drawer triggered by "Take action" button.
+- `< md`: stacked, inbox first, selection toggles `mobileDetailOpen` to show detail; sticky bottom "Take action" already wired.
+- No horizontal overflow: every column has `min-w-0` and `overflow-hidden`; long strings already use `truncate`.
 
-## Design
+## Acceptance check
 
-Stays on locked tokens (Inter, blue-600 primary, light theme). Cards use `bg-card` + `border-border`, hover → `shadow-sm` + `border-primary/30`. Status badges reuse existing colour ramp; score chip keeps emerald/amber/rose ramp. Generous spacing, single H1, semantic HTML.
+After changes, smoke test at 1202px:
+- 380 + 16 + flexible + 16 + 360 fits within 1202 minus sidebar — leaves ~430px for center, acceptable.
+- Verify no horizontal scrollbar.
+- Inbox cards stay in left column; selected detail only in center; Deal Room only in right.
+- Hero image cropped to `h-48`; tabs scroll inside center; right panel has one scroll.
 
-## Validation
+## Out of scope
 
-- Verify build + console clean on `/agent/matches`
-- Smoke: open a match → tabs switch, Why-bullets render, financial cards populated, quick-messages prefill composer, Send to Client flips status locally, lifecycle tracker reflects change
-- Tablet + mobile breakpoints visually checked via preview viewport
+No new features, no schema/auth/routing/sidebar changes, no business-logic edits.

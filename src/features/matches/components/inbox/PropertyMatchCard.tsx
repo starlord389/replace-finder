@@ -1,5 +1,5 @@
-import { Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { propertyImage } from "./propertyImage";
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
 import { currency, scoreDotClass } from "../helpers";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
@@ -37,7 +37,7 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType }: Props)
       type="button"
       onClick={onSelect}
       className={cn(
-        "group relative flex w-full gap-3 rounded-xl border bg-card p-3 text-left transition-all",
+        "group relative flex w-full min-w-0 gap-3 overflow-hidden rounded-xl border bg-card p-3 text-left transition-all",
         "hover:border-primary/40 hover:shadow-sm",
         selected
           ? "border-primary ring-2 ring-primary/15 shadow-sm"
@@ -45,21 +45,16 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType }: Props)
       )}
     >
       {/* Thumbnail */}
-      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
-        {rel.propertyImageUrl ? (
-          <img
-            src={rel.propertyImageUrl}
-            alt={rel.propertyName}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <Building2 className="h-7 w-7 text-muted-foreground/40" />
-          </div>
-        )}
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+        <img
+          src={propertyImage(rel.propertyImageUrl, rel.id)}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
         <span
           className={cn(
-            "absolute bottom-1 left-1 flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white shadow",
+            "absolute bottom-1 left-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white shadow",
             scoreDotClass(rel.score),
           )}
           title={`Match score ${Math.round(rel.score)}`}
