@@ -10,7 +10,7 @@ import {
   Eye,
   Handshake,
   Plus,
-  ShieldCheck,
+  
   Sparkles,
   TrendingUp,
   Users,
