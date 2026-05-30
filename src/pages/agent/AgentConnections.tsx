@@ -2,16 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Link2, ArrowRight, CheckCircle, XCircle, Clock, Building2, User,
+  Link2, ArrowRight, Clock, Building2, User,
 } from "lucide-react";
 import { BOOT_STATUS_LABELS, BOOT_STATUS_COLORS } from "@/lib/constants";
 import { format } from "date-fns";
@@ -76,13 +71,8 @@ function progressStep(label: string, complete: boolean, idx: number) {
 export default function AgentConnections() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [connections, setConnections] = useState<ConnectionRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
-  const [declineTarget, setDeclineTarget] = useState<string | null>(null);
-  const [declineReason, setDeclineReason] = useState("");
-  const [acting, setActing] = useState(false);
 
   useEffect(() => {
     if (user) loadConnections();
@@ -145,78 +135,6 @@ export default function AgentConnections() {
     setLoading(false);
   };
 
-  const handleAccept = async (connId: string) => {
-    setActing(true);
-    const conn = connections.find((c) => c.id === connId);
-    if (!conn) { setActing(false); return; }
-
-    await supabase.from("exchange_connections").update({
-      status: "accepted",
-      accepted_at: new Date().toISOString(),
-      facilitation_fee_agreed: true,
-    }).eq("id", connId);
-
-    // Notify buyer agent
-    await supabase.from("notifications").insert({
-      user_id: conn.buyer_agent_id,
-      type: "connection_accepted",
-      title: "Connection Accepted",
-      message: "Your connection request has been accepted. You can now view agent details and start messaging.",
-      link_to: `/agent/connections/${connId}`,
-    });
-
-    // Timeline entries
-    if (conn.buyer_exchange_id) {
-      await supabase.from("exchange_timeline").insert({
-        exchange_id: conn.buyer_exchange_id,
-        event_type: "connection_accepted",
-        description: "Exchange connection accepted",
-        actor_id: user!.id,
-      });
-    }
-    if (conn.seller_exchange_id) {
-      await supabase.from("exchange_timeline").insert({
-        exchange_id: conn.seller_exchange_id,
-        event_type: "connection_accepted",
-        description: "Exchange connection accepted",
-        actor_id: user!.id,
-      });
-    }
-
-    toast({ title: "Connection accepted!", description: "You can now message the other agent." });
-    setActing(false);
-    loadConnections();
-  };
-
-  const handleDecline = async () => {
-    if (!declineTarget) return;
-    setActing(true);
-    const conn = connections.find((c) => c.id === declineTarget);
-
-    await supabase.from("exchange_connections").update({
-      status: "declined",
-      declined_at: new Date().toISOString(),
-      decline_reason: declineReason || null,
-    }).eq("id", declineTarget);
-
-    if (conn) {
-      await supabase.from("notifications").insert({
-        user_id: conn.buyer_agent_id,
-        type: "connection_declined",
-        title: "Connection Declined",
-        message: "Your connection request was declined.",
-        link_to: "/agent/connections",
-      });
-    }
-
-    toast({ title: "Connection declined." });
-    setActing(false);
-    setDeclineDialogOpen(false);
-    setDeclineTarget(null);
-    setDeclineReason("");
-    loadConnections();
-  };
-
   const pending = connections.filter((c) => c.status === "pending");
   const active = connections.filter((c) => c.status === "accepted" || c.status === "in_progress");
   const closed = connections.filter((c) => ["completed", "declined", "cancelled"].includes(c.status));
@@ -224,6 +142,8 @@ export default function AgentConnections() {
   if (loading) return <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
 
   const fmt = (v: number | null) => v ? `$${Math.round(Number(v)).toLocaleString()}` : "—";
+
+  const goTo = (id: string) => navigate(`/agent/connections/${id}`);
 
   return (
     <div>
@@ -252,18 +172,11 @@ export default function AgentConnections() {
                 const isIncoming = conn.seller_agent_id === user!.id;
                 const score = conn.match ? Math.round(Number(conn.match.total_score)) : null;
                 return (
-                  <div
+                  <button
                     key={conn.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => navigate(`/agent/connections/${conn.id}`)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        navigate(`/agent/connections/${conn.id}`);
-                      }
-                    }}
-                    className="cursor-pointer rounded-xl border bg-card p-5 transition-colors hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-primary"
+                    type="button"
+                    onClick={() => goTo(conn.id)}
+                    className="w-full cursor-pointer rounded-xl border bg-card p-5 text-left transition-colors hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
@@ -296,29 +209,20 @@ export default function AgentConnections() {
                         </div>
                         <p className="mt-2 text-xs text-muted-foreground">
                           {isIncoming
-                            ? "An agent wants to connect regarding their client's 1031 exchange."
+                            ? "An agent wants to connect regarding their client's 1031 exchange — open to review and respond."
                             : `Request sent for ${conn.clientName}'s exchange.`}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground/60">
                           {format(new Date(conn.initiated_at), "MMM d, yyyy")}
                         </p>
                       </div>
-                      <div className="flex flex-col gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        {isIncoming ? (
-                          <>
-                            <Button size="sm" onClick={() => handleAccept(conn.id)} disabled={acting}>
-                              <CheckCircle className="mr-1.5 h-3.5 w-3.5" />Accept
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => { setDeclineTarget(conn.id); setDeclineDialogOpen(true); }} disabled={acting}>
-                              <XCircle className="mr-1.5 h-3.5 w-3.5" />Decline
-                            </Button>
-                          </>
-                        ) : (
-                          <span className="text-xs text-muted-foreground italic">Awaiting response</span>
-                        )}
+                      <div className="flex flex-col gap-2 shrink-0 items-end">
+                        <Button size="sm" variant={isIncoming ? "default" : "outline"} tabIndex={-1}>
+                          {isIncoming ? "Review" : "View"} <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -345,7 +249,12 @@ export default function AgentConnections() {
                   { label: "Closed", done: !!conn.closed_at },
                 ];
                 return (
-                  <div key={conn.id} className="rounded-xl border bg-card p-5">
+                  <button
+                    key={conn.id}
+                    type="button"
+                    onClick={() => goTo(conn.id)}
+                    className="w-full cursor-pointer rounded-xl border bg-card p-5 text-left transition-colors hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -377,11 +286,11 @@ export default function AgentConnections() {
                           {steps.map((s, i) => progressStep(s.label, s.done, i))}
                         </div>
                       </div>
-                      <Button size="sm" onClick={() => navigate(`/agent/connections/${conn.id}`)}>
+                      <Button size="sm" tabIndex={-1}>
                         View <ArrowRight className="ml-1 h-3.5 w-3.5" />
                       </Button>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -398,7 +307,12 @@ export default function AgentConnections() {
           ) : (
             <div className="mt-4 space-y-3">
               {closed.map((conn) => (
-                <div key={conn.id} className="rounded-xl border bg-card p-4">
+                <button
+                  key={conn.id}
+                  type="button"
+                  onClick={() => goTo(conn.id)}
+                  className="w-full rounded-xl border bg-card p-4 text-left transition-colors hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-primary"
+                >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -419,34 +333,12 @@ export default function AgentConnections() {
                       </Badge>
                     )}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}
         </TabsContent>
       </Tabs>
-
-      {/* Decline Dialog */}
-      <Dialog open={declineDialogOpen} onOpenChange={setDeclineDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Decline Connection</DialogTitle>
-            <DialogDescription>Optionally provide a reason for declining.</DialogDescription>
-          </DialogHeader>
-          <Textarea
-            value={declineReason}
-            onChange={(e) => setDeclineReason(e.target.value)}
-            placeholder="Reason (optional)..."
-            rows={3}
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeclineDialogOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDecline} disabled={acting}>
-              {acting ? "Declining..." : "Decline"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
