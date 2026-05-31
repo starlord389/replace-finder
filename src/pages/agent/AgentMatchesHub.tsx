@@ -89,8 +89,22 @@ export default function AgentMatchesHub() {
 
   const visibleRels = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return annotated
+    const filtered = annotated
       .filter((a) => (filter === "all" ? true : a.status === filter))
+      .filter((a) => a.rel.score >= filters.minScore)
+      .filter((a) =>
+        filters.states.length === 0
+          ? true
+          : a.rel.propertyState
+            ? filters.states.includes(a.rel.propertyState)
+            : false,
+      )
+      .filter((a) => {
+        const p = a.rel.askingPrice ?? null;
+        if (filters.priceMin != null && (p == null || p < filters.priceMin)) return false;
+        if (filters.priceMax != null && (p == null || p > filters.priceMax)) return false;
+        return true;
+      })
       .filter((a) => {
         if (!q) return true;
         const r = a.rel;
@@ -102,17 +116,40 @@ export default function AgentMatchesHub() {
         );
       })
       .map((a) => a.rel);
-  }, [annotated, filter, search]);
+    return sortRelationships(filtered, sort);
+  }, [annotated, filter, search, sort, filters]);
+
+  const rankMap = useMemo(() => {
+    const m = new Map<string, number>();
+    visibleRels.forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [visibleRels]);
 
   const selected = useMemo(() => {
     return visibleRels.find((r) => r.id === selectedId) ?? visibleRels[0] ?? null;
   }, [visibleRels, selectedId]);
+
+  // Keep URL id in sync when current selection drops out of view
+  useEffect(() => {
+    if (!selected) return;
+    if (selectedId && selectedId === selected.id) return;
+    const next = new URLSearchParams(searchParams);
+    next.set("id", selected.id);
+    setSearchParams(next, { replace: true });
+  }, [selected, selectedId, searchParams, setSearchParams]);
 
   function setFilter(f: "all" | UiStatus) {
     const next = new URLSearchParams(searchParams);
     if (f === "all") next.delete("filter");
     else next.set("filter", f);
     next.delete("stage");
+    setSearchParams(next);
+  }
+
+  function setSort(k: SortKey) {
+    const next = new URLSearchParams(searchParams);
+    if (k === "best_match") next.delete("sort");
+    else next.set("sort", k);
     setSearchParams(next);
   }
 
@@ -130,6 +167,7 @@ export default function AgentMatchesHub() {
     setSearchParams(next);
     setMobileDetailOpen(true);
   }
+
 
   const showClientLabel = exchangeParam === "all";
 
