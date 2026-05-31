@@ -9,12 +9,15 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useAgentExchangesQuery, type AgentExchangeRow } from "@/features/agent/hooks/useAgentExchangesQuery";
 import { useExchangeContext } from "@/features/matches/hooks/useExchangeContext";
+import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { cn } from "@/lib/utils";
 
 interface Props {
   selectedExchangeId: string | "all";
   onChange: (id: string | "all") => void;
   totalCount: number;
+  scopedMatchCount?: number;
+  rels?: Relationship[];
 }
 
 function currency(v: number | null | undefined): string {
