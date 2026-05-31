@@ -149,8 +149,13 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, s
 
           {/* Context details */}
           {selectedExchangeId === "all" ? (
-            <div className="min-w-0 flex-1 text-sm text-muted-foreground">
-              Showing matches across all your active exchanges.
+            <div className="flex min-w-0 flex-1 items-center gap-3 text-sm text-muted-foreground">
+              <span>Showing matches across all your active exchanges.</span>
+              {scopedMatchCount != null && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                  {scopedMatchCount} matched opportunities
+                </span>
+              )}
             </div>
           ) : ctx ? (
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-1 text-xs">
