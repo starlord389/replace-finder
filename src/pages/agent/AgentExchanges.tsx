@@ -42,6 +42,7 @@ interface ExchangeCard {
   cap_rate: number | null;
   cover_url: string | null;
   match_count: number;
+  best_score: number | null;
 }
 
 function fmtPrice(v: number | null) {
@@ -74,7 +75,7 @@ async function fetchExchangeCards(agentId: string): Promise<ExchangeCard[]> {
     propertyIds.length
       ? supabase.from("property_images").select("property_id, storage_path").in("property_id", propertyIds).order("sort_order")
       : Promise.resolve({ data: [] as any[] }),
-    supabase.from("matches").select("buyer_exchange_id").in("buyer_exchange_id", exchangeIds),
+    supabase.from("matches").select("buyer_exchange_id, score").in("buyer_exchange_id", exchangeIds),
     clientIds.length
       ? supabase.from("agent_clients").select("id, client_name").in("id", clientIds as string[])
       : Promise.resolve({ data: [] as any[] }),
@@ -93,8 +94,11 @@ async function fetchExchangeCards(agentId: string): Promise<ExchangeCard[]> {
   }
 
   const matchCount = new Map<string, number>();
+  const bestScore = new Map<string, number>();
   for (const m of matchesRes.data ?? []) {
     matchCount.set(m.buyer_exchange_id, (matchCount.get(m.buyer_exchange_id) ?? 0) + 1);
+    const s = Number((m as any).score ?? 0);
+    if (s > (bestScore.get(m.buyer_exchange_id) ?? -1)) bestScore.set(m.buyer_exchange_id, s);
   }
 
   return exchanges.map((e) => {
@@ -120,6 +124,7 @@ async function fetchExchangeCards(agentId: string): Promise<ExchangeCard[]> {
       cap_rate: fin?.cap_rate ?? null,
       cover_url: e.relinquished_property_id ? (coverByProp.get(e.relinquished_property_id) ?? null) : null,
       match_count: matchCount.get(e.id) ?? 0,
+      best_score: bestScore.get(e.id) ?? null,
     };
   });
 }
