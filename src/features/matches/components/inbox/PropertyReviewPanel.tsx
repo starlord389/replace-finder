@@ -80,6 +80,12 @@ export function PropertyReviewPanel({ rel, onOpenActions, rank, totalInScope }: 
                   </span>
                 </p>
               )}
+              {rank != null && totalInScope ? (
+                <p className="mt-1 text-[11px] font-medium text-foreground/70">
+                  <span className="rounded bg-muted px-1.5 py-0.5 font-bold">#{rank}</span>
+                  <span className="ml-1.5">of {totalInScope} matches · Score {Math.round(rel.score)}</span>
+                </p>
+              ) : null}
             </div>
 
             <div className="flex shrink-0 items-center gap-3">
