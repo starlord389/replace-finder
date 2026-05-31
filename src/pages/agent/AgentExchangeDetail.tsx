@@ -31,6 +31,7 @@ export default function AgentExchangeDetail() {
   const [timeline, setTimeline] = useState<any[]>([]);
   const [hasBlockingConnections, setHasBlockingConnections] = useState(false);
   const [hasMatchesOrConns, setHasMatchesOrConns] = useState(false);
+  const [matchCount, setMatchCount] = useState(0);
   const updateExchange = useUpdateExchange();
   const [acting, setActing] = useState(false);
 
@@ -59,7 +60,9 @@ export default function AgentExchangeDetail() {
 
     const conns = ((connRes as any).data ?? []) as Array<{ status: string }>;
     setHasBlockingConnections(conns.some(c => c.status === "accepted" || c.status === "completed"));
-    setHasMatchesOrConns(conns.length > 0 || ((matchRes as any).count ?? 0) > 0);
+    const mCount = (matchRes as any).count ?? 0;
+    setMatchCount(mCount);
+    setHasMatchesOrConns(conns.length > 0 || mCount > 0);
 
     setLoading(false);
   };
