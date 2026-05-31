@@ -1,50 +1,91 @@
-Plan: focused Matches scroll/overflow fix
+# Ranked Matches with Sort/Filter on Matches Page
 
-Scope constraints:
-- Do not redesign the Matches page.
-- Do not add features.
-- Do not change database schema, auth, routing, sidebar navigation, or unrelated pages.
+Front-end only. No DB/schema/auth/routing changes. Uses existing `useUnifiedRelationships` data plus deterministic mock helpers in `inboxHelpers.ts`.
 
-What I found:
-- The Matches page currently uses a fixed `h-[calc(100vh-7rem)]` inside a parent `<main>` that does not establish a full-height flex boundary. This makes the page height compete with the app shell header and main padding.
-- `PropertyReviewPanel` keeps the hero, header, and metric strip outside the scrollable area, while only the tabs content scrolls. If the fixed sections consume too much vertical space, deeper listing content becomes unreachable or feels cut off.
-- The two-column grid and inbox already use many correct `min-h-0` / `min-w-0` patterns, but the page/app-shell height chain needs to be made explicit and stable.
+## 1. Enrich the Exchange Context Bar
+File: `src/features/matches/components/inbox/ExchangeContextBar.tsx`
 
-Implementation steps:
-1. Stabilize the app shell height chain in `AgentLayout.tsx`
-   - Change the app shell from minimum-height behavior to viewport-height behavior.
-   - Make the content column `min-h-0` and `overflow-hidden`.
-   - Make `<main>` a flex column with `min-h-0`, `overflow-hidden`, and `min-w-0`, so route pages can own their internal scrolling instead of relying on page/body scroll.
+- Already shows client, relinquished property, value, ID deadline, target geo/price.
+- Add: **Match count for current scope** (e.g. "14 matched opportunities") — passed in via new prop `matchCountInScope`.
+- Enhance the "Change exchange" popover items to show, per exchange:
+  - Client name
+  - Property address / city, state
+  - Match count for that exchange (computed from `rels` grouped by `buyerExchangeId`)
+  - Best match score in that exchange
+  - Days left to ID deadline (from a lightweight per-exchange context query — reuse existing exchange list; deadline already on `AgentExchangeRow`)
+- Keep "All exchanges" item at top.
 
-2. Stabilize the Matches page wrapper in `AgentMatchesHub.tsx`
-   - Replace the brittle `h-[calc(100vh-7rem)]` with `h-full min-h-0 min-w-0` so it inherits the app shell’s available height.
-   - Keep the Matches header and `ExchangeContextBar` as `shrink-0`.
-   - Ensure the two-column grid is `min-h-0 min-w-0 flex-1 overflow-hidden`.
-   - Ensure both inbox and detail column wrappers are `h-full min-h-0 min-w-0 overflow-hidden`.
-   - Keep the mobile back row outside the scroll area, but ensure the actual detail panel receives a bounded `flex-1 min-h-0` container.
+## 2. Sorting + filtering controls
+New file: `src/features/matches/components/inbox/SortFilterBar.tsx`
 
-3. Make the selected property detail panel the intended scroll container in `PropertyReviewPanel.tsx`
-   - Keep the outer card as `h-full min-h-0 min-w-0 overflow-hidden`.
-   - Move the vertical scrolling responsibility to one clear internal detail scroll area.
-   - Include the full listing review content in that scroll area so hero image, header, financial metrics, tabs, overview, financials, why matched, documents, activity, and conversation are all reachable.
-   - Avoid additional nested scrollbars inside the tab content; tabs can remain part of the same property-detail scroll flow.
-   - Preserve existing visual hierarchy and existing content; only adjust height/overflow structure.
+- Sort dropdown (Best Match default, Highest NOI, Highest Cap, Highest CoC, Lowest Price, Best Timeline Fit, Newest, Status).
+- "Filters" button opening a Popover with:
+  - Minimum match score (slider 0–100)
+  - Asset type (multi-select — based on values present in current scope; if none, hidden)
+  - Market (state multi-select from current scope)
+  - Price min / max
+  - Status (reuse `UiStatus` chips)
+- "Clear all" link inside popover; shows count of active filters next to button label.
 
-4. Verify inbox scroll remains independent in `InboxList.tsx`
-   - Keep search/filter controls fixed within the inbox card.
-   - Keep only the match list area as `flex-1 min-h-0 overflow-y-auto`.
-   - Add/confirm `overscroll-contain` where useful to avoid scroll chaining without introducing nested page scrollbars.
+State for sort/filters lives in `AgentMatchesHub` (URL params for sort: `?sort=best`; filter state kept in component state to avoid URL bloat; status filter already uses URL).
 
-Expected files changed:
-- `src/components/layout/AgentLayout.tsx`
-- `src/pages/agent/AgentMatchesHub.tsx`
-- `src/features/matches/components/inbox/PropertyReviewPanel.tsx`
-- Possibly `src/features/matches/components/inbox/InboxList.tsx` only if a small scroll-containment class is needed.
+## 3. Ranked inbox + per-card rank badge
+Files:
+- `src/features/matches/components/inbox/InboxList.tsx` — accept already-sorted `rels` plus `rankMap: Map<id, number>`; pass `rank` to each card. Insert `SortFilterBar` above the list.
+- `src/features/matches/components/inbox/PropertyMatchCard.tsx` — add:
+  - `#N` rank pill (top-left of body row) when `rank` prop provided.
+  - NOI line (already partly there) and a one-line "ranked-here reason" using new helper `rankReason(rel)`.
+- New helper `rankReason(rel)` and `sortRelationships(rels, sortKey)` added to `inboxHelpers.ts`.
 
-Acceptance checks after implementation:
-- The app shell/sidebar remains fixed.
-- Matches header and exchange context remain visible.
-- Inbox list scrolls independently.
-- Selected property detail column scrolls independently through the full listing content.
-- No horizontal page overflow.
-- No property detail content is cut off or unreachable on desktop.
+Default sort: `best_match` → descending by `score`. Stable tiebreak by `lastActivityAt`.
+
+## 4. Hub wiring
+File: `src/pages/agent/AgentMatchesHub.tsx`
+
+- Read `sort` from URL (default `best_match`).
+- Hold `filters` in `useState` (minScore, assetTypes, states, priceMin/Max). Apply filters AFTER exchange scoping and BEFORE status chip filter so counts stay correct.
+- Compute `sortedRels = sortRelationships(filteredRels, sort)`.
+- Build `rankMap` from `sortedRels` index (1-based).
+- Pass `rankMap`, `sort`, `onSortChange`, `filters`, `onFiltersChange` into `InboxList`.
+- Auto-select rank #1 when current selection drops out of scope/filters or when exchange scope changes (existing logic already falls back to first item; verify and ensure URL `id` is updated so detail panel reflects #1).
+- Pass `rank` and `totalInScope` props into `PropertyReviewPanel`.
+
+## 5. Property detail context line + rank panel
+File: `src/features/matches/components/inbox/PropertyReviewPanel.tsx`
+
+- Under the property title, add a small line:
+  - "Matched for {clientName}'s 1031 exchange" or fallback to relinquished address.
+  - "#{rank} of {totalInScope} matches · Score {score} · {short reason}".
+- Improve/extend the existing "Why this matched" tab using `matchBreakdown(rel)` already in `inboxHelpers.ts`:
+  - Render the 7 dimensions as horizontal bars with score labels.
+  - Top explanatory paragraph: `"Ranked #N because it has the strongest combination of <top 3 dim labels>."` (derived from highest-scoring dimensions).
+- No layout/scroll changes — keep the existing single internal scroll area.
+
+## 6. No DB changes
+All score breakdowns, asset type, NOI, CoC, timeline fit, rank reason continue to come from deterministic helpers in `inboxHelpers.ts`. Asset type filter falls back gracefully if asset type is not present on `Relationship` (we'll add an `assetType?: string | null` optional field derivation only if cheaply available; otherwise the asset filter is hidden until that field is wired).
+
+## Files changed / created
+
+Created:
+- `src/features/matches/components/inbox/SortFilterBar.tsx`
+
+Edited:
+- `src/pages/agent/AgentMatchesHub.tsx` (sort/filter state, rank map, selection sync)
+- `src/features/matches/components/inbox/InboxList.tsx` (sort/filter slot, ranks)
+- `src/features/matches/components/inbox/PropertyMatchCard.tsx` (rank pill, reason line)
+- `src/features/matches/components/inbox/PropertyReviewPanel.tsx` (context line, rank header, breakdown bars)
+- `src/features/matches/components/inbox/ExchangeContextBar.tsx` (match counts, richer dropdown items)
+- `src/features/matches/components/inbox/inboxHelpers.ts` (`sortRelationships`, `rankReason`, sort key types)
+
+Mock/derived fields added (frontend only, no schema change):
+- `rank` (computed per scope+sort)
+- `rankReason` (heuristic string from score + price/timeline signals)
+- `matchBreakdown` (already mocked — reused)
+- Per-exchange `matchCount` / `bestScore` / `daysToIdDeadline` (computed client-side from existing query data)
+
+## Acceptance checks
+- Switching exchange in context bar updates list + auto-selects rank #1.
+- Default order is by match score desc; sort dropdown changes order and rank numbers.
+- Filters narrow the list and update counts.
+- Detail panel shows "Matched for …" line and "#N of M" rank.
+- Scroll/overflow behavior unchanged from current fixed layout.
