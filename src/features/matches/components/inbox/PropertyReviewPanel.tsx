@@ -27,7 +27,7 @@ interface Props {
 
 const KEY_METRIC_KEYS = ["noi", "cap", "coc", "dscr", "occupancy", "equity", "loan", "cashflow"];
 
-export function PropertyReviewPanel({ rel, onOpenActions }: Props) {
+export function PropertyReviewPanel({ rel, onOpenActions, rank, totalInScope }: Props) {
   const allMetrics = financialMetrics(rel);
   const keyMetrics = KEY_METRIC_KEYS
     .map((k) => allMetrics.find((m) => m.key === k))
