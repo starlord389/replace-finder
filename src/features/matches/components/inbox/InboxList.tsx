@@ -136,6 +136,15 @@ export function InboxList({
         </div>
       </div>
 
+      {/* Sort + filters */}
+      <SortFilterBar
+        sort={sort}
+        onSortChange={onSortChange}
+        filters={filters}
+        onFiltersChange={onFiltersChange}
+        scopeRels={scopeRels}
+      />
+
       {/* List */}
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         {rels.length === 0 ? (
@@ -154,6 +163,7 @@ export function InboxList({
                   selected={r.id === selectedId}
                   onSelect={() => onSelect(r)}
                   showClientLabel={showClientLabel}
+                  rank={rankMap.get(r.id)}
                 />
               </li>
             ))}
