@@ -10,6 +10,7 @@ import { MatchBreakdownChart } from "./MatchBreakdownChart";
 import { AgentCommsCard } from "./AgentCommsCard";
 import {
   financialMetrics,
+  rankExplanation,
   UI_STATUS_CLASS,
   UI_STATUS_LABEL,
 } from "./inboxHelpers";
@@ -20,6 +21,8 @@ interface Props {
   rel: Relationship;
   /** Open the secondary actions/deal-room drawer. */
   onOpenActions?: () => void;
+  rank?: number | null;
+  totalInScope?: number;
 }
 
 const KEY_METRIC_KEYS = ["noi", "cap", "coc", "dscr", "occupancy", "equity", "loan", "cashflow"];
