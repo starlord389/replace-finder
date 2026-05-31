@@ -29,6 +29,7 @@ import NewExchange from "@/pages/agent/NewExchange";
 import EditExchange from "@/pages/agent/EditExchange";
 import AgentExchangeDetail from "@/pages/agent/AgentExchangeDetail";
 import AgentMatchesHub from "@/pages/agent/AgentMatchesHub";
+import AgentExchangeWorkspace from "@/pages/agent/AgentExchangeWorkspace";
 import AgentMatchDetail from "@/pages/agent/AgentMatchDetail";
 import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
 import AgentSettings from "@/pages/agent/AgentSettings";
