@@ -221,3 +221,85 @@ export const QUICK_MESSAGES = [
   "Can we schedule a call?",
   "My client is interested. Can you share more details?",
 ];
+
+// ── Sorting & rank reasoning ─────────────────────────────────────
+
+export type SortKey =
+  | "best_match"
+  | "highest_noi"
+  | "highest_cap"
+  | "highest_coc"
+  | "lowest_price"
+  | "best_timeline"
+  | "newest"
+  | "status";
+
+export const SORT_OPTIONS: Array<{ key: SortKey; label: string }> = [
+  { key: "best_match", label: "Best Match" },
+  { key: "highest_noi", label: "Highest NOI" },
+  { key: "highest_cap", label: "Highest Cap Rate" },
+  { key: "highest_coc", label: "Highest Cash-on-Cash" },
+  { key: "lowest_price", label: "Lowest Price" },
+  { key: "best_timeline", label: "Best Timeline Fit" },
+  { key: "newest", label: "Newest" },
+  { key: "status", label: "Status" },
+];
+
+function noiOf(r: Relationship): number {
+  return r.askingPrice && r.capRate ? r.askingPrice * (r.capRate / 100) : 0;
+}
+function cocOf(r: Relationship): number {
+  if (!r.askingPrice || !r.capRate) return 0;
+  const noi = noiOf(r);
+  const loan = r.askingPrice * 0.65;
+  const equity = r.askingPrice * 0.35;
+  const cf = noi - loan * 0.065;
+  return equity > 0 ? (cf / equity) * 100 : 0;
+}
+function timelineFitOf(r: Relationship): number {
+  return matchBreakdown(r).find((d) => d.label === "Timeline Fit")?.score ?? 0;
+}
+
+export function sortRelationships<T extends Relationship>(
+  rels: T[],
+  key: SortKey,
+): T[] {
+  const arr = [...rels];
+  const cmp = (a: T, b: T): number => {
+    switch (key) {
+      case "highest_noi": return noiOf(b) - noiOf(a);
+      case "highest_cap": return (b.capRate ?? 0) - (a.capRate ?? 0);
+      case "highest_coc": return cocOf(b) - cocOf(a);
+      case "lowest_price": return (a.askingPrice ?? Infinity) - (b.askingPrice ?? Infinity);
+      case "best_timeline": return timelineFitOf(b) - timelineFitOf(a);
+      case "newest": return b.lastActivityAt.localeCompare(a.lastActivityAt);
+      case "status": return a.stage.localeCompare(b.stage);
+      case "best_match":
+      default: return b.score - a.score;
+    }
+  };
+  arr.sort((a, b) => {
+    const p = cmp(a, b);
+    if (p !== 0) return p;
+    return b.score - a.score || b.lastActivityAt.localeCompare(a.lastActivityAt);
+  });
+  return arr;
+}
+
+/** Short reason why a match ranks where it does — heuristic, deterministic. */
+export function rankReason(rel: Relationship): string {
+  const dims = matchBreakdown(rel);
+  const top = [...dims].sort((a, b) => b.score - a.score).slice(0, 2);
+  if (rel.score >= 85) return `Strong ${top[0].label.toLowerCase()} & ${top[1].label.toLowerCase()}`;
+  if (rel.score >= 70) return `Good ${top[0].label.toLowerCase()} fit`;
+  return `Partial fit — strongest on ${top[0].label.toLowerCase()}`;
+}
+
+/** Longer explanation, used in the detail panel header. */
+export function rankExplanation(rel: Relationship, rank: number): string {
+  const top = [...matchBreakdown(rel)]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((d) => d.label.toLowerCase());
+  return `Ranked #${rank} because of its combination of ${top.join(", ")}.`;
+}
