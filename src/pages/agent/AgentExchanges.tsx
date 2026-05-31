@@ -338,6 +338,11 @@ export default function AgentExchanges() {
                             {e.match_count} match{e.match_count > 1 ? "es" : ""}
                           </span>
                         )}
+                        {e.best_score != null && e.match_count > 0 && (
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-emerald-800">
+                            Best {Math.round(e.best_score)}
+                          </span>
+                        )}
                       </div>
                       {e.client_name && (
                         <span className="truncate text-muted-foreground">
@@ -345,6 +350,13 @@ export default function AgentExchanges() {
                         </span>
                       )}
                     </div>
+                    <Button
+                      size="sm"
+                      className="mt-3 w-full"
+                      onClick={(ev) => { ev.stopPropagation(); navigate(`/agent/exchanges/${e.id}`); }}
+                    >
+                      Open Workspace
+                    </Button>
                   </CardContent>
                 </Card>
               );
