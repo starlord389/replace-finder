@@ -41,12 +41,24 @@ function exchangeLabel(ex: AgentExchangeRow): string {
   return place ? `${client} · ${place}` : client;
 }
 
-export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount }: Props) {
+export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, scopedMatchCount, rels = [] }: Props) {
   const { user } = useAuth();
   const { data: exchanges = [] } = useAgentExchangesQuery(user?.id);
   const { data: ctx } = useExchangeContext(
     selectedExchangeId === "all" ? null : selectedExchangeId,
   );
+
+  // Per-exchange match stats (count + best score + days to ID deadline)
+  const statsByExchange = useMemo(() => {
+    const m = new Map<string, { count: number; best: number }>();
+    rels.forEach((r) => {
+      const cur = m.get(r.buyerExchangeId) ?? { count: 0, best: 0 };
+      cur.count += 1;
+      if (r.score > cur.best) cur.best = r.score;
+      m.set(r.buyerExchangeId, cur);
+    });
+    return m;
+  }, [rels]);
 
   const selectedSummary = useMemo(() => {
     if (selectedExchangeId === "all") return "All exchanges";
