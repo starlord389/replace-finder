@@ -45,6 +45,12 @@ export function InboxList({
   onFilterChange,
   counts,
   showClientLabel = false,
+  sort,
+  onSortChange,
+  filters,
+  onFiltersChange,
+  scopeRels,
+  rankMap,
 }: Props) {
   const primaryTabs = FILTER_TABS.filter((t) => PRIMARY_KEYS.includes(t.key));
   const moreTabs = FILTER_TABS.filter((t) => !PRIMARY_KEYS.includes(t.key));
