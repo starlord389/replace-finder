@@ -34,11 +34,13 @@ export default function AgentMatchesHub() {
   const [search, setSearch] = useState("");
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [filters, setFilters] = useState<MatchFilters>(EMPTY_FILTERS);
 
   const rawFilter = searchParams.get("filter") ?? searchParams.get("stage") ?? "all";
   const filter = (LEGACY_FILTER_MAP[rawFilter] ?? (rawFilter as UiStatus | "all")) as "all" | UiStatus;
   const selectedId = searchParams.get("id");
   const exchangeParam = (searchParams.get("exchange") ?? "all") as string | "all";
+  const sort = (searchParams.get("sort") as SortKey) || "best_match";
 
   // Translate legacy ?connection=/ ?match= → ?id=
   useEffect(() => {
