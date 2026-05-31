@@ -193,6 +193,8 @@ export default function AgentMatchesHub() {
         selectedExchangeId={exchangeParam}
         onChange={setExchange}
         totalCount={rels.length}
+        scopedMatchCount={exchangeScopedRels.length}
+        rels={rels}
       />
 
       {isLoading ? (
@@ -220,6 +222,12 @@ export default function AgentMatchesHub() {
               onFilterChange={setFilter}
               counts={counts}
               showClientLabel={showClientLabel}
+              sort={sort}
+              onSortChange={setSort}
+              filters={filters}
+              onFiltersChange={setFilters}
+              scopeRels={exchangeScopedRels}
+              rankMap={rankMap}
             />
           </div>
 
@@ -242,6 +250,8 @@ export default function AgentMatchesHub() {
                   <PropertyReviewPanel
                     rel={selected}
                     onOpenActions={() => setActionsOpen(true)}
+                    rank={rankMap.get(selected.id) ?? null}
+                    totalInScope={visibleRels.length}
                   />
                 </div>
               </>
@@ -251,6 +261,7 @@ export default function AgentMatchesHub() {
           </div>
         </div>
       )}
+
 
       {/* Actions drawer (right side) */}
       <Sheet open={actionsOpen && !!selected} onOpenChange={setActionsOpen}>
