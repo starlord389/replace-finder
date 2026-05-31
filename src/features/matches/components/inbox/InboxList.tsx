@@ -5,7 +5,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { PropertyMatchCard } from "./PropertyMatchCard";
-import { FILTER_TABS, type UiStatus } from "./inboxHelpers";
+import { FILTER_TABS, type UiStatus, type SortKey } from "./inboxHelpers";
+import { SortFilterBar, type MatchFilters } from "./SortFilterBar";
 
 interface Props {
   rels: Relationship[];
@@ -17,6 +18,12 @@ interface Props {
   onFilterChange: (f: "all" | UiStatus) => void;
   counts: Record<"all" | UiStatus, number>;
   showClientLabel?: boolean;
+  sort: SortKey;
+  onSortChange: (k: SortKey) => void;
+  filters: MatchFilters;
+  onFiltersChange: (f: MatchFilters) => void;
+  scopeRels: Relationship[];
+  rankMap: Map<string, number>;
 }
 
 // Primary chips shown inline; remainder go in a "More" popover.
