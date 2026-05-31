@@ -209,6 +209,11 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, s
                   </span>
                 </ContextItem>
               )}
+              {scopedMatchCount != null && (
+                <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                  {scopedMatchCount} matched
+                </span>
+              )}
             </div>
           ) : (
             <div className="text-xs text-muted-foreground">Loading exchange details…</div>
