@@ -5,7 +5,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { PropertyMatchCard } from "./PropertyMatchCard";
-import { FILTER_TABS, type UiStatus } from "./inboxHelpers";
+import { FILTER_TABS, type UiStatus, type SortKey } from "./inboxHelpers";
+import { SortFilterBar, type MatchFilters } from "./SortFilterBar";
 
 interface Props {
   rels: Relationship[];
@@ -17,6 +18,12 @@ interface Props {
   onFilterChange: (f: "all" | UiStatus) => void;
   counts: Record<"all" | UiStatus, number>;
   showClientLabel?: boolean;
+  sort: SortKey;
+  onSortChange: (k: SortKey) => void;
+  filters: MatchFilters;
+  onFiltersChange: (f: MatchFilters) => void;
+  scopeRels: Relationship[];
+  rankMap: Map<string, number>;
 }
 
 // Primary chips shown inline; remainder go in a "More" popover.
@@ -38,6 +45,12 @@ export function InboxList({
   onFilterChange,
   counts,
   showClientLabel = false,
+  sort,
+  onSortChange,
+  filters,
+  onFiltersChange,
+  scopeRels,
+  rankMap,
 }: Props) {
   const primaryTabs = FILTER_TABS.filter((t) => PRIMARY_KEYS.includes(t.key));
   const moreTabs = FILTER_TABS.filter((t) => !PRIMARY_KEYS.includes(t.key));
@@ -123,6 +136,15 @@ export function InboxList({
         </div>
       </div>
 
+      {/* Sort + filters */}
+      <SortFilterBar
+        sort={sort}
+        onSortChange={onSortChange}
+        filters={filters}
+        onFiltersChange={onFiltersChange}
+        scopeRels={scopeRels}
+      />
+
       {/* List */}
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         {rels.length === 0 ? (
@@ -141,6 +163,7 @@ export function InboxList({
                   selected={r.id === selectedId}
                   onSelect={() => onSelect(r)}
                   showClientLabel={showClientLabel}
+                  rank={rankMap.get(r.id)}
                 />
               </li>
             ))}

@@ -10,6 +10,7 @@ import { MatchBreakdownChart } from "./MatchBreakdownChart";
 import { AgentCommsCard } from "./AgentCommsCard";
 import {
   financialMetrics,
+  rankExplanation,
   UI_STATUS_CLASS,
   UI_STATUS_LABEL,
 } from "./inboxHelpers";
@@ -20,11 +21,13 @@ interface Props {
   rel: Relationship;
   /** Open the secondary actions/deal-room drawer. */
   onOpenActions?: () => void;
+  rank?: number | null;
+  totalInScope?: number;
 }
 
 const KEY_METRIC_KEYS = ["noi", "cap", "coc", "dscr", "occupancy", "equity", "loan", "cashflow"];
 
-export function PropertyReviewPanel({ rel, onOpenActions }: Props) {
+export function PropertyReviewPanel({ rel, onOpenActions, rank, totalInScope }: Props) {
   const allMetrics = financialMetrics(rel);
   const keyMetrics = KEY_METRIC_KEYS
     .map((k) => allMetrics.find((m) => m.key === k))
@@ -77,6 +80,12 @@ export function PropertyReviewPanel({ rel, onOpenActions }: Props) {
                   </span>
                 </p>
               )}
+              {rank != null && totalInScope ? (
+                <p className="mt-1 text-[11px] font-medium text-foreground/70">
+                  <span className="rounded bg-muted px-1.5 py-0.5 font-bold">#{rank}</span>
+                  <span className="ml-1.5">of {totalInScope} matches · Score {Math.round(rel.score)}</span>
+                </p>
+              ) : null}
             </div>
 
             <div className="flex shrink-0 items-center gap-3">
@@ -166,8 +175,14 @@ export function PropertyReviewPanel({ rel, onOpenActions }: Props) {
             <FinancialGrid metrics={allMetrics} />
           </TabsContent>
 
-          <TabsContent value="why" className="m-0 p-5">
+          <TabsContent value="why" className="m-0 space-y-4 p-5">
+            {rank != null && (
+              <div className="rounded-lg border bg-primary/5 p-3 text-sm text-foreground/80">
+                {rankExplanation(rel, rank)}
+              </div>
+            )}
             <WhyThisMatched rel={rel} />
+            <MatchBreakdownChart rel={rel} />
           </TabsContent>
 
           <TabsContent value="breakdown" className="m-0 p-5">

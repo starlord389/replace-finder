@@ -9,12 +9,15 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useAgentExchangesQuery, type AgentExchangeRow } from "@/features/agent/hooks/useAgentExchangesQuery";
 import { useExchangeContext } from "@/features/matches/hooks/useExchangeContext";
+import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { cn } from "@/lib/utils";
 
 interface Props {
   selectedExchangeId: string | "all";
   onChange: (id: string | "all") => void;
   totalCount: number;
+  scopedMatchCount?: number;
+  rels?: Relationship[];
 }
 
 function currency(v: number | null | undefined): string {
@@ -38,12 +41,24 @@ function exchangeLabel(ex: AgentExchangeRow): string {
   return place ? `${client} · ${place}` : client;
 }
 
-export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount }: Props) {
+export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, scopedMatchCount, rels = [] }: Props) {
   const { user } = useAuth();
   const { data: exchanges = [] } = useAgentExchangesQuery(user?.id);
   const { data: ctx } = useExchangeContext(
     selectedExchangeId === "all" ? null : selectedExchangeId,
   );
+
+  // Per-exchange match stats (count + best score + days to ID deadline)
+  const statsByExchange = useMemo(() => {
+    const m = new Map<string, { count: number; best: number }>();
+    rels.forEach((r) => {
+      const cur = m.get(r.buyerExchangeId) ?? { count: 0, best: 0 };
+      cur.count += 1;
+      if (r.score > cur.best) cur.best = r.score;
+      m.set(r.buyerExchangeId, cur);
+    });
+    return m;
+  }, [rels]);
 
   const selectedSummary = useMemo(() => {
     if (selectedExchangeId === "all") return "All exchanges";
@@ -87,6 +102,8 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount }:
                 ) : (
                   exchanges.map((ex) => {
                     const active = ex.id === selectedExchangeId;
+                    const stat = statsByExchange.get(ex.id);
+                    const dl = daysFromNow(ex.identification_deadline);
                     return (
                       <button
                         key={ex.id}
@@ -97,9 +114,14 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount }:
                           active && "bg-muted",
                         )}
                       >
-                        <span className="truncate text-sm font-medium text-foreground">
-                          {ex.agent_clients?.client_name ?? "Client"}
-                        </span>
+                        <div className="flex w-full items-center justify-between gap-2">
+                          <span className="truncate text-sm font-medium text-foreground">
+                            {ex.agent_clients?.client_name ?? "Client"}
+                          </span>
+                          <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
+                            {stat ? `${stat.count} match${stat.count === 1 ? "" : "es"}` : "0 matches"}
+                          </span>
+                        </div>
                         <span className="truncate text-[11px] text-muted-foreground">
                           {ex.pledged_properties?.address ||
                             [ex.pledged_properties?.city, ex.pledged_properties?.state]
@@ -107,6 +129,16 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount }:
                               .join(", ") ||
                             "No relinquished property"}
                         </span>
+                        <div className="mt-0.5 flex w-full items-center gap-3 text-[10px] text-muted-foreground">
+                          {stat && stat.best > 0 && (
+                            <span>Best score <span className="font-semibold text-foreground">{Math.round(stat.best)}</span></span>
+                          )}
+                          {dl != null && (
+                            <span className={cn(dl < 0 ? "text-destructive" : dl <= 14 ? "text-amber-600" : undefined)}>
+                              {dl < 0 ? `${Math.abs(dl)}d overdue` : `${dl}d to ID`}
+                            </span>
+                          )}
+                        </div>
                       </button>
                     );
                   })
@@ -117,8 +149,13 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount }:
 
           {/* Context details */}
           {selectedExchangeId === "all" ? (
-            <div className="min-w-0 flex-1 text-sm text-muted-foreground">
-              Showing matches across all your active exchanges.
+            <div className="flex min-w-0 flex-1 items-center gap-3 text-sm text-muted-foreground">
+              <span>Showing matches across all your active exchanges.</span>
+              {scopedMatchCount != null && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                  {scopedMatchCount} matched opportunities
+                </span>
+              )}
             </div>
           ) : ctx ? (
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-1 text-xs">
@@ -171,6 +208,11 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount }:
                     )}
                   </span>
                 </ContextItem>
+              )}
+              {scopedMatchCount != null && (
+                <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                  {scopedMatchCount} matched
+                </span>
               )}
             </div>
           ) : (

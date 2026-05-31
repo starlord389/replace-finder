@@ -10,8 +10,11 @@ import { DealRoomPanel } from "@/features/matches/components/inbox/DealRoomPanel
 import { ExchangeContextBar } from "@/features/matches/components/inbox/ExchangeContextBar";
 import {
   deriveUiStatus,
+  sortRelationships,
+  type SortKey,
   type UiStatus,
 } from "@/features/matches/components/inbox/inboxHelpers";
+import { EMPTY_FILTERS, type MatchFilters } from "@/features/matches/components/inbox/SortFilterBar";
 import { readMatchLocalState } from "@/features/matches/components/inbox/useMatchLocalState";
 import { cn } from "@/lib/utils";
 
@@ -31,11 +34,13 @@ export default function AgentMatchesHub() {
   const [search, setSearch] = useState("");
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [filters, setFilters] = useState<MatchFilters>(EMPTY_FILTERS);
 
   const rawFilter = searchParams.get("filter") ?? searchParams.get("stage") ?? "all";
   const filter = (LEGACY_FILTER_MAP[rawFilter] ?? (rawFilter as UiStatus | "all")) as "all" | UiStatus;
   const selectedId = searchParams.get("id");
   const exchangeParam = (searchParams.get("exchange") ?? "all") as string | "all";
+  const sort = (searchParams.get("sort") as SortKey) || "best_match";
 
   // Translate legacy ?connection=/ ?match= → ?id=
   useEffect(() => {
@@ -84,8 +89,22 @@ export default function AgentMatchesHub() {
 
   const visibleRels = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return annotated
+    const filtered = annotated
       .filter((a) => (filter === "all" ? true : a.status === filter))
+      .filter((a) => a.rel.score >= filters.minScore)
+      .filter((a) =>
+        filters.states.length === 0
+          ? true
+          : a.rel.propertyState
+            ? filters.states.includes(a.rel.propertyState)
+            : false,
+      )
+      .filter((a) => {
+        const p = a.rel.askingPrice ?? null;
+        if (filters.priceMin != null && (p == null || p < filters.priceMin)) return false;
+        if (filters.priceMax != null && (p == null || p > filters.priceMax)) return false;
+        return true;
+      })
       .filter((a) => {
         if (!q) return true;
         const r = a.rel;
@@ -97,17 +116,40 @@ export default function AgentMatchesHub() {
         );
       })
       .map((a) => a.rel);
-  }, [annotated, filter, search]);
+    return sortRelationships(filtered, sort);
+  }, [annotated, filter, search, sort, filters]);
+
+  const rankMap = useMemo(() => {
+    const m = new Map<string, number>();
+    visibleRels.forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [visibleRels]);
 
   const selected = useMemo(() => {
     return visibleRels.find((r) => r.id === selectedId) ?? visibleRels[0] ?? null;
   }, [visibleRels, selectedId]);
+
+  // Keep URL id in sync when current selection drops out of view
+  useEffect(() => {
+    if (!selected) return;
+    if (selectedId && selectedId === selected.id) return;
+    const next = new URLSearchParams(searchParams);
+    next.set("id", selected.id);
+    setSearchParams(next, { replace: true });
+  }, [selected, selectedId, searchParams, setSearchParams]);
 
   function setFilter(f: "all" | UiStatus) {
     const next = new URLSearchParams(searchParams);
     if (f === "all") next.delete("filter");
     else next.set("filter", f);
     next.delete("stage");
+    setSearchParams(next);
+  }
+
+  function setSort(k: SortKey) {
+    const next = new URLSearchParams(searchParams);
+    if (k === "best_match") next.delete("sort");
+    else next.set("sort", k);
     setSearchParams(next);
   }
 
@@ -125,6 +167,7 @@ export default function AgentMatchesHub() {
     setSearchParams(next);
     setMobileDetailOpen(true);
   }
+
 
   const showClientLabel = exchangeParam === "all";
 
@@ -150,6 +193,8 @@ export default function AgentMatchesHub() {
         selectedExchangeId={exchangeParam}
         onChange={setExchange}
         totalCount={rels.length}
+        scopedMatchCount={exchangeScopedRels.length}
+        rels={rels}
       />
 
       {isLoading ? (
@@ -177,6 +222,12 @@ export default function AgentMatchesHub() {
               onFilterChange={setFilter}
               counts={counts}
               showClientLabel={showClientLabel}
+              sort={sort}
+              onSortChange={setSort}
+              filters={filters}
+              onFiltersChange={setFilters}
+              scopeRels={exchangeScopedRels}
+              rankMap={rankMap}
             />
           </div>
 
@@ -199,6 +250,8 @@ export default function AgentMatchesHub() {
                   <PropertyReviewPanel
                     rel={selected}
                     onOpenActions={() => setActionsOpen(true)}
+                    rank={rankMap.get(selected.id) ?? null}
+                    totalInScope={visibleRels.length}
                   />
                 </div>
               </>
@@ -208,6 +261,7 @@ export default function AgentMatchesHub() {
           </div>
         </div>
       )}
+
 
       {/* Actions drawer (right side) */}
       <Sheet open={actionsOpen && !!selected} onOpenChange={setActionsOpen}>
