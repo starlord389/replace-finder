@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ArrowLeftRight, Handshake,
-  Settings, HelpCircle, LogOut, Compass,
+  Settings, HelpCircle, LogOut, Compass, Sparkles,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
