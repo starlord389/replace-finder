@@ -29,6 +29,7 @@ import NewExchange from "@/pages/agent/NewExchange";
 import EditExchange from "@/pages/agent/EditExchange";
 import AgentExchangeDetail from "@/pages/agent/AgentExchangeDetail";
 import AgentMatchesHub from "@/pages/agent/AgentMatchesHub";
+import AgentExchangeWorkspace from "@/pages/agent/AgentExchangeWorkspace";
 import AgentMatchDetail from "@/pages/agent/AgentMatchDetail";
 import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
 import AgentSettings from "@/pages/agent/AgentSettings";
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="/agent/properties" element={<Navigate to="/agent/exchanges" replace />} />
               {/* Unified Matches hub (replaces Matches + Connections + Messages list pages) */}
               <Route path="/agent/matches" element={<AgentMatchesHub />} />
+              <Route path="/agent/matches-v2" element={<AgentExchangeWorkspace />} />
               <Route path="/agent/matches/:id" element={<AgentMatchDetail />} />
               <Route path="/agent/connections" element={<Navigate to="/agent/matches?stage=pending" replace />} />
               <Route path="/agent/connections/:id" element={<AgentConnectionDetail />} />
