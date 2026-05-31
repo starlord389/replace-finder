@@ -120,5 +120,3 @@ export function computeVisible(
   return { visible: sorted, rankMap };
 }
 
-// Avoid unused-import lint by surfacing useMemo (kept for callers that import sortRelationships indirectly)
-void useMemo;
