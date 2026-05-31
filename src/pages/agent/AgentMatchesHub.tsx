@@ -10,8 +10,11 @@ import { DealRoomPanel } from "@/features/matches/components/inbox/DealRoomPanel
 import { ExchangeContextBar } from "@/features/matches/components/inbox/ExchangeContextBar";
 import {
   deriveUiStatus,
+  sortRelationships,
+  type SortKey,
   type UiStatus,
 } from "@/features/matches/components/inbox/inboxHelpers";
+import { EMPTY_FILTERS, type MatchFilters } from "@/features/matches/components/inbox/SortFilterBar";
 import { readMatchLocalState } from "@/features/matches/components/inbox/useMatchLocalState";
 import { cn } from "@/lib/utils";
 
