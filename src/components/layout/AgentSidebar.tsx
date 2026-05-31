@@ -53,11 +53,6 @@ export default function AgentSidebar() {
       icon: Handshake,
       badge: (badges?.pendingConnections ?? 0) + (badges?.unreadMessages ?? 0),
     },
-    {
-      title: "Workspace (beta)",
-      url: "/agent/matches-v2",
-      icon: Sparkles,
-    },
   ];
 
   const accountItems: NavItem[] = [
