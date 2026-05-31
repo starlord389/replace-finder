@@ -6,6 +6,7 @@ import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationsh
 import {
   deriveUiStatus,
   nextActionsFor,
+  rankReason,
   UI_STATUS_CLASS,
   UI_STATUS_LABEL,
 } from "./inboxHelpers";
@@ -17,9 +18,10 @@ interface Props {
   onSelect: () => void;
   assetType?: string | null;
   showClientLabel?: boolean;
+  rank?: number;
 }
 
-export function PropertyMatchCard({ rel, selected, onSelect, assetType, showClientLabel = false }: Props) {
+export function PropertyMatchCard({ rel, selected, onSelect, assetType, showClientLabel = false, rank }: Props) {
   const local = readMatchLocalState(rel.matchId);
   const status = deriveUiStatus(rel, local);
   const action = nextActionsFor(status).primary;
