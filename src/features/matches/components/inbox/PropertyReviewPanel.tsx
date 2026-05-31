@@ -175,8 +175,14 @@ export function PropertyReviewPanel({ rel, onOpenActions, rank, totalInScope }: 
             <FinancialGrid metrics={allMetrics} />
           </TabsContent>
 
-          <TabsContent value="why" className="m-0 p-5">
+          <TabsContent value="why" className="m-0 space-y-4 p-5">
+            {rank != null && (
+              <div className="rounded-lg border bg-primary/5 p-3 text-sm text-foreground/80">
+                {rankExplanation(rel, rank)}
+              </div>
+            )}
             <WhyThisMatched rel={rel} />
+            <MatchBreakdownChart rel={rel} />
           </TabsContent>
 
           <TabsContent value="breakdown" className="m-0 p-5">
