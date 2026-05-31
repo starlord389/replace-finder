@@ -90,10 +90,9 @@ const App = () => (
               <Route path="/agent/exchanges/:id/edit" element={<EditExchange />} />
               <Route path="/agent/exchanges/:id" element={<AgentExchangeDetail />} />
               <Route path="/agent/properties" element={<Navigate to="/agent/exchanges" replace />} />
-              {/* Exchange Workspace — CRM-style matches hub (replaces Matches + Connections + Messages list pages) */}
-              <Route path="/agent/matches" element={<AgentExchangeWorkspace />} />
-              <Route path="/agent/matches-v2" element={<Navigate to="/agent/matches" replace />} />
-              <Route path="/agent/matches/legacy" element={<AgentMatchesHub />} />
+              {/* Unified Matches hub (replaces Matches + Connections + Messages list pages) */}
+              <Route path="/agent/matches" element={<AgentMatchesHub />} />
+              <Route path="/agent/matches-v2" element={<AgentExchangeWorkspace />} />
               <Route path="/agent/matches/:id" element={<AgentMatchDetail />} />
               <Route path="/agent/connections" element={<Navigate to="/agent/matches?stage=pending" replace />} />
               <Route path="/agent/connections/:id" element={<AgentConnectionDetail />} />
