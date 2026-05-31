@@ -69,9 +69,16 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, showClie
       {/* Body */}
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p className="truncate text-sm font-semibold text-foreground">
-            {rel.propertyName}
-          </p>
+          <div className="flex min-w-0 items-baseline gap-1.5">
+            {rank != null && (
+              <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-bold text-foreground/80">
+                #{rank}
+              </span>
+            )}
+            <p className="truncate text-sm font-semibold text-foreground">
+              {rel.propertyName}
+            </p>
+          </div>
           {rel.unreadCount > 0 && (
             <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
           )}
@@ -93,6 +100,11 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, showClie
           )}
           {noi && <span className="text-muted-foreground">{noi}</span>}
         </div>
+
+        <p className="mt-1 truncate text-[10px] italic text-muted-foreground">
+          {rankReason(rel)}
+        </p>
+
 
         <div className="mt-2 flex items-center justify-between gap-2">
           <span
