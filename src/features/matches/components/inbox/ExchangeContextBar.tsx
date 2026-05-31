@@ -102,6 +102,8 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, s
                 ) : (
                   exchanges.map((ex) => {
                     const active = ex.id === selectedExchangeId;
+                    const stat = statsByExchange.get(ex.id);
+                    const dl = daysFromNow(ex.identification_deadline);
                     return (
                       <button
                         key={ex.id}
@@ -112,9 +114,14 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, s
                           active && "bg-muted",
                         )}
                       >
-                        <span className="truncate text-sm font-medium text-foreground">
-                          {ex.agent_clients?.client_name ?? "Client"}
-                        </span>
+                        <div className="flex w-full items-center justify-between gap-2">
+                          <span className="truncate text-sm font-medium text-foreground">
+                            {ex.agent_clients?.client_name ?? "Client"}
+                          </span>
+                          <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
+                            {stat ? `${stat.count} match${stat.count === 1 ? "" : "es"}` : "0 matches"}
+                          </span>
+                        </div>
                         <span className="truncate text-[11px] text-muted-foreground">
                           {ex.pledged_properties?.address ||
                             [ex.pledged_properties?.city, ex.pledged_properties?.state]
@@ -122,6 +129,16 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, s
                               .join(", ") ||
                             "No relinquished property"}
                         </span>
+                        <div className="mt-0.5 flex w-full items-center gap-3 text-[10px] text-muted-foreground">
+                          {stat && stat.best > 0 && (
+                            <span>Best score <span className="font-semibold text-foreground">{Math.round(stat.best)}</span></span>
+                          )}
+                          {dl != null && (
+                            <span className={cn(dl < 0 ? "text-destructive" : dl <= 14 ? "text-amber-600" : undefined)}>
+                              {dl < 0 ? `${Math.abs(dl)}d overdue` : `${dl}d to ID`}
+                            </span>
+                          )}
+                        </div>
                       </button>
                     );
                   })
