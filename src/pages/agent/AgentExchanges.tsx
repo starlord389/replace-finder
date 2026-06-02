@@ -42,7 +42,6 @@ interface ExchangeCard {
   cap_rate: number | null;
   cover_url: string | null;
   match_count: number;
-  best_score: number | null;
 }
 
 function fmtPrice(v: number | null) {
@@ -75,7 +74,7 @@ async function fetchExchangeCards(agentId: string): Promise<ExchangeCard[]> {
     propertyIds.length
       ? supabase.from("property_images").select("property_id, storage_path").in("property_id", propertyIds).order("sort_order")
       : Promise.resolve({ data: [] as any[] }),
-    supabase.from("matches").select("buyer_exchange_id, total_score").in("buyer_exchange_id", exchangeIds),
+    supabase.from("matches").select("buyer_exchange_id").in("buyer_exchange_id", exchangeIds),
     clientIds.length
       ? supabase.from("agent_clients").select("id, client_name").in("id", clientIds as string[])
       : Promise.resolve({ data: [] as any[] }),
@@ -94,11 +93,8 @@ async function fetchExchangeCards(agentId: string): Promise<ExchangeCard[]> {
   }
 
   const matchCount = new Map<string, number>();
-  const bestScore = new Map<string, number>();
-  for (const m of (matchesRes.data ?? []) as Array<{ buyer_exchange_id: string; total_score: number | null }>) {
+  for (const m of matchesRes.data ?? []) {
     matchCount.set(m.buyer_exchange_id, (matchCount.get(m.buyer_exchange_id) ?? 0) + 1);
-    const s = Number(m.total_score ?? 0);
-    if (s > (bestScore.get(m.buyer_exchange_id) ?? -1)) bestScore.set(m.buyer_exchange_id, s);
   }
 
   return exchanges.map((e) => {
@@ -124,7 +120,6 @@ async function fetchExchangeCards(agentId: string): Promise<ExchangeCard[]> {
       cap_rate: fin?.cap_rate ?? null,
       cover_url: e.relinquished_property_id ? (coverByProp.get(e.relinquished_property_id) ?? null) : null,
       match_count: matchCount.get(e.id) ?? 0,
-      best_score: bestScore.get(e.id) ?? null,
     };
   });
 }
@@ -338,11 +333,6 @@ export default function AgentExchanges() {
                             {e.match_count} match{e.match_count > 1 ? "es" : ""}
                           </span>
                         )}
-                        {e.best_score != null && e.match_count > 0 && (
-                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-emerald-800">
-                            Best {Math.round(e.best_score)}
-                          </span>
-                        )}
                       </div>
                       {e.client_name && (
                         <span className="truncate text-muted-foreground">
@@ -350,13 +340,6 @@ export default function AgentExchanges() {
                         </span>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      className="mt-3 w-full"
-                      onClick={(ev) => { ev.stopPropagation(); navigate(`/agent/exchanges/${e.id}`); }}
-                    >
-                      Open Workspace
-                    </Button>
                   </CardContent>
                 </Card>
               );

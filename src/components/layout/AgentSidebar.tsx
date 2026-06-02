@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Users, ArrowLeftRight,
+  LayoutDashboard, Users, ArrowLeftRight, Handshake,
   Settings, HelpCircle, LogOut, Compass,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -46,10 +46,11 @@ export default function AgentSidebar() {
       : []),
     { title: "Dashboard", url: "/agent", icon: LayoutDashboard, end: true },
     { title: "My Clients", url: "/agent/clients", icon: Users },
+    { title: "Exchanges", url: "/agent/exchanges", icon: ArrowLeftRight },
     {
-      title: "Exchanges",
-      url: "/agent/exchanges",
-      icon: ArrowLeftRight,
+      title: "Matches",
+      url: "/agent/matches",
+      icon: Handshake,
       badge: (badges?.pendingConnections ?? 0) + (badges?.unreadMessages ?? 0),
     },
   ];
