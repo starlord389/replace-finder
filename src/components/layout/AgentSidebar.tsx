@@ -44,7 +44,7 @@ export default function AgentSidebar() {
     ...(!launchpadComplete
       ? [{ title: "Launchpad", url: "/agent/launchpad", icon: Compass }]
       : []),
-    { title: "Dashboard", url: "/agent", icon: LayoutDashboard, end: true },
+    { title: "Dashboard", url: "/agent/dashboard", icon: LayoutDashboard, end: true },
     { title: "My Clients", url: "/agent/clients", icon: Users },
     { title: "Listings", url: "/agent/exchanges", icon: ArrowLeftRight },
     {
