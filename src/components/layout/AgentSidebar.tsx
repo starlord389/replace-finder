@@ -46,7 +46,7 @@ export default function AgentSidebar() {
       : []),
     { title: "Dashboard", url: "/agent", icon: LayoutDashboard, end: true },
     { title: "My Clients", url: "/agent/clients", icon: Users },
-    { title: "Exchanges", url: "/agent/exchanges", icon: ArrowLeftRight },
+    { title: "Listings", url: "/agent/exchanges", icon: ArrowLeftRight },
     {
       title: "Matches",
       url: "/agent/matches",
