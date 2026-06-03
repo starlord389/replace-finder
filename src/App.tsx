@@ -78,7 +78,7 @@ const App = () => (
 
             {/* Agent (agent role required) */}
             <Route element={<AgentLayout />}>
-              <Route path="/agent" element={<Navigate to="/agent/launchpad" replace />} />
+              <Route path="/agent" element={<Navigate to="/agent/dashboard" replace />} />
               <Route path="/agent/launchpad" element={<AgentLaunchpad />} />
               <Route path="/agent/dashboard" element={<AgentDashboard />} />
               <Route path="/agent/clients" element={<AgentClients />} />
