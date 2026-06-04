@@ -29,6 +29,11 @@ export interface Relationship {
   score: number;
   bootStatus: string;
   estimatedBoot: number | null;
+  buyerCurrentRoe: number | null;     // ratio, e.g. 0.062
+  candidateRoe: number | null;        // ratio
+  roeImprovementPp: number | null;    // percentage points
+  roeImprovementRel: number | null;   // ratio, e.g. 0.35 = +35%
+
 
   // counterparty (revealed only when connected)
   counterpartyName: string | null;
