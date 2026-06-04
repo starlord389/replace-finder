@@ -1,63 +1,79 @@
-# Inline matching in create-exchange / update-exchange
+# Wire up database trigger functions
 
-## Verification
+## Findings (verified against current schema)
 
-Confirmed against current code:
+### 1. `handle_new_user` — needs fixing before binding
 
-- **`_shared/matching-core.ts`** exports `computeMatchesForExchange(db, userId, exchangeId, propertyId)` and `persistMatchesAndNotifications(db, matches, userId)` — exactly what `run-auto-matching` uses.
-- **`run-auto-matching/index.ts`** is the reference pattern: compute → persist → return. Stays untouched.
-- **`create-exchange/index.ts`** writes to `match_job_queue` at L175 (on `activate`) and to `event_outbox` at L183.
-- **`update-exchange/index.ts`** writes to `match_job_queue` at L71 (delete on draft-delete), L200 (rescore on save), L231 (publish). Writes to `event_outbox` at L192, L244, L270.
+**What it does today:** On insert into `auth.users`, inserts `(id, email, full_name, phone)` into `public.profiles` and `(user_id, role)` into `public.user_roles`, defaulting role to `'agent'`. Reads from `NEW.raw_user_meta_data`.
 
-One nuance worth flagging: `update-exchange` currently re-queues matching on a plain save only when the exchange is already published AND criteria/financials changed (L199). The plan preserves that gating.
+**Schema check:** All target columns exist. `app_role` enum contains `agent`, `client`, `broker`, `admin`. Safe to call.
 
-## Plan
+**State check:** No client code inserts into `profiles` or `user_roles` directly — `Signup.tsx` and `AcceptInvite.tsx` only call `auth.signUp` with metadata. Current row counts (`auth.users=6`, `profiles=6`, `user_roles=7`) indicate the trigger was bound previously, then dropped. **New signups today silently leave `profiles` empty → broken auth flow downstream.** Highest priority.
 
-### 1. Add a shared inline-matching helper
+**Gaps with current signup form** (`src/pages/auth/Signup.tsx` sends extra metadata that the function ignores):
+- `mls_number`, `license_state`, `brokerage_name` — exist as columns on `profiles`, sent by signup, but **not copied** by `handle_new_user`. New agents would land with blank verification fields.
+- No `ON CONFLICT` guard — if a profile or role row already exists (re-run, backfill, manual seed), the trigger throws and the entire signup fails.
 
-In `_shared/matching-core.ts`, add a small wrapper:
+**Recommendation: fix the function before binding.** Specifically:
+- Add `mls_number`, `license_state`, `brokerage_name` to the profiles insert.
+- Add `ON CONFLICT (id) DO NOTHING` on profiles and `ON CONFLICT (user_id, role) DO NOTHING` on user_roles.
 
-```ts
-export async function runMatchingSafe(db, userId, exchangeId, propertyId, reason) {
-  try {
-    const matches = await computeMatchesForExchange(db, userId, exchangeId, propertyId);
-    const newCount = await persistMatchesAndNotifications(db, matches, userId);
-    console.log(`[matching:${reason}] exchange=${exchangeId} new=${newCount}`);
-    return { ok: true, new_matches: newCount };
-  } catch (err) {
-    console.error(`[matching:${reason}] FAILED exchange=${exchangeId}`, err);
-    return { ok: false, error: (err as Error).message };
-  }
-}
-```
+Then bind: `AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();`
 
-This guarantees matching errors never bubble up to fail the save.
+---
 
-### 2. `create-exchange/index.ts`
+### 2. `auto_calculate_deadlines` — safe to bind as-is
 
-- Import `runMatchingSafe` from `_shared/matching-core.ts`.
-- Replace the `match_job_queue` insert at L175 with `await runMatchingSafe(db, user.id, exchangeId, propertyId, "create:activate")` (only when `payload.activate`).
-- Delete the `event_outbox` insert at L183.
-- Update the response: replace `matching_queued` with `matching_ran` (boolean) so the frontend signal is honest.
+**Logic:** When `sale_close_date` is set or changes, sets `identification_deadline = sale_close_date + 45 days` and `closing_deadline = sale_close_date + 180 days`.
 
-### 3. `update-exchange/index.ts`
+**Schema check:** `exchanges` has `sale_close_date` (date), `identification_deadline` (date), `closing_deadline` (date). Logic is correct per IRS §1031 (45/180-day rules).
 
-- Import `runMatchingSafe`.
-- L71 (`match_job_queue` delete on draft-delete): remove — queue table doesn't exist.
-- L192 (`event_outbox` insert on plain update): remove.
-- L200 (`match_job_queue` insert on rescore): replace with `runMatchingSafe(db, user.id, exchange.id, propertyId, "update:rescore")`. Preserve existing gate (`exchange.status !== "draft" && (payload.criteria || payload.financials) && propertyId`).
-- L231 (`match_job_queue` insert on publish, inside `handleStatusChange`): replace with `runMatchingSafe(db, userId, exchange.id, propertyId, "update:publish")`.
-- L244 and L270 (`event_outbox` inserts in `handleStatusChange`): remove.
+**Bind:** `BEFORE INSERT OR UPDATE ON public.exchanges FOR EACH ROW`. Trigger name should sort **before** `auto_exchange_status` so deadlines are set first if both fire on the same row.
 
-### 4. Failure isolation
+---
 
-All `runMatchingSafe` calls are awaited but swallow their own errors and log. Saves complete regardless. No `try/catch` reshuffling needed in the calling functions — the helper is the boundary.
+### 3. `auto_exchange_status` — safe, but with one known gap
 
-### 5. Out of scope (not touched)
+**Logic transitions on `exchanges`:**
+- `draft` → `active` when both `relinquished_property_id` and `criteria_id` are set
+- `active` → `in_identification` when `sale_close_date` is first set
+- `in_closing` → `completed` when `actual_close_date` is first set
 
-- `run-auto-matching/` — unchanged, still callable manually.
-- `_shared/matching-core.ts` core scoring functions — unchanged, only a new wrapper added.
-- `automation-worker/` — not touched in this change. It still references `match_job_queue` and `event_outbox` and remains effectively dead until you decide to delete it (separate task).
-- `matches` table, scoring weights, notifications behavior — unchanged.
-- Database schema — no migrations.
-- Frontend — no changes; both functions keep returning success payloads on the same shape (plus the renamed `matching_ran` flag, which appears unused by the UI but I'll grep to confirm during build).
+**Schema check:** All referenced columns exist. Function handles `OLD IS NULL` correctly so it works on INSERT too.
+
+**Gap (not a blocker):** Nothing in the function ever transitions to `in_closing` (e.g., on identification completion). Status would only reach `completed` if some other code first sets `in_closing`. Worth noting but doesn't make binding unsafe — it just leaves a hole the app must fill elsewhere.
+
+**Bind:** `BEFORE INSERT OR UPDATE ON public.exchanges FOR EACH ROW`, named to sort after `auto_calculate_deadlines`.
+
+---
+
+### 4. `update_updated_at_column` — safe, bind broadly
+
+**Logic:** Sets `NEW.updated_at = now()`. Standard.
+
+**Tables in `public` with `updated_at`:** `agent_clients`, `client_invites`, `exchange_connections`, `exchanges`, `matches`, `pledged_properties`, `profiles`, `property_financials`, `replacement_criteria`, `support_tickets`, `user_notification_preferences`.
+
+**Bind:** `BEFORE UPDATE` on each of the 11 tables above.
+
+---
+
+## Proposed binding plan (single migration)
+
+1. **Replace `handle_new_user`** with a version that:
+   - Inserts all relevant metadata fields (`full_name`, `phone`, `mls_number`, `license_state`, `brokerage_name`) into `profiles`.
+   - Uses `ON CONFLICT DO NOTHING` on both inserts.
+   - Keeps `SECURITY DEFINER` and `search_path = public`.
+2. **Create trigger** `on_auth_user_created` `AFTER INSERT ON auth.users` → `handle_new_user()`.
+3. **Create trigger** `trg_exchanges_auto_deadlines` `BEFORE INSERT OR UPDATE ON public.exchanges` → `auto_calculate_deadlines()`.
+4. **Create trigger** `trg_exchanges_auto_status` `BEFORE INSERT OR UPDATE ON public.exchanges` → `auto_exchange_status()` (name sorts after the deadline trigger).
+5. **Create `BEFORE UPDATE` triggers** on the 11 tables listed above, each calling `update_updated_at_column()`. Named consistently (e.g. `trg_<table>_set_updated_at`).
+
+All triggers use `CREATE TRIGGER IF NOT EXISTS` is not supported in Postgres, so use `DROP TRIGGER IF EXISTS ... ; CREATE TRIGGER ...` pattern to make the migration idempotent.
+
+## Risks / things you should know
+
+- **Backfill not included.** Existing exchanges with a `sale_close_date` but no deadlines will not be retroactively updated; the new triggers only fire on future writes. Tell me if you want a one-time UPDATE to backfill.
+- **Existing `auth.users` without a profile row** (none today, but worth noting) won't get one — the trigger only fires on new inserts. Current data is consistent so no action needed.
+- **No trigger to push `in_closing`.** The status state machine has a hole; consider a future trigger or app-level logic when identification completes.
+
+Nothing else needs changing. Ready to migrate on your approval.
