@@ -62,6 +62,36 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          created_at: string
+          id: string
+          mortgage_amortization_years: number
+          mortgage_interest_rate: number
+          singleton: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mortgage_amortization_years: number
+          mortgage_interest_rate: number
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mortgage_amortization_years?: number
+          mortgage_interest_rate?: number
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       client_invites: {
         Row: {
           accepted_at: string | null
