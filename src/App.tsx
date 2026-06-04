@@ -20,6 +20,7 @@ import ResetPassword from "@/pages/auth/ResetPassword";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import SupportTickets from "@/pages/admin/SupportTickets";
+import AdminSettings from "@/pages/admin/AdminSettings";
 import AgentDashboard from "@/pages/agent/AgentDashboard";
 import AgentLaunchpad from "@/pages/agent/AgentLaunchpad";
 import AgentClients from "@/pages/agent/AgentClients";
@@ -105,6 +106,7 @@ const App = () => (
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/support" element={<SupportTickets />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
