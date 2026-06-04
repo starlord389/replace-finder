@@ -232,12 +232,12 @@ export default function StepPropertyAndFinancials({
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Financials</h3>
         <div className="grid gap-4 sm:grid-cols-3">
-          <CurrencyField label="Asking Price / Estimated Value" value={financials.asking_price} onChange={v => setFinancials("asking_price", v)} required error={errors.asking_price} />
-          <CurrencyField label="Net Operating Income (NOI)" value={financials.noi} onChange={v => setFinancials("noi", v)} required error={errors.noi} />
-          <PercentField label="Occupancy Rate" value={financials.occupancy_rate} onChange={v => setFinancials("occupancy_rate", v)} required error={errors.occupancy_rate} />
+          <CurrencyField label="Asking Price / Estimated Value" value={financials.asking_price} onChange={v => setFinancials("asking_price", v)} required error={!!errors.asking_price} errorMessage={errors.asking_price} />
+          <CurrencyField label="Net Operating Income (NOI)" value={financials.noi} onChange={v => setFinancials("noi", v)} required error={!!errors.noi} errorMessage={errors.noi} />
+          <PercentField label="Occupancy Rate" value={financials.occupancy_rate} onChange={v => setFinancials("occupancy_rate", v)} required error={!!errors.occupancy_rate} errorMessage={errors.occupancy_rate} />
           <PercentField label="Cap Rate" value={financials.cap_rate} onChange={v => setFinancials("cap_rate", v)} />
           <CurrencyField label="Current Loan Balance" value={financials.loan_balance} onChange={v => setFinancials("loan_balance", v)}
-            required error={errors.loan_balance}
+            required error={!!errors.loan_balance} errorMessage={errors.loan_balance}
             help="Required to estimate equity and exchange proceeds behind the scenes. Enter 0 if the property is free and clear." />
         </div>
       </section>
