@@ -16,6 +16,7 @@ import {
 } from "@/lib/constants";
 import { Enums } from "@/integrations/supabase/types";
 import { useState } from "react";
+import { toast } from "sonner";
 import PropertyPhotoUploader from "./PropertyPhotoUploader";
 
 interface Props {
@@ -29,8 +30,8 @@ interface Props {
   onBack: () => void;
 }
 
-function CurrencyField({ label, value, onChange, required, error, help }: {
-  label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean; help?: string;
+function CurrencyField({ label, value, onChange, required, error, errorMessage, help }: {
+  label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean; errorMessage?: string; help?: string;
 }) {
   return (
     <div>
@@ -39,13 +40,14 @@ function CurrencyField({ label, value, onChange, required, error, help }: {
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
         <Input className={cn("pl-7", error && "border-destructive")} value={value} onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0" />
       </div>
-      {help && <p className="mt-1 text-xs text-muted-foreground">{help}</p>}
+      {errorMessage && <p className="mt-1 text-xs text-destructive">{errorMessage}</p>}
+      {!errorMessage && help && <p className="mt-1 text-xs text-muted-foreground">{help}</p>}
     </div>
   );
 }
 
-function PercentField({ label, value, onChange, required, error }: {
-  label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean;
+function PercentField({ label, value, onChange, required, error, errorMessage }: {
+  label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean; errorMessage?: string;
 }) {
   return (
     <div>
@@ -54,6 +56,7 @@ function PercentField({ label, value, onChange, required, error }: {
         <Input className={cn("pr-7", error && "border-destructive")} value={value} onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0" />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
       </div>
+      {errorMessage && <p className="mt-1 text-xs text-destructive">{errorMessage}</p>}
     </div>
   );
 }
