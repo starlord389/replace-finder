@@ -1,4 +1,4 @@
-import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight } from "lucide-react";
+import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +22,7 @@ const operationsItems = [
 
 const managementItems = [
   { title: "Support", url: "/admin/support", icon: HelpCircle },
+  { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
 export default function AdminSidebar() {

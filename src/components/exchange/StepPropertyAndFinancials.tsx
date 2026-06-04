@@ -16,6 +16,7 @@ import {
 } from "@/lib/constants";
 import { Enums } from "@/integrations/supabase/types";
 import { useState } from "react";
+import { toast } from "sonner";
 import PropertyPhotoUploader from "./PropertyPhotoUploader";
 
 interface Props {
@@ -29,8 +30,8 @@ interface Props {
   onBack: () => void;
 }
 
-function CurrencyField({ label, value, onChange, required, error, help }: {
-  label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean; help?: string;
+function CurrencyField({ label, value, onChange, required, error, errorMessage, help }: {
+  label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean; errorMessage?: string; help?: string;
 }) {
   return (
     <div>
@@ -39,13 +40,14 @@ function CurrencyField({ label, value, onChange, required, error, help }: {
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
         <Input className={cn("pl-7", error && "border-destructive")} value={value} onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0" />
       </div>
-      {help && <p className="mt-1 text-xs text-muted-foreground">{help}</p>}
+      {errorMessage && <p className="mt-1 text-xs text-destructive">{errorMessage}</p>}
+      {!errorMessage && help && <p className="mt-1 text-xs text-muted-foreground">{help}</p>}
     </div>
   );
 }
 
-function PercentField({ label, value, onChange, required, error }: {
-  label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean;
+function PercentField({ label, value, onChange, required, error, errorMessage }: {
+  label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean; errorMessage?: string;
 }) {
   return (
     <div>
@@ -54,6 +56,7 @@ function PercentField({ label, value, onChange, required, error }: {
         <Input className={cn("pr-7", error && "border-destructive")} value={value} onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0" />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
       </div>
+      {errorMessage && <p className="mt-1 text-xs text-destructive">{errorMessage}</p>}
     </div>
   );
 }
@@ -68,13 +71,13 @@ export default function StepPropertyAndFinancials({
   onNext,
   onBack,
 }: Props) {
-  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
   const selectValue = (v: string) => v || undefined;
 
   const setProperty = (field: keyof PropertyData, value: any) => {
     onChangeProperty({ ...property, [field]: value });
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: false }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
   const setFinancials = (field: keyof FinancialsData, value: any) => {
@@ -87,26 +90,49 @@ export default function StepPropertyAndFinancials({
     }
 
     onChangeFinancials(updated);
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: false }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
   const validate = () => {
-    const required: Record<string, boolean> = {
-      address: !property.address.trim(),
-      city: !property.city.trim(),
-      state: !property.state,
-      zip: !property.zip.trim(),
-      asset_type: !property.asset_type,
-      asking_price: !financials.asking_price,
-      noi: !financials.noi,
-      occupancy_rate: !financials.occupancy_rate,
-      loan_balance: financials.loan_balance === "",
-    };
-    setErrors(required);
-    return !Object.values(required).some(Boolean);
+    const next: Record<string, string | undefined> = {};
+
+    if (!property.address.trim()) next.address = "Required";
+    if (!property.city.trim()) next.city = "Required";
+    if (!property.state) next.state = "Required";
+    if (!property.zip.trim()) next.zip = "Required";
+    if (!property.asset_type) next.asset_type = "Required";
+
+    const askingPrice = parseCurrency(financials.asking_price);
+    if (!financials.asking_price) next.asking_price = "Required";
+    else if (askingPrice === null) next.asking_price = "Must be a valid number";
+    else if (askingPrice <= 0) next.asking_price = "Must be greater than 0";
+
+    const noi = parseCurrency(financials.noi);
+    if (!financials.noi) next.noi = "Required";
+    else if (noi === null) next.noi = "Must be a valid number";
+    else if (noi < 0) next.noi = "Must be 0 or greater";
+
+    const occupancy = parseCurrency(financials.occupancy_rate);
+    if (!financials.occupancy_rate) next.occupancy_rate = "Required";
+    else if (occupancy === null) next.occupancy_rate = "Must be a valid number";
+    else if (occupancy < 0 || occupancy > 100) next.occupancy_rate = "Must be between 0 and 100";
+
+    const loanBalance = parseCurrency(financials.loan_balance);
+    if (financials.loan_balance === "") next.loan_balance = "Required (enter 0 if free and clear)";
+    else if (loanBalance === null) next.loan_balance = "Must be a valid number";
+    else if (loanBalance < 0) next.loan_balance = "Must be 0 or greater";
+
+    setErrors(next);
+    return Object.values(next).every(v => !v);
   };
 
-  const handleNext = () => { if (validate()) onNext(); };
+  const handleNext = () => {
+    if (validate()) {
+      onNext();
+    } else {
+      toast.error("Please fix the highlighted fields before continuing");
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -206,12 +232,12 @@ export default function StepPropertyAndFinancials({
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Financials</h3>
         <div className="grid gap-4 sm:grid-cols-3">
-          <CurrencyField label="Asking Price / Estimated Value" value={financials.asking_price} onChange={v => setFinancials("asking_price", v)} required error={errors.asking_price} />
-          <CurrencyField label="Net Operating Income (NOI)" value={financials.noi} onChange={v => setFinancials("noi", v)} required error={errors.noi} />
-          <PercentField label="Occupancy Rate" value={financials.occupancy_rate} onChange={v => setFinancials("occupancy_rate", v)} required error={errors.occupancy_rate} />
+          <CurrencyField label="Asking Price / Estimated Value" value={financials.asking_price} onChange={v => setFinancials("asking_price", v)} required error={!!errors.asking_price} errorMessage={errors.asking_price} />
+          <CurrencyField label="Net Operating Income (NOI)" value={financials.noi} onChange={v => setFinancials("noi", v)} required error={!!errors.noi} errorMessage={errors.noi} />
+          <PercentField label="Occupancy Rate" value={financials.occupancy_rate} onChange={v => setFinancials("occupancy_rate", v)} required error={!!errors.occupancy_rate} errorMessage={errors.occupancy_rate} />
           <PercentField label="Cap Rate" value={financials.cap_rate} onChange={v => setFinancials("cap_rate", v)} />
           <CurrencyField label="Current Loan Balance" value={financials.loan_balance} onChange={v => setFinancials("loan_balance", v)}
-            required error={errors.loan_balance}
+            required error={!!errors.loan_balance} errorMessage={errors.loan_balance}
             help="Required to estimate equity and exchange proceeds behind the scenes. Enter 0 if the property is free and clear." />
         </div>
       </section>
