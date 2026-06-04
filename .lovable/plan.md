@@ -1,114 +1,101 @@
+# Phase 2 — ROE-based matching
 
-# Phase 1 Plan — Validation + `app_settings`
+Rebuild the scoring in `supabase/functions/_shared/matching-core.ts` so a candidate property is only a match if it beats the buyer's current return on equity (ROE), and the score is dominated by how much better it is. No edge function call sites change; both `run-auto-matching` and the inline `runMatchingSafe` used in `create-exchange` / `update-exchange` import this same module, so the new model propagates automatically.
 
-Scope: numeric validation on the live exchange wizard (client + server) and a new admin-editable `app_settings` row for the future ROE math. **No changes to matching-core, match-config, scoring, or the matches table.**
+## Data availability (confirmed)
 
-## 1. Wizard validation — `StepPropertyAndFinancials.tsx`
+- Buyer's relinquished financials: `exchanges.relinquished_property_id` → `property_financials.{noi, asking_price, loan_balance}`. The current core does **not** load these for the buyer side — it only loads `propertyFin` for the just-edited property, which on the buyer side is the candidate, not the relinquished. The seller side already fetches `otherFinancialMap` for other exchanges' relinquished properties; we'll mirror that for the active exchange.
+- Candidate financials: `property_financials.{asking_price, noi, occupancy_rate}` — already loaded.
+- Admin assumptions: `app_settings.{mortgage_interest_rate, mortgage_amortization_years}` (Phase 1).
+- Buyer equity proxy: spec says `relinquished_asking_price − relinquished_loan_balance`. We will use that, not `exchanges.exchange_proceeds`, so the math matches the spec exactly. `exchange_proceeds` stays untouched (still used by boot).
 
-Extend the existing `validate()` to add numeric range checks alongside the current "not empty" checks.
+## Model
 
-Rules:
-- `asking_price` — required, must parse to number, **> 0**
-- `noi` — required, must parse to number, **≥ 0**
-- `loan_balance` — required, must parse to number, **≥ 0**
-- `occupancy_rate` — required, must parse to number, **0 ≤ x ≤ 100**
+For each (buyer exchange, candidate property) pair:
 
-Behavior:
-- Field-level error styling on the offending input (existing `errors` state, already wired to `border-destructive`).
-- Inline helper text under each invalid field with the specific message (e.g. "Must be greater than 0", "Must be between 0 and 100").
-- A small toast or summary message at the bottom of the step when the user clicks Continue with invalid values.
-- "Continue" button stays enabled but blocks navigation until valid (matches current pattern).
+```text
+buyerCurrentROE  = relinquished_noi / max(relinquished_asking_price - relinquished_loan_balance, ε)
+loanAmount       = 0.75 * candidate_asking_price
+annualPmt        = amortizedPayment(loanAmount, rate, years)   // standard mortgage formula
+candidateROE     = (candidate_noi - annualPmt) / buyerEquity   // buyerEquity = same denominator as above
+roeImprovementPP = (candidateROE - buyerCurrentROE) * 100      // percentage points
+roeImprovementRel = candidateROE / buyerCurrentROE - 1         // relative
+```
 
-No schema or type changes on the client.
+**Eligibility gate**: drop the candidate unless `candidateROE > buyerCurrentROE` by any positive margin. If either ROE can't be computed (missing NOI/price/loan/equity ≤ 0), the pair is ineligible — no fallback match. This replaces the current `MATCH_THRESHOLD` cutoff on `total_score`.
 
-## 2. Server-side validation — `create-exchange` and `update-exchange` edge functions
+**Score (0–100) for eligible matches**:
 
-Add a shared validator (small inline helper, no new shared file needed — or `_shared/validate-financials.ts` if cleaner) that runs after the body is parsed and before any DB writes.
+- **70% ROE improvement**: normalize `roeImprovementPP` over a configured range (default 0pp → +5pp maps to 0 → 100, clamped). Tunable in `match-config.ts`.
+- **30% fit (geo + asset + strategy)**: weighted average of the existing `scoreGeo` / `scoreAsset` / `scoreStrategy`. Each one stays neutral (50, treated as no-signal) when the buyer left that criteria field blank — preserves the "criteria optional" stance. Blank criteria do **not** drag the score down: the fit component averages only the dimensions the buyer actually specified, and if all three are blank, fit = 100 (pure ROE ranking).
+- **Quality tiebreaker (±a few points)**: small bonus/penalty from occupancy and building age via the existing `scoreFinancial` logic, scaled to ≤ ±3 points so it only breaks ties.
 
-Checks (same rules as client):
-- `financials.asking_price` is a finite number > 0
-- `financials.noi` is a finite number ≥ 0
-- `financials.loan_balance` is a finite number ≥ 0
-- `financials.occupancy_rate` is a finite number between 0 and 100
+Price-band scoring is removed from the weighted total (ROE already encodes affordability), but we keep an affordability sanity check: if `candidate_asking_price > buyerEquity / (1 - 0.75)` (i.e. requires more than 75% LTV), drop the candidate.
 
-On failure: return HTTP 400 with `{ error: "Invalid financials", details: { field: message, ... } }`. The frontend `createExchange` / `updateExchange` API wrappers already surface `error` from `supabase.functions.invoke`, so the existing mutation `onError` will display it; no frontend wiring change required beyond confirming the toast surfaces the message.
+## Boot
 
-For `update-exchange`: only validate fields that are present in the payload (partial updates), but if a required financial field is being changed it must satisfy its rule.
+`calculateBoot` is unchanged and still runs for every eligible match. The `estimated_*_boot` and `boot_status` columns continue to be persisted exactly as today.
 
-## 3. New table — `public.app_settings`
+## Both directions
 
-Single-row global config. Created via `supabase--migration`.
+`computeMatchesForExchange` handles buyer-side (this exchange × other properties) and seller-side (this property × other exchanges). Both paths call the same `scorePair(buyerExchange, buyerRelinquishedFin, candidateProp, candidateFin, settings)`, so both directions get ROE scoring without divergence.
 
-Columns:
-- `id` uuid PK default `gen_random_uuid()`
-- `mortgage_interest_rate` numeric not null (percent, e.g. `7.25` means 7.25%)
-- `mortgage_amortization_years` int not null
-- `updated_at` timestamptz not null default `now()`
-- `updated_by` uuid null (references the admin who last edited; not a FK to auth.users — store the id only)
-- `singleton` boolean not null default true, with a unique index ensuring only one row can exist
+## Settings loader
 
-Grants (in same migration, per project rules):
-- `GRANT SELECT ON public.app_settings TO authenticated;`
-- `GRANT ALL ON public.app_settings TO service_role;`
-- No anon grant.
+Add `loadMatchSettings(db)` at the top of `computeMatchesForExchange` that does one `select` on `app_settings`. If missing or row absent, fall back to `{ mortgage_interest_rate: 7.0, mortgage_amortization_years: 25 }` and log a warning. Passed into the scorer so we don't re-fetch per candidate.
 
-RLS:
-- Enable RLS.
-- Policy "Authenticated users can read settings" — `FOR SELECT TO authenticated USING (true)`.
-- Policy "Admins can insert settings" — `FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'admin'))`.
-- Policy "Admins can update settings" — `FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'))`.
-- No delete policy (table should never be deleted from).
+## `match-config.ts` (all knobs in one place)
 
-Trigger: bind existing `public.update_updated_at_column()` as a `BEFORE UPDATE` trigger on this table.
+```ts
+export const MATCH_WEIGHTS = { roe: 0.7, fit: 0.3 } as const;
+export const FIT_SUBWEIGHTS = { geo: 0.4, asset: 0.35, strategy: 0.25 } as const;
+export const ROE_IMPROVEMENT_FULL_SCORE_PP = 5;   // pp above baseline = 100
+export const QUALITY_TIEBREAKER_MAX_POINTS = 3;
+export const MAX_COMMERCIAL_LTV = 0.75;
+export const ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP = 0; // strictly > baseline
+export const FALLBACK_MORTGAGE_RATE = 7.0;
+export const FALLBACK_AMORTIZATION_YEARS = 25;
+```
 
-Seed: insert the initial row in the same migration with sensible CRE defaults:
-- `mortgage_interest_rate = 7.0`
-- `mortgage_amortization_years = 25`
+`MATCH_THRESHOLD` is removed; eligibility is now the ROE gate.
 
-## 4. Admin UI
+## Migration — persist ROE on `matches`
 
-Add a new page at `/admin/settings` (registered in `routeManifest.ts` under the admin layout, admin-only guard) plus a link in `AdminSidebar`. Keeping it separate from `AdminDashboard` so the dashboard stays focused.
+```sql
+ALTER TABLE public.matches
+  ADD COLUMN buyer_current_roe       numeric,
+  ADD COLUMN candidate_roe           numeric,
+  ADD COLUMN roe_improvement_pp      numeric,
+  ADD COLUMN roe_improvement_rel     numeric,
+  ADD COLUMN candidate_annual_debt_service numeric;
+```
 
-Page contents:
-- Title: "Platform Settings"
-- One card: "Mortgage Assumptions"
-  - Description: "Used by the matching engine to estimate financing costs on candidate properties."
-  - `mortgage_interest_rate` — numeric input, 2-decimal step, suffix `%`, range 0–25
-  - `mortgage_amortization_years` — numeric input, integer step, range 1–40
-  - `updated_at` + `updated_by` (email looked up from profiles) shown as small muted text
-  - "Save changes" button — disabled until dirty, shows saving state
-- Validation via zod on submit; same numeric bounds as inputs.
-- On save: `UPDATE public.app_settings SET ... , updated_by = auth.uid()` against the single existing row (filter `WHERE singleton = true`). React Query mutation; invalidate the read query on success; toast success/error.
+All nullable (older rows + edge cases where math can't run). `persistMatchesAndNotifications` writes them on upsert. Existing `price_score / geo_score / asset_score / strategy_score / financial_score` columns are kept (UI compatibility, debugging) — `price_score` becomes the ROE component score, `financial_score` becomes the quality-tiebreaker score, others unchanged in meaning.
 
-Read hook: `useAppSettings()` — `useQuery` selecting the single row; used by the admin page now and available for the future matching code.
+## UI — "Why this matched"
 
-Guarding: route uses existing admin role guard (same pattern as `/admin/dashboard` and `/admin/support-tickets`). Non-admins should not see the sidebar link or be able to load the page.
+Update `src/features/matches/components/inbox/WhyThisMatched.tsx` and the breakdown panel in `src/pages/agent/AgentMatchDetail.tsx` to lead with:
 
-## 5. Files touched
+```text
+Current ROE 6.2%  →  Projected ROE 8.4%   (+2.2 pp, +35%)
+```
 
-New:
-- `supabase/migrations/<timestamp>_app_settings.sql`
-- `src/pages/admin/AdminSettings.tsx`
-- `src/features/admin/hooks/useAppSettings.ts` (read + update mutation)
+Drive it from the new `matches.buyer_current_roe / candidate_roe / roe_improvement_pp / roe_improvement_rel` columns; fall back gracefully when null (older rows). Keep the existing fit/boot sub-cards underneath. No other UI changes in this phase.
 
-Edited:
-- `src/components/exchange/StepPropertyAndFinancials.tsx` — extend `validate()` + helper text
-- `supabase/functions/create-exchange/index.ts` — add validation guard
-- `supabase/functions/update-exchange/index.ts` — add validation guard
-- `src/app/routes/routeManifest.ts` — register `/admin/settings`
-- `src/components/layout/AdminSidebar.tsx` — add nav link
+## Conflicts with current code (to fix as part of this work)
 
-Not touched (explicitly out of scope this phase):
-- `supabase/functions/_shared/matching-core.ts`
-- `supabase/functions/_shared/match-config.ts`
-- `matches` table, scoring logic, match UI
+1. **Buyer-side scorer has no access to relinquished financials today.** Need to fetch `property_financials` for `exchange.relinquished_property_id` and pass into the scorer. Same `otherFinancialMap` pattern as seller side.
+2. **`scorePrice` uses `exchange_proceeds`** as the equity proxy; spec uses `asking − loan_balance`. Two are usually close but not identical. Spec wins; `exchange_proceeds` stays for boot only.
+3. **`MATCH_THRESHOLD`** + 5-component weighted total are removed/restructured. Any code that imports `MATCH_THRESHOLD` will need updating (only `matching-core.ts` does).
+4. **Match-detail UI** currently emphasizes price/geo/asset/strategy/financial bars; needs the ROE summary added on top. Existing bars stay so nothing breaks.
+5. **No field-name mismatches in `property_financials`** — `noi`, `asking_price`, `loan_balance` all exist and are what the Phase 1 validation will guarantee on new/edited listings. Older listings predating Phase 1 may still have nulls; those candidates and those buyers' relinquished properties will fail the eligibility gate cleanly (ineligible, not crash).
 
-## 6. Verification
+## Out of scope
 
-- Build passes; types regenerated after migration include `app_settings`.
-- Manual: try submitting wizard with `asking_price = 0`, `noi = -1`, `occupancy = 150`, `loan_balance = -5` → blocked client-side with clear messages.
-- Manual: bypass client by calling `create-exchange` directly with bad values → 400 with error details.
-- Manual: visit `/admin/settings` as admin → can read + save; visit as non-admin → blocked.
-- Confirm seeded row exists with `7.0` / `25`.
+No changes to `app_settings`, Phase 1 validation, auth, edge function entry points, notifications payload, or any other table beyond the `matches` column additions.
 
-Awaiting your approval before I start.
+## Verification
+
+- Unit-shaped manual test in a scratch script against seeded data: one buyer with known relinquished NOI/price/loan, three candidates straddling the ROE baseline — confirm only the improvers are persisted and ordering matches manual ROE math.
+- Trigger `run-auto-matching` for an existing exchange; confirm new columns populated and Why-this-matched UI shows the ROE line.
+- Edit a candidate listing via `update-exchange` path; confirm inline matching recomputes ROE columns on the upsert.
