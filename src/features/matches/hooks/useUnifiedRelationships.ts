@@ -29,6 +29,11 @@ export interface Relationship {
   score: number;
   bootStatus: string;
   estimatedBoot: number | null;
+  buyerCurrentRoe: number | null;     // ratio, e.g. 0.062
+  candidateRoe: number | null;        // ratio
+  roeImprovementPp: number | null;    // percentage points
+  roeImprovementRel: number | null;   // ratio, e.g. 0.35 = +35%
+
 
   // counterparty (revealed only when connected)
   counterpartyName: string | null;
@@ -264,9 +269,14 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
       score: Number(match.total_score),
       bootStatus: match.boot_status,
       estimatedBoot: match.estimated_total_boot,
+      buyerCurrentRoe: match.buyer_current_roe != null ? Number(match.buyer_current_roe) : null,
+      candidateRoe: match.candidate_roe != null ? Number(match.candidate_roe) : null,
+      roeImprovementPp: match.roe_improvement_pp != null ? Number(match.roe_improvement_pp) : null,
+      roeImprovementRel: match.roe_improvement_rel != null ? Number(match.roe_improvement_rel) : null,
       counterpartyName: cprof?.full_name ?? null,
       counterpartyBrokerage: cprof?.brokerage_name ?? null,
       counterpartyAvatar: cprof?.profile_photo_url ?? null,
+
       propertyId: match.seller_property_id,
       propertyName: prop?.property_name ?? "Property",
       propertyCity: prop?.city ?? null,

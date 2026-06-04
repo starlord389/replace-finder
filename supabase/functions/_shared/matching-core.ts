@@ -1,14 +1,23 @@
-import { MATCH_THRESHOLD, MATCH_WEIGHTS } from "./match-config.ts";
+import {
+  ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP,
+  FALLBACK_AMORTIZATION_YEARS,
+  FALLBACK_MORTGAGE_RATE,
+  FIT_SUBWEIGHTS,
+  MATCH_WEIGHTS,
+  MAX_COMMERCIAL_LTV,
+  QUALITY_TIEBREAKER_MAX_POINTS,
+  ROE_IMPROVEMENT_FULL_SCORE_PP,
+} from "./match-config.ts";
 
 export interface ScoredMatch {
   buyer_exchange_id: string;
   seller_property_id: string;
   total: number;
-  price: number;
+  price: number;       // re-purposed: ROE component score (0-100)
   geo: number;
   asset: number;
   strategy: number;
-  financial: number;
+  financial: number;   // re-purposed: quality tiebreaker score (0-100)
   estimated_cash_boot: number | null;
   estimated_mortgage_boot: number | null;
   estimated_total_boot: number | null;
@@ -16,6 +25,39 @@ export interface ScoredMatch {
   boot_status: string;
   direction: "buyer" | "seller";
   other_agent_id: string;
+  // ROE columns persisted to matches table
+  buyer_current_roe: number | null;
+  candidate_roe: number | null;
+  roe_improvement_pp: number | null;
+  roe_improvement_rel: number | null;
+  candidate_annual_debt_service: number | null;
+}
+
+interface MatchSettings {
+  mortgage_interest_rate: number; // percent, e.g. 7.25
+  mortgage_amortization_years: number;
+}
+
+async function loadMatchSettings(db: any): Promise<MatchSettings> {
+  try {
+    const { data } = await db
+      .from("app_settings")
+      .select("mortgage_interest_rate, mortgage_amortization_years")
+      .limit(1)
+      .maybeSingle();
+    if (data) {
+      return {
+        mortgage_interest_rate: Number(data.mortgage_interest_rate) || FALLBACK_MORTGAGE_RATE,
+        mortgage_amortization_years: Number(data.mortgage_amortization_years) || FALLBACK_AMORTIZATION_YEARS,
+      };
+    }
+  } catch (err) {
+    console.warn("[matching] failed to load app_settings, using fallbacks", err);
+  }
+  return {
+    mortgage_interest_rate: FALLBACK_MORTGAGE_RATE,
+    mortgage_amortization_years: FALLBACK_AMORTIZATION_YEARS,
+  };
 }
 
 export async function computeMatchesForExchange(
@@ -24,9 +66,10 @@ export async function computeMatchesForExchange(
   exchangeId: string,
   propertyId: string,
 ): Promise<ScoredMatch[]> {
-  const [exchangeRes, propertyRes] = await Promise.all([
+  const [exchangeRes, propertyRes, settings] = await Promise.all([
     db.from("exchanges").select("*").eq("id", exchangeId).single(),
     db.from("pledged_properties").select("*").eq("id", propertyId).single(),
+    loadMatchSettings(db),
   ]);
   if (exchangeRes.error || !exchangeRes.data) throw new Error("Exchange not found");
   if (propertyRes.error || !propertyRes.data) throw new Error("Property not found");
@@ -34,18 +77,22 @@ export async function computeMatchesForExchange(
   const exchange = exchangeRes.data;
   const property = propertyRes.data;
 
-  const [criteriaRes, propertyFinRes] = await Promise.all([
+  const [criteriaRes, propertyFinRes, relinquishedFinRes] = await Promise.all([
     exchange.criteria_id
       ? db.from("replacement_criteria").select("*").eq("id", exchange.criteria_id).single()
       : Promise.resolve({ data: null }),
     db.from("property_financials").select("*").eq("property_id", propertyId).maybeSingle(),
+    exchange.relinquished_property_id
+      ? db.from("property_financials").select("*").eq("property_id", exchange.relinquished_property_id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   const criteria = criteriaRes.data;
   const propertyFin = propertyFinRes.data;
+  const relinquishedFin = relinquishedFinRes.data;
   const allMatches: ScoredMatch[] = [];
 
-  // Buyer side: properties for this exchange
+  // Buyer side: this exchange × other people's active properties
   if (criteria) {
     const { data: activeProperties } = await db
       .from("pledged_properties")
@@ -63,13 +110,13 @@ export async function computeMatchesForExchange(
 
       for (const candidateProperty of activeProperties) {
         const candidateFinancials = financialMap.get(candidateProperty.id);
-        const scores = scoreProperty(candidateProperty, candidateFinancials, criteria, exchange);
-        if (scores.total < MATCH_THRESHOLD) continue;
+        const scored = scorePair(exchange, relinquishedFin, candidateProperty, candidateFinancials, criteria, settings);
+        if (!scored) continue; // failed eligibility
         const boot = calculateBoot(exchange, propertyFin, candidateProperty, candidateFinancials);
         allMatches.push({
           buyer_exchange_id: exchangeId,
           seller_property_id: candidateProperty.id,
-          ...scores,
+          ...scored,
           ...boot,
           direction: "buyer",
           other_agent_id: candidateProperty.agent_id,
@@ -78,7 +125,7 @@ export async function computeMatchesForExchange(
     }
   }
 
-  // Seller side: exchanges that want this property
+  // Seller side: this property × other people's exchanges
   const { data: otherExchanges } = await db
     .from("exchanges")
     .select("*, replacement_criteria(*)")
@@ -86,7 +133,9 @@ export async function computeMatchesForExchange(
     .neq("agent_id", userId);
 
   if (otherExchanges?.length) {
-    const relinquishedPropertyIds = otherExchanges.map((row: any) => row.relinquished_property_id).filter(Boolean);
+    const relinquishedPropertyIds = otherExchanges
+      .map((row: any) => row.relinquished_property_id)
+      .filter(Boolean);
     const { data: otherFinancials } = relinquishedPropertyIds.length
       ? await db.from("property_financials").select("*").in("property_id", relinquishedPropertyIds)
       : { data: [] };
@@ -98,16 +147,18 @@ export async function computeMatchesForExchange(
         : otherExchange.replacement_criteria;
       if (!otherCriteria) continue;
 
-      const scores = scoreProperty(property, propertyFin, otherCriteria, otherExchange);
-      if (scores.total < MATCH_THRESHOLD) continue;
       const buyerRelinquishedFinancials = otherExchange.relinquished_property_id
         ? otherFinancialMap.get(otherExchange.relinquished_property_id)
         : null;
+
+      const scored = scorePair(otherExchange, buyerRelinquishedFinancials, property, propertyFin, otherCriteria, settings);
+      if (!scored) continue;
+
       const boot = calculateBoot(otherExchange, buyerRelinquishedFinancials, property, propertyFin);
       allMatches.push({
         buyer_exchange_id: otherExchange.id,
         seller_property_id: propertyId,
-        ...scores,
+        ...scored,
         ...boot,
         direction: "seller",
         other_agent_id: otherExchange.agent_id,
@@ -135,6 +186,11 @@ export async function persistMatchesAndNotifications(db: any, matches: ScoredMat
       estimated_total_boot: m.estimated_total_boot,
       estimated_boot_tax: m.estimated_boot_tax,
       boot_status: m.boot_status,
+      buyer_current_roe: m.buyer_current_roe,
+      candidate_roe: m.candidate_roe,
+      roe_improvement_pp: m.roe_improvement_pp,
+      roe_improvement_rel: m.roe_improvement_rel,
+      candidate_annual_debt_service: m.candidate_annual_debt_service,
       status: "active",
     }));
 
@@ -161,83 +217,128 @@ export async function persistMatchesAndNotifications(db: any, matches: ScoredMat
   return upsertedCount;
 }
 
-function scoreProperty(prop: any, fin: any, criteria: any, exchange: any): Record<string, number> {
-  const price = scorePrice(prop, fin, criteria, exchange);
-  const geo = scoreGeo(prop, criteria);
-  const asset = scoreAsset(prop, criteria);
-  const strategy = scoreStrategy(prop, criteria);
-  const financial = scoreFinancial(prop, fin, criteria);
+// ─── ROE-based scoring ──────────────────────────────────────────────────────
 
-  const total =
-    price * MATCH_WEIGHTS.price +
-    geo * MATCH_WEIGHTS.geo +
-    asset * MATCH_WEIGHTS.asset +
-    strategy * MATCH_WEIGHTS.strategy +
-    financial * MATCH_WEIGHTS.financial;
+interface RoePairScore {
+  total: number;
+  price: number;       // ROE component score
+  geo: number;
+  asset: number;
+  strategy: number;
+  financial: number;   // quality tiebreaker score
+  buyer_current_roe: number | null;
+  candidate_roe: number | null;
+  roe_improvement_pp: number | null;
+  roe_improvement_rel: number | null;
+  candidate_annual_debt_service: number | null;
+}
+
+function scorePair(
+  buyerExchange: any,
+  relinquishedFin: any,
+  candidateProp: any,
+  candidateFin: any,
+  criteria: any,
+  settings: MatchSettings,
+): RoePairScore | null {
+  // 1. Buyer baseline ROE — requires NOI, price, loan_balance on relinquished
+  const rNoi = numOrNull(relinquishedFin?.noi);
+  const rPrice = numOrNull(relinquishedFin?.asking_price);
+  const rLoan = numOrNull(relinquishedFin?.loan_balance);
+  if (rNoi == null || rPrice == null || rLoan == null) return null;
+  const buyerEquity = rPrice - rLoan;
+  if (buyerEquity <= 0) return null;
+  const buyerCurrentROE = rNoi / buyerEquity; // ratio (e.g. 0.062 = 6.2%)
+
+  // 2. Candidate ROE — requires candidate NOI + asking price
+  const cNoi = numOrNull(candidateFin?.noi);
+  const cPrice = numOrNull(candidateFin?.asking_price);
+  if (cNoi == null || cPrice == null || cPrice <= 0) return null;
+
+  // 3. Affordability sanity: buyer's equity needs to cover the down payment
+  const maxAffordable = buyerEquity / (1 - MAX_COMMERCIAL_LTV);
+  if (cPrice > maxAffordable) return null;
+
+  // 4. Amortized annual payment on a 75%-LTV loan at admin assumptions
+  const loanAmount = MAX_COMMERCIAL_LTV * cPrice;
+  const annualPmt = amortizedAnnualPayment(
+    loanAmount,
+    settings.mortgage_interest_rate,
+    settings.mortgage_amortization_years,
+  );
+
+  const candidateROE = (cNoi - annualPmt) / buyerEquity;
+  const improvementPP = (candidateROE - buyerCurrentROE) * 100;
+  const improvementRel = buyerCurrentROE !== 0 ? candidateROE / buyerCurrentROE - 1 : null;
+
+  // 5. Eligibility gate
+  if (improvementPP <= ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP) return null;
+
+  // 6. ROE component score (0..100)
+  const roeScore = clamp01(improvementPP / ROE_IMPROVEMENT_FULL_SCORE_PP) * 100;
+
+  // 7. Fit components — neutral (no penalty) when buyer left criteria blank
+  const geoScore = scoreGeo(candidateProp, criteria);
+  const assetScore = scoreAsset(candidateProp, criteria);
+  const strategyScore = scoreStrategy(candidateProp, criteria);
+  const fitScore = blendFit(geoScore, assetScore, strategyScore, criteria);
+
+  // 8. Weighted total + quality tiebreaker
+  const base =
+    roeScore * MATCH_WEIGHTS.roe +
+    fitScore * MATCH_WEIGHTS.fit;
+  const qualityScore = scoreQuality(candidateProp, candidateFin);
+  // qualityScore is 0..100; map to -MAX..+MAX (centered on 50)
+  const qualityAdj = ((qualityScore - 50) / 50) * QUALITY_TIEBREAKER_MAX_POINTS;
+
+  const total = Math.max(0, Math.min(100, base + qualityAdj));
 
   return {
     total: round(total),
-    price: round(price),
-    geo: round(geo),
-    asset: round(asset),
-    strategy: round(strategy),
-    financial: round(financial),
+    price: round(roeScore),
+    geo: round(geoScore),
+    asset: round(assetScore),
+    strategy: round(strategyScore),
+    financial: round(qualityScore),
+    buyer_current_roe: round4(buyerCurrentROE),
+    candidate_roe: round4(candidateROE),
+    roe_improvement_pp: round(improvementPP),
+    roe_improvement_rel: improvementRel != null ? round4(improvementRel) : null,
+    candidate_annual_debt_service: Math.round(annualPmt),
   };
 }
 
-function round(n: number): number {
-  return Math.round(n * 100) / 100;
-}
+function blendFit(geo: number, asset: number, strategy: number, criteria: any): number {
+  // Only count dimensions the buyer actually expressed. Blank = no signal.
+  const hasGeo = !!(criteria?.target_states?.length || criteria?.target_metros?.length);
+  const hasAsset = !!criteria?.target_asset_types?.length;
+  const hasStrategy = !!criteria?.target_strategies?.length;
 
-// Commercial loans cap out around 75% LTV, so the buyer's equity (exchange_proceeds)
-// can stretch to roughly 4x its value as a purchase price without cash out of pocket.
-const MAX_COMMERCIAL_LTV = 0.75;
-const EQUITY_TO_MAX_PRICE_MULTIPLIER = 1 / (1 - MAX_COMMERCIAL_LTV);
+  const parts: Array<[number, number]> = [];
+  if (hasGeo) parts.push([geo, FIT_SUBWEIGHTS.geo]);
+  if (hasAsset) parts.push([asset, FIT_SUBWEIGHTS.asset]);
+  if (hasStrategy) parts.push([strategy, FIT_SUBWEIGHTS.strategy]);
 
-function scorePrice(_prop: any, fin: any, criteria: any, exchange: any): number {
-  const askingPrice = Number(fin?.asking_price || 0);
-  if (!askingPrice) return 50;
-
-  const proceeds = Number(exchange?.exchange_proceeds || 0);
-  const maxBudget = proceeds > 0 ? proceeds * EQUITY_TO_MAX_PRICE_MULTIPLIER : 0;
-
-  // Hard affordability ceiling: if the buyer can't cover this with a 75% LTV loan, reject.
-  if (maxBudget > 0 && askingPrice > maxBudget) return 0;
-
-  const userMin = Number(criteria?.target_price_min || 0);
-  const userMax = Number(criteria?.target_price_max || 0);
-
-  if (userMin || userMax) {
-    // Clamp the user's max to the affordability ceiling.
-    const effectiveMax = maxBudget > 0
-      ? Math.min(userMax || maxBudget, maxBudget)
-      : (userMax || userMin * 3);
-    const effectiveMin = userMin || 0;
-    if (askingPrice >= effectiveMin && askingPrice <= effectiveMax) return 100;
-    const mid = (effectiveMin + effectiveMax) / 2 || effectiveMin || effectiveMax;
-    const deviation = Math.abs(askingPrice - mid) / (mid || 1);
-    return Math.max(0, 100 - deviation * 100);
-  }
-
-  // No user-specified range: prefer bigger properties that fully deploy the buyer's equity.
-  if (maxBudget > 0) {
-    return Math.min(100, Math.max(0, (askingPrice / maxBudget) * 100));
-  }
-
-  // Fallback when we have no equity signal yet: neutral.
-  return 50;
+  if (parts.length === 0) return 100; // no preferences → pure ROE ranking, don't penalize
+  const weightSum = parts.reduce((s, [, w]) => s + w, 0);
+  return parts.reduce((s, [v, w]) => s + v * w, 0) / weightSum;
 }
 
 function scoreGeo(prop: any, criteria: any): number {
-  const hasStates = criteria.target_states?.length > 0;
-  const hasMetros = criteria.target_metros?.length > 0;
+  const hasStates = criteria?.target_states?.length > 0;
+  const hasMetros = criteria?.target_metros?.length > 0;
   if (!hasStates && !hasMetros) return 50;
 
   let score = 0;
   if (hasStates && prop.state && criteria.target_states.includes(prop.state)) score += 70;
   if (hasMetros && prop.city) {
     const cityLower = prop.city.toLowerCase();
-    if (criteria.target_metros.some((metro: string) => cityLower.includes(metro.toLowerCase()) || metro.toLowerCase().includes(cityLower))) {
+    if (
+      criteria.target_metros.some(
+        (metro: string) =>
+          cityLower.includes(metro.toLowerCase()) || metro.toLowerCase().includes(cityLower),
+      )
+    ) {
       score += 30;
     }
   }
@@ -245,60 +346,50 @@ function scoreGeo(prop: any, criteria: any): number {
 }
 
 function scoreAsset(prop: any, criteria: any): number {
-  if (!criteria.target_asset_types?.length || !prop.asset_type) return 50;
+  if (!criteria?.target_asset_types?.length || !prop.asset_type) return 50;
   return criteria.target_asset_types.includes(prop.asset_type) ? 100 : 0;
 }
 
 function scoreStrategy(prop: any, criteria: any): number {
-  if (!criteria.target_strategies?.length || !prop.strategy_type) return 50;
+  if (!criteria?.target_strategies?.length || !prop.strategy_type) return 50;
   return criteria.target_strategies.includes(prop.strategy_type) ? 100 : 20;
 }
 
-// "Property quality" score. Rewards higher cap rate, higher occupancy, and newer
-// construction so that when a buyer leaves criteria blank we surface better-performing
-// properties. Also honours the one buyer preference we still collect (min year built).
-function scoreFinancial(prop: any, fin: any, criteria: any): number {
+// Occupancy + building age, returns 0..100 (50 = no signal)
+function scoreQuality(prop: any, fin: any): number {
   let score = 0;
   let weight = 0;
 
-  // Cap rate: 0 points at <= 3%, full 40 at >= 8%. Linear in between.
-  const capRate = fin?.cap_rate != null ? Number(fin.cap_rate) : null;
-  if (capRate != null && !Number.isNaN(capRate)) {
-    const normalized = clamp01((capRate - 3) / (8 - 3));
-    score += normalized * 40;
+  const occupancy = numOrNull(fin?.occupancy_rate);
+  if (occupancy != null) {
+    score += clamp01((occupancy - 70) / (95 - 70)) * 60;
+    weight += 60;
+  }
+
+  const yearBuilt = numOrNull(prop?.year_built);
+  if (yearBuilt != null) {
+    const age = new Date().getUTCFullYear() - yearBuilt;
+    score += clamp01((60 - age) / (60 - 10)) * 40;
     weight += 40;
   }
 
-  // Occupancy: 0 points at <= 70%, full 40 at >= 95%.
-  const occupancy = fin?.occupancy_rate != null ? Number(fin.occupancy_rate) : null;
-  if (occupancy != null && !Number.isNaN(occupancy)) {
-    const normalized = clamp01((occupancy - 70) / (95 - 70));
-    score += normalized * 40;
-    weight += 40;
-  }
-
-  // Year built: 0 points at >= 60yrs old, full 20 within last 10 years.
-  const yearBuilt = prop?.year_built ? Number(prop.year_built) : null;
-  if (yearBuilt && !Number.isNaN(yearBuilt)) {
-    const currentYear = new Date().getUTCFullYear();
-    const age = currentYear - yearBuilt;
-    const normalized = clamp01((60 - age) / (60 - 10));
-    score += normalized * 20;
-    weight += 20;
-  }
-
-  // If we have no quality signal on the candidate, return neutral.
   if (weight === 0) return 50;
+  return (score / weight) * 100;
+}
 
-  const qualityScore = (score / weight) * 100;
+function amortizedAnnualPayment(principal: number, annualRatePct: number, years: number): number {
+  if (principal <= 0 || years <= 0) return 0;
+  const r = annualRatePct / 100 / 12;
+  const n = years * 12;
+  if (r === 0) return principal / years;
+  const monthly = (principal * r) / (1 - Math.pow(1 + r, -n));
+  return monthly * 12;
+}
 
-  // Honour the buyer's year-built minimum if set: properties below it get a penalty.
-  const minYear = Number(criteria?.target_year_built_min || 0);
-  if (minYear && yearBuilt && yearBuilt < minYear) {
-    return Math.max(0, qualityScore - 40);
-  }
-
-  return Math.min(100, qualityScore);
+function numOrNull(v: any): number | null {
+  if (v == null || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
 }
 
 function clamp01(n: number): number {
@@ -306,7 +397,20 @@ function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
 }
 
-function calculateBoot(buyerExchange: any, buyerFin: any, _sellerProp: any, sellerFin: any): Record<string, any> {
+function round(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function round4(n: number): number {
+  return Math.round(n * 10000) / 10000;
+}
+
+function calculateBoot(
+  buyerExchange: any,
+  buyerFin: any,
+  _sellerProp: any,
+  sellerFin: any,
+): Record<string, any> {
   const proceeds = Number(buyerExchange.exchange_proceeds || 0);
   const askingPrice = Number(sellerFin?.asking_price || 0);
   const buyerLoanBalance = Number(buyerFin?.loan_balance || 0);

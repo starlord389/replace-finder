@@ -481,7 +481,10 @@ export type Database = {
           boot_status: Database["public"]["Enums"]["boot_status"]
           buyer_agent_viewed: boolean
           buyer_agent_viewed_at: string | null
+          buyer_current_roe: number | null
           buyer_exchange_id: string
+          candidate_annual_debt_service: number | null
+          candidate_roe: number | null
           created_at: string
           debt_fit_score: number
           estimated_boot_tax: number | null
@@ -492,6 +495,8 @@ export type Database = {
           geo_score: number
           id: string
           price_score: number
+          roe_improvement_pp: number | null
+          roe_improvement_rel: number | null
           scale_fit_score: number
           seller_agent_viewed: boolean
           seller_agent_viewed_at: string | null
@@ -507,7 +512,10 @@ export type Database = {
           boot_status?: Database["public"]["Enums"]["boot_status"]
           buyer_agent_viewed?: boolean
           buyer_agent_viewed_at?: string | null
+          buyer_current_roe?: number | null
           buyer_exchange_id: string
+          candidate_annual_debt_service?: number | null
+          candidate_roe?: number | null
           created_at?: string
           debt_fit_score?: number
           estimated_boot_tax?: number | null
@@ -518,6 +526,8 @@ export type Database = {
           geo_score?: number
           id?: string
           price_score?: number
+          roe_improvement_pp?: number | null
+          roe_improvement_rel?: number | null
           scale_fit_score?: number
           seller_agent_viewed?: boolean
           seller_agent_viewed_at?: string | null
@@ -533,7 +543,10 @@ export type Database = {
           boot_status?: Database["public"]["Enums"]["boot_status"]
           buyer_agent_viewed?: boolean
           buyer_agent_viewed_at?: string | null
+          buyer_current_roe?: number | null
           buyer_exchange_id?: string
+          candidate_annual_debt_service?: number | null
+          candidate_roe?: number | null
           created_at?: string
           debt_fit_score?: number
           estimated_boot_tax?: number | null
@@ -544,6 +557,8 @@ export type Database = {
           geo_score?: number
           id?: string
           price_score?: number
+          roe_improvement_pp?: number | null
+          roe_improvement_rel?: number | null
           scale_fit_score?: number
           seller_agent_viewed?: boolean
           seller_agent_viewed_at?: string | null
