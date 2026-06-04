@@ -218,15 +218,16 @@ async function handleStatusChange(
         status: "active",
         listed_at: new Date().toISOString(),
       }).eq("id", propertyId);
-      await db.from("exchange_timeline").insert({
-        exchange_id: exchange.id,
-        event_type: "exchange_published",
-        description: "Exchange published — matching ran",
-        actor_id: userId,
-      });
-      if (propertyId) {
-        await runMatchingSafe(db, userId, exchange.id, propertyId, fromWizard ? "update:publish-wizard" : "update:publish-inline");
-      }
+    }
+    await db.from("exchange_timeline").insert({
+      exchange_id: exchange.id,
+      event_type: "exchange_published",
+      description: "Exchange published — matching ran",
+      actor_id: userId,
+    });
+    if (propertyId) {
+      await runMatchingSafe(db, userId, exchange.id, propertyId, fromWizard ? "update:publish-wizard" : "update:publish-inline");
+    }
   } else {
     // move_to_draft — guard: no accepted/completed connections
     const { count } = await db
@@ -246,12 +247,6 @@ async function handleStatusChange(
       event_type: "exchange_moved_to_draft",
       description: "Exchange moved to draft — matching paused",
       actor_id: userId,
-    });
-    await db.from("event_outbox").insert({
-      event_type: "exchange.updated",
-      aggregate_type: "exchange",
-      aggregate_id: exchange.id,
-      payload: { exchange_id: exchange.id, status: "draft", initiated_by: userId },
     });
   }
   return response({ exchange_id: exchange.id, status: intent === "publish" ? "active" : "draft" });
