@@ -71,13 +71,13 @@ export default function StepPropertyAndFinancials({
   onNext,
   onBack,
 }: Props) {
-  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
   const selectValue = (v: string) => v || undefined;
 
   const setProperty = (field: keyof PropertyData, value: any) => {
     onChangeProperty({ ...property, [field]: value });
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: false }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
   const setFinancials = (field: keyof FinancialsData, value: any) => {
@@ -90,26 +90,49 @@ export default function StepPropertyAndFinancials({
     }
 
     onChangeFinancials(updated);
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: false }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
   const validate = () => {
-    const required: Record<string, boolean> = {
-      address: !property.address.trim(),
-      city: !property.city.trim(),
-      state: !property.state,
-      zip: !property.zip.trim(),
-      asset_type: !property.asset_type,
-      asking_price: !financials.asking_price,
-      noi: !financials.noi,
-      occupancy_rate: !financials.occupancy_rate,
-      loan_balance: financials.loan_balance === "",
-    };
-    setErrors(required);
-    return !Object.values(required).some(Boolean);
+    const next: Record<string, string | undefined> = {};
+
+    if (!property.address.trim()) next.address = "Required";
+    if (!property.city.trim()) next.city = "Required";
+    if (!property.state) next.state = "Required";
+    if (!property.zip.trim()) next.zip = "Required";
+    if (!property.asset_type) next.asset_type = "Required";
+
+    const askingPrice = parseCurrency(financials.asking_price);
+    if (!financials.asking_price) next.asking_price = "Required";
+    else if (askingPrice === null) next.asking_price = "Must be a valid number";
+    else if (askingPrice <= 0) next.asking_price = "Must be greater than 0";
+
+    const noi = parseCurrency(financials.noi);
+    if (!financials.noi) next.noi = "Required";
+    else if (noi === null) next.noi = "Must be a valid number";
+    else if (noi < 0) next.noi = "Must be 0 or greater";
+
+    const occupancy = parseCurrency(financials.occupancy_rate);
+    if (!financials.occupancy_rate) next.occupancy_rate = "Required";
+    else if (occupancy === null) next.occupancy_rate = "Must be a valid number";
+    else if (occupancy < 0 || occupancy > 100) next.occupancy_rate = "Must be between 0 and 100";
+
+    const loanBalance = parseCurrency(financials.loan_balance);
+    if (financials.loan_balance === "") next.loan_balance = "Required (enter 0 if free and clear)";
+    else if (loanBalance === null) next.loan_balance = "Must be a valid number";
+    else if (loanBalance < 0) next.loan_balance = "Must be 0 or greater";
+
+    setErrors(next);
+    return Object.values(next).every(v => !v);
   };
 
-  const handleNext = () => { if (validate()) onNext(); };
+  const handleNext = () => {
+    if (validate()) {
+      onNext();
+    } else {
+      toast.error("Please fix the highlighted fields before continuing");
+    }
+  };
 
   return (
     <div className="space-y-8">
