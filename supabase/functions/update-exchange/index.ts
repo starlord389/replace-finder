@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { runMatchingSafe } from "../_shared/matching-core.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -68,7 +69,7 @@ Deno.serve(async (req) => {
       }
 
       await db.from("exchange_timeline").delete().eq("exchange_id", exchange.id);
-      await db.from("match_job_queue").delete().eq("exchange_id", exchange.id);
+      
       if (criteriaId) {
         await db.from("exchanges").update({ criteria_id: null }).eq("id", exchange.id);
         await db.from("replacement_criteria").delete().eq("id", criteriaId);
@@ -189,20 +190,9 @@ Deno.serve(async (req) => {
         description: "Exchange details updated",
         actor_id: user.id,
       });
-      await db.from("event_outbox").insert({
-        event_type: "exchange.updated",
-        aggregate_type: "exchange",
-        aggregate_id: exchange.id,
-        payload: { exchange_id: exchange.id, initiated_by: user.id },
-      });
-      // If published & criteria/financials changed, re-queue matching
+      // If published & criteria/financials changed, re-run matching inline
       if (exchange.status !== "draft" && (payload.criteria || payload.financials) && propertyId) {
-        await db.from("match_job_queue").insert({
-          exchange_id: exchange.id,
-          property_id: propertyId,
-          enqueued_reason: "update-exchange:rescore",
-          requested_by: user.id,
-        });
+        await runMatchingSafe(db, user.id, exchange.id, propertyId, "update:rescore");
       }
     }
 
@@ -228,25 +218,16 @@ async function handleStatusChange(
         status: "active",
         listed_at: new Date().toISOString(),
       }).eq("id", propertyId);
-      await db.from("match_job_queue").insert({
-        exchange_id: exchange.id,
-        property_id: propertyId,
-        enqueued_reason: fromWizard ? "update-exchange:publish" : "update-exchange:inline-publish",
-        requested_by: userId,
-      });
     }
     await db.from("exchange_timeline").insert({
       exchange_id: exchange.id,
       event_type: "exchange_published",
-      description: "Exchange published — matching queued",
+      description: "Exchange published — matching ran",
       actor_id: userId,
     });
-    await db.from("event_outbox").insert({
-      event_type: "exchange.published",
-      aggregate_type: "exchange",
-      aggregate_id: exchange.id,
-      payload: { exchange_id: exchange.id, initiated_by: userId },
-    });
+    if (propertyId) {
+      await runMatchingSafe(db, userId, exchange.id, propertyId, fromWizard ? "update:publish-wizard" : "update:publish-inline");
+    }
   } else {
     // move_to_draft — guard: no accepted/completed connections
     const { count } = await db
@@ -266,12 +247,6 @@ async function handleStatusChange(
       event_type: "exchange_moved_to_draft",
       description: "Exchange moved to draft — matching paused",
       actor_id: userId,
-    });
-    await db.from("event_outbox").insert({
-      event_type: "exchange.updated",
-      aggregate_type: "exchange",
-      aggregate_id: exchange.id,
-      payload: { exchange_id: exchange.id, status: "draft", initiated_by: userId },
     });
   }
   return response({ exchange_id: exchange.id, status: intent === "publish" ? "active" : "draft" });

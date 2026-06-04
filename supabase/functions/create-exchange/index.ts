@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { runMatchingSafe } from "../_shared/matching-core.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -172,25 +173,8 @@ Deno.serve(async (req) => {
       await db.from("exchange_timeline").insert(timelineRows);
 
       if (payload.activate) {
-        await db.from("match_job_queue").insert({
-          exchange_id: exchangeId,
-          property_id: propertyId,
-          enqueued_reason: "create-exchange:activate",
-          requested_by: user.id,
-        });
+        await runMatchingSafe(db, user.id, exchangeId, propertyId, "create:activate");
       }
-
-      await db.from("event_outbox").insert({
-        event_type: "exchange.created",
-        aggregate_type: "exchange",
-        aggregate_id: exchangeId,
-        payload: {
-          exchange_id: exchangeId,
-          property_id: propertyId,
-          activated: payload.activate,
-          initiated_by: user.id,
-        },
-      });
 
       return response({
         exchange_id: exchangeId,
