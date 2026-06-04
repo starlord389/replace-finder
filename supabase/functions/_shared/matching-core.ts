@@ -338,3 +338,25 @@ function calculateBoot(buyerExchange: any, buyerFin: any, _sellerProp: any, sell
     boot_status: bootStatus,
   };
 }
+
+/**
+ * Inline matching wrapper that swallows all errors. Use from create/update
+ * paths so a matching failure never breaks the underlying save.
+ */
+export async function runMatchingSafe(
+  db: any,
+  userId: string,
+  exchangeId: string,
+  propertyId: string,
+  reason: string,
+): Promise<{ ok: boolean; new_matches?: number; error?: string }> {
+  try {
+    const matches = await computeMatchesForExchange(db, userId, exchangeId, propertyId);
+    const newCount = await persistMatchesAndNotifications(db, matches, userId);
+    console.log(`[matching:${reason}] exchange=${exchangeId} new=${newCount}`);
+    return { ok: true, new_matches: newCount };
+  } catch (err) {
+    console.error(`[matching:${reason}] FAILED exchange=${exchangeId}`, err);
+    return { ok: false, error: (err as Error).message };
+  }
+}
