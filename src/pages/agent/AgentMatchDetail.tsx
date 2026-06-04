@@ -509,7 +509,32 @@ export default function AgentMatchDetail() {
         </div>
       )}
 
+      {/* ═══ SECTION 1.65: ROE COMPARISON ═══ */}
+      {match.buyer_current_roe != null && match.candidate_roe != null && (
+        <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+          <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+            Return on Equity
+          </div>
+          <div className="mt-1 flex flex-wrap items-baseline gap-3 text-foreground">
+            <span className="text-sm text-muted-foreground">Current</span>
+            <span className="text-2xl font-semibold">{(Number(match.buyer_current_roe) * 100).toFixed(1)}%</span>
+            <span className="text-sm text-muted-foreground">→ Projected</span>
+            <span className="text-2xl font-semibold text-emerald-700">{(Number(match.candidate_roe) * 100).toFixed(1)}%</span>
+            {match.roe_improvement_pp != null && (
+              <span className="text-sm font-medium text-emerald-700">
+                (+{Number(match.roe_improvement_pp).toFixed(1)} pp
+                {match.roe_improvement_rel != null ? `, +${Math.round(Number(match.roe_improvement_rel) * 100)}%` : ""})
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Projected ROE assumes a 75% LTV loan at the platform's current mortgage assumptions.
+          </p>
+        </div>
+      )}
+
       {/* ═══ SECTION 1.7: LOCATION + FIT ═══ */}
+
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <LocationCard
           address={sellerProp.address}
