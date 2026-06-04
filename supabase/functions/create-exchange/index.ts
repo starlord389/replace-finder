@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { runMatchingSafe } from "../_shared/matching-core.ts";
+import { validateFinancials } from "../_shared/validate-financials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,6 +54,11 @@ Deno.serve(async (req) => {
 
     const payload = (await req.json()) as CreateExchangePayload;
     if (!payload.clientId) return response({ error: "clientId is required" }, 400);
+
+    const financialErrors = validateFinancials(payload.financials as Record<string, unknown>, "create");
+    if (financialErrors.length > 0) {
+      return response({ error: "Invalid financials", details: financialErrors }, 400);
+    }
 
     // Ensure client belongs to this agent.
     const { data: clientCheck } = await db
