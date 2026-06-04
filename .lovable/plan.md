@@ -1,101 +1,110 @@
-# Phase 2 — ROE-based matching
 
-Rebuild the scoring in `supabase/functions/_shared/matching-core.ts` so a candidate property is only a match if it beats the buyer's current return on equity (ROE), and the score is dominated by how much better it is. No edge function call sites change; both `run-auto-matching` and the inline `runMatchingSafe` used in `create-exchange` / `update-exchange` import this same module, so the new model propagates automatically.
+# Phase 3 plan — Reset mock data for ROE matching verification
 
-## Data availability (confirmed)
+## Part 1 — Clear existing test data
 
-- Buyer's relinquished financials: `exchanges.relinquished_property_id` → `property_financials.{noi, asking_price, loan_balance}`. The current core does **not** load these for the buyer side — it only loads `propertyFin` for the just-edited property, which on the buyer side is the candidate, not the relinquished. The seller side already fetches `otherFinancialMap` for other exchanges' relinquished properties; we'll mirror that for the active exchange.
-- Candidate financials: `property_financials.{asking_price, noi, occupancy_rate}` — already loaded.
-- Admin assumptions: `app_settings.{mortgage_interest_rate, mortgage_amortization_years}` (Phase 1).
-- Buyer equity proxy: spec says `relinquished_asking_price − relinquished_loan_balance`. We will use that, not `exchanges.exchange_proceeds`, so the math matches the spec exactly. `exchange_proceeds` stays untouched (still used by boot).
+**What's in the DB today:** 6 auth users, 6 profiles, 8 exchanges, 8 agent_clients, 6 pledged_properties, 6 property_financials, 3 replacement_criteria, 14 matches, 3 exchange_connections, 17 messages, 7 notifications, 20 exchange_timeline rows.
 
-## Model
+**How seed data is distinguished:** the project does NOT have a clean `is_mock` boolean. Today's old seeder marks rows by string tag (`__mock__` in `agent_clients.notes`, `pledged_properties.description`, `notifications.metadata.tag`). That's brittle and doesn't tag everything (exchanges, financials, matches, etc. inherit by FK only). For this reset I'll use a **stronger rule**: treat every operational row as disposable test data and wipe broadly, but keep identity/configuration rows.
 
-For each (buyer exchange, candidate property) pair:
+**Will DELETE (all rows, full-table truncate via cascade-safe order):**
+- `messages`
+- `exchange_connections`
+- `matches`
+- `exchange_timeline`
+- `identification_list`
+- `property_financials`
+- `property_images`, `property_documents` (orphaned after properties go)
+- `pledged_properties`
+- `replacement_criteria`
+- `exchanges`
+- `agent_clients`
+- `notifications`
+- `client_invites` (test invites)
 
-```text
-buyerCurrentROE  = relinquished_noi / max(relinquished_asking_price - relinquished_loan_balance, ε)
-loanAmount       = 0.75 * candidate_asking_price
-annualPmt        = amortizedPayment(loanAmount, rate, years)   // standard mortgage formula
-candidateROE     = (candidate_noi - annualPmt) / buyerEquity   // buyerEquity = same denominator as above
-roeImprovementPP = (candidateROE - buyerCurrentROE) * 100      // percentage points
-roeImprovementRel = candidateROE / buyerCurrentROE - 1         // relative
-```
+**Will KEEP, untouched:**
+- `auth.users` (all 6 — including the two `mock.agent.*@replacefinder.test` counterparty users, which we'll reuse as buyer/seller agents)
+- `profiles`, `user_roles`
+- `app_settings` (the 7%/25y row)
+- `support_tickets`, `demo_requests`, `contact_submissions`, `referrals`, `user_notification_preferences`
 
-**Eligibility gate**: drop the candidate unless `candidateROE > buyerCurrentROE` by any positive margin. If either ROE can't be computed (missing NOI/price/loan/equity ≤ 0), the pair is ineligible — no fallback match. This replaces the current `MATCH_THRESHOLD` cutoff on `total_score`.
+**Confirmation point for you:** there is no real production traffic on this DB — everything in those operational tables today is dev/seed. If any row in `exchanges`/`agent_clients`/etc. is something you actually want to keep, say so before I run this. Otherwise I'll wipe all of them.
 
-**Score (0–100) for eligible matches**:
+## Part 2 — New mock data designed for ROE matching
 
-- **70% ROE improvement**: normalize `roeImprovementPP` over a configured range (default 0pp → +5pp maps to 0 → 100, clamped). Tunable in `match-config.ts`.
-- **30% fit (geo + asset + strategy)**: weighted average of the existing `scoreGeo` / `scoreAsset` / `scoreStrategy`. Each one stays neutral (50, treated as no-signal) when the buyer left that criteria field blank — preserves the "criteria optional" stance. Blank criteria do **not** drag the score down: the fit component averages only the dimensions the buyer actually specified, and if all three are blank, fit = 100 (pure ROE ranking).
-- **Quality tiebreaker (±a few points)**: small bonus/penalty from occupancy and building age via the existing `scoreFinancial` logic, scaled to ≤ ±3 points so it only breaks ties.
+### Actors (reuse existing auth users — no new auth.users created)
+- **Buyer agent A** = `Eamon (eamon.t.mckenna123@gmail.com)` — primary test account, no criteria specified
+- **Buyer agent B** = `Stephen Martin` — no criteria specified
+- **Buyer agent C** = `Eamon (icloud)` — WITH replacement_criteria specified (tests the non-neutral fit path)
+- **Seller agents** = the two existing `mock.agent.{alpha,bravo}@replacefinder.test` users, who will own the 8 candidate listings
 
-Price-band scoring is removed from the weighted total (ROE already encodes affordability), but we keep an affordability sanity check: if `candidate_asking_price > buyerEquity / (1 - 0.75)` (i.e. requires more than 75% LTV), drop the candidate.
+Each buyer gets 1 agent_client + 1 active exchange + 1 relinquished pledged_property + 1 property_financials row for the relinquished asset.
 
-## Boot
+### Buyers (relinquished property → known current ROE)
 
-`calculateBoot` is unchanged and still runs for every eligible match. The `estimated_*_boot` and `boot_status` columns continue to be persisted exactly as today.
+Buyer's current ROE formula: `noi / (asking_price − loan_balance)`. Equity = `asking_price − loan_balance`.
 
-## Both directions
+| Buyer | Relinquished asset | Asking | Loan bal | Equity | NOI | **Current ROE** |
+|---|---|---|---|---|---|---|
+| **A** Sarah Chen | Houston multifamily | $2,000,000 | $1,200,000 | $800,000 | $40,000 | **5.00%** |
+| **B** Rodriguez LLC | Phoenix retail | $3,000,000 | $1,500,000 | $1,500,000 | $105,000 | **7.00%** |
+| **C** Patel Trust | Raleigh office (asset_type=office, in criteria) | $1,500,000 | $700,000 | $800,000 | $48,000 | **6.00%** |
 
-`computeMatchesForExchange` handles buyer-side (this exchange × other properties) and seller-side (this property × other exchanges). Both paths call the same `scorePair(buyerExchange, buyerRelinquishedFin, candidateProp, candidateFin, settings)`, so both directions get ROE scoring without divergence.
+### Candidate listings (8 properties on seller agents)
 
-## Settings loader
+Each fully populated: `asking_price > 0`, `noi ≥ 0`, `loan_balance = 0` (seller-side loan irrelevant to scoring), `occupancy_rate` set 85–98, `units`, `year_built`, asset_type, strategy_type, address/city/state.
 
-Add `loadMatchSettings(db)` at the top of `computeMatchesForExchange` that does one `select` on `app_settings`. If missing or row absent, fall back to `{ mortgage_interest_rate: 7.0, mortgage_amortization_years: 25 }` and log a warning. Passed into the scorer so we don't re-fetch per candidate.
+Underwriting assumption (matches engine): debt service = annual payment on `0.75 × asking_price` at 7%/25y. Per $1M of loan at 7%/25y → annual P&I ≈ $84,773. So debt service per $1 of price ≈ `0.75 × 84773/1e6 ≈ 0.06358`.
 
-## `match-config.ts` (all knobs in one place)
+| # | Property | Asset | City | Asking | NOI | Affordable for buyer? (equity ≥ 25%·price) |
+|---|---|---|---|---|---|---|
+| 1 | Sunrise Apartments | multifamily | Phoenix AZ | $3,000,000 | $260,000 | A no (needs $750k eq), B yes, C no |
+| 2 | Crosspoint Industrial | industrial | Charlotte NC | $3,200,000 | $280,000 | B yes |
+| 3 | Heights Garden Apts | multifamily | Houston TX | $3,200,000 | $230,000 | A yes (eq $800k = exactly 25%), B yes |
+| 4 | Mesa Strip Retail | retail | Mesa AZ | $2,800,000 | $185,000 | A no, B yes |
+| 5 | Tempe Flex Industrial | industrial | Tempe AZ | $3,000,000 | $200,000 | A no, B yes |
+| 6 | Coral Plaza | retail | Miami FL | $2,400,000 | $135,000 | B yes |
+| 7 | Triangle Office Park | office | Raleigh NC | $3,000,000 | $260,000 | C no (eq $800k vs $750k req — yes, barely) |
+| 8 | Durham Medical Office | office | Durham NC | $2,800,000 | $215,000 | C yes |
 
-```ts
-export const MATCH_WEIGHTS = { roe: 0.7, fit: 0.3 } as const;
-export const FIT_SUBWEIGHTS = { geo: 0.4, asset: 0.35, strategy: 0.25 } as const;
-export const ROE_IMPROVEMENT_FULL_SCORE_PP = 5;   // pp above baseline = 100
-export const QUALITY_TIEBREAKER_MAX_POINTS = 3;
-export const MAX_COMMERCIAL_LTV = 0.75;
-export const ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP = 0; // strictly > baseline
-export const FALLBACK_MORTGAGE_RATE = 7.0;
-export const FALLBACK_AMORTIZATION_YEARS = 25;
-```
+(Affordability = equity ≥ 25% × asking, per `MAX_COMMERCIAL_LTV = 0.75`.)
 
-`MATCH_THRESHOLD` is removed; eligibility is now the ROE gate.
+### Worked example for **Buyer A** (equity $800k, current ROE 5.0%)
 
-## Migration — persist ROE on `matches`
+For each candidate, candidate_roe = `(NOI − 0.06358 × price) / 800000`.
 
-```sql
-ALTER TABLE public.matches
-  ADD COLUMN buyer_current_roe       numeric,
-  ADD COLUMN candidate_roe           numeric,
-  ADD COLUMN roe_improvement_pp      numeric,
-  ADD COLUMN roe_improvement_rel     numeric,
-  ADD COLUMN candidate_annual_debt_service numeric;
-```
+| # | Price | NOI | Debt svc | Net to buyer | **Candidate ROE** | vs 5.0% baseline | Expected outcome |
+|---|---|---|---|---|---|---|---|
+| 1 | $3.0M | $260k | $190.7k | $69.3k | 8.66% | +3.66 pp | ❌ unaffordable (price $3M > $800k/0.25 = $3.2M? actually $3M ≤ $3.2M → **affordable**) → **match, high score** |
+| 2 | $3.2M | $280k | $203.5k | $76.5k | 9.57% | +4.57 pp | affordable (=cap). **match, very high** |
+| 3 | $3.2M | $230k | $203.5k | $26.5k | 3.31% | −1.69 pp | **NO match** (fails ROE gate) |
+| 4 | $2.8M | $185k | $178.0k | $7.0k | 0.87% | −4.13 pp | **NO match** |
+| 5 | $3.0M | $200k | $190.7k | $9.3k | 1.16% | −3.84 pp | **NO match** |
+| 6 | $2.4M | $135k | $152.6k | −$17.6k | −2.20% | negative | **NO match** |
+| 7 | $3.0M | $260k | $190.7k | $69.3k | 8.66% | +3.66 pp | **match, high score** |
+| 8 | $2.8M | $215k | $178.0k | $37.0k | 4.63% | −0.37 pp | **NO match** (just under baseline) |
 
-All nullable (older rows + edge cases where math can't run). `persistMatchesAndNotifications` writes them on upsert. Existing `price_score / geo_score / asset_score / strategy_score / financial_score` columns are kept (UI compatibility, debugging) — `price_score` becomes the ROE component score, `financial_score` becomes the quality-tiebreaker score, others unchanged in meaning.
+So Buyer A should end up with **3 matches** (#1, #2, #7), with #2 highest (~92 on ROE component), #1 and #7 mid-high (~73). Marginal-near-baseline candidate #8 deliberately falls just below to verify the gate is strict.
 
-## UI — "Why this matched"
+I'll publish the analogous tables for B and C in the build step. Headline expectations:
+- **Buyer B** (baseline 7.0%, equity $1.5M): ~5 matches, all candidates affordable; spread spans well-above to just-above 7%.
+- **Buyer C** (baseline 6.0%, equity $800k, criteria = office only): non-office candidates should still match on ROE but get a lower fit sub-score; #7 and #8 office candidates should score highest.
 
-Update `src/features/matches/components/inbox/WhyThisMatched.tsx` and the breakdown panel in `src/pages/agent/AgentMatchDetail.tsx` to lead with:
+### Criteria (only Buyer C)
+`replacement_criteria`: asset_types=['office'], target_states=['NC'], strategy_types=['core'] — to confirm fit weighting kicks in vs neutral.
 
-```text
-Current ROE 6.2%  →  Projected ROE 8.4%   (+2.2 pp, +35%)
-```
+## Part 3 — Trigger matching and view
 
-Drive it from the new `matches.buyer_current_roe / candidate_roe / roe_improvement_pp / roe_improvement_rel` columns; fall back gracefully when null (older rows). Keep the existing fit/boot sub-cards underneath. No other UI changes in this phase.
+After inserts, I'll call `run-auto-matching` once per buyer exchange (with the relinquished property_id) — that's the existing entrypoint, no new endpoint needed. It will populate `matches` including the new ROE columns.
 
-## Conflicts with current code (to fix as part of this work)
+**How you'll verify:**
+1. UI: log in as Eamon, go to `/agent/matches` → open Buyer A's exchange → the `WhyThisMatched` banner shows "Current 5.0% → Projected X%" and `AgentMatchDetail` shows the full ROE breakdown.
+2. DB: `SELECT buyer_current_roe, candidate_roe, roe_improvement_pp, total_score FROM matches ORDER BY buyer_exchange_id, total_score DESC` should match the predicted table above (within rounding).
 
-1. **Buyer-side scorer has no access to relinquished financials today.** Need to fetch `property_financials` for `exchange.relinquished_property_id` and pass into the scorer. Same `otherFinancialMap` pattern as seller side.
-2. **`scorePrice` uses `exchange_proceeds`** as the equity proxy; spec uses `asking − loan_balance`. Two are usually close but not identical. Spec wins; `exchange_proceeds` stays for boot only.
-3. **`MATCH_THRESHOLD`** + 5-component weighted total are removed/restructured. Any code that imports `MATCH_THRESHOLD` will need updating (only `matching-core.ts` does).
-4. **Match-detail UI** currently emphasizes price/geo/asset/strategy/financial bars; needs the ROE summary added on top. Existing bars stay so nothing breaks.
-5. **No field-name mismatches in `property_financials`** — `noi`, `asking_price`, `loan_balance` all exist and are what the Phase 1 validation will guarantee on new/edited listings. Older listings predating Phase 1 may still have nulls; those candidates and those buyers' relinquished properties will fail the eligibility gate cleanly (ineligible, not crash).
+## Technical notes
+- Wipes use a single migration with `DELETE FROM ... WHERE true` (truncate would skip FK checks but migration is cleaner with ordered deletes).
+- Inserts use `supabase--insert` (data-only) — no schema changes anywhere.
+- No edits to `matching-core.ts`, `match-config.ts`, scoring weights, or any UI components in this phase.
+- `exchange_timeline` rows are auto-created by app flows; I won't manually backfill — they'll regenerate as needed.
 
-## Out of scope
-
-No changes to `app_settings`, Phase 1 validation, auth, edge function entry points, notifications payload, or any other table beyond the `matches` column additions.
-
-## Verification
-
-- Unit-shaped manual test in a scratch script against seeded data: one buyer with known relinquished NOI/price/loan, three candidates straddling the ROE baseline — confirm only the improvers are persisted and ordering matches manual ROE math.
-- Trigger `run-auto-matching` for an existing exchange; confirm new columns populated and Why-this-matched UI shows the ROE line.
-- Edit a candidate listing via `update-exchange` path; confirm inline matching recomputes ROE columns on the upsert.
+Awaiting your approval before I touch anything.
