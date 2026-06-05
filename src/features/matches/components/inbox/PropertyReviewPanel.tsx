@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, ExternalLink, FileText, Activity, Info, Settings2, User } from "lucide-react";
+import { MapPin, ExternalLink, FileText, Activity, Info, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,9 @@ import {
 } from "./inboxHelpers";
 import { useMatchActions } from "./useMatchActions";
 import { propertyImage } from "./propertyImage";
+import { getClientAccent } from "@/features/matches/lib/clientAccent";
+import { ClientLeadLine } from "@/features/matches/components/shared/ClientLeadLine";
+
 
 interface Props {
   rel: Relationship;
