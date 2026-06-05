@@ -270,6 +270,3 @@ function GroupedList({ rels, selectedId, onSelect, rankMap }: GroupedListProps) 
     </div>
   );
 }
-
-  );
-}
