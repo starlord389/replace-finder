@@ -166,16 +166,38 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
     if (!imgMap.has(img.property_id)) imgMap.set(img.property_id, img);
   });
 
-  // 7. Client names for my exchanges
+  // 7. Client names + relinquished snapshot for my exchanges
   const clientIds = Array.from(new Set((exchanges ?? []).map((e) => e.client_id)));
-  const { data: clients } = clientIds.length
-    ? await supabase.from("agent_clients").select("id, client_name").in("id", clientIds)
-    : { data: [] as any[] };
-  const clientMap = new Map((clients ?? []).map((c: any) => [c.id, c.client_name]));
-  const exClientMap = new Map<string, string>();
-  (exchanges ?? []).forEach((e) => {
-    exClientMap.set(e.id, clientMap.get(e.client_id) || "Client");
+  const [clientsRes, relPropsRes] = await Promise.all([
+    clientIds.length
+      ? supabase.from("agent_clients").select("id, client_name").in("id", clientIds)
+      : Promise.resolve({ data: [] as any[] }),
+    relinquishedIds.length
+      ? supabase
+          .from("pledged_properties")
+          .select("id, property_name, city, state, asset_type")
+          .in("id", relinquishedIds)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+  const clientMap = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c.client_name]));
+  const exClientNameMap = new Map<string, string>();
+  const exClientIdMap = new Map<string, string>();
+  (exchanges ?? []).forEach((e: any) => {
+    exClientNameMap.set(e.id, clientMap.get(e.client_id) || "Client");
+    if (e.client_id) exClientIdMap.set(e.id, e.client_id);
   });
+  const relPropMap = new Map(
+    (relPropsRes.data ?? []).map((p: any) => [p.id, p]),
+  );
+  function relinquishedLabelFor(exchangeId: string): string | null {
+    const propId = exRelMap.get(exchangeId);
+    if (!propId) return null;
+    const p: any = relPropMap.get(propId);
+    if (!p) return null;
+    const loc = [p.city, p.state].filter(Boolean).join(", ");
+    return loc || p.property_name || null;
+  }
+
 
   // 8. Counterparty profiles (only for connected relationships)
   const connectedAgentIds = Array.from(
