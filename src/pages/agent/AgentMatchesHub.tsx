@@ -42,7 +42,9 @@ export default function AgentMatchesHub() {
   const filter = (LEGACY_FILTER_MAP[rawFilter] ?? (rawFilter as UiStatus | "all")) as "all" | UiStatus;
   const selectedId = searchParams.get("id");
   const exchangeParam = (searchParams.get("exchange") ?? "all") as string | "all";
+  const clientParam = (searchParams.get("client") ?? "all") as string | "all";
   const sort = (searchParams.get("sort") as SortKey) || "best_match";
+
 
   // Translate legacy ?connection=/ ?match= → ?id=
   useEffect(() => {
