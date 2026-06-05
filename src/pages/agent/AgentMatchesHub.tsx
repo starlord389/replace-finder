@@ -35,12 +35,16 @@ export default function AgentMatchesHub() {
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [filters, setFilters] = useState<MatchFilters>(EMPTY_FILTERS);
+  const [groupByClient, setGroupByClient] = useState(false);
+
 
   const rawFilter = searchParams.get("filter") ?? searchParams.get("stage") ?? "all";
   const filter = (LEGACY_FILTER_MAP[rawFilter] ?? (rawFilter as UiStatus | "all")) as "all" | UiStatus;
   const selectedId = searchParams.get("id");
   const exchangeParam = (searchParams.get("exchange") ?? "all") as string | "all";
+  const clientParam = (searchParams.get("client") ?? "all") as string | "all";
   const sort = (searchParams.get("sort") as SortKey) || "best_match";
+
 
   // Translate legacy ?connection=/ ?match= → ?id=
   useEffect(() => {
@@ -54,11 +58,13 @@ export default function AgentMatchesHub() {
     }
   }, [searchParams, setSearchParams]);
 
-  // Scope by exchange first
+  // Scope by exchange first, then by client (exchange wins when both set)
   const exchangeScopedRels = useMemo(() => {
-    if (exchangeParam === "all") return rels;
-    return rels.filter((r) => r.buyerExchangeId === exchangeParam);
-  }, [rels, exchangeParam]);
+    if (exchangeParam !== "all") return rels.filter((r) => r.buyerExchangeId === exchangeParam);
+    if (clientParam !== "all") return rels.filter((r) => r.clientId === clientParam);
+    return rels;
+  }, [rels, exchangeParam, clientParam]);
+
 
   // Annotate each rel with its UI status
   const annotated = useMemo(
@@ -161,6 +167,15 @@ export default function AgentMatchesHub() {
     setSearchParams(next);
   }
 
+  function setClient(id: string | "all") {
+    const next = new URLSearchParams(searchParams);
+    if (id === "all") next.delete("client");
+    else next.set("client", id);
+    next.delete("exchange");
+    next.delete("id");
+    setSearchParams(next);
+  }
+
   function select(rel: Relationship) {
     const next = new URLSearchParams(searchParams);
     next.set("id", rel.id);
@@ -168,8 +183,6 @@ export default function AgentMatchesHub() {
     setMobileDetailOpen(true);
   }
 
-
-  const showClientLabel = exchangeParam === "all";
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden">
@@ -191,7 +204,9 @@ export default function AgentMatchesHub() {
       {/* Context bar */}
       <ExchangeContextBar
         selectedExchangeId={exchangeParam}
+        selectedClientId={clientParam}
         onChange={setExchange}
+        onChangeClient={setClient}
         totalCount={rels.length}
         scopedMatchCount={exchangeScopedRels.length}
         rels={rels}
@@ -221,15 +236,17 @@ export default function AgentMatchesHub() {
               filter={filter}
               onFilterChange={setFilter}
               counts={counts}
-              showClientLabel={showClientLabel}
               sort={sort}
               onSortChange={setSort}
               filters={filters}
               onFiltersChange={setFilters}
               scopeRels={exchangeScopedRels}
               rankMap={rankMap}
+              groupByClient={groupByClient && exchangeParam === "all"}
+              onGroupByClientChange={exchangeParam === "all" ? setGroupByClient : undefined}
             />
           </div>
+
 
           {/* RIGHT: Property review (dominant) */}
           <div

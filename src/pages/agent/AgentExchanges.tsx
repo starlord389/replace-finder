@@ -21,6 +21,8 @@ import {
 import { differenceInDays } from "date-fns";
 import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS } from "@/lib/constants";
 import type { Enums } from "@/integrations/supabase/types";
+import { getClientAccent } from "@/features/matches/lib/clientAccent";
+
 
 interface ExchangeCard {
   id: string;
@@ -29,6 +31,7 @@ interface ExchangeCard {
   identification_deadline: string | null;
   closing_deadline: string | null;
   exchange_proceeds: number | null;
+  client_id: string | null;
   client_name: string | null;
   property_id: string | null;
   property_name: string | null;
@@ -43,6 +46,7 @@ interface ExchangeCard {
   cover_url: string | null;
   match_count: number;
 }
+
 
 function fmtPrice(v: number | null) {
   if (!v) return "Price TBD";
@@ -107,8 +111,10 @@ async function fetchExchangeCards(agentId: string): Promise<ExchangeCard[]> {
       identification_deadline: e.identification_deadline,
       closing_deadline: e.closing_deadline,
       exchange_proceeds: e.exchange_proceeds,
+      client_id: e.client_id ?? null,
       client_name: e.client_id ? (clientMap.get(e.client_id) ?? null) : null,
       property_id: e.relinquished_property_id,
+
       property_name: prop?.property_name ?? null,
       address: prop?.address ?? null,
       city: prop?.city ?? null,
@@ -238,12 +244,14 @@ export default function AgentExchanges() {
               const loc = [e.city, e.state].filter(Boolean).join(", ");
               const nextDeadline = e.identification_deadline || e.closing_deadline;
               const daysLeft = nextDeadline ? differenceInDays(new Date(nextDeadline), new Date()) : null;
+              const accent = getClientAccent(e.client_id);
               return (
                 <Card
                   key={e.id}
-                  className="overflow-hidden transition-all hover:shadow-md cursor-pointer"
+                  className={`overflow-hidden border-l-[4px] ${accent.borderLeft} transition-all hover:shadow-md cursor-pointer`}
                   onClick={() => navigate(`/agent/exchanges/${e.id}`)}
                 >
+
                   <div className="relative aspect-[16/10] bg-muted">
                     {e.cover_url ? (
                       <img
@@ -335,9 +343,11 @@ export default function AgentExchanges() {
                         )}
                       </div>
                       {e.client_name && (
-                        <span className="truncate text-muted-foreground">
-                          for {e.client_name}
+                        <span className="flex min-w-0 items-center gap-1 truncate text-foreground/80">
+                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${accent.dot}`} />
+                          <span className="truncate font-medium">{e.client_name}</span>
                         </span>
+
                       )}
                     </div>
                   </CardContent>

@@ -50,8 +50,12 @@ export interface Relationship {
   capRate: number | null;
 
   // client / exchange context
+  clientId: string | null;
   clientName: string | null;
   buyerExchangeId: string;
+  /** Short label for the buyer's relinquished property (city + state, or asset). */
+  relinquishedLabel: string | null;
+
 
   // activity
   lastActivityAt: string;       // newest of: messages, connection updates, match created
@@ -80,9 +84,16 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
   // 1. My exchanges (for buyer-side matches)
   const { data: exchanges } = await supabase
     .from("exchanges")
-    .select("id, client_id")
+    .select("id, client_id, relinquished_property_id")
     .eq("agent_id", userId);
   const myExchangeIds = (exchanges ?? []).map((e) => e.id);
+  const relinquishedIds = (exchanges ?? [])
+    .map((e: any) => e.relinquished_property_id)
+    .filter(Boolean) as string[];
+  const exRelMap = new Map<string, string>();
+  (exchanges ?? []).forEach((e: any) => {
+    if (e.relinquished_property_id) exRelMap.set(e.id, e.relinquished_property_id);
+  });
 
   // 2. My pledged properties (for seller-side matches)
   const { data: myProps } = await supabase
@@ -90,6 +101,7 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
     .select("id, property_name")
     .eq("agent_id", userId);
   const myPropertyIds = (myProps ?? []).map((p) => p.id);
+
 
   // 3. Buyer-side matches
   let buyerMatches: any[] = [];
@@ -154,16 +166,38 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
     if (!imgMap.has(img.property_id)) imgMap.set(img.property_id, img);
   });
 
-  // 7. Client names for my exchanges
+  // 7. Client names + relinquished snapshot for my exchanges
   const clientIds = Array.from(new Set((exchanges ?? []).map((e) => e.client_id)));
-  const { data: clients } = clientIds.length
-    ? await supabase.from("agent_clients").select("id, client_name").in("id", clientIds)
-    : { data: [] as any[] };
-  const clientMap = new Map((clients ?? []).map((c: any) => [c.id, c.client_name]));
-  const exClientMap = new Map<string, string>();
-  (exchanges ?? []).forEach((e) => {
-    exClientMap.set(e.id, clientMap.get(e.client_id) || "Client");
+  const [clientsRes, relPropsRes] = await Promise.all([
+    clientIds.length
+      ? supabase.from("agent_clients").select("id, client_name").in("id", clientIds)
+      : Promise.resolve({ data: [] as any[] }),
+    relinquishedIds.length
+      ? supabase
+          .from("pledged_properties")
+          .select("id, property_name, city, state, asset_type")
+          .in("id", relinquishedIds)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+  const clientMap = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c.client_name]));
+  const exClientNameMap = new Map<string, string>();
+  const exClientIdMap = new Map<string, string>();
+  (exchanges ?? []).forEach((e: any) => {
+    exClientNameMap.set(e.id, clientMap.get(e.client_id) || "Client");
+    if (e.client_id) exClientIdMap.set(e.id, e.client_id);
   });
+  const relPropMap = new Map(
+    (relPropsRes.data ?? []).map((p: any) => [p.id, p]),
+  );
+  function relinquishedLabelFor(exchangeId: string): string | null {
+    const propId = exRelMap.get(exchangeId);
+    if (!propId) return null;
+    const p: any = relPropMap.get(propId);
+    if (!p) return null;
+    const loc = [p.city, p.state].filter(Boolean).join(", ");
+    return loc || p.property_name || null;
+  }
+
 
   // 8. Counterparty profiles (only for connected relationships)
   const connectedAgentIds = Array.from(
@@ -284,8 +318,11 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
       propertyImageUrl: img ? resolvePropertyImageUrl(img.storage_path) : null,
       askingPrice: fin?.asking_price ? Number(fin.asking_price) : null,
       capRate: fin?.cap_rate ? Number(fin.cap_rate) : null,
-      clientName: exClientMap.get(match.buyer_exchange_id) ?? null,
+      clientId: exClientIdMap.get(match.buyer_exchange_id) ?? null,
+      clientName: exClientNameMap.get(match.buyer_exchange_id) ?? null,
       buyerExchangeId: match.buyer_exchange_id,
+      relinquishedLabel: relinquishedLabelFor(match.buyer_exchange_id),
+
       lastActivityAt,
       lastMessagePreview: lastMsg?.content ?? null,
       lastMessageSenderId: lastMsg?.sender_id ?? null,
