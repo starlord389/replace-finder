@@ -31,6 +31,7 @@ interface ExchangeCard {
   identification_deadline: string | null;
   closing_deadline: string | null;
   exchange_proceeds: number | null;
+  client_id: string | null;
   client_name: string | null;
   property_id: string | null;
   property_name: string | null;
@@ -45,6 +46,7 @@ interface ExchangeCard {
   cover_url: string | null;
   match_count: number;
 }
+
 
 function fmtPrice(v: number | null) {
   if (!v) return "Price TBD";
