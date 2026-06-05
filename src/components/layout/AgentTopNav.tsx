@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, CheckCheck, Compass, HelpCircle, LogOut, Menu, Plus, Settings, X } from "lucide-react";
+import { Bell, CheckCheck, HelpCircle, LogOut, Menu, Plus, Settings, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -16,7 +16,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
-import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
+
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -28,6 +28,7 @@ interface NavItem {
 const PRIMARY_NAV: NavItem[] = [
   { title: "Dashboard", url: "/agent/dashboard", end: true },
   { title: "My Clients", url: "/agent/clients" },
+  { title: "Launchpad", url: "/agent/launchpad" },
 ];
 
 function NotificationsBell() {
@@ -120,8 +121,6 @@ function NotificationsBell() {
 
 export default function AgentTopNav() {
   const { user, signOut, profileName } = useAuth();
-  const { data: launchpadProgress } = useAgentLaunchpadProgress(user?.id);
-  const launchpadIncomplete = !launchpadProgress?.profile.launchpad_completed_at;
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const initial = (profileName ?? user?.email ?? "U").charAt(0).toUpperCase();
@@ -184,12 +183,6 @@ export default function AgentTopNav() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/agent/launchpad">
-                    <Compass className="mr-2 h-4 w-4" />
-                    Launchpad
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link to="/agent/settings">
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
@@ -246,12 +239,6 @@ export default function AgentTopNav() {
                       <Plus className="mr-2 h-4 w-4" /> Add Client
                     </Link>
                     <div className="my-3 border-t" />
-                    <Link
-                      to="/agent/launchpad"
-                      className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                    >
-                      <Compass className="mr-2 h-4 w-4" /> Launchpad
-                    </Link>
                     <Link
                       to="/agent/settings"
                       className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
