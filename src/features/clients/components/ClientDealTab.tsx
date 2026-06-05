@@ -17,18 +17,18 @@ import {
 import { readMatchLocalState } from "@/features/matches/components/inbox/useMatchLocalState";
 
 interface Props {
-  clientId: string;
+  clientId: string | null;
 }
 
 export function ClientDealTab({ clientId }: Props) {
   const { data: allRels = [], isLoading } = useUnifiedRelationships();
   const [activeRel, setActiveRel] = useState<Relationship | null>(null);
 
-  // Connected/in-progress matches for this client
+  // Connected/in-progress matches for this client (or all)
   const dealRels = useMemo(
     () =>
       allRels
-        .filter((r) => r.clientId === clientId)
+        .filter((r) => (clientId ? r.clientId === clientId : true))
         .filter((r) => r.connectionId != null && r.stage !== "closed_lost"),
     [allRels, clientId],
   );

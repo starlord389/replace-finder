@@ -276,7 +276,7 @@ export default function AgentDashboard() {
                     {attention.unreviewedMatches.map((m) => {
                       const accent = getClientAccent(m.clientId ?? m.clientName);
                       const target = m.clientId
-                        ? `/agent/clients/${m.clientId}?tab=matches`
+                        ? `/agent/deals?client=${m.clientId}&tab=matches`
                         : `/agent/matches/${m.matchId}`;
                       return (
                         <li
@@ -358,7 +358,7 @@ export default function AgentDashboard() {
               {topMatches.map((r) => {
                 const accent = getClientAccent(r.clientId ?? r.clientName);
                 const target = r.clientId
-                  ? `/agent/clients/${r.clientId}?tab=matches`
+                  ? `/agent/deals?client=${r.clientId}&tab=matches`
                   : `/agent/matches/${r.matchId}`;
                 const location = [r.propertyCity, r.propertyState].filter(Boolean).join(", ");
                 return (
@@ -423,7 +423,7 @@ export default function AgentDashboard() {
                 const location = [city, state].filter(Boolean).join(", ");
                 const price = fmtPrice(e.exchange_proceeds);
                 const target = e.client_id
-                  ? `/agent/clients/${e.client_id}?tab=listings`
+                  ? `/agent/deals?client=${e.client_id}&tab=listings`
                   : `/agent/exchanges/${e.id}`;
                 return (
                   <li
