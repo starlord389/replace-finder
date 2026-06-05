@@ -343,9 +343,11 @@ export default function AgentExchanges() {
                         )}
                       </div>
                       {e.client_name && (
-                        <span className="truncate text-muted-foreground">
-                          for {e.client_name}
+                        <span className="flex min-w-0 items-center gap-1 truncate text-foreground/80">
+                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${accent.dot}`} />
+                          <span className="truncate font-medium">{e.client_name}</span>
                         </span>
+
                       )}
                     </div>
                   </CardContent>
