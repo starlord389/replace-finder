@@ -29,6 +29,7 @@ const PRIMARY_NAV: NavItem[] = [
   { title: "Launchpad", url: "/agent/launchpad" },
   { title: "Dashboard", url: "/agent/dashboard", end: true },
   { title: "My Clients", url: "/agent/clients" },
+  { title: "Deals", url: "/agent/deals" },
 ];
 
 function NotificationsBell() {
