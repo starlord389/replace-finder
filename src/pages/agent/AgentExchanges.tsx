@@ -21,6 +21,8 @@ import {
 import { differenceInDays } from "date-fns";
 import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS } from "@/lib/constants";
 import type { Enums } from "@/integrations/supabase/types";
+import { getClientAccent } from "@/features/matches/lib/clientAccent";
+
 
 interface ExchangeCard {
   id: string;
