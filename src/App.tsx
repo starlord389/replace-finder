@@ -25,6 +25,7 @@ import AgentDashboard from "@/pages/agent/AgentDashboard";
 import AgentLaunchpad from "@/pages/agent/AgentLaunchpad";
 import AgentClients from "@/pages/agent/AgentClients";
 import AgentClientDetail from "@/pages/agent/AgentClientDetail";
+import AgentClientWorkspace from "@/pages/agent/AgentClientWorkspace";
 import AgentExchanges from "@/pages/agent/AgentExchanges";
 import NewExchange from "@/pages/agent/NewExchange";
 import EditExchange from "@/pages/agent/EditExchange";
@@ -84,7 +85,8 @@ const App = () => (
               <Route path="/agent/dashboard" element={<AgentDashboard />} />
               <Route path="/agent/clients" element={<AgentClients />} />
               <Route path="/agent/clients/new" element={<AgentClientDetail />} />
-              <Route path="/agent/clients/:id" element={<AgentClientDetail />} />
+              <Route path="/agent/clients/:clientId" element={<AgentClientWorkspace />} />
+              <Route path="/agent/clients/:id/edit" element={<AgentClientDetail />} />
               <Route path="/agent/exchanges" element={<AgentExchanges />} />
               <Route path="/agent/exchanges/new" element={<NewExchange />} />
               <Route path="/agent/exchanges/:id/edit" element={<EditExchange />} />
