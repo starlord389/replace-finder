@@ -87,6 +87,7 @@ const App = () => (
               <Route path="/agent/clients" element={<AgentClients />} />
               <Route path="/agent/clients/new" element={<AgentClientDetail />} />
               <Route path="/agent/clients/:clientId" element={<AgentClientWorkspace />} />
+              <Route path="/agent/deals" element={<AgentDeals />} />
               <Route path="/agent/clients/:id/edit" element={<AgentClientDetail />} />
               <Route path="/agent/exchanges" element={<AgentExchanges />} />
               <Route path="/agent/exchanges/new" element={<NewExchange />} />
