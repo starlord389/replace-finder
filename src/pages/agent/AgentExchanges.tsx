@@ -111,8 +111,10 @@ async function fetchExchangeCards(agentId: string): Promise<ExchangeCard[]> {
       identification_deadline: e.identification_deadline,
       closing_deadline: e.closing_deadline,
       exchange_proceeds: e.exchange_proceeds,
+      client_id: e.client_id ?? null,
       client_name: e.client_id ? (clientMap.get(e.client_id) ?? null) : null,
       property_id: e.relinquished_property_id,
+
       property_name: prop?.property_name ?? null,
       address: prop?.address ?? null,
       city: prop?.city ?? null,
