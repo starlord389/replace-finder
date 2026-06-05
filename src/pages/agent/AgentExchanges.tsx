@@ -244,12 +244,14 @@ export default function AgentExchanges() {
               const loc = [e.city, e.state].filter(Boolean).join(", ");
               const nextDeadline = e.identification_deadline || e.closing_deadline;
               const daysLeft = nextDeadline ? differenceInDays(new Date(nextDeadline), new Date()) : null;
+              const accent = getClientAccent(e.client_id);
               return (
                 <Card
                   key={e.id}
-                  className="overflow-hidden transition-all hover:shadow-md cursor-pointer"
+                  className={`overflow-hidden border-l-[4px] ${accent.borderLeft} transition-all hover:shadow-md cursor-pointer`}
                   onClick={() => navigate(`/agent/exchanges/${e.id}`)}
                 >
+
                   <div className="relative aspect-[16/10] bg-muted">
                     {e.cover_url ? (
                       <img
