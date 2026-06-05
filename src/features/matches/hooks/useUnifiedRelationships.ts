@@ -318,8 +318,11 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
       propertyImageUrl: img ? resolvePropertyImageUrl(img.storage_path) : null,
       askingPrice: fin?.asking_price ? Number(fin.asking_price) : null,
       capRate: fin?.cap_rate ? Number(fin.cap_rate) : null,
-      clientName: exClientMap.get(match.buyer_exchange_id) ?? null,
+      clientId: exClientIdMap.get(match.buyer_exchange_id) ?? null,
+      clientName: exClientNameMap.get(match.buyer_exchange_id) ?? null,
       buyerExchangeId: match.buyer_exchange_id,
+      relinquishedLabel: relinquishedLabelFor(match.buyer_exchange_id),
+
       lastActivityAt,
       lastMessagePreview: lastMsg?.content ?? null,
       lastMessageSenderId: lastMsg?.sender_id ?? null,
