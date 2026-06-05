@@ -41,10 +41,37 @@ export function PropertyReviewPanel({ rel, onOpenActions, rank, totalInScope }: 
     onSendToClient: onOpenActions,
   });
 
+  const accent = getClientAccent(rel.clientId);
+
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border bg-card">
       {/* Single scroll area for the entire listing review */}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {/* Client identity strip */}
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-2 border-b border-border border-l-[4px] px-5 py-2.5",
+            accent.borderLeft,
+            accent.soft,
+          )}
+        >
+          <ClientLeadLine
+            clientId={rel.clientId}
+            clientName={rel.clientName}
+            relinquishedLabel={rel.relinquishedLabel}
+            size="md"
+            pill
+          />
+          <span className="hidden text-xs text-muted-foreground sm:inline">
+            Trading out — finding replacement property
+          </span>
+          <Button asChild variant="ghost" size="sm" className="ml-auto h-7 px-2 text-xs">
+            <Link to={`/agent/exchanges/${rel.buyerExchangeId}`}>
+              View exchange <ExternalLink className="ml-1 h-3 w-3" />
+            </Link>
+          </Button>
+        </div>
+
         {/* Hero image */}
         <div className="relative h-56 w-full overflow-hidden bg-muted">
           <img
@@ -75,14 +102,6 @@ export function PropertyReviewPanel({ rel, onOpenActions, rank, totalInScope }: 
                   {[rel.propertyCity, rel.propertyState].filter(Boolean).join(", ") || "—"}
                 </span>
               </p>
-              {rel.clientName && (
-                <p className="mt-1 flex items-center gap-1 truncate text-xs text-primary/80">
-                  <User className="h-3 w-3 shrink-0" />
-                  <span className="truncate">
-                    Matched for {rel.clientName}'s 1031 exchange
-                  </span>
-                </p>
-              )}
               {rank != null && totalInScope ? (
                 <p className="mt-1 text-[11px] font-medium text-foreground/70">
                   <span className="rounded bg-muted px-1.5 py-0.5 font-bold">#{rank}</span>
@@ -115,6 +134,7 @@ export function PropertyReviewPanel({ rel, onOpenActions, rank, totalInScope }: 
               </div>
             </div>
           </div>
+
 
           {/* Action row */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
