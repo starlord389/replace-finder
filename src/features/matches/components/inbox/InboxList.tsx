@@ -20,14 +20,17 @@ interface Props {
   filter: "all" | UiStatus;
   onFilterChange: (f: "all" | UiStatus) => void;
   counts: Record<"all" | UiStatus, number>;
-  showClientLabel?: boolean;
   sort: SortKey;
   onSortChange: (k: SortKey) => void;
   filters: MatchFilters;
   onFiltersChange: (f: MatchFilters) => void;
   scopeRels: Relationship[];
   rankMap: Map<string, number>;
+  /** When true, render sticky client section headers between cards. */
+  groupByClient?: boolean;
+  onGroupByClientChange?: (v: boolean) => void;
 }
+
 
 // Primary chips shown inline; remainder go in a "More" popover.
 const PRIMARY_KEYS: Array<"all" | UiStatus> = [
