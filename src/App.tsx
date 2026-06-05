@@ -26,6 +26,7 @@ import AgentLaunchpad from "@/pages/agent/AgentLaunchpad";
 import AgentClients from "@/pages/agent/AgentClients";
 import AgentClientDetail from "@/pages/agent/AgentClientDetail";
 import AgentClientWorkspace from "@/pages/agent/AgentClientWorkspace";
+import AgentDeals from "@/pages/agent/AgentDeals";
 import AgentExchanges from "@/pages/agent/AgentExchanges";
 import NewExchange from "@/pages/agent/NewExchange";
 import EditExchange from "@/pages/agent/EditExchange";
