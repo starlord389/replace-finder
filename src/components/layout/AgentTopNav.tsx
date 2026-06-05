@@ -16,7 +16,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
-import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
+
 import { cn } from "@/lib/utils";
 
 interface NavItem {
