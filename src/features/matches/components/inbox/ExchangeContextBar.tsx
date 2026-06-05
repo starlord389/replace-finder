@@ -11,10 +11,13 @@ import { useAgentExchangesQuery, type AgentExchangeRow } from "@/features/agent/
 import { useExchangeContext } from "@/features/matches/hooks/useExchangeContext";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { cn } from "@/lib/utils";
+import { getClientAccent } from "@/features/matches/lib/clientAccent";
 
 interface Props {
   selectedExchangeId: string | "all";
+  selectedClientId?: string | "all";
   onChange: (id: string | "all") => void;
+  onChangeClient?: (clientId: string | "all") => void;
   totalCount: number;
   scopedMatchCount?: number;
   rels?: Relationship[];
@@ -33,22 +36,29 @@ function daysFromNow(date: string | null | undefined): number | null {
   return Math.ceil(ms / (1000 * 60 * 60 * 24));
 }
 
-function exchangeLabel(ex: AgentExchangeRow): string {
-  const client = ex.agent_clients?.client_name ?? "Client";
-  const place = [ex.pledged_properties?.city, ex.pledged_properties?.state]
+function relinquishedShort(ex: AgentExchangeRow): string {
+  const loc = [ex.pledged_properties?.city, ex.pledged_properties?.state]
     .filter(Boolean)
     .join(", ");
-  return place ? `${client} · ${place}` : client;
+  return loc || ex.pledged_properties?.address || "No relinquished property";
 }
 
-export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, scopedMatchCount, rels = [] }: Props) {
+export function ExchangeContextBar({
+  selectedExchangeId,
+  selectedClientId = "all",
+  onChange,
+  onChangeClient,
+  totalCount,
+  scopedMatchCount,
+  rels = [],
+}: Props) {
   const { user } = useAuth();
   const { data: exchanges = [] } = useAgentExchangesQuery(user?.id);
   const { data: ctx } = useExchangeContext(
     selectedExchangeId === "all" ? null : selectedExchangeId,
   );
 
-  // Per-exchange match stats (count + best score + days to ID deadline)
+  // Per-exchange match stats
   const statsByExchange = useMemo(() => {
     const m = new Map<string, { count: number; best: number }>();
     rels.forEach((r) => {
@@ -60,86 +70,163 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, s
     return m;
   }, [rels]);
 
+  // Group exchanges by client_id
+  const clientGroups = useMemo(() => {
+    const groups: Array<{
+      clientId: string | null;
+      clientName: string;
+      exchanges: AgentExchangeRow[];
+      count: number;
+    }> = [];
+    const byKey = new Map<string, number>();
+    for (const ex of exchanges) {
+      const cid = (ex as any).client_id ?? null;
+      const cname = ex.agent_clients?.client_name ?? "Client";
+      const key = cid ?? `__${cname}`;
+      let idx = byKey.get(key);
+      if (idx == null) {
+        idx = groups.length;
+        byKey.set(key, idx);
+        groups.push({ clientId: cid, clientName: cname, exchanges: [], count: 0 });
+      }
+      groups[idx].exchanges.push(ex);
+      groups[idx].count += statsByExchange.get(ex.id)?.count ?? 0;
+    }
+    return groups;
+  }, [exchanges, statsByExchange]);
+
   const selectedSummary = useMemo(() => {
-    if (selectedExchangeId === "all") return "All exchanges";
-    const ex = exchanges.find((e) => e.id === selectedExchangeId);
-    return ex ? exchangeLabel(ex) : "Select an exchange";
-  }, [exchanges, selectedExchangeId]);
+    if (selectedExchangeId !== "all") {
+      const ex = exchanges.find((e) => e.id === selectedExchangeId);
+      if (!ex) return "Select an exchange";
+      const client = ex.agent_clients?.client_name ?? "Client";
+      return `${client} · ${relinquishedShort(ex)}`;
+    }
+    if (selectedClientId !== "all") {
+      const grp = clientGroups.find((g) => g.clientId === selectedClientId);
+      if (grp) return grp.clientName;
+    }
+    return "All clients";
+  }, [exchanges, selectedExchangeId, selectedClientId, clientGroups]);
 
   const idDays = daysFromNow(ctx?.identificationDeadline);
+  const selectedExchangeAccent = useMemo(() => {
+    if (selectedExchangeId === "all") return null;
+    const ex = exchanges.find((e) => e.id === selectedExchangeId);
+    return ex ? getClientAccent((ex as any).client_id ?? null) : null;
+  }, [exchanges, selectedExchangeId]);
 
   return (
-    <div className="shrink-0 rounded-xl border bg-card px-4 py-3">
+    <div
+      className={cn(
+        "shrink-0 rounded-xl border bg-card px-4 py-3",
+        selectedExchangeAccent && `border-l-[4px] ${selectedExchangeAccent.borderLeft}`,
+      )}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-start gap-3">
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-9 shrink-0 gap-1">
-                <span className="max-w-[14rem] truncate text-xs font-medium">
+                <span className="max-w-[16rem] truncate text-xs font-medium">
                   {selectedSummary}
                 </span>
                 <ChevronDown className="h-3.5 w-3.5 opacity-60" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-80 p-1">
+            <PopoverContent align="start" className="w-96 p-1">
               <button
                 type="button"
                 onClick={() => onChange("all")}
                 className={cn(
                   "flex w-full items-center justify-between rounded-md px-2 py-2 text-left text-sm hover:bg-muted",
-                  selectedExchangeId === "all" && "bg-muted font-medium",
+                  selectedExchangeId === "all" && selectedClientId === "all" && "bg-muted font-medium",
                 )}
               >
-                <span>All exchanges</span>
+                <span>All clients</span>
                 <span className="text-[11px] text-muted-foreground">{totalCount}</span>
               </button>
               <div className="my-1 h-px bg-border" />
-              <div className="max-h-72 overflow-y-auto">
-                {exchanges.length === 0 ? (
+              <div className="max-h-80 overflow-y-auto">
+                {clientGroups.length === 0 ? (
                   <p className="px-3 py-4 text-center text-xs text-muted-foreground">
                     No exchanges yet.
                   </p>
                 ) : (
-                  exchanges.map((ex) => {
-                    const active = ex.id === selectedExchangeId;
-                    const stat = statsByExchange.get(ex.id);
-                    const dl = daysFromNow(ex.identification_deadline);
+                  clientGroups.map((grp) => {
+                    const accent = getClientAccent(grp.clientId);
+                    const clientActive =
+                      selectedExchangeId === "all" && selectedClientId === grp.clientId;
                     return (
-                      <button
-                        key={ex.id}
-                        type="button"
-                        onClick={() => onChange(ex.id)}
-                        className={cn(
-                          "flex w-full flex-col items-start rounded-md px-2 py-2 text-left hover:bg-muted",
-                          active && "bg-muted",
-                        )}
-                      >
-                        <div className="flex w-full items-center justify-between gap-2">
-                          <span className="truncate text-sm font-medium text-foreground">
-                            {ex.agent_clients?.client_name ?? "Client"}
-                          </span>
-                          <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
-                            {stat ? `${stat.count} match${stat.count === 1 ? "" : "es"}` : "0 matches"}
-                          </span>
-                        </div>
-                        <span className="truncate text-[11px] text-muted-foreground">
-                          {ex.pledged_properties?.address ||
-                            [ex.pledged_properties?.city, ex.pledged_properties?.state]
-                              .filter(Boolean)
-                              .join(", ") ||
-                            "No relinquished property"}
-                        </span>
-                        <div className="mt-0.5 flex w-full items-center gap-3 text-[10px] text-muted-foreground">
-                          {stat && stat.best > 0 && (
-                            <span>Best score <span className="font-semibold text-foreground">{Math.round(stat.best)}</span></span>
-                          )}
-                          {dl != null && (
-                            <span className={cn(dl < 0 ? "text-destructive" : dl <= 14 ? "text-amber-600" : undefined)}>
-                              {dl < 0 ? `${Math.abs(dl)}d overdue` : `${dl}d to ID`}
+                      <div key={grp.clientId ?? grp.clientName} className="mb-1">
+                        {onChangeClient && grp.clientId ? (
+                          <button
+                            type="button"
+                            onClick={() => onChangeClient(grp.clientId!)}
+                            className={cn(
+                              "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left hover:bg-muted",
+                              clientActive && "bg-muted",
+                            )}
+                          >
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span className={cn("h-2 w-2 shrink-0 rounded-full", accent.dot)} />
+                              <span className="truncate text-sm font-semibold text-foreground">
+                                {grp.clientName}
+                              </span>
+                            </div>
+                            <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
+                              {grp.count} match{grp.count === 1 ? "" : "es"}
                             </span>
-                          )}
+                          </button>
+                        ) : (
+                          <div className="flex items-center justify-between px-2 py-1.5">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span className={cn("h-2 w-2 shrink-0 rounded-full", accent.dot)} />
+                              <span className="truncate text-sm font-semibold text-foreground">
+                                {grp.clientName}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-semibold text-muted-foreground">
+                              {grp.count} match{grp.count === 1 ? "" : "es"}
+                            </span>
+                          </div>
+                        )}
+                        <div className="ml-2 border-l pl-2">
+                          {grp.exchanges.map((ex) => {
+                            const active = ex.id === selectedExchangeId;
+                            const stat = statsByExchange.get(ex.id);
+                            const dl = daysFromNow(ex.identification_deadline);
+                            return (
+                              <button
+                                key={ex.id}
+                                type="button"
+                                onClick={() => onChange(ex.id)}
+                                className={cn(
+                                  "flex w-full flex-col items-start rounded-md px-2 py-1.5 text-left hover:bg-muted",
+                                  active && "bg-muted",
+                                )}
+                              >
+                                <span className="truncate text-xs text-foreground">
+                                  {relinquishedShort(ex)}
+                                </span>
+                                <div className="mt-0.5 flex w-full items-center gap-3 text-[10px] text-muted-foreground">
+                                  {stat && stat.count > 0 && (
+                                    <span>{stat.count} match{stat.count === 1 ? "" : "es"}</span>
+                                  )}
+                                  {stat && stat.best > 0 && (
+                                    <span>Best <span className="font-semibold text-foreground">{Math.round(stat.best)}</span></span>
+                                  )}
+                                  {dl != null && (
+                                    <span className={cn(dl < 0 ? "text-destructive" : dl <= 14 ? "text-amber-600" : undefined)}>
+                                      {dl < 0 ? `${Math.abs(dl)}d overdue` : `${dl}d to ID`}
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
-                      </button>
+                      </div>
                     );
                   })
                 )}
@@ -150,7 +237,11 @@ export function ExchangeContextBar({ selectedExchangeId, onChange, totalCount, s
           {/* Context details */}
           {selectedExchangeId === "all" ? (
             <div className="flex min-w-0 flex-1 items-center gap-3 text-sm text-muted-foreground">
-              <span>Showing matches across all your active exchanges.</span>
+              <span>
+                {selectedClientId !== "all"
+                  ? "Showing matches across this client's exchanges."
+                  : "Showing matches across all your active exchanges."}
+              </span>
               {scopedMatchCount != null && (
                 <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
                   {scopedMatchCount} matched opportunities
