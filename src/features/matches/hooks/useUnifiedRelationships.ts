@@ -50,8 +50,12 @@ export interface Relationship {
   capRate: number | null;
 
   // client / exchange context
+  clientId: string | null;
   clientName: string | null;
   buyerExchangeId: string;
+  /** Short label for the buyer's relinquished property (city + state, or asset). */
+  relinquishedLabel: string | null;
+
 
   // activity
   lastActivityAt: string;       // newest of: messages, connection updates, match created
