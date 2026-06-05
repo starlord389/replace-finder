@@ -108,11 +108,13 @@ async function fetchAgentAttention(userId: string): Promise<AgentAttentionData> 
   const urgentDeadlines = deadlines.slice(0, LIST_LIMIT);
 
   const exchangeIds = exchanges.map((e) => e.id);
-  const clientIdByExchange = new Map(
-    exchanges.map((e) => [
+  const clientInfoByExchange = new Map<string, { id: string | null; name: string }>(
+    exchanges.map((e: any) => [
       e.id,
-      (e as { agent_clients: { client_name?: string } | null }).agent_clients
-        ?.client_name ?? "Client",
+      {
+        id: e.client_id ?? null,
+        name: (e as { agent_clients: { client_name?: string } | null }).agent_clients?.client_name ?? "Client",
+      },
     ]),
   );
 
@@ -147,16 +149,21 @@ async function fetchAgentAttention(userId: string): Promise<AgentAttentionData> 
         (props ?? []).map((p) => [p.id, p.property_name || "Property"]),
       );
 
-      unreviewedMatches = matches.map((m) => ({
-        matchId: m.id,
-        buyerExchangeId: m.buyer_exchange_id,
-        totalScore: Number(m.total_score ?? 0),
-        clientName: clientIdByExchange.get(m.buyer_exchange_id) ?? "Client",
-        propertyName: propMap.get(m.seller_property_id) ?? "Property",
-        createdAt: m.created_at,
-      }));
+      unreviewedMatches = matches.map((m) => {
+        const info = clientInfoByExchange.get(m.buyer_exchange_id);
+        return {
+          matchId: m.id,
+          buyerExchangeId: m.buyer_exchange_id,
+          totalScore: Number(m.total_score ?? 0),
+          clientId: info?.id ?? null,
+          clientName: info?.name ?? "Client",
+          propertyName: propMap.get(m.seller_property_id) ?? "Property",
+          createdAt: m.created_at,
+        };
+      });
     }
   }
+
 
   const connections = (connectionsRes.data ?? []) as Array<{
     id: string;
