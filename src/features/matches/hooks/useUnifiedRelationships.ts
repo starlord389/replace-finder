@@ -84,9 +84,16 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
   // 1. My exchanges (for buyer-side matches)
   const { data: exchanges } = await supabase
     .from("exchanges")
-    .select("id, client_id")
+    .select("id, client_id, relinquished_property_id")
     .eq("agent_id", userId);
   const myExchangeIds = (exchanges ?? []).map((e) => e.id);
+  const relinquishedIds = (exchanges ?? [])
+    .map((e: any) => e.relinquished_property_id)
+    .filter(Boolean) as string[];
+  const exRelMap = new Map<string, string>();
+  (exchanges ?? []).forEach((e: any) => {
+    if (e.relinquished_property_id) exRelMap.set(e.id, e.relinquished_property_id);
+  });
 
   // 2. My pledged properties (for seller-side matches)
   const { data: myProps } = await supabase
@@ -94,6 +101,7 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
     .select("id, property_name")
     .eq("agent_id", userId);
   const myPropertyIds = (myProps ?? []).map((p) => p.id);
+
 
   // 3. Buyer-side matches
   let buyerMatches: any[] = [];
