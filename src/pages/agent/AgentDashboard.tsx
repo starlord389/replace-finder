@@ -276,7 +276,7 @@ export default function AgentDashboard() {
                     {attention.unreviewedMatches.map((m) => {
                       const accent = getClientAccent(m.clientId ?? m.clientName);
                       const target = m.clientId
-                        ? `/agent/clients/${m.clientId}?tab=matches`
+                        ? `/agent/deals?client=${m.clientId}&tab=matches`
                         : `/agent/matches/${m.matchId}`;
                       return (
                         <li
