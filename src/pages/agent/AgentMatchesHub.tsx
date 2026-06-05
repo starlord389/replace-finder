@@ -167,6 +167,15 @@ export default function AgentMatchesHub() {
     setSearchParams(next);
   }
 
+  function setClient(id: string | "all") {
+    const next = new URLSearchParams(searchParams);
+    if (id === "all") next.delete("client");
+    else next.set("client", id);
+    next.delete("exchange");
+    next.delete("id");
+    setSearchParams(next);
+  }
+
   function select(rel: Relationship) {
     const next = new URLSearchParams(searchParams);
     next.set("id", rel.id);
@@ -174,8 +183,6 @@ export default function AgentMatchesHub() {
     setMobileDetailOpen(true);
   }
 
-
-  const showClientLabel = exchangeParam === "all";
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden">
