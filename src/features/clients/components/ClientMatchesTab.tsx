@@ -17,7 +17,7 @@ import { readMatchLocalState } from "@/features/matches/components/inbox/useMatc
 import { cn } from "@/lib/utils";
 
 interface Props {
-  clientId: string | null;
+  clientId: string;
 }
 
 export function ClientMatchesTab({ clientId }: Props) {
@@ -30,9 +30,9 @@ export function ClientMatchesTab({ clientId }: Props) {
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
 
-  // Pre-scope to this client (or all if null)
+  // Pre-scope to this client
   const scopedRels = useMemo(
-    () => (clientId ? allRels.filter((r) => r.clientId === clientId) : allRels),
+    () => allRels.filter((r) => r.clientId === clientId),
     [allRels, clientId],
   );
 
