@@ -358,7 +358,7 @@ export default function AgentDashboard() {
               {topMatches.map((r) => {
                 const accent = getClientAccent(r.clientId ?? r.clientName);
                 const target = r.clientId
-                  ? `/agent/clients/${r.clientId}?tab=matches`
+                  ? `/agent/deals?client=${r.clientId}&tab=matches`
                   : `/agent/matches/${r.matchId}`;
                 const location = [r.propertyCity, r.propertyState].filter(Boolean).join(", ");
                 return (
