@@ -423,7 +423,7 @@ export default function AgentDashboard() {
                 const location = [city, state].filter(Boolean).join(", ");
                 const price = fmtPrice(e.exchange_proceeds);
                 const target = e.client_id
-                  ? `/agent/clients/${e.client_id}?tab=listings`
+                  ? `/agent/deals?client=${e.client_id}&tab=listings`
                   : `/agent/exchanges/${e.id}`;
                 return (
                   <li
