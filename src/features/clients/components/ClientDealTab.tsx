@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS } from "@/lib/constants";
 import { useUnifiedRelationships, type Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { DealRoomPanel } from "@/features/matches/components/inbox/DealRoomPanel";
 import { propertyImage } from "@/features/matches/components/inbox/propertyImage";
@@ -20,14 +19,6 @@ import { readMatchLocalState } from "@/features/matches/components/inbox/useMatc
 interface Props {
   clientId: string;
 }
-
-// Statuses that count as "active deal in motion"
-const ACTIVE_EXCHANGE_STATUSES = new Set([
-  "active",
-  "in_identification",
-  "in_closing",
-  "under_contract",
-]);
 
 export function ClientDealTab({ clientId }: Props) {
   const { data: allRels = [], isLoading } = useUnifiedRelationships();
