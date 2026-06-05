@@ -1,9 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { getUnauthorizedRedirectPath } from "@/app/routes/routeGuards";
-import AgentSidebar from "./AgentSidebar";
-import AgentHeader from "./AgentHeader";
+import AgentTopNav from "./AgentTopNav";
 
 export default function AgentLayout() {
   const { user, loading, profileRole } = useAuth();
@@ -25,16 +23,11 @@ export default function AgentLayout() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden">
-        <AgentSidebar />
-        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-          <AgentHeader />
-          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-[#F4F2EE] px-4 py-6 sm:px-6 sm:py-8">
-            <Outlet />
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+    <div className="flex min-h-screen flex-col bg-[#F4F2EE]">
+      <AgentTopNav />
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        <Outlet />
+      </main>
+    </div>
   );
 }
