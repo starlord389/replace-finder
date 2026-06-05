@@ -183,14 +183,12 @@ export default function AgentTopNav() {
                   {profileName || user?.email}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {launchpadIncomplete && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/agent/launchpad">
-                      <Compass className="mr-2 h-4 w-4" />
-                      Launchpad
-                    </Link>
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem asChild>
+                  <Link to="/agent/launchpad">
+                    <Compass className="mr-2 h-4 w-4" />
+                    Launchpad
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/agent/settings">
                     <Settings className="mr-2 h-4 w-4" />
@@ -248,14 +246,12 @@ export default function AgentTopNav() {
                       <Plus className="mr-2 h-4 w-4" /> Add Client
                     </Link>
                     <div className="my-3 border-t" />
-                    {launchpadIncomplete && (
-                      <Link
-                        to="/agent/launchpad"
-                        className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                      >
-                        <Compass className="mr-2 h-4 w-4" /> Launchpad
-                      </Link>
-                    )}
+                    <Link
+                      to="/agent/launchpad"
+                      className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                    >
+                      <Compass className="mr-2 h-4 w-4" /> Launchpad
+                    </Link>
                     <Link
                       to="/agent/settings"
                       className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
