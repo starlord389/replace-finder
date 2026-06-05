@@ -17,10 +17,12 @@ export interface UnreviewedMatchRow {
   matchId: string;
   buyerExchangeId: string;
   totalScore: number;
+  clientId: string | null;
   clientName: string;
   propertyName: string;
   createdAt: string;
 }
+
 
 export interface PendingConnectionRow {
   connectionId: string;
