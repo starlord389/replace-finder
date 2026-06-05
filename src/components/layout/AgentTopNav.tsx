@@ -121,8 +121,6 @@ function NotificationsBell() {
 
 export default function AgentTopNav() {
   const { user, signOut, profileName } = useAuth();
-  const { data: launchpadProgress } = useAgentLaunchpadProgress(user?.id);
-  const launchpadIncomplete = !launchpadProgress?.profile.launchpad_completed_at;
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const initial = (profileName ?? user?.email ?? "U").charAt(0).toUpperCase();
