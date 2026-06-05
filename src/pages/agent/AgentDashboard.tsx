@@ -272,29 +272,36 @@ export default function AgentDashboard() {
                       View all matches →
                     </Link>
                   </div>
-                  <ul className="divide-y rounded-lg border">
-                    {attention.unreviewedMatches.map((m) => (
-                      <li
-                        key={m.matchId}
-                        className="flex items-center justify-between gap-3 px-4 py-3"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-foreground">
-                            {m.clientName} · {m.propertyName}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Score {Math.round(m.totalScore)}
-                          </p>
-                        </div>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/agent/matches/${m.matchId}`}>
-                            Review
-                            <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                          </Link>
-                        </Button>
-                      </li>
-                    ))}
+                  <ul className="divide-y rounded-lg border overflow-hidden">
+                    {attention.unreviewedMatches.map((m) => {
+                      const accent = getClientAccent((m as any).clientId ?? m.clientName);
+                      return (
+                        <li
+                          key={m.matchId}
+                          className={`flex items-center justify-between gap-3 border-l-[3px] ${accent.borderLeft} px-4 py-3`}
+                        >
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`h-2 w-2 shrink-0 rounded-full ${accent.dot}`} />
+                              <p className="truncate text-sm font-semibold text-foreground">
+                                {m.clientName}
+                              </p>
+                            </div>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {m.propertyName} · Score {Math.round(m.totalScore)}
+                            </p>
+                          </div>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link to={`/agent/matches/${m.matchId}`}>
+                              Review
+                              <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                            </Link>
+                          </Button>
+                        </li>
+                      );
+                    })}
                   </ul>
+
                 </div>
               )}
 
