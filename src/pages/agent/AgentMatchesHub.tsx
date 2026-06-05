@@ -58,11 +58,13 @@ export default function AgentMatchesHub() {
     }
   }, [searchParams, setSearchParams]);
 
-  // Scope by exchange first
+  // Scope by exchange first, then by client (exchange wins when both set)
   const exchangeScopedRels = useMemo(() => {
-    if (exchangeParam === "all") return rels;
-    return rels.filter((r) => r.buyerExchangeId === exchangeParam);
-  }, [rels, exchangeParam]);
+    if (exchangeParam !== "all") return rels.filter((r) => r.buyerExchangeId === exchangeParam);
+    if (clientParam !== "all") return rels.filter((r) => r.clientId === clientParam);
+    return rels;
+  }, [rels, exchangeParam, clientParam]);
+
 
   // Annotate each rel with its UI status
   const annotated = useMemo(
