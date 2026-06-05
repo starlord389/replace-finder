@@ -204,7 +204,9 @@ export default function AgentMatchesHub() {
       {/* Context bar */}
       <ExchangeContextBar
         selectedExchangeId={exchangeParam}
+        selectedClientId={clientParam}
         onChange={setExchange}
+        onChangeClient={setClient}
         totalCount={rels.length}
         scopedMatchCount={exchangeScopedRels.length}
         rels={rels}
@@ -234,15 +236,17 @@ export default function AgentMatchesHub() {
               filter={filter}
               onFilterChange={setFilter}
               counts={counts}
-              showClientLabel={showClientLabel}
               sort={sort}
               onSortChange={setSort}
               filters={filters}
               onFiltersChange={setFilters}
               scopeRels={exchangeScopedRels}
               rankMap={rankMap}
+              groupByClient={groupByClient && exchangeParam === "all"}
+              onGroupByClientChange={exchangeParam === "all" ? setGroupByClient : undefined}
             />
           </div>
+
 
           {/* RIGHT: Property review (dominant) */}
           <div
