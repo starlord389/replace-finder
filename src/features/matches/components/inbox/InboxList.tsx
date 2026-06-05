@@ -50,7 +50,9 @@ export function InboxList({
   filter,
   onFilterChange,
   counts,
-  showClientLabel = false,
+  groupByClient = false,
+  onGroupByClientChange,
+
   sort,
   onSortChange,
   filters,
