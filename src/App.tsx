@@ -131,3 +131,8 @@ const App = () => (
 );
 
 export default App;
+
+function ExchangeToWorkspaceRedirect() {
+  const { id } = (require("react-router-dom") as typeof import("react-router-dom")).useParams<{ id: string }>();
+  return <Navigate to={`/agent/workspace/${id}`} replace />;
+}
