@@ -26,10 +26,10 @@ import {
 const QUICK_START = [
   { icon: Users, title: "Set up your profile", description: "Add your brokerage and license info so counter-party agents recognize you.", to: "/agent/settings" },
   { icon: Users, title: "Add your first client", description: "Capture client contact info and exchange goals.", to: "/agent/clients" },
-  { icon: ArrowLeftRight, title: "Create an exchange", description: "Walk the 4-step wizard to define the relinquished property and replacement criteria.", to: "/agent/exchanges/new" },
-  { icon: Compass, title: "Review your exchanges", description: "Browse all your active and draft exchanges in one place.", to: "/agent/exchanges" },
-  { icon: Handshake, title: "Review matches", description: "See scored properties from other agents in the network.", to: "/agent/matches" },
-  { icon: Link2, title: "Connect with another agent", description: "Initiate a connection to share details and chat.", to: "/agent/connections" },
+  { icon: ArrowLeftRight, title: "Create a listing", description: "Walk the 4-step wizard to define the relinquished property and replacement criteria.", to: "/agent/exchanges/new" },
+  { icon: Compass, title: "Browse your pipeline", description: "See every active match across your clients in one stage board.", to: "/agent/pipeline" },
+  { icon: Handshake, title: "Work a match", description: "Open a property in the Workspace to review, message, and send to client.", to: "/agent/pipeline" },
+  { icon: Link2, title: "Connect with another agent", description: "Initiate a connection to share details and chat.", to: "/agent/pipeline?filter=client_interested" },
 ];
 
 export default function AgentHelp() {
