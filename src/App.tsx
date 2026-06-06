@@ -30,6 +30,7 @@ import NewExchange from "@/pages/agent/NewExchange";
 import EditExchange from "@/pages/agent/EditExchange";
 import AgentPipeline from "@/pages/agent/AgentPipeline";
 import AgentWorkspace from "@/pages/agent/AgentWorkspace";
+import AgentWorkspaceLanding from "@/pages/agent/AgentWorkspaceLanding";
 import MatchRedirect from "@/pages/agent/MatchRedirect";
 import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
 import AgentSettings from "@/pages/agent/AgentSettings";
@@ -93,6 +94,7 @@ const App = () => (
               <Route path="/agent/pipeline" element={<AgentPipeline />} />
 
               {/* Workspace (per-property work surface) */}
+              <Route path="/agent/workspace" element={<AgentWorkspaceLanding />} />
               <Route path="/agent/workspace/:exchangeId" element={<AgentWorkspace />} />
 
               {/* Listing flows (creation/edit) */}
