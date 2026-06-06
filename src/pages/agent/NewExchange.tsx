@@ -48,7 +48,7 @@ export default function NewExchange() {
       } else {
         toast.success("Exchange saved as draft.");
       }
-      navigate(`/agent/exchanges/${result.exchange_id}`);
+      navigate(`/agent/workspace/${result.exchange_id}`);
     } catch (err: any) {
       console.error("Save error:", err);
       toast.error("Failed to save exchange: " + (err.message || "Unknown error"));

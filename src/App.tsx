@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,13 +25,12 @@ import AgentDashboard from "@/pages/agent/AgentDashboard";
 import AgentLaunchpad from "@/pages/agent/AgentLaunchpad";
 import AgentClients from "@/pages/agent/AgentClients";
 import AgentClientDetail from "@/pages/agent/AgentClientDetail";
-import AgentClientWorkspace from "@/pages/agent/AgentClientWorkspace";
-import AgentExchanges from "@/pages/agent/AgentExchanges";
+import AgentClientOverview from "@/pages/agent/AgentClientOverview";
 import NewExchange from "@/pages/agent/NewExchange";
 import EditExchange from "@/pages/agent/EditExchange";
-import AgentExchangeDetail from "@/pages/agent/AgentExchangeDetail";
-import AgentMatchesHub from "@/pages/agent/AgentMatchesHub";
-import AgentMatchDetail from "@/pages/agent/AgentMatchDetail";
+import AgentPipeline from "@/pages/agent/AgentPipeline";
+import AgentWorkspace from "@/pages/agent/AgentWorkspace";
+import MatchRedirect from "@/pages/agent/MatchRedirect";
 import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
 import AgentSettings from "@/pages/agent/AgentSettings";
 import AgentHelp from "@/pages/agent/AgentHelp";
@@ -83,21 +82,33 @@ const App = () => (
               <Route path="/agent" element={<Navigate to="/agent/dashboard" replace />} />
               <Route path="/agent/launchpad" element={<AgentLaunchpad />} />
               <Route path="/agent/dashboard" element={<AgentDashboard />} />
+
+              {/* My Clients */}
               <Route path="/agent/clients" element={<AgentClients />} />
               <Route path="/agent/clients/new" element={<AgentClientDetail />} />
-              <Route path="/agent/clients/:clientId" element={<AgentClientWorkspace />} />
+              <Route path="/agent/clients/:clientId" element={<AgentClientOverview />} />
               <Route path="/agent/clients/:id/edit" element={<AgentClientDetail />} />
-              <Route path="/agent/exchanges" element={<AgentExchanges />} />
+
+              {/* Pipeline (cross-client stage board) */}
+              <Route path="/agent/pipeline" element={<AgentPipeline />} />
+
+              {/* Workspace (per-property work surface) */}
+              <Route path="/agent/workspace/:exchangeId" element={<AgentWorkspace />} />
+
+              {/* Listing flows (creation/edit) */}
               <Route path="/agent/exchanges/new" element={<NewExchange />} />
               <Route path="/agent/exchanges/:id/edit" element={<EditExchange />} />
-              <Route path="/agent/exchanges/:id" element={<AgentExchangeDetail />} />
-              <Route path="/agent/properties" element={<Navigate to="/agent/exchanges" replace />} />
-              {/* Unified Matches hub (replaces Matches + Connections + Messages list pages) */}
-              <Route path="/agent/matches" element={<AgentMatchesHub />} />
-              <Route path="/agent/matches/:id" element={<AgentMatchDetail />} />
-              <Route path="/agent/connections" element={<Navigate to="/agent/matches?stage=pending" replace />} />
+
+              {/* Legacy redirects — no dead-ends */}
+              <Route path="/agent/exchanges" element={<Navigate to="/agent/pipeline" replace />} />
+              <Route path="/agent/exchanges/:id" element={<ExchangeToWorkspaceRedirect />} />
+              <Route path="/agent/properties" element={<Navigate to="/agent/pipeline" replace />} />
+              <Route path="/agent/matches" element={<Navigate to="/agent/pipeline" replace />} />
+              <Route path="/agent/matches/:id" element={<MatchRedirect />} />
+              <Route path="/agent/connections" element={<Navigate to="/agent/pipeline?filter=client_interested" replace />} />
               <Route path="/agent/connections/:id" element={<AgentConnectionDetail />} />
-              <Route path="/agent/messages" element={<Navigate to="/agent/matches?stage=active" replace />} />
+              <Route path="/agent/messages" element={<Navigate to="/agent/pipeline?filter=agent_connected" replace />} />
+
               <Route path="/agent/notifications" element={<AgentNotifications />} />
               <Route path="/agent/profile" element={<Navigate to="/agent/settings" replace />} />
               <Route path="/agent/settings" element={<AgentSettings />} />
@@ -120,3 +131,8 @@ const App = () => (
 );
 
 export default App;
+
+function ExchangeToWorkspaceRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/agent/workspace/${id}`} replace />;
+}

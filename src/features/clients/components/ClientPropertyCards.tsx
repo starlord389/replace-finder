@@ -115,7 +115,7 @@ function fmtPrice(v: number | null) {
   return `$${v.toLocaleString()}`;
 }
 
-export function ClientListingsTab({ clientId }: Props) {
+export function ClientPropertyCards({ clientId }: Props) {
   const { data: listings = [], isLoading } = useQuery({
     queryKey: ["client-listings", clientId],
     queryFn: () => fetchListings(clientId),
@@ -137,11 +137,11 @@ export function ClientListingsTab({ clientId }: Props) {
           <Building2 className="mb-3 h-10 w-10 text-muted-foreground/40" />
           <p className="text-sm font-semibold text-foreground">No listings yet</p>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Create an exchange to pledge a relinquished property for this client.
+            Create a listing to pledge a relinquished property for this client.
           </p>
           <Button asChild size="sm" className="mt-4">
             <Link to={`/agent/exchanges/new?client=${clientId}`}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" /> New exchange
+              <Plus className="mr-1.5 h-3.5 w-3.5" /> New listing
             </Link>
           </Button>
         </CardContent>
@@ -154,7 +154,7 @@ export function ClientListingsTab({ clientId }: Props) {
       {listings.map((l) => {
         const loc = [l.city, l.state].filter(Boolean).join(", ");
         return (
-          <Link key={l.exchangeId} to={`/agent/exchanges/${l.exchangeId}`}>
+          <Link key={l.exchangeId} to={`/agent/workspace/${l.exchangeId}`}>
             <Card className="overflow-hidden transition-all hover:shadow-md">
               <div className="relative aspect-[16/10] bg-muted">
                 {l.coverUrl ? (

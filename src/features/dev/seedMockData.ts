@@ -197,7 +197,7 @@ export async function seedAgentMockData(userId: string) {
 
   // 8) Notifications
   const notifPayload = [
-    { user_id: userId, type: "new_match",           title: "New match available",                  message: "Sunrise Apartments matched your active exchange.",           link_to: "/agent/matches",     read: false, metadata: { tag: MOCK_TAG } },
+    { user_id: userId, type: "new_match",           title: "New match available",                  message: "Sunrise Apartments matched your active exchange.",           link_to: "/agent/pipeline",     read: false, metadata: { tag: MOCK_TAG } },
     { user_id: userId, type: "connection_request",  title: "Connection request",                   message: "Jordan Alvarez requested to connect on Sunrise Apartments.", link_to: "/agent/connections", read: false, metadata: { tag: MOCK_TAG } },
     { user_id: userId, type: "deadline_warning",    title: "Closing deadline approaching",         message: "Aurora Holdings exchange closes in 12 days.",                link_to: "/agent/exchanges",   read: false, metadata: { tag: MOCK_TAG } },
     { user_id: userId, type: "connection_accepted", title: "Connection accepted",                  message: "Priya Mehta accepted your connection request.",              link_to: "/agent/messages",    read: false, metadata: { tag: MOCK_TAG } },

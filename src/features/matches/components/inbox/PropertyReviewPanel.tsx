@@ -66,8 +66,8 @@ export function PropertyReviewPanel({ rel, onOpenActions, rank, totalInScope }: 
             Trading out — finding replacement property
           </span>
           <Button asChild variant="ghost" size="sm" className="ml-auto h-7 px-2 text-xs">
-            <Link to={`/agent/exchanges/${rel.buyerExchangeId}`}>
-              View exchange <ExternalLink className="ml-1 h-3 w-3" />
+            <Link to={`/agent/workspace/${rel.buyerExchangeId}`}>
+              Open workspace <ExternalLink className="ml-1 h-3 w-3" />
             </Link>
           </Button>
         </div>
@@ -154,7 +154,7 @@ export function PropertyReviewPanel({ rel, onOpenActions, rank, totalInScope }: 
               All actions
             </Button>
             <Button asChild variant="ghost" size="sm" className="ml-auto">
-              <Link to={`/agent/matches/${rel.matchId}`}>
+              <Link to={`/agent/workspace/${rel.buyerExchangeId}?match=${rel.matchId}`}>
                 Full details <ExternalLink className="ml-1 h-3 w-3" />
               </Link>
             </Button>

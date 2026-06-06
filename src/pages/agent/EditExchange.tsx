@@ -146,7 +146,7 @@ export default function EditExchange() {
         move_to_draft: "Exchange moved to draft.",
       };
       toast.success(messages[intent]);
-      navigate(`/agent/exchanges/${id}`);
+      navigate(`/agent/workspace/${id}`);
     } catch (err: any) {
       console.error("Update error:", err);
       toast.error("Failed to save: " + (err.message || "Unknown error"));
@@ -225,7 +225,7 @@ export default function EditExchange() {
           onSubmit={handleSubmit}
           saving={saving}
           mode={reviewMode}
-          onCancel={() => navigate(`/agent/exchanges/${id}`)}
+          onCancel={() => navigate(`/agent/workspace/${id}`)}
         />
       )}
     </div>

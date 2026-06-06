@@ -247,7 +247,7 @@ export default function AgentDashboard() {
                             {d.daysRemaining === 0 ? "today" : `${d.daysRemaining}d left`}
                           </span>
                           <Button variant="ghost" size="sm" asChild>
-                            <Link to={`/agent/exchanges/${d.exchangeId}`}>
+                            <Link to={`/agent/workspace/${d.exchangeId}`}>
                               Open <ArrowRight className="ml-1 h-3.5 w-3.5" />
                             </Link>
                           </Button>
@@ -275,9 +275,7 @@ export default function AgentDashboard() {
                   <ul className="divide-y overflow-hidden rounded-lg border">
                     {attention.unreviewedMatches.map((m) => {
                       const accent = getClientAccent(m.clientId ?? m.clientName);
-                      const target = m.clientId
-                        ? `/agent/clients/${m.clientId}?tab=matches`
-                        : `/agent/matches/${m.matchId}`;
+                      const target = `/agent/workspace/${m.buyerExchangeId}?match=${m.matchId}`;
                       return (
                         <li
                           key={m.matchId}
@@ -357,9 +355,7 @@ export default function AgentDashboard() {
             <ul className="divide-y overflow-hidden rounded-lg border">
               {topMatches.map((r) => {
                 const accent = getClientAccent(r.clientId ?? r.clientName);
-                const target = r.clientId
-                  ? `/agent/clients/${r.clientId}?tab=matches`
-                  : `/agent/matches/${r.matchId}`;
+                const target = `/agent/workspace/${r.buyerExchangeId}?match=${r.matchId}`;
                 const location = [r.propertyCity, r.propertyState].filter(Boolean).join(", ");
                 return (
                   <li
@@ -422,9 +418,7 @@ export default function AgentDashboard() {
                 const state = e.pledged_properties?.state ?? null;
                 const location = [city, state].filter(Boolean).join(", ");
                 const price = fmtPrice(e.exchange_proceeds);
-                const target = e.client_id
-                  ? `/agent/clients/${e.client_id}?tab=listings`
-                  : `/agent/exchanges/${e.id}`;
+                const target = `/agent/workspace/${e.id}`;
                 return (
                   <li
                     key={e.id}

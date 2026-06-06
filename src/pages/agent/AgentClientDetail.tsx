@@ -257,7 +257,7 @@ export default function AgentClientDetail() {
                         </p>
                       </div>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/agent/exchanges/${ex.id}`}>View</Link>
+                        <Link to={`/agent/workspace/${ex.id}`}>View</Link>
                       </Button>
                     </div>
                   ))}
