@@ -95,7 +95,7 @@ export default function AdminDashboard() {
           id: event.id,
           text: event.description,
           timestamp: event.created_at,
-          linkTo: `/agent/exchanges/${event.exchange_id}`,
+          linkTo: `/agent/workspace/${event.exchange_id}`,
         })) satisfies ActivityItem[],
       };
     },

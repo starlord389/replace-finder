@@ -86,7 +86,7 @@ export const AGENT_LAUNCHPAD_STEPS: AgentLaunchpadStepContent[] = [
     description: "Once your exchange is active, this is where matched properties appear for evaluation and follow-up.",
     actionLabel: "View matches",
     icon: Search,
-    href: "/agent/matches",
+    href: "/agent/pipeline",
   },
   {
     id: "connection",
