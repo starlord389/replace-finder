@@ -319,35 +319,8 @@ export default function AgentWorkspace() {
         <span className="truncate font-medium text-muted-foreground">{propertyTitle}</span>
       </nav>
 
-      {/* Property switcher (same client only) */}
-      {siblingExchanges.length > 1 && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-            Properties:
-          </span>
-          {siblingExchanges.map((s) => {
-            const isCurrent = s.id === exchangeId;
-            const label =
-              s.propertyName ||
-              [s.city, s.state].filter(Boolean).join(", ") ||
-              "Untitled";
-            return (
-              <Link
-                key={s.id}
-                to={`/agent/workspace/${s.id}`}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
-                  isCurrent
-                    ? cn("border-transparent font-semibold", accent.soft, accent.fg)
-                    : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <span className="max-w-[140px] truncate">{label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+
+
 
       {/* Property summary strip */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
