@@ -22,6 +22,7 @@ import {
 import { EMPTY_FILTERS, type MatchFilters } from "@/features/matches/components/inbox/SortFilterBar";
 import { readMatchLocalState } from "@/features/matches/components/inbox/useMatchLocalState";
 import { EXCHANGE_STATUS_COLORS, EXCHANGE_STATUS_LABELS } from "@/lib/constants";
+import { setLastListing } from "@/features/workspace/lib/lastListing";
 
 interface WorkspaceData {
   exchange: {
