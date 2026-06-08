@@ -30,7 +30,8 @@ import NewExchange from "@/pages/agent/NewExchange";
 import EditExchange from "@/pages/agent/EditExchange";
 import AgentPipeline from "@/pages/agent/AgentPipeline";
 import AgentWorkspace from "@/pages/agent/AgentWorkspace";
-import AgentWorkspaceLanding from "@/pages/agent/AgentWorkspaceLanding";
+import AgentListings from "@/pages/agent/AgentListings";
+import AgentMatches from "@/pages/agent/AgentMatches";
 import MatchRedirect from "@/pages/agent/MatchRedirect";
 import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
 import AgentSettings from "@/pages/agent/AgentSettings";
@@ -93,8 +94,10 @@ const App = () => (
               {/* Pipeline (cross-client stage board) */}
               <Route path="/agent/pipeline" element={<AgentPipeline />} />
 
-              {/* Workspace (per-property work surface) */}
-              <Route path="/agent/workspace" element={<AgentWorkspaceLanding />} />
+              {/* Listings & Matches */}
+              <Route path="/agent/listings" element={<AgentListings />} />
+              <Route path="/agent/matches" element={<AgentMatches />} />
+              <Route path="/agent/workspace" element={<Navigate to="/agent/listings" replace />} />
               <Route path="/agent/workspace/:exchangeId" element={<AgentWorkspace />} />
 
               {/* Listing flows (creation/edit) */}

@@ -1,21 +1,38 @@
-# Plan: Polish the workspace match review
+## Goal
 
-Two focused changes to `PropertyReviewPanel.tsx`:
+Replace the single "Workspace" top-nav item with two top-level nav tabs: **Listings** and **Matches**. The existing combined workspace landing page goes away.
 
-## 1. Remove the "Full details" link
-The "Full details →" button in the header action row is redundant — this panel **is** the full details view. Drop the link and its `ExternalLink` usage there. The client strip still has its own "Open workspace" link for navigation context, which stays.
+## Nav changes (`src/components/layout/AgentTopNav.tsx`)
 
-## 2. Redesign the actions area into a dedicated "Action Center"
-Right now the primary + secondary action buttons sit as a loose flex row mixed in with the header. I'll lift them into their own clearly demarcated card directly under the header, styled as a deal command bar:
+Replace:
+```
+{ title: "Workspace", url: "/agent/workspace", end: true }
+```
+with:
+```
+{ title: "Listings", url: "/agent/listings" },
+{ title: "Matches", url: "/agent/matches" },
+```
 
-- A subtle gradient/tinted panel (`bg-gradient-to-br from-primary/5 to-card`) with a left accent border in the client's accent color to feel premium and tie back to the client identity.
-- Two-column layout on desktop, stacked on mobile:
-  - **Left**: status pill + a one-line "What's next" hint derived from the current lifecycle status (e.g. "Share this with your client to gauge interest").
-  - **Right**: the primary action as a prominent solid button, plus secondary actions rendered as compact pill buttons in a wrap row. Destructive actions (Archive / Not a Fit / Client Passed) get pushed to the end and shown as ghost pills with a destructive tint, visually separated by a thin divider.
-- Add small lucide icons to each action (Send, MessageSquare, FileCheck, Archive, etc.) mapped by action id for scannability.
-- Keep all existing `useMatchActions` wiring — no behavior changes, purely presentational.
+Pipeline, Dashboard, My Clients, Launchpad stay as-is.
 
-This replaces the current `<div className="mt-3 flex flex-wrap items-center gap-2">…</div>` action row. Everything else in the panel (lifecycle tracker, key metrics, why matched, breakdown, financials, share, conversation, activity, documents) stays as-is.
+## Routes (`src/App.tsx`)
+
+- Remove `/agent/workspace` landing route. Keep `/agent/workspace/:exchangeId` (the per-listing review page) since that's where a listing card / match card deep-links into.
+- Add `/agent/listings` → new `AgentListings` page (listings-only view: the `ListingSwitcher` grouped-by-client list + "New listing" button. Functionally what the previous "Listings" tab showed.)
+- Add `/agent/matches` → new `AgentMatches` page (matches-only view: buyer-side matches grouped by client → listing, sorted by score, each card opens `/agent/workspace/:exchangeId?match=...`. Functionally what the previous "Matches" tab showed.)
+- Anywhere `/agent/workspace` (the landing) is linked from (e.g. `AgentDashboard`, launchpad checklist, lastListing redirect), repoint to `/agent/listings`.
+
+## Pages to add
+
+- `src/pages/agent/AgentListings.tsx` — extracted from the current `AgentWorkspaceLanding.tsx` "listings" tab content (header + New Listing button + `<ListingSwitcher />` + empty state).
+- `src/pages/agent/AgentMatches.tsx` — extracted from the current "matches" tab content (header + grouped client → listing match cards + empty state).
+
+## File to delete
+
+- `src/pages/agent/AgentWorkspaceLanding.tsx` — replaced by the two pages above.
 
 ## Out of scope
-No route, data, or DB changes. Only `PropertyReviewPanel.tsx` is edited.
+
+- No changes to the per-listing workspace page (`/agent/workspace/:exchangeId`), match review panel, action center, or data hooks.
+- No DB / RLS / backend changes.
