@@ -137,6 +137,35 @@ export default function AgentWorkspace() {
   });
 
   const { data: allRels = [], isLoading: relsLoading } = useUnifiedRelationships();
+  const { data: agentListings = [] } = useAgentListings(user?.id);
+
+  const clientGroups = useMemo<InboxClientGroup[]>(() => {
+    const map = new Map<string, InboxClientGroup>();
+    for (const l of agentListings) {
+      const key = l.clientId ?? "__unassigned";
+      if (!map.has(key)) {
+        map.set(key, {
+          clientId: l.clientId,
+          clientName: l.clientName ?? "Unassigned",
+          listings: [],
+        });
+      }
+      map.get(key)!.listings.push({
+        exchangeId: l.id,
+        propertyLabel:
+          l.propertyName ||
+          l.address ||
+          [l.city, l.state].filter(Boolean).join(", ") ||
+          "Untitled listing",
+        city: l.city,
+        state: l.state,
+        status: l.status,
+      });
+    }
+    return Array.from(map.values()).sort((a, b) =>
+      a.clientName.localeCompare(b.clientName),
+    );
+  }, [agentListings]);
 
   useEffect(() => {
     if (exchangeId && user?.id) setLastListing(user.id, exchangeId);
