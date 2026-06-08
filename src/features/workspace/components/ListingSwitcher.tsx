@@ -153,6 +153,11 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
             className="pl-9"
           />
         </div>
+        {activeCount > 0 && (
+          <Button variant="ghost" size="sm" className="h-9 px-2 text-xs" onClick={clearAll}>
+            Reset
+          </Button>
+        )}
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="default" className="shrink-0">
