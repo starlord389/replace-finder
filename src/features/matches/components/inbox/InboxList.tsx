@@ -137,6 +137,14 @@ export function InboxList({
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border bg-card">
       {/* Compact toolbar */}
       <div className="shrink-0 border-b border-border bg-muted/30">
+        {showSwitcher && (
+          <ListingSwitcherRow
+            clients={clients!}
+            activeClient={activeClient}
+            activeListing={activeListing}
+            onSelectExchange={onSelectExchange!}
+          />
+        )}
         <div className="flex items-center gap-1.5 p-2">
           {/* Search */}
           <div className="relative min-w-0 flex-1">
