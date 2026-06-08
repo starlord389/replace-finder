@@ -91,12 +91,13 @@ export function InboxList({
   activeClientId,
   activeExchangeId,
   onSelectExchange,
+  onSelectAllClients,
+  onSelectAllPropertiesForClient,
+  allClientsActive = false,
+  allPropertiesActive = false,
 }: Props) {
   const totalInScope = scopeRels.length;
   const showingCount = rels.length;
-
-  const statusTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
-  const sortOption = SORT_OPTIONS.find((o) => o.key === sort) ?? SORT_OPTIONS[0];
 
   const activeClient = useMemo(
     () => clients?.find((c) => (c.clientId ?? "") === (activeClientId ?? "")) ?? null,
@@ -106,7 +107,7 @@ export function InboxList({
     () => activeClient?.listings.find((l) => l.exchangeId === activeExchangeId) ?? null,
     [activeClient, activeExchangeId],
   );
-  const showSwitcher = !!(clients && clients.length > 0 && onSelectExchange);
+  const showSwitcher = !!(clients && clients.length > 0 && (onSelectExchange || onSelectAllClients));
 
 
 
