@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, ExternalLink, FileText, Activity, Info, Send, Link as LinkIcon, Download, StickyNote } from "lucide-react";
+import { MapPin, FileText, Activity, Info, Send, Link as LinkIcon, Download, StickyNote, ExternalLink, MessageSquare, Phone, FileCheck, FileSignature, Handshake, Archive, XCircle, RotateCcw, HelpCircle, Bell, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
