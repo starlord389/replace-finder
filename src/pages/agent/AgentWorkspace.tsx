@@ -290,7 +290,7 @@ export default function AgentWorkspace() {
     return <Navigate to="/agent/pipeline" replace />;
   }
 
-  const { exchange, client, property, financials, siblingExchanges } = data;
+  const { exchange, client, property, financials } = data;
   const accent = getClientAccent(exchange.client_id);
   const propertyTitle =
     property?.property_name ||
