@@ -429,7 +429,12 @@ export default function AgentWorkspace() {
               onFiltersChange={setFilters}
               scopeRels={exchangeRels}
               rankMap={rankMap}
+              clients={clientGroups}
+              activeClientId={exchange.client_id}
+              activeExchangeId={exchangeId}
+              onSelectExchange={(id) => navigate(`/agent/workspace/${id}`)}
             />
+
           </div>
 
           <div
