@@ -1,15 +1,26 @@
-import { Fragment } from "react";
-import { Search, MoreHorizontal, Users } from "lucide-react";
+import { Fragment, useMemo } from "react";
+import { Search, X, ArrowUpDown, SlidersHorizontal, Check, Users, Filter as FilterIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { PropertyMatchCard } from "./PropertyMatchCard";
-import { FILTER_TABS, type UiStatus, type SortKey } from "./inboxHelpers";
-import { SortFilterBar, type MatchFilters } from "./SortFilterBar";
+import {
+  FILTER_TABS,
+  SORT_OPTIONS,
+  type UiStatus,
+  type SortKey,
+} from "./inboxHelpers";
+import { EMPTY_FILTERS, type MatchFilters } from "./SortFilterBar";
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
-
 
 interface Props {
   rels: Relationship[];
@@ -26,20 +37,9 @@ interface Props {
   onFiltersChange: (f: MatchFilters) => void;
   scopeRels: Relationship[];
   rankMap: Map<string, number>;
-  /** When true, render sticky client section headers between cards. */
   groupByClient?: boolean;
   onGroupByClientChange?: (v: boolean) => void;
 }
-
-
-// Primary chips shown inline; remainder go in a "More" popover.
-const PRIMARY_KEYS: Array<"all" | UiStatus> = [
-  "all",
-  "new",
-  "client_interested",
-  "agent_connected",
-  "closed",
-];
 
 export function InboxList({
   rels,
@@ -52,7 +52,6 @@ export function InboxList({
   counts,
   groupByClient = false,
   onGroupByClientChange,
-
   sort,
   onSortChange,
   filters,
@@ -60,98 +59,308 @@ export function InboxList({
   scopeRels,
   rankMap,
 }: Props) {
-  const primaryTabs = FILTER_TABS.filter((t) => PRIMARY_KEYS.includes(t.key));
-  const moreTabs = FILTER_TABS.filter((t) => !PRIMARY_KEYS.includes(t.key));
-  const moreActive = moreTabs.some((t) => t.key === filter);
+  const totalInScope = scopeRels.length;
+  const showingCount = rels.length;
+
+  const statusTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
+  const sortOption = SORT_OPTIONS.find((o) => o.key === sort) ?? SORT_OPTIONS[0];
+
+  const allStates = useMemo(() => {
+    const s = new Set<string>();
+    scopeRels.forEach((r) => r.propertyState && s.add(r.propertyState));
+    return [...s].sort();
+  }, [scopeRels]);
+
+  const advFilterCount =
+    (filters.minScore > 0 ? 1 : 0) +
+    (filters.states.length > 0 ? 1 : 0) +
+    (filters.priceMin != null ? 1 : 0) +
+    (filters.priceMax != null ? 1 : 0);
+
+  const anyActive =
+    !!search.trim() || filter !== "all" || advFilterCount > 0;
+
+  function clearAll() {
+    onSearchChange("");
+    onFilterChange("all");
+    onFiltersChange(EMPTY_FILTERS);
+  }
+
+  function toggleState(st: string) {
+    onFiltersChange({
+      ...filters,
+      states: filters.states.includes(st)
+        ? filters.states.filter((x) => x !== st)
+        : [...filters.states, st],
+    });
+  }
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border bg-card">
-      {/* Search */}
-      <div className="shrink-0 border-b border-border p-3">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search property, city, client…"
-            className="h-9 pl-8 text-sm"
-          />
-        </div>
-      </div>
+      {/* Compact toolbar */}
+      <div className="shrink-0 border-b border-border bg-muted/30">
+        <div className="flex items-center gap-1.5 p-2">
+          {/* Search */}
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search property, city, or client…"
+              className="h-9 border-border bg-background pl-8 pr-8 text-sm shadow-sm focus-visible:ring-1"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => onSearchChange("")}
+                aria-label="Clear search"
+                className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
 
-      {/* Filter chips (wrap, no horizontal scroll) */}
-      <div className="shrink-0 border-b border-border px-2 py-2">
-        <div className="flex flex-wrap items-center gap-1">
-          {primaryTabs.map((t) => {
-            const count = counts[t.key] ?? 0;
-            const active = filter === t.key;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => onFilterChange(t.key)}
+          {/* Status */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
                 className={cn(
-                  "rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors",
-                  active
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "h-9 shrink-0 gap-1.5 bg-background px-2.5 text-xs font-medium",
+                  filter !== "all" && "border-primary/40 bg-primary/5 text-primary",
                 )}
               >
-                {t.label}
-                <span className={cn("ml-1 text-[10px]", active ? "opacity-80" : "opacity-60")}>
-                  {count}
+                <FilterIcon className="h-3.5 w-3.5" />
+                <span>{statusTab.label}</span>
+                <span className="rounded-sm bg-muted px-1 text-[10px] font-semibold text-muted-foreground">
+                  {counts[filter] ?? 0}
                 </span>
-              </button>
-            );
-          })}
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
-                  moreActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <MoreHorizontal className="h-3 w-3" />
-                More
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-48 p-1">
-              {moreTabs.map((t) => {
-                const count = counts[t.key] ?? 0;
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              {FILTER_TABS.map((t) => {
                 const active = filter === t.key;
                 return (
-                  <Button
+                  <DropdownMenuItem
                     key={t.key}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onFilterChange(t.key)}
-                    className={cn(
-                      "w-full justify-between text-xs",
-                      active && "bg-muted text-foreground",
-                    )}
+                    onSelect={() => onFilterChange(t.key)}
+                    className="flex items-center justify-between gap-2 text-xs"
                   >
-                    <span>{t.label}</span>
-                    <span className="text-[10px] text-muted-foreground">{count}</span>
-                  </Button>
+                    <span className="flex items-center gap-2">
+                      {active ? (
+                        <Check className="h-3 w-3 text-primary" />
+                      ) : (
+                        <span className="h-3 w-3" />
+                      )}
+                      {t.label}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {counts[t.key] ?? 0}
+                    </span>
+                  </DropdownMenuItem>
                 );
               })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Sort */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 shrink-0 gap-1.5 bg-background px-2.5 text-xs font-medium"
+              >
+                <ArrowUpDown className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{sortOption.label}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              {SORT_OPTIONS.map((o) => (
+                <DropdownMenuItem
+                  key={o.key}
+                  onSelect={() => onSortChange(o.key)}
+                  className="flex items-center gap-2 text-xs"
+                >
+                  {sort === o.key ? (
+                    <Check className="h-3 w-3 text-primary" />
+                  ) : (
+                    <span className="h-3 w-3" />
+                  )}
+                  {o.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Advanced filters */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-9 shrink-0 gap-1.5 bg-background px-2.5 text-xs font-medium",
+                  advFilterCount > 0 && "border-primary/40 bg-primary/5 text-primary",
+                )}
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                {advFilterCount > 0 && (
+                  <span className="rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                    {advFilterCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-72 p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-xs font-semibold">Filter matches</p>
+                {advFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onFiltersChange(EMPTY_FILTERS)}
+                    className="text-[11px] text-muted-foreground hover:text-foreground"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between text-[11px]">
+                    <span className="font-medium">Min match score</span>
+                    <span className="text-muted-foreground">{filters.minScore}</span>
+                  </div>
+                  <Slider
+                    value={[filters.minScore]}
+                    min={0}
+                    max={100}
+                    step={5}
+                    onValueChange={([v]) => onFiltersChange({ ...filters, minScore: v })}
+                  />
+                </div>
+
+                <div>
+                  <p className="mb-1.5 text-[11px] font-medium">Price range</p>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.priceMin ?? ""}
+                      onChange={(e) =>
+                        onFiltersChange({
+                          ...filters,
+                          priceMin: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                      className="h-8 text-xs"
+                    />
+                    <span className="text-xs text-muted-foreground">to</span>
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.priceMax ?? ""}
+                      onChange={(e) =>
+                        onFiltersChange({
+                          ...filters,
+                          priceMax: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                </div>
+
+                {allStates.length > 0 && (
+                  <div>
+                    <p className="mb-1.5 text-[11px] font-medium">Market</p>
+                    <div className="flex flex-wrap gap-1">
+                      {allStates.map((st) => {
+                        const active = filters.states.includes(st);
+                        return (
+                          <button
+                            key={st}
+                            type="button"
+                            onClick={() => toggleState(st)}
+                            className={cn(
+                              "rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors",
+                              active
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border text-muted-foreground hover:bg-muted",
+                            )}
+                          >
+                            {st}
+                            {active && <X className="ml-1 inline h-2.5 w-2.5" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </PopoverContent>
           </Popover>
         </div>
-      </div>
 
-      {/* Sort + filters */}
-      <SortFilterBar
-        sort={sort}
-        onSortChange={onSortChange}
-        filters={filters}
-        onFiltersChange={onFiltersChange}
-        scopeRels={scopeRels}
-      />
+        {/* Active filter chips + result count */}
+        {(anyActive || totalInScope > 0) && (
+          <div className="flex flex-wrap items-center gap-1.5 border-t border-border/60 px-2.5 py-1.5">
+            {search.trim() && (
+              <ActiveChip
+                label={`"${search.trim()}"`}
+                onClear={() => onSearchChange("")}
+              />
+            )}
+            {filter !== "all" && (
+              <ActiveChip
+                label={statusTab.label}
+                onClear={() => onFilterChange("all")}
+              />
+            )}
+            {filters.minScore > 0 && (
+              <ActiveChip
+                label={`Score ≥ ${filters.minScore}`}
+                onClear={() => onFiltersChange({ ...filters, minScore: 0 })}
+              />
+            )}
+            {filters.priceMin != null && (
+              <ActiveChip
+                label={`Min $${filters.priceMin.toLocaleString()}`}
+                onClear={() => onFiltersChange({ ...filters, priceMin: null })}
+              />
+            )}
+            {filters.priceMax != null && (
+              <ActiveChip
+                label={`Max $${filters.priceMax.toLocaleString()}`}
+                onClear={() => onFiltersChange({ ...filters, priceMax: null })}
+              />
+            )}
+            {filters.states.map((st) => (
+              <ActiveChip
+                key={st}
+                label={st}
+                onClear={() => toggleState(st)}
+              />
+            ))}
+            {anyActive && (
+              <button
+                type="button"
+                onClick={clearAll}
+                className="ml-0.5 text-[11px] font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Clear all
+              </button>
+            )}
+            <span className="ml-auto text-[11px] text-muted-foreground">
+              Showing <span className="font-semibold text-foreground">{showingCount}</span>
+              {" "}of {totalInScope}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Group-by-client toggle */}
       {onGroupByClientChange && (
@@ -180,6 +389,11 @@ export function InboxList({
             <p className="mt-1 text-xs text-muted-foreground">
               Try a different filter or search.
             </p>
+            {anyActive && (
+              <Button variant="outline" size="sm" className="mt-3" onClick={clearAll}>
+                Clear filters
+              </Button>
+            )}
           </div>
         ) : groupByClient ? (
           <GroupedList
@@ -207,6 +421,22 @@ export function InboxList({
   );
 }
 
+function ActiveChip({ label, onClear }: { label: string; onClear: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 py-0.5 pl-2 pr-1 text-[11px] font-medium text-primary">
+      {label}
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label={`Remove ${label}`}
+        className="flex h-4 w-4 items-center justify-center rounded-full hover:bg-primary/20"
+      >
+        <X className="h-2.5 w-2.5" />
+      </button>
+    </span>
+  );
+}
+
 interface GroupedListProps {
   rels: Relationship[];
   selectedId: string | null;
@@ -215,7 +445,6 @@ interface GroupedListProps {
 }
 
 function GroupedList({ rels, selectedId, onSelect, rankMap }: GroupedListProps) {
-  // Group preserving incoming sort order; key = clientId (fallback to "Client").
   const groups: Array<{ clientId: string | null; clientName: string; items: Relationship[] }> = [];
   const indexByKey = new Map<string, number>();
   for (const r of rels) {

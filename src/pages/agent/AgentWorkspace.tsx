@@ -218,13 +218,19 @@ export default function AgentWorkspace() {
   }, [visibleRels]);
 
   const selected = useMemo(() => {
-    if (!selectedMatchId) return visibleRels[0] ?? null;
-    return (
-      visibleRels.find((r) => r.matchId === selectedMatchId || r.id === selectedMatchId) ??
-      visibleRels[0] ??
-      null
-    );
-  }, [visibleRels, selectedMatchId]);
+    if (selectedMatchId) {
+      const inVisible = visibleRels.find(
+        (r) => r.matchId === selectedMatchId || r.id === selectedMatchId,
+      );
+      if (inVisible) return inVisible;
+      // Honor incoming ?match= even if current filters would hide it.
+      const inScope = exchangeRels.find(
+        (r) => r.matchId === selectedMatchId || r.id === selectedMatchId,
+      );
+      if (inScope) return inScope;
+    }
+    return visibleRels[0] ?? null;
+  }, [visibleRels, exchangeRels, selectedMatchId]);
 
   // Keep ?match in sync with current selection
   useEffect(() => {
