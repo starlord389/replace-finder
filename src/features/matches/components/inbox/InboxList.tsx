@@ -1,5 +1,5 @@
 import { Fragment, useMemo } from "react";
-import { Search, X, ArrowUpDown, SlidersHorizontal, Check, Users, Filter as FilterIcon } from "lucide-react";
+import { Search, X, ArrowUpDown, SlidersHorizontal, Check, Users, Filter as FilterIcon, Building2, ChevronDown, UserRound } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -7,6 +7,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
@@ -21,6 +23,20 @@ import {
 } from "./inboxHelpers";
 import { EMPTY_FILTERS, type MatchFilters } from "./SortFilterBar";
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
+
+export interface InboxListingOption {
+  exchangeId: string;
+  propertyLabel: string;
+  city: string | null;
+  state: string | null;
+  status: string;
+}
+
+export interface InboxClientGroup {
+  clientId: string | null;
+  clientName: string;
+  listings: InboxListingOption[];
+}
 
 interface Props {
   rels: Relationship[];
@@ -39,6 +55,11 @@ interface Props {
   rankMap: Map<string, number>;
   groupByClient?: boolean;
   onGroupByClientChange?: (v: boolean) => void;
+  /** Optional client → property selector to pivot listings from the toolbar. */
+  clients?: InboxClientGroup[];
+  activeClientId?: string | null;
+  activeExchangeId?: string;
+  onSelectExchange?: (exchangeId: string) => void;
 }
 
 export function InboxList({
