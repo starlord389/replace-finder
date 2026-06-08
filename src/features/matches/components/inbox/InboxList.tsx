@@ -79,9 +79,26 @@ export function InboxList({
   onFiltersChange,
   scopeRels,
   rankMap,
+  clients,
+  activeClientId,
+  activeExchangeId,
+  onSelectExchange,
 }: Props) {
   const totalInScope = scopeRels.length;
   const showingCount = rels.length;
+
+  const statusTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
+  const sortOption = SORT_OPTIONS.find((o) => o.key === sort) ?? SORT_OPTIONS[0];
+
+  const activeClient = useMemo(
+    () => clients?.find((c) => (c.clientId ?? "") === (activeClientId ?? "")) ?? null,
+    [clients, activeClientId],
+  );
+  const activeListing = useMemo(
+    () => activeClient?.listings.find((l) => l.exchangeId === activeExchangeId) ?? null,
+    [activeClient, activeExchangeId],
+  );
+  const showSwitcher = !!(clients && clients.length > 0 && onSelectExchange);
 
   const statusTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
   const sortOption = SORT_OPTIONS.find((o) => o.key === sort) ?? SORT_OPTIONS[0];
