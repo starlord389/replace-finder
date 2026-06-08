@@ -545,3 +545,143 @@ function GroupedList({ rels, selectedId, onSelect, rankMap }: GroupedListProps) 
     </div>
   );
 }
+
+// ── Listing switcher row ─────────────────────────────────────────
+
+interface ListingSwitcherRowProps {
+  clients: InboxClientGroup[];
+  activeClient: InboxClientGroup | null;
+  activeListing: InboxListingOption | null;
+  onSelectExchange: (exchangeId: string) => void;
+}
+
+function ListingSwitcherRow({
+  clients,
+  activeClient,
+  activeListing,
+  onSelectExchange,
+}: ListingSwitcherRowProps) {
+  const accent = getClientAccent(activeClient?.clientId ?? null);
+
+  function pickClient(c: InboxClientGroup) {
+    if (!c.listings.length) return;
+    // Jump to that client's first listing (already sorted newest-first upstream).
+    onSelectExchange(c.listings[0].exchangeId);
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 border-b border-border/60 px-2 py-2">
+      {/* Client */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "group inline-flex h-9 min-w-0 max-w-[42%] items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:border-primary/40",
+            )}
+          >
+            <span className={cn("h-2 w-2 shrink-0 rounded-full", accent.dot)} />
+            <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate text-foreground">
+              {activeClient?.clientName ?? "Select client"}
+            </span>
+            <ChevronDown className="ml-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-64">
+          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Clients
+          </DropdownMenuLabel>
+          {clients.map((c) => {
+            const ca = getClientAccent(c.clientId);
+            const active = (c.clientId ?? "") === (activeClient?.clientId ?? "__none");
+            return (
+              <DropdownMenuItem
+                key={c.clientId ?? c.clientName}
+                onSelect={() => pickClient(c)}
+                disabled={!c.listings.length}
+                className="flex items-center justify-between gap-2 text-xs"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  {active ? (
+                    <Check className="h-3 w-3 shrink-0 text-primary" />
+                  ) : (
+                    <span className={cn("h-2 w-2 shrink-0 rounded-full", ca.dot)} />
+                  )}
+                  <span className="truncate font-medium text-foreground">
+                    {c.clientName}
+                  </span>
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {c.listings.length}
+                </span>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <span className="text-muted-foreground">/</span>
+
+      {/* Property */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            disabled={!activeClient || activeClient.listings.length === 0}
+            className="group inline-flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:border-primary/40 disabled:opacity-60"
+          >
+            <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate text-foreground">
+              {activeListing?.propertyLabel ?? "Select property"}
+            </span>
+            {activeListing && (activeListing.city || activeListing.state) && (
+              <span className="hidden truncate text-[10px] text-muted-foreground sm:inline">
+                · {[activeListing.city, activeListing.state].filter(Boolean).join(", ")}
+              </span>
+            )}
+            <ChevronDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-80">
+          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {activeClient?.clientName ?? "Properties"} ·{" "}
+            {activeClient?.listings.length ?? 0}
+          </DropdownMenuLabel>
+          {(activeClient?.listings ?? []).map((l) => {
+            const active = l.exchangeId === activeListing?.exchangeId;
+            const loc = [l.city, l.state].filter(Boolean).join(", ");
+            return (
+              <DropdownMenuItem
+                key={l.exchangeId}
+                onSelect={() => onSelectExchange(l.exchangeId)}
+                className="flex items-start gap-2 text-xs"
+              >
+                {active ? (
+                  <Check className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+                ) : (
+                  <span className="mt-0.5 h-3 w-3 shrink-0" />
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-foreground">
+                    {l.propertyLabel}
+                  </span>
+                  {loc && (
+                    <span className="block truncate text-[10px] text-muted-foreground">
+                      {loc}
+                    </span>
+                  )}
+                </span>
+              </DropdownMenuItem>
+            );
+          })}
+          {activeClient && activeClient.listings.length === 0 && (
+            <div className="px-2 py-3 text-center text-[11px] text-muted-foreground">
+              No listings for this client.
+            </div>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
