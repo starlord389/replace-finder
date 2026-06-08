@@ -30,7 +30,8 @@ const PRIMARY_NAV: NavItem[] = [
   { title: "Dashboard", url: "/agent/dashboard", end: true },
   { title: "My Clients", url: "/agent/clients" },
   { title: "Pipeline", url: "/agent/pipeline" },
-  { title: "Workspace", url: "/agent/workspace", end: true },
+  { title: "Listings", url: "/agent/listings" },
+  { title: "Matches", url: "/agent/matches" },
 ];
 
 function NotificationsBell() {
