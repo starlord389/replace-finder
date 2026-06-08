@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Inbox as InboxIcon, ExternalLink } from "lucide-react";
+import { Inbox as InboxIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -283,18 +283,6 @@ export default function AgentMatches() {
                     className="lg:hidden"
                   >
                     ← Back to matches
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="ml-auto h-8"
-                  >
-                    <Link
-                      to={`/agent/workspace/${selected.buyerExchangeId}?match=${selected.matchId}`}
-                    >
-                      Open in workspace <ExternalLink className="ml-1.5 h-3 w-3" />
-                    </Link>
                   </Button>
                 </div>
                 <div className="min-h-0 flex-1">
