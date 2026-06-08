@@ -1,49 +1,31 @@
-# Add a global matches view across all clients & listings
+# Plan: Remove "Open workspace" link + clarify bug sweep scope
 
-## Goal
-Right now the inbox+review layout only exists inside `/agent/workspace/:exchangeId`, which is always scoped to one client and one listing. Add a "global" mode that shows matches across every client and listing the agent owns, while keeping the per-listing workspace intact.
+## Part 1 — Remove "Open workspace" (concrete fix)
 
-## Where it lives
-Upgrade `/agent/matches` from the current grouped card index into the full inbox + review layout. That route already exists, is already in the top nav, and conceptually means "all matches" — perfect home for the global view.
+**Why it does nothing:** The link in `PropertyReviewPanel.tsx` (line 116-120) routes to `/agent/workspace/${rel.buyerExchangeId}`. When you're already on `/agent/workspace/:id`, clicking it navigates to the same URL you're already on, so visually nothing happens. It was originally added so users on the global `/agent/matches` page could pivot into the per-listing workspace, but it now renders in both places and is confusing in the workspace view.
 
-```text
-/agent/matches                → global inbox (all clients, all listings)
-/agent/workspace/:exchangeId  → per-listing inbox (unchanged)
-```
+**Change:**
+- `src/features/matches/components/inbox/PropertyReviewPanel.tsx`
+  - Delete the `<Button asChild>` block on lines 116-120 (the "Open workspace" link).
+  - Remove now-unused imports: `Link` from `react-router-dom` and `ExternalLink` from `lucide-react` (only if not used elsewhere in the file — will verify before removing).
 
-## What the global view shows
-- Same `InboxList` (left) + `PropertyReviewPanel` (right) layout as the workspace.
-- Scope = every `Relationship` where `mySide === "buyer"` (i.e. matches against the agent's own listings).
-- The toolbar's Client → Property switcher is the pivot:
-  - Client dropdown gets an "All clients" option at the top.
-  - Property dropdown gets an "All properties" option at the top (only enabled when a client is selected; when "All clients" is chosen, the property dropdown is disabled and reads "All properties").
-  - Picking a specific client + property navigates to `/agent/workspace/:exchangeId` so the user drops into the focused per-listing view.
-  - Picking "All clients" from inside a workspace navigates back to `/agent/matches`.
-- Since matches now span multiple clients, the inbox cards show the client lead line (we pass through `hideClientLead={false}`), and `groupByClient` is enabled by default with a toggle to flip it off.
-- The breadcrumb + property summary strip (specific to one listing) are hidden in global mode. A simple page header "All matches · N across M listings" replaces them.
+That's it for this fix — single component, no routing or data changes.
 
-## Selection state in global mode
-- Selected match is stored in `?match=:matchId` on `/agent/matches`, same pattern as workspace.
-- Clicking a card on the left selects it on the right (in-place); it does *not* jump to the per-listing workspace. A small "Open in workspace ↗" link in the review panel header lets the user pivot when they want the focused per-listing context.
-- Status / Sort / advanced Filters work identically; counts are computed across the global scope.
-- Search field gains "client" as a searchable field (already in the placeholder) — already covered.
+## Part 2 — Sitewide bug sweep (needs scoping)
 
-## Wiring
-- New page `src/pages/agent/AgentMatches.tsx` is rewritten to use `useUnifiedRelationships` for buyer-side rels, plus `useAgentListings` to build the same `InboxClientGroup[]` used by the workspace. It renders `<InboxList>` and `<PropertyReviewPanel>` with the same sort/filter/search state and URL `?match=` selection.
-- `InboxList`'s `clients` data gets two synthetic entries surfaced at the top of each dropdown:
-  - `{ clientId: "__all", clientName: "All clients", listings: [] }` (special-cased in the row)
-  - Inside each real client group, an "All properties" sentinel listing.
-  - The switcher row gains an `onSelectAll?: () => void` prop (navigates to `/agent/matches`) and an `onSelectAllPropertiesForClient?: (clientId) => void` (filters the global list to that client without leaving `/agent/matches`).
-- On `/agent/matches`, the switcher's client + property selections become local filter state (which client / which listing to scope the global list to) instead of navigation. Picking a concrete property does navigate to `/agent/workspace/:exchangeId`.
-- The old `/agent/matches` card-grouping layout goes away; its empty-state copy moves into the new page.
+"Identify bugs and issues throughout the site and fix them" is too broad to action safely in one pass. The app has many surfaces (Launchpad, Dashboard, My Clients, Pipeline, Listings, Matches, Workspace, client intake, matching engine, auth, etc.) and "bug" can mean console errors, broken buttons, layout glitches, dead links, slow loads, copy issues, or logic bugs in matching/scoring. Fixing everything blindly risks regressions in flows you haven't asked me to touch.
 
-## Out of scope
-- No DB / RLS / edge function changes.
-- No new endpoints; reuses `useUnifiedRelationships` and `useAgentListings`.
-- Seller-side matches stay out of this view (still buyer-only, same as today).
-- No multi-listing bulk actions; selections are still single-match.
+**Proposed approach** — after you approve Part 1, I'll do a focused triage pass and come back with a prioritized list before changing anything:
 
-## Files
-- `src/pages/agent/AgentMatches.tsx` — rewrite to inbox + review layout, global scope by default, with optional client/listing scope via the toolbar.
-- `src/features/matches/components/inbox/InboxList.tsx` — add "All clients" / "All properties" entries to the switcher, plus the two new optional callbacks. Keep all existing props backward-compatible so `AgentWorkspace` keeps working as-is.
-- `src/pages/agent/AgentWorkspace.tsx` — when the toolbar picks "All clients", call `navigate('/agent/matches')` (wire the new prop).
+1. Crawl the main authenticated routes in the preview and capture console errors + network failures.
+2. Click through the primary flows (open a client → open a listing → open a match → send to client / not a fit / request seller details).
+3. Check obvious dead/no-op buttons and broken links (like the one you just reported).
+4. Note layout/responsiveness issues at the current viewport.
+
+I'll return with a numbered list of issues grouped by severity (broken > confusing > polish), and you pick which ones to fix. No code changes during triage.
+
+## Questions before I start Part 2
+
+1. **Scope** — should the sweep cover only the agent-side surfaces (Launchpad, Dashboard, My Clients, Pipeline, Listings, Matches, Workspace), or also client-side and admin pages?
+2. **Severity bar** — do you want only broken/no-op things fixed, or also UX polish (spacing, copy, hover states)?
+3. **Auto-fix vs. review** — for clearly broken things found during triage (dead buttons, console errors), do you want me to fix them immediately, or list everything first and have you approve?
