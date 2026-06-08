@@ -113,11 +113,6 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
           <span className="hidden text-xs text-muted-foreground sm:inline">
             Trading out — finding replacement property
           </span>
-          <Button asChild variant="ghost" size="sm" className="ml-auto h-7 px-2 text-xs">
-            <Link to={`/agent/workspace/${rel.buyerExchangeId}`}>
-              Open workspace <ExternalLink className="ml-1 h-3 w-3" />
-            </Link>
-          </Button>
         </div>
 
         {/* Hero image */}
