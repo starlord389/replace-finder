@@ -100,8 +100,8 @@ export function InboxList({
   );
   const showSwitcher = !!(clients && clients.length > 0 && onSelectExchange);
 
-  const statusTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
-  const sortOption = SORT_OPTIONS.find((o) => o.key === sort) ?? SORT_OPTIONS[0];
+
+
 
   const allStates = useMemo(() => {
     const s = new Set<string>();
