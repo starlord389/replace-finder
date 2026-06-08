@@ -99,6 +99,9 @@ export function InboxList({
   const totalInScope = scopeRels.length;
   const showingCount = rels.length;
 
+  const statusTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
+  const sortOption = SORT_OPTIONS.find((o) => o.key === sort) ?? SORT_OPTIONS[0];
+
   const activeClient = useMemo(
     () => clients?.find((c) => (c.clientId ?? "") === (activeClientId ?? "")) ?? null,
     [clients, activeClientId],
