@@ -60,8 +60,8 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
         <div className="px-5 py-6 lg:grid lg:grid-cols-[1fr_340px] lg:gap-8 lg:px-8 lg:py-8">
           <div className="min-w-0">
             <Tabs value={tab} onValueChange={setTab} className="w-full">
-              <div className="sticky top-0 z-10 -mx-5 mb-6 border-b border-border bg-card/95 px-5 py-2 backdrop-blur lg:-mx-8 lg:px-8">
-                <TabsList className="h-auto w-full justify-start gap-1 bg-transparent p-0">
+              <div className="sticky top-0 z-10 mb-6 border-b border-border bg-card/95 py-2 backdrop-blur">
+                <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
                   {[
                     { v: "overview", label: "Overview" },
                     { v: "financials", label: "Financials" },
