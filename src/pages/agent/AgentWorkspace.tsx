@@ -6,13 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+
 import { cn } from "@/lib/utils";
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
 import { useUnifiedRelationships, type Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { InboxList } from "@/features/matches/components/inbox/InboxList";
 import { PropertyReviewPanel } from "@/features/matches/components/inbox/PropertyReviewPanel";
-import { DealRoomPanel } from "@/features/matches/components/inbox/DealRoomPanel";
+
 import {
   deriveUiStatus,
   sortRelationships,
@@ -151,7 +151,6 @@ export default function AgentWorkspace() {
   const [sort, setSort] = useState<SortKey>("best_match");
   const [filters, setFilters] = useState<MatchFilters>(EMPTY_FILTERS);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
-  const [actionsOpen, setActionsOpen] = useState(false);
 
   const selectedMatchId = searchParams.get("match");
 
@@ -414,7 +413,6 @@ export default function AgentWorkspace() {
                 <div className="min-h-0 flex-1">
                   <PropertyReviewPanel
                     rel={selected}
-                    onOpenActions={() => setActionsOpen(true)}
                     rank={rankMap.get(selected.id) ?? null}
                     totalInScope={visibleRels.length}
                   />
@@ -432,33 +430,6 @@ export default function AgentWorkspace() {
               </div>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Actions drawer (Deal Room) */}
-      <Sheet open={actionsOpen && !!selected} onOpenChange={setActionsOpen}>
-        <SheetContent side="right" className="w-full overflow-hidden p-0 sm:max-w-md">
-          {selected && (
-            <div className="flex h-full flex-col">
-              <div className="shrink-0 border-b px-4 py-3">
-                <h2 className="text-sm font-semibold">Actions & deal room</h2>
-                <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                  {selected.propertyName}
-                </p>
-              </div>
-              <div className="min-h-0 flex-1 p-3">
-                <DealRoomPanel rel={selected} />
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
-
-      {selected && mobileDetailOpen && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card p-3 shadow-lg lg:hidden">
-          <Button className="w-full" onClick={() => setActionsOpen(true)}>
-            All actions
-          </Button>
         </div>
       )}
     </div>
