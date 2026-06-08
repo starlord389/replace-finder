@@ -1,51 +1,49 @@
-# Add Client → Property selector to the matches inbox toolbar
+# Add a global matches view across all clients & listings
 
 ## Goal
-Let the agent change which client + listing the inbox is viewing directly from the toolbar. Right now the per-listing workspace (`/agent/workspace/:exchangeId`) only exposes a sibling-property pill row for the *current* client. There's no way to pivot to a different client without leaving the page.
+Right now the inbox+review layout only exists inside `/agent/workspace/:exchangeId`, which is always scoped to one client and one listing. Add a "global" mode that shows matches across every client and listing the agent owns, while keeping the per-listing workspace intact.
 
-## Where it goes
-`src/features/matches/components/inbox/InboxList.tsx` — add two new dropdowns at the very start of the toolbar (left of Search):
+## Where it lives
+Upgrade `/agent/matches` from the current grouped card index into the full inbox + review layout. That route already exists, is already in the top nav, and conceptually means "all matches" — perfect home for the global view.
 
 ```text
-[Client ▾] [Property ▾]  [⌕ Search…]   [Status ▾]  [Sort ▾]  [⚙ Filters]
+/agent/matches                → global inbox (all clients, all listings)
+/agent/workspace/:exchangeId  → per-listing inbox (unchanged)
 ```
 
-- **Client dropdown** — lists every client the agent has at least one listing for. Shows the client name with a colored dot (using `getClientAccent`) and the listing count. Selecting a client jumps to that client's most recently active listing.
-- **Property dropdown** — lists the listings for the currently selected client only. Shows property name + city/state + status pill. Selecting a listing routes to `/agent/workspace/:exchangeId` (clearing `?match=` so the inbox lands on the top match for that listing).
-- Both controls use shadcn `DropdownMenu` for visual consistency with the new Status / Sort dropdowns.
-- On mobile, the two selectors collapse into a single "Switch listing…" button that opens a sheet with the same client → property hierarchy.
+## What the global view shows
+- Same `InboxList` (left) + `PropertyReviewPanel` (right) layout as the workspace.
+- Scope = every `Relationship` where `mySide === "buyer"` (i.e. matches against the agent's own listings).
+- The toolbar's Client → Property switcher is the pivot:
+  - Client dropdown gets an "All clients" option at the top.
+  - Property dropdown gets an "All properties" option at the top (only enabled when a client is selected; when "All clients" is chosen, the property dropdown is disabled and reads "All properties").
+  - Picking a specific client + property navigates to `/agent/workspace/:exchangeId` so the user drops into the focused per-listing view.
+  - Picking "All clients" from inside a workspace navigates back to `/agent/matches`.
+- Since matches now span multiple clients, the inbox cards show the client lead line (we pass through `hideClientLead={false}`), and `groupByClient` is enabled by default with a toggle to flip it off.
+- The breadcrumb + property summary strip (specific to one listing) are hidden in global mode. A simple page header "All matches · N across M listings" replaces them.
 
-The existing sibling-property pill row in `AgentWorkspace.tsx` becomes redundant once the toolbar can switch listings, so I'll remove it to keep the page clean. The breadcrumb stays.
-
-## Data
-Reuse `useAgentListings(user.id)` (already imported on the Listings page). It returns every exchange the agent owns with `clientId`, `clientName`, `propertyName`, `city`, `state`, `status`, `createdAt`. Group client-side:
-
-```ts
-clients: { clientId, clientName, accent, listings: AgentListing[] }[]
-```
-
-Sort clients alphabetically; sort each client's listings by `createdAt desc`. The current `exchangeId` selects the active client + listing in the dropdowns.
+## Selection state in global mode
+- Selected match is stored in `?match=:matchId` on `/agent/matches`, same pattern as workspace.
+- Clicking a card on the left selects it on the right (in-place); it does *not* jump to the per-listing workspace. A small "Open in workspace ↗" link in the review panel header lets the user pivot when they want the focused per-listing context.
+- Status / Sort / advanced Filters work identically; counts are computed across the global scope.
+- Search field gains "client" as a searchable field (already in the placeholder) — already covered.
 
 ## Wiring
-`InboxList` gets two new optional props so the per-listing scope still works:
-
-```ts
-clients?: ClientGroup[];          // all agent clients + their listings
-activeClientId?: string | null;   // for highlighting current selection
-activeExchangeId?: string;        // current listing being viewed
-onSelectExchange?: (id: string) => void;  // navigates
-```
-
-`AgentWorkspace.tsx` calls `useAgentListings`, builds the grouped structure with `useMemo`, and passes everything to `InboxList`. `onSelectExchange` does `navigate('/agent/workspace/' + id)`.
-
-When `clients` is not provided (no current callers, but keeps the prop optional), the selectors are simply not rendered — InboxList stays backward-compatible.
+- New page `src/pages/agent/AgentMatches.tsx` is rewritten to use `useUnifiedRelationships` for buyer-side rels, plus `useAgentListings` to build the same `InboxClientGroup[]` used by the workspace. It renders `<InboxList>` and `<PropertyReviewPanel>` with the same sort/filter/search state and URL `?match=` selection.
+- `InboxList`'s `clients` data gets two synthetic entries surfaced at the top of each dropdown:
+  - `{ clientId: "__all", clientName: "All clients", listings: [] }` (special-cased in the row)
+  - Inside each real client group, an "All properties" sentinel listing.
+  - The switcher row gains an `onSelectAll?: () => void` prop (navigates to `/agent/matches`) and an `onSelectAllPropertiesForClient?: (clientId) => void` (filters the global list to that client without leaving `/agent/matches`).
+- On `/agent/matches`, the switcher's client + property selections become local filter state (which client / which listing to scope the global list to) instead of navigation. Picking a concrete property does navigate to `/agent/workspace/:exchangeId`.
+- The old `/agent/matches` card-grouping layout goes away; its empty-state copy moves into the new page.
 
 ## Out of scope
-- No new routes, no DB changes, no edge functions.
-- No changes to the matching engine or `PropertyReviewPanel`.
-- No multi-select; a client+listing combo is a single active context.
-- Doesn't touch the `/agent/matches` index page — that page already groups by client → listing visually.
+- No DB / RLS / edge function changes.
+- No new endpoints; reuses `useUnifiedRelationships` and `useAgentListings`.
+- Seller-side matches stay out of this view (still buyer-only, same as today).
+- No multi-listing bulk actions; selections are still single-match.
 
 ## Files
-- `src/features/matches/components/inbox/InboxList.tsx` — add Client + Property dropdowns at the start of the toolbar, plus the mobile sheet fallback.
-- `src/pages/agent/AgentWorkspace.tsx` — load `useAgentListings`, build grouped client list, pass to `InboxList`, remove the now-redundant sibling-property pill row.
+- `src/pages/agent/AgentMatches.tsx` — rewrite to inbox + review layout, global scope by default, with optional client/listing scope via the toolbar.
+- `src/features/matches/components/inbox/InboxList.tsx` — add "All clients" / "All properties" entries to the switcher, plus the two new optional callbacks. Keep all existing props backward-compatible so `AgentWorkspace` keeps working as-is.
+- `src/pages/agent/AgentWorkspace.tsx` — when the toolbar picks "All clients", call `navigate('/agent/matches')` (wire the new prop).
