@@ -406,6 +406,7 @@ export default function AgentWorkspace() {
               activeClientId={exchange.client_id}
               activeExchangeId={exchangeId}
               onSelectExchange={(id) => navigate(`/agent/workspace/${id}`)}
+              onSelectAllClients={() => navigate("/agent/matches")}
             />
 
           </div>

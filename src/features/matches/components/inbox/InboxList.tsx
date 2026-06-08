@@ -60,6 +60,14 @@ interface Props {
   activeClientId?: string | null;
   activeExchangeId?: string;
   onSelectExchange?: (exchangeId: string) => void;
+  /** Optional "All clients" entry — when provided, surfaces an "All clients" option at the top of the client dropdown. */
+  onSelectAllClients?: () => void;
+  /** Optional "All properties for this client" entry — when provided, surfaces an option at the top of the property dropdown. */
+  onSelectAllPropertiesForClient?: (clientId: string | null) => void;
+  /** Label for the active client when the global "All clients" mode is active. */
+  allClientsActive?: boolean;
+  /** Label for the active property when the "All properties" mode is active. */
+  allPropertiesActive?: boolean;
 }
 
 export function InboxList({
@@ -83,6 +91,10 @@ export function InboxList({
   activeClientId,
   activeExchangeId,
   onSelectExchange,
+  onSelectAllClients,
+  onSelectAllPropertiesForClient,
+  allClientsActive = false,
+  allPropertiesActive = false,
 }: Props) {
   const totalInScope = scopeRels.length;
   const showingCount = rels.length;
@@ -98,7 +110,7 @@ export function InboxList({
     () => activeClient?.listings.find((l) => l.exchangeId === activeExchangeId) ?? null,
     [activeClient, activeExchangeId],
   );
-  const showSwitcher = !!(clients && clients.length > 0 && onSelectExchange);
+  const showSwitcher = !!(clients && clients.length > 0 && (onSelectExchange || onSelectAllClients));
 
 
 
@@ -142,7 +154,11 @@ export function InboxList({
             clients={clients!}
             activeClient={activeClient}
             activeListing={activeListing}
-            onSelectExchange={onSelectExchange!}
+            allClientsActive={allClientsActive}
+            allPropertiesActive={allPropertiesActive}
+            onSelectExchange={onSelectExchange}
+            onSelectAllClients={onSelectAllClients}
+            onSelectAllPropertiesForClient={onSelectAllPropertiesForClient}
           />
         )}
         <div className="flex items-center gap-1.5 p-2">
@@ -552,22 +568,51 @@ interface ListingSwitcherRowProps {
   clients: InboxClientGroup[];
   activeClient: InboxClientGroup | null;
   activeListing: InboxListingOption | null;
-  onSelectExchange: (exchangeId: string) => void;
+  allClientsActive?: boolean;
+  allPropertiesActive?: boolean;
+  onSelectExchange?: (exchangeId: string) => void;
+  onSelectAllClients?: () => void;
+  onSelectAllPropertiesForClient?: (clientId: string | null) => void;
 }
 
 function ListingSwitcherRow({
   clients,
   activeClient,
   activeListing,
+  allClientsActive = false,
+  allPropertiesActive = false,
   onSelectExchange,
+  onSelectAllClients,
+  onSelectAllPropertiesForClient,
 }: ListingSwitcherRowProps) {
-  const accent = getClientAccent(activeClient?.clientId ?? null);
+  const accent = getClientAccent(allClientsActive ? null : activeClient?.clientId ?? null);
 
   function pickClient(c: InboxClientGroup) {
-    if (!c.listings.length) return;
-    // Jump to that client's first listing (already sorted newest-first upstream).
+    if (onSelectAllPropertiesForClient) {
+      // Global mode: scope to this client's matches, stay on global page.
+      onSelectAllPropertiesForClient(c.clientId);
+      return;
+    }
+    if (!c.listings.length || !onSelectExchange) return;
     onSelectExchange(c.listings[0].exchangeId);
   }
+
+  function pickListing(exchangeId: string) {
+    onSelectExchange?.(exchangeId);
+  }
+
+  const clientLabel = allClientsActive
+    ? "All clients"
+    : activeClient?.clientName ?? "Select client";
+
+  const propertyLabel = allClientsActive
+    ? "All properties"
+    : allPropertiesActive
+      ? `All ${activeClient?.clientName ?? ""} properties`.trim()
+      : activeListing?.propertyLabel ?? "Select property";
+
+  const propertyDisabled =
+    allClientsActive || !activeClient || activeClient.listings.length === 0;
 
   return (
     <div className="flex items-center gap-1.5 border-b border-border/60 px-2 py-2">
@@ -577,29 +622,52 @@ function ListingSwitcherRow({
           <button
             type="button"
             className={cn(
-              "group inline-flex h-9 min-w-0 max-w-[42%] items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:border-primary/40",
+              "group inline-flex h-9 min-w-0 max-w-[46%] items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:border-primary/40",
+              allClientsActive && "border-primary/40 bg-primary/5",
             )}
           >
-            <span className={cn("h-2 w-2 shrink-0 rounded-full", accent.dot)} />
-            <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate text-foreground">
-              {activeClient?.clientName ?? "Select client"}
-            </span>
+            {allClientsActive ? (
+              <Users className="h-3.5 w-3.5 shrink-0 text-primary" />
+            ) : (
+              <>
+                <span className={cn("h-2 w-2 shrink-0 rounded-full", accent.dot)} />
+                <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              </>
+            )}
+            <span className="truncate text-foreground">{clientLabel}</span>
             <ChevronDown className="ml-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
+          {onSelectAllClients && (
+            <>
+              <DropdownMenuItem
+                onSelect={() => onSelectAllClients()}
+                className="flex items-center gap-2 text-xs"
+              >
+                {allClientsActive ? (
+                  <Check className="h-3 w-3 shrink-0 text-primary" />
+                ) : (
+                  <Users className="h-3 w-3 shrink-0 text-muted-foreground" />
+                )}
+                <span className="font-semibold text-foreground">All clients</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             Clients
           </DropdownMenuLabel>
           {clients.map((c) => {
             const ca = getClientAccent(c.clientId);
-            const active = (c.clientId ?? "") === (activeClient?.clientId ?? "__none");
+            const active =
+              !allClientsActive &&
+              (c.clientId ?? "") === (activeClient?.clientId ?? "__none");
             return (
               <DropdownMenuItem
                 key={c.clientId ?? c.clientName}
                 onSelect={() => pickClient(c)}
-                disabled={!c.listings.length}
+                disabled={!c.listings.length && !onSelectAllPropertiesForClient}
                 className="flex items-center justify-between gap-2 text-xs"
               >
                 <span className="flex min-w-0 items-center gap-2">
@@ -628,33 +696,56 @@ function ListingSwitcherRow({
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            disabled={!activeClient || activeClient.listings.length === 0}
-            className="group inline-flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:border-primary/40 disabled:opacity-60"
+            disabled={propertyDisabled}
+            className={cn(
+              "group inline-flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:border-primary/40 disabled:opacity-60",
+              allPropertiesActive && "border-primary/40 bg-primary/5",
+            )}
           >
             <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate text-foreground">
-              {activeListing?.propertyLabel ?? "Select property"}
-            </span>
-            {activeListing && (activeListing.city || activeListing.state) && (
-              <span className="hidden truncate text-[10px] text-muted-foreground sm:inline">
-                · {[activeListing.city, activeListing.state].filter(Boolean).join(", ")}
-              </span>
-            )}
+            <span className="truncate text-foreground">{propertyLabel}</span>
+            {!allPropertiesActive &&
+              !allClientsActive &&
+              activeListing &&
+              (activeListing.city || activeListing.state) && (
+                <span className="hidden truncate text-[10px] text-muted-foreground sm:inline">
+                  · {[activeListing.city, activeListing.state].filter(Boolean).join(", ")}
+                </span>
+              )}
             <ChevronDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-80">
+          {onSelectAllPropertiesForClient && activeClient && !allClientsActive && (
+            <>
+              <DropdownMenuItem
+                onSelect={() => onSelectAllPropertiesForClient(activeClient.clientId)}
+                className="flex items-center gap-2 text-xs"
+              >
+                {allPropertiesActive ? (
+                  <Check className="h-3 w-3 shrink-0 text-primary" />
+                ) : (
+                  <Building2 className="h-3 w-3 shrink-0 text-muted-foreground" />
+                )}
+                <span className="font-semibold text-foreground">
+                  All {activeClient.clientName} properties
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             {activeClient?.clientName ?? "Properties"} ·{" "}
             {activeClient?.listings.length ?? 0}
           </DropdownMenuLabel>
           {(activeClient?.listings ?? []).map((l) => {
-            const active = l.exchangeId === activeListing?.exchangeId;
+            const active =
+              !allPropertiesActive && l.exchangeId === activeListing?.exchangeId;
             const loc = [l.city, l.state].filter(Boolean).join(", ");
             return (
               <DropdownMenuItem
                 key={l.exchangeId}
-                onSelect={() => onSelectExchange(l.exchangeId)}
+                onSelect={() => pickListing(l.exchangeId)}
                 className="flex items-start gap-2 text-xs"
               >
                 {active ? (
@@ -681,6 +772,7 @@ function ListingSwitcherRow({
             </div>
           )}
         </DropdownMenuContent>
+
       </DropdownMenu>
     </div>
   );
