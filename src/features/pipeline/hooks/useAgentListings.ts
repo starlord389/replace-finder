@@ -11,6 +11,9 @@ export interface AgentListing {
   address: string | null;
   city: string | null;
   state: string | null;
+  assetType: string | null;
+  strategyType: string | null;
+  askingPrice: number | null;
 }
 
 async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
@@ -34,18 +37,28 @@ async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
 
   const propIds = rows.map((r) => r.relinquished_property_id).filter((v): v is string => !!v);
 
-  let propMap: Record<string, { property_name: string | null; address: string | null; city: string | null; state: string | null }> = {};
+  let propMap: Record<string, any> = {};
+  let finMap: Record<string, { asking_price: number | null }> = {};
   if (propIds.length) {
-    const { data: props, error: pErr } = await supabase
-      .from("pledged_properties")
-      .select("id, property_name, address, city, state")
-      .in("id", propIds);
+    const [{ data: props, error: pErr }, { data: fins, error: fErr }] = await Promise.all([
+      supabase
+        .from("pledged_properties")
+        .select("id, property_name, address, city, state, asset_type, strategy_type")
+        .in("id", propIds),
+      supabase
+        .from("property_financials")
+        .select("property_id, asking_price")
+        .in("property_id", propIds),
+    ]);
     if (pErr) throw pErr;
+    if (fErr) throw fErr;
     propMap = Object.fromEntries((props ?? []).map((p: any) => [p.id, p]));
+    finMap = Object.fromEntries((fins ?? []).map((f: any) => [f.property_id, f]));
   }
 
   return rows.map((r) => {
     const p = r.relinquished_property_id ? propMap[r.relinquished_property_id] : null;
+    const f = r.relinquished_property_id ? finMap[r.relinquished_property_id] : null;
     return {
       id: r.id,
       status: r.status,
@@ -56,6 +69,9 @@ async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
       address: p?.address ?? null,
       city: p?.city ?? null,
       state: p?.state ?? null,
+      assetType: p?.asset_type ?? null,
+      strategyType: p?.strategy_type ?? null,
+      askingPrice: f?.asking_price ?? null,
     };
   });
 }
