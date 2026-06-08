@@ -10,8 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
 import { useUnifiedRelationships, type Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
-import { InboxList } from "@/features/matches/components/inbox/InboxList";
+import { InboxList, type InboxClientGroup } from "@/features/matches/components/inbox/InboxList";
 import { PropertyReviewPanel } from "@/features/matches/components/inbox/PropertyReviewPanel";
+import { useAgentListings } from "@/features/pipeline/hooks/useAgentListings";
 
 import {
   deriveUiStatus,
