@@ -376,3 +376,146 @@ function ActivityTimeline({ rel }: { rel: Relationship }) {
     </ol>
   );
 }
+
+// ── Action Center ────────────────────────────────────────────────
+
+const ACTION_ICONS: Record<string, typeof Send> = {
+  send_to_client: Send,
+  request_seller_details: HelpCircle,
+  not_a_fit: XCircle,
+  mark_interested: Sparkles,
+  follow_up_client: Bell,
+  client_passed: XCircle,
+  request_agent_intro: Handshake,
+  send_client_questions: HelpCircle,
+  open_conversation: MessageSquare,
+  schedule_call: Phone,
+  request_documents: FileText,
+  start_reviewing_docs: FileCheck,
+  mark_loi_sent: FileSignature,
+  mark_under_contract: FileSignature,
+  archive: Archive,
+  reactivate: RotateCcw,
+};
+
+const STATUS_HINTS: Record<string, string> = {
+  new: "Fresh match — share it with your client to gauge interest.",
+  sent_to_client: "Waiting on your client. Nudge them or log their response.",
+  client_interested: "Client is in. Request an intro to the listing agent.",
+  agent_connected: "You're connected — keep the conversation moving.",
+  reviewing_docs: "Diligence underway. Move to LOI when ready.",
+  loi: "Offer on the table. Update once it goes under contract.",
+  under_contract: "Under contract. Track to close in the conversation.",
+  closed: "Deal closed. Nice work.",
+  archived: "Archived. Reactivate to resume work on this match.",
+};
+
+interface ActionCenterProps {
+  rel: Relationship;
+  status: keyof typeof STATUS_HINTS;
+  primary: { id: string; label: string } | null;
+  secondary: Array<{ id: string; label: string; tone?: "primary" | "secondary" | "destructive" }>;
+  handle: (id: string, label: string) => void;
+  busy: string | null;
+  accentBorderLeft: string;
+}
+
+function ActionCenter({ status, primary, secondary, handle, busy, accentBorderLeft }: ActionCenterProps) {
+  const PrimaryIcon = primary ? ACTION_ICONS[primary.id] ?? ArrowRight : null;
+  const constructive = secondary.filter((a) => a.tone !== "destructive");
+  const destructive = secondary.filter((a) => a.tone === "destructive");
+
+  return (
+    <div className="border-b border-border px-5 py-4">
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-xl border border-l-[4px] bg-gradient-to-br from-primary/[0.04] via-card to-card p-4 shadow-sm",
+          accentBorderLeft,
+        )}
+      >
+        <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/5 blur-3xl" aria-hidden />
+
+        <div className="relative flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          {/* Left: status + hint */}
+          <div className="min-w-0 md:max-w-xs">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                  UI_STATUS_CLASS[status as keyof typeof UI_STATUS_CLASS],
+                )}
+              >
+                {UI_STATUS_LABEL[status as keyof typeof UI_STATUS_LABEL]}
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Action Center
+              </span>
+            </div>
+            <p className="mt-2 text-sm font-medium text-foreground/90">
+              {STATUS_HINTS[status] ?? "Keep this deal moving."}
+            </p>
+          </div>
+
+          {/* Right: actions */}
+          <div className="flex min-w-0 flex-1 flex-col items-stretch gap-3 md:items-end">
+            {primary ? (
+              <Button
+                size="lg"
+                className="group h-11 w-full justify-center gap-2 px-5 text-sm font-semibold shadow-md md:w-auto"
+                onClick={() => handle(primary.id, primary.label)}
+                disabled={busy === primary.id}
+              >
+                {PrimaryIcon && <PrimaryIcon className="h-4 w-4" />}
+                {primary.label}
+                <ArrowRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-0.5" />
+              </Button>
+            ) : (
+              <span className="text-xs text-muted-foreground">No further action required.</span>
+            )}
+
+            {(constructive.length > 0 || destructive.length > 0) && (
+              <div className="flex w-full flex-wrap items-center gap-1.5 md:justify-end">
+                {constructive.map((a) => {
+                  const Icon = ACTION_ICONS[a.id];
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => handle(a.id, a.label)}
+                      disabled={busy === a.id}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-foreground disabled:opacity-50"
+                    >
+                      {Icon && <Icon className="h-3.5 w-3.5" />}
+                      {a.label}
+                    </button>
+                  );
+                })}
+
+                {destructive.length > 0 && constructive.length > 0 && (
+                  <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+                )}
+
+                {destructive.map((a) => {
+                  const Icon = ACTION_ICONS[a.id];
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => handle(a.id, a.label)}
+                      disabled={busy === a.id}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-xs font-medium text-destructive/80 transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                    >
+                      {Icon && <Icon className="h-3.5 w-3.5" />}
+                      {a.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
