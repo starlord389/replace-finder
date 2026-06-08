@@ -88,7 +88,7 @@ const App = () => (
               <Route path="/agent/clients" element={<AgentClients />} />
               <Route path="/agent/clients/new" element={<AgentClientDetail />} />
               <Route path="/agent/clients/:clientId" element={<AgentClientOverview />} />
-              <Route path="/agent/clients/:id/edit" element={<AgentClientDetail />} />
+              <Route path="/agent/clients/:clientId/edit" element={<Navigate to=".." replace />} />
 
               {/* Pipeline (cross-client stage board) */}
               <Route path="/agent/pipeline" element={<AgentPipeline />} />
