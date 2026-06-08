@@ -137,6 +137,10 @@ export default function AgentWorkspace() {
 
   const { data: allRels = [], isLoading: relsLoading } = useUnifiedRelationships();
 
+  useEffect(() => {
+    if (exchangeId && user?.id) setLastListing(user.id, exchangeId);
+  }, [exchangeId, user?.id]);
+
   const exchangeRels = useMemo(
     () => allRels.filter((r) => r.buyerExchangeId === exchangeId),
     [allRels, exchangeId],
