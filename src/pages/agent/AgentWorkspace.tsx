@@ -10,8 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
 import { useUnifiedRelationships, type Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
-import { InboxList } from "@/features/matches/components/inbox/InboxList";
+import { InboxList, type InboxClientGroup } from "@/features/matches/components/inbox/InboxList";
 import { PropertyReviewPanel } from "@/features/matches/components/inbox/PropertyReviewPanel";
+import { useAgentListings } from "@/features/pipeline/hooks/useAgentListings";
 
 import {
   deriveUiStatus,
@@ -136,6 +137,35 @@ export default function AgentWorkspace() {
   });
 
   const { data: allRels = [], isLoading: relsLoading } = useUnifiedRelationships();
+  const { data: agentListings = [] } = useAgentListings(user?.id);
+
+  const clientGroups = useMemo<InboxClientGroup[]>(() => {
+    const map = new Map<string, InboxClientGroup>();
+    for (const l of agentListings) {
+      const key = l.clientId ?? "__unassigned";
+      if (!map.has(key)) {
+        map.set(key, {
+          clientId: l.clientId,
+          clientName: l.clientName ?? "Unassigned",
+          listings: [],
+        });
+      }
+      map.get(key)!.listings.push({
+        exchangeId: l.id,
+        propertyLabel:
+          l.propertyName ||
+          l.address ||
+          [l.city, l.state].filter(Boolean).join(", ") ||
+          "Untitled listing",
+        city: l.city,
+        state: l.state,
+        status: l.status,
+      });
+    }
+    return Array.from(map.values()).sort((a, b) =>
+      a.clientName.localeCompare(b.clientName),
+    );
+  }, [agentListings]);
 
   useEffect(() => {
     if (exchangeId && user?.id) setLastListing(user.id, exchangeId);
@@ -260,7 +290,7 @@ export default function AgentWorkspace() {
     return <Navigate to="/agent/pipeline" replace />;
   }
 
-  const { exchange, client, property, financials, siblingExchanges } = data;
+  const { exchange, client, property, financials } = data;
   const accent = getClientAccent(exchange.client_id);
   const propertyTitle =
     property?.property_name ||
@@ -289,35 +319,8 @@ export default function AgentWorkspace() {
         <span className="truncate font-medium text-muted-foreground">{propertyTitle}</span>
       </nav>
 
-      {/* Property switcher (same client only) */}
-      {siblingExchanges.length > 1 && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-            Properties:
-          </span>
-          {siblingExchanges.map((s) => {
-            const isCurrent = s.id === exchangeId;
-            const label =
-              s.propertyName ||
-              [s.city, s.state].filter(Boolean).join(", ") ||
-              "Untitled";
-            return (
-              <Link
-                key={s.id}
-                to={`/agent/workspace/${s.id}`}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
-                  isCurrent
-                    ? cn("border-transparent font-semibold", accent.soft, accent.fg)
-                    : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <span className="max-w-[140px] truncate">{label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+
+
 
       {/* Property summary strip */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
@@ -399,7 +402,12 @@ export default function AgentWorkspace() {
               onFiltersChange={setFilters}
               scopeRels={exchangeRels}
               rankMap={rankMap}
+              clients={clientGroups}
+              activeClientId={exchange.client_id}
+              activeExchangeId={exchangeId}
+              onSelectExchange={(id) => navigate(`/agent/workspace/${id}`)}
             />
+
           </div>
 
           <div

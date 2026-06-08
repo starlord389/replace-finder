@@ -1,48 +1,51 @@
-# Matches tab: open full review on click + redesign search/filter
+# Add Client → Property selector to the matches inbox toolbar
 
 ## Goal
-Two changes, both UI-only in `src/pages/agent/AgentMatches.tsx` and `src/features/matches/components/inbox/InboxList.tsx`. No backend, no business logic, no schema changes.
+Let the agent change which client + listing the inbox is viewing directly from the toolbar. Right now the per-listing workspace (`/agent/workspace/:exchangeId`) only exposes a sibling-property pill row for the *current* client. There's no way to pivot to a different client without leaving the page.
 
-## 1. Clicking a match opens the full workspace inbox
-
-Right now `AgentMatches.tsx` already navigates to `/agent/workspace/:exchangeId?match=:matchId` on card click (see `openMatch`). The screenshot in the request *is* that destination page (`AgentWorkspace.tsx` — breadcrumb, listing summary, left inbox, right `PropertyReviewPanel`). So clicking already lands on the right page; we just need to make sure each match card on the Matches index reliably opens it with the correct `?match=` selected.
-
-Concrete tweaks:
-- Keep current grid grouping (client → listing → cards) on `/agent/matches` as the index view.
-- On card click, navigate to `/agent/workspace/:buyerExchangeId?match=:matchId` (already wired). Verify the workspace selects that match on first render even before the visible-filter computation runs — if `?match=` is present, prefer it over `visibleRels[0]` so the user always lands on the property they clicked, not the top-ranked one. Small adjustment inside `AgentWorkspace.tsx`'s `selected` memo.
-- Add a subtle hover affordance ("Open match →") on `PropertyMatchCard` when used from `/agent/matches` so it's obvious clicking opens the full page.
-
-## 2. Redesign the search / filter header
-
-The current header (in `InboxList.tsx`) stacks: a full-width search input, then a row of chip filters (All / New / Interested / Connected / Closed / More), then a separate Sort + Filters bar. It feels generic and noisy.
-
-New header — one compact, cohesive toolbar:
+## Where it goes
+`src/features/matches/components/inbox/InboxList.tsx` — add two new dropdowns at the very start of the toolbar (left of Search):
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│ [⌕ Search…]   [Status ▾]   [Sort: Best ▾]   [⚙ Filters (2)]│  ← single row
-│                                                             │
-│ Active: [Status: New ✕] [State: NC ✕]      Showing 4 of 12 │  ← chip bar (only when filters active)
-└─────────────────────────────────────────────────────────────┘
+[Client ▾] [Property ▾]  [⌕ Search…]   [Status ▾]  [Sort ▾]  [⚙ Filters]
 ```
 
-Specifics:
-- **Search input**: smaller (h-9 → h-9 but inline), grows to fill remaining space, placeholder "Search property, city, or client…", with a clear-on-focus `⌘K` style hint and a small ✕ button when value is non-empty. Debounced visually (no behavior change).
-- **Status dropdown** replaces the chip strip + "More" popover. Single dropdown showing all statuses with their counts inline (`All · 4`, `New · 4`, `Interested · 0`, …). Active status shows as the dropdown label. This collapses the two-row tab/popover combo into one control and removes the awkward "More" overflow.
-- **Sort dropdown**: same shadcn `DropdownMenu` style as Status for visual rhythm.
-- **Filters button**: keep the existing filters popover (price/state/score), but show a numeric badge for active filter count.
-- **Active-filters chip row** (only rendered when any filter is set, including status ≠ all or search ≠ ""): a thin row of removable chips so the user sees at a glance what's narrowing the list, plus a "Clear all" link. Right-aligned "Showing N of M".
-- Visually: one bordered container (`rounded-lg border bg-card`), single 12px padding, items separated by `gap-2`. No second border line between rows — the active-chip row is inside the same container, separated by a hairline only when present.
+- **Client dropdown** — lists every client the agent has at least one listing for. Shows the client name with a colored dot (using `getClientAccent`) and the listing count. Selecting a client jumps to that client's most recently active listing.
+- **Property dropdown** — lists the listings for the currently selected client only. Shows property name + city/state + status pill. Selecting a listing routes to `/agent/workspace/:exchangeId` (clearing `?match=` so the inbox lands on the top match for that listing).
+- Both controls use shadcn `DropdownMenu` for visual consistency with the new Status / Sort dropdowns.
+- On mobile, the two selectors collapse into a single "Switch listing…" button that opens a sheet with the same client → property hierarchy.
 
-The "Group by client" toggle stays where it is (it's contextual and used inside per-listing workspace).
+The existing sibling-property pill row in `AgentWorkspace.tsx` becomes redundant once the toolbar can switch listings, so I'll remove it to keep the page clean. The breadcrumb stays.
 
-## Files
+## Data
+Reuse `useAgentListings(user.id)` (already imported on the Listings page). It returns every exchange the agent owns with `clientId`, `clientName`, `propertyName`, `city`, `state`, `status`, `createdAt`. Group client-side:
 
-- `src/features/matches/components/inbox/InboxList.tsx` — replace the search + chips + sort/filter blocks with the new single-row toolbar + active-filters chip row. Keep the same props API so `AgentWorkspace.tsx` doesn't change.
-- `src/pages/agent/AgentMatches.tsx` — minor: ensure card click still routes to workspace with `?match=`; optionally surface a small "Open" hint on hover.
-- `src/pages/agent/AgentWorkspace.tsx` — tiny fix in the `selected` memo so an incoming `?match=` is honored even when that match would otherwise be the first row.
+```ts
+clients: { clientId, clientName, accent, listings: AgentListing[] }[]
+```
+
+Sort clients alphabetically; sort each client's listings by `createdAt desc`. The current `exchangeId` selects the active client + listing in the dropdowns.
+
+## Wiring
+`InboxList` gets two new optional props so the per-listing scope still works:
+
+```ts
+clients?: ClientGroup[];          // all agent clients + their listings
+activeClientId?: string | null;   // for highlighting current selection
+activeExchangeId?: string;        // current listing being viewed
+onSelectExchange?: (id: string) => void;  // navigates
+```
+
+`AgentWorkspace.tsx` calls `useAgentListings`, builds the grouped structure with `useMemo`, and passes everything to `InboxList`. `onSelectExchange` does `navigate('/agent/workspace/' + id)`.
+
+When `clients` is not provided (no current callers, but keeps the prop optional), the selectors are simply not rendered — InboxList stays backward-compatible.
 
 ## Out of scope
-- No changes to `PropertyReviewPanel`, action center, lifecycle, or any data hooks.
-- No DB / RLS / edge function changes.
-- No new routes.
+- No new routes, no DB changes, no edge functions.
+- No changes to the matching engine or `PropertyReviewPanel`.
+- No multi-select; a client+listing combo is a single active context.
+- Doesn't touch the `/agent/matches` index page — that page already groups by client → listing visually.
+
+## Files
+- `src/features/matches/components/inbox/InboxList.tsx` — add Client + Property dropdowns at the start of the toolbar, plus the mobile sheet fallback.
+- `src/pages/agent/AgentWorkspace.tsx` — load `useAgentListings`, build grouped client list, pass to `InboxList`, remove the now-redundant sibling-property pill row.
