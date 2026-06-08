@@ -183,40 +183,19 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
             </div>
           </div>
 
-          {/* Inline action row — primary + all secondary actions */}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {primary ? (
-              <Button
-                size="sm"
-                onClick={() => handle(primary.id, primary.label)}
-                disabled={busy === primary.id}
-              >
-                {primary.label}
-              </Button>
-            ) : (
-              <span className="text-xs text-muted-foreground">No further action required</span>
-            )}
-            {secondary.map((a) => (
-              <Button
-                key={a.id}
-                variant={a.tone === "destructive" ? "ghost" : "outline"}
-                size="sm"
-                className={cn(
-                  a.tone === "destructive" && "text-destructive hover:bg-destructive/10 hover:text-destructive",
-                )}
-                onClick={() => handle(a.id, a.label)}
-                disabled={busy === a.id}
-              >
-                {a.label}
-              </Button>
-            ))}
-            <Button asChild variant="ghost" size="sm" className="ml-auto">
-              <Link to={`/agent/workspace/${rel.buyerExchangeId}?match=${rel.matchId}`}>
-                Full details <ExternalLink className="ml-1 h-3 w-3" />
-              </Link>
-            </Button>
-          </div>
         </div>
+
+        {/* Action Center */}
+        <ActionCenter
+          rel={rel}
+          status={status}
+          primary={primary}
+          secondary={secondary}
+          handle={handle}
+          busy={busy}
+          accentBorderLeft={accent.borderLeft}
+        />
+
 
         {/* Lifecycle tracker */}
         <div className="border-b border-border px-5 py-3">
