@@ -154,7 +154,11 @@ export function InboxList({
             clients={clients!}
             activeClient={activeClient}
             activeListing={activeListing}
-            onSelectExchange={onSelectExchange!}
+            allClientsActive={allClientsActive}
+            allPropertiesActive={allPropertiesActive}
+            onSelectExchange={onSelectExchange}
+            onSelectAllClients={onSelectAllClients}
+            onSelectAllPropertiesForClient={onSelectAllPropertiesForClient}
           />
         )}
         <div className="flex items-center gap-1.5 p-2">
