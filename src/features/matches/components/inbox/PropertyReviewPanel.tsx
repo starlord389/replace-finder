@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -15,6 +15,9 @@ import { LocationTab } from "./tabs/LocationTab";
 import { MatchTab } from "./tabs/MatchTab";
 import { DocsTab } from "./tabs/DocsTab";
 import { MatchWorkflowDrawer } from "./MatchWorkflowDrawer";
+import { AgentCommsCard } from "./AgentCommsCard";
+import { deriveUiStatus } from "./inboxHelpers";
+import { useMatchLocalState } from "./useMatchLocalState";
 
 interface Props {
   rel: Relationship;
@@ -26,6 +29,23 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [tab, setTab] = useState<string>("overview");
   const accent = getClientAccent(rel.clientId);
+  const { state } = useMatchLocalState(rel.matchId);
+  const status = useMemo(() => deriveUiStatus(rel, state), [rel, state]);
+  const conversationAvailable =
+    status === "agent_connected" ||
+    status === "reviewing_docs" ||
+    status === "loi" ||
+    status === "under_contract" ||
+    status === "closed";
+
+  const tabs = [
+    { v: "overview", label: "Overview" },
+    { v: "financials", label: "Financials" },
+    { v: "location", label: "Location" },
+    { v: "match", label: "Match" },
+    ...(conversationAvailable ? [{ v: "conversation", label: "Conversation" }] : []),
+    { v: "docs", label: "Docs" },
+  ];
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-2xl border bg-card">
@@ -62,19 +82,16 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
             <Tabs value={tab} onValueChange={setTab} className="w-full">
               <div className="sticky top-0 z-10 mb-6 border-b border-border bg-card/95 py-2 backdrop-blur">
                 <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
-                  {[
-                    { v: "overview", label: "Overview" },
-                    { v: "financials", label: "Financials" },
-                    { v: "location", label: "Location" },
-                    { v: "match", label: "Match" },
-                    { v: "docs", label: "Docs" },
-                  ].map((t) => (
+                  {tabs.map((t) => (
                     <TabsTrigger
                       key={t.v}
                       value={t.v}
                       className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
                     >
                       {t.label}
+                      {t.v === "conversation" && (
+                        <span className="ml-1.5 inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      )}
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -84,6 +101,13 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
               <TabsContent value="financials" className="mt-0"><FinancialsTab rel={rel} /></TabsContent>
               <TabsContent value="location" className="mt-0"><LocationTab rel={rel} /></TabsContent>
               <TabsContent value="match" className="mt-0"><MatchTab rel={rel} rank={rank} totalInScope={totalInScope} /></TabsContent>
+              {conversationAvailable && (
+                <TabsContent value="conversation" className="mt-0">
+                  <div className="min-h-[520px]">
+                    <AgentCommsCard rel={rel} />
+                  </div>
+                </TabsContent>
+              )}
               <TabsContent value="docs" className="mt-0"><DocsTab rel={rel} /></TabsContent>
             </Tabs>
           </div>
@@ -93,18 +117,20 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
               rel={rel}
               onOpenWorkflow={() => setDrawerOpen(true)}
               onJumpToMatch={() => setTab("match")}
+              onOpenConversation={() => setTab(conversationAvailable ? "conversation" : "overview")}
             />
           </div>
         </div>
 
-        {/* Floating "Manage match" button */}
+        {/* Floating workflow shortcut */}
         <Button
+          variant="outline"
           onClick={() => setDrawerOpen(true)}
-          className="fixed bottom-6 right-6 z-20 h-12 gap-2 rounded-full px-5 shadow-xl lg:absolute lg:bottom-6 lg:right-6"
-          size="lg"
+          className="fixed bottom-6 right-6 z-20 h-11 gap-2 rounded-full bg-card/95 px-4 shadow-lg backdrop-blur lg:absolute lg:bottom-6 lg:right-6"
+          size="sm"
         >
-          <Settings2 className="h-4 w-4" />
-          Manage match
+          <Settings2 className="h-3.5 w-3.5" />
+          Lifecycle & history
         </Button>
       </div>
 
