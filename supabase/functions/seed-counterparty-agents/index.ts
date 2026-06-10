@@ -21,7 +21,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const SEED_VERSION = 3;
+const SEED_VERSION = 4;
 const MOCK_TAG = "__mock__";
 
 function daysFromNow(days: number): string {
@@ -830,7 +830,7 @@ async function seedAll(admin: Admin, userId: string) {
       initiated_by: "buyer_agent",
       accepted_at: isoDaysAgo(2),
       facilitation_fee_agreed: true,
-      facilitation_fee_status: "acknowledged",
+      facilitation_fee_status: "pending",
     },
   ];
 
@@ -923,8 +923,12 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("seed-counterparty-agents error", err);
+    // Postgres errors from supabase-js are plain objects - serialize fully
+    const detail = err instanceof Error
+      ? err.message
+      : (() => { try { return JSON.stringify(err); } catch { return String(err); } })();
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
+      JSON.stringify({ error: detail }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

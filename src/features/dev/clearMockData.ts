@@ -13,9 +13,9 @@ export async function clearAgentMockData(_userId: string) {
   );
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
-  if (data?.version !== 3 || !data?.cleared) {
+  if (data?.version !== 4 || !data?.cleared) {
     throw new Error(
-      "The clear function on the server is outdated (expected v3). " +
+      "The clear function on the server is outdated (expected v4). " +
       "Redeploy the seed-counterparty-agents edge function, then try again."
     );
   }
