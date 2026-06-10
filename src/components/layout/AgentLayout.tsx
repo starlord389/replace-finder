@@ -23,9 +23,9 @@ export default function AgentLayout() {
   }
 
   return (
-    <div className="flex h-screen min-h-0 flex-col bg-[#F4F2EE]">
+    <div className="flex min-h-screen flex-col bg-[#F4F2EE]">
       <AgentTopNav />
-      <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
         <Outlet />
       </main>
     </div>
