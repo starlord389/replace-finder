@@ -108,7 +108,6 @@ const App = () => (
               <Route path="/agent/exchanges" element={<Navigate to="/agent/pipeline" replace />} />
               <Route path="/agent/exchanges/:id" element={<ExchangeToWorkspaceRedirect />} />
               <Route path="/agent/properties" element={<Navigate to="/agent/pipeline" replace />} />
-              <Route path="/agent/matches" element={<Navigate to="/agent/pipeline" replace />} />
               <Route path="/agent/matches/:id" element={<MatchRedirect />} />
               <Route path="/agent/connections" element={<Navigate to="/agent/pipeline?filter=client_interested" replace />} />
               <Route path="/agent/connections/:id" element={<AgentConnectionDetail />} />

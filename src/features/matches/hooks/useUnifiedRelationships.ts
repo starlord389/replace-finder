@@ -220,8 +220,8 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
 
   // 9. Messages (last message per connection + unread count)
   const allConnIds = (connections ?? []).map((c) => c.id);
-  let lastMsgByConn = new Map<string, any>();
-  let unreadByConn = new Map<string, number>();
+  const lastMsgByConn = new Map<string, any>();
+  const unreadByConn = new Map<string, number>();
   if (allConnIds.length) {
     const { data: msgs } = await supabase
       .from("messages")

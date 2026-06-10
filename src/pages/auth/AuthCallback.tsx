@@ -19,7 +19,6 @@ function log(event: string, data?: Record<string, unknown>) {
   // Structured single-line logs so they're greppable in prod consoles
   // and forwarded telemetry.
   try {
-    // eslint-disable-next-line no-console
     console.info(`${CALLBACK_TAG} ${event}`, {
       t: new Date().toISOString(),
       url: typeof window !== "undefined" ? window.location.href : undefined,
