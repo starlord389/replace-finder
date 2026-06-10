@@ -338,7 +338,7 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                   <span className={cn("h-1.5 w-1.5 rounded-full", accent.dot)} />
                   {g.clientName}
                 </div>
-                <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
                   {g.items.map((l) => {
                     const title =
                       l.propertyName ||
@@ -353,47 +353,49 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                       <li key={l.id}>
                         <Link
                           to={`/agent/workspace/${l.id}`}
-                          className="group block overflow-hidden rounded-xl border bg-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                          className="group flex min-w-0 items-center gap-3 rounded-lg border bg-card p-2 transition-all hover:border-primary/40 hover:shadow-sm"
                         >
-                          <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
+                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
                             <img
                               src={propertyImage(null, l.id)}
                               alt=""
                               loading="lazy"
-                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              className="h-full w-full object-cover"
                             />
-                            <Badge
-                              variant="secondary"
-                              className="absolute left-2 top-2 h-5 bg-background/90 px-1.5 text-[10px] font-medium shadow-sm backdrop-blur"
-                            >
-                              {EXCHANGE_STATUS_LABELS[l.status] ?? l.status}
-                            </Badge>
-                            {isLast && (
-                              <Badge className="absolute right-2 top-2 h-5 bg-primary px-1.5 text-[10px] uppercase text-primary-foreground shadow-sm">
-                                Last
-                              </Badge>
-                            )}
                           </div>
-                          <div className="p-3">
-                            <p className="text-base font-bold text-foreground">
-                              {l.askingPrice != null ? fmtPrice(l.askingPrice) : (
-                                <span className="text-muted-foreground">Price TBD</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <p className="truncate text-sm font-semibold text-foreground">
+                                {title}
+                              </p>
+                              {isLast && (
+                                <Badge
+                                  variant="secondary"
+                                  className="h-4 shrink-0 px-1 text-[9px] uppercase"
+                                >
+                                  Last
+                                </Badge>
                               )}
-                            </p>
-                            <p className="mt-0.5 truncate text-sm font-medium text-foreground">
-                              {title}
-                            </p>
+                            </div>
                             {loc && (
-                              <p className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate text-xs text-muted-foreground">
-                                <MapPin className="h-3 w-3 shrink-0" />
+                              <p className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate text-[11px] text-muted-foreground">
+                                <MapPin className="h-2.5 w-2.5 shrink-0" />
                                 <span className="truncate">{loc}</span>
                               </p>
                             )}
-                            {assetLabel && (
-                              <span className="mt-2 inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                {assetLabel}
+                            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0 text-[11px]">
+                              {l.askingPrice != null && (
+                                <span className="font-semibold text-foreground">
+                                  {fmtPrice(l.askingPrice)}
+                                </span>
+                              )}
+                              {assetLabel && (
+                                <span className="text-muted-foreground">{assetLabel}</span>
+                              )}
+                              <span className="text-muted-foreground/70">
+                                {EXCHANGE_STATUS_LABELS[l.status] ?? l.status}
                               </span>
-                            )}
+                            </div>
                           </div>
                         </Link>
                       </li>
