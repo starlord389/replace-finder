@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,35 +12,40 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import AgentLayout from "@/components/layout/AgentLayout";
 import RequireGuest from "@/components/layout/RequireGuest";
 
-import Index from "@/pages/Index";
-import BookDemo from "@/pages/BookDemo";
-import Login from "@/pages/auth/Login";
-import Signup from "@/pages/auth/Signup";
-import ForgotPassword from "@/pages/auth/ForgotPassword";
-import ResetPassword from "@/pages/auth/ResetPassword";
-import AuthCallback from "@/pages/auth/AuthCallback";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import SupportTickets from "@/pages/admin/SupportTickets";
-import AdminSettings from "@/pages/admin/AdminSettings";
-import AgentDashboard from "@/pages/agent/AgentDashboard";
-import AgentLaunchpad from "@/pages/agent/AgentLaunchpad";
-import AgentClients from "@/pages/agent/AgentClients";
-import AgentClientDetail from "@/pages/agent/AgentClientDetail";
-import AgentClientOverview from "@/pages/agent/AgentClientOverview";
-import NewExchange from "@/pages/agent/NewExchange";
-import EditExchange from "@/pages/agent/EditExchange";
-import AgentPipeline from "@/pages/agent/AgentPipeline";
-import AgentWorkspace from "@/pages/agent/AgentWorkspace";
-import AgentListings from "@/pages/agent/AgentListings";
-import AgentMatches from "@/pages/agent/AgentMatches";
-import MatchRedirect from "@/pages/agent/MatchRedirect";
-import AgentConnectionDetail from "@/pages/agent/AgentConnectionDetail";
-import AgentSettings from "@/pages/agent/AgentSettings";
-import AgentHelp from "@/pages/agent/AgentHelp";
-import AgentNotifications from "@/pages/agent/AgentNotifications";
+const Index = lazy(() => import("@/pages/Index"));
+const BookDemo = lazy(() => import("@/pages/BookDemo"));
+const Login = lazy(() => import("@/pages/auth/Login"));
+const Signup = lazy(() => import("@/pages/auth/Signup"));
+const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
+const AuthCallback = lazy(() => import("@/pages/auth/AuthCallback"));
+const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const SupportTickets = lazy(() => import("@/pages/admin/SupportTickets"));
+const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
+const AgentDashboard = lazy(() => import("@/pages/agent/AgentDashboard"));
+const AgentLaunchpad = lazy(() => import("@/pages/agent/AgentLaunchpad"));
+const AgentClients = lazy(() => import("@/pages/agent/AgentClients"));
+const AgentClientDetail = lazy(() => import("@/pages/agent/AgentClientDetail"));
+const AgentClientOverview = lazy(() => import("@/pages/agent/AgentClientOverview"));
+const NewExchange = lazy(() => import("@/pages/agent/NewExchange"));
+const EditExchange = lazy(() => import("@/pages/agent/EditExchange"));
+const AgentPipeline = lazy(() => import("@/pages/agent/AgentPipeline"));
+const AgentWorkspace = lazy(() => import("@/pages/agent/AgentWorkspace"));
+const AgentListings = lazy(() => import("@/pages/agent/AgentListings"));
+const AgentMatches = lazy(() => import("@/pages/agent/AgentMatches"));
+const MatchRedirect = lazy(() => import("@/pages/agent/MatchRedirect"));
+const AgentConnectionDetail = lazy(() => import("@/pages/agent/AgentConnectionDetail"));
+const AgentSettings = lazy(() => import("@/pages/agent/AgentSettings"));
+const AgentHelp = lazy(() => import("@/pages/agent/AgentHelp"));
+const AgentNotifications = lazy(() => import("@/pages/agent/AgentNotifications"));
+const AcceptInvite = lazy(() => import("@/pages/auth/AcceptInvite"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 
-import AcceptInvite from "@/pages/auth/AcceptInvite";
-import NotFound from "@/pages/NotFound";
+const RouteFallback = () => (
+  <div className="flex min-h-[60vh] items-center justify-center">
+    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +64,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={<RouteFallback />}>
           <Routes>
             {/* Public (marketing + auth entry) — signed-in users are redirected to their dashboard */}
             <Route element={<RequireGuest />}>
@@ -128,6 +135,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
