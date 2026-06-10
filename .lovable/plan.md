@@ -1,43 +1,23 @@
-# Zillow-style listing cards on /agent/listings
+## Goal
+Replace the cramped tile cards on `/agent/listings` with confident, full-width editorial row cards based on the selected "Architectural cards" direction.
 
-Today, under each client header the listings render as a thin text-only divided list. Change them to compact "Zillow-style" cards in a responsive grid so each listing is visually scannable at a glance.
+## Changes
 
-## What changes
+**`src/features/workspace/components/ListingSwitcher.tsx`** — Replace the current `grid-cols-1 md:grid-cols-2 xl:grid-cols-3` tile grid (and its weak `text-[11px]` client header) with a single-column stack of large row cards. Per group:
 
-Only the per-client section inside `ListingSwitcher.tsx`. Everything else on the page (header, search, filters, chips, "Continue where you left off", grouping by client, last-visited badge) stays exactly as it is.
+- **Group header**: client-color dot + client name (`text-base font-semibold tracking-tight`) + right-aligned listing count, all sitting above a `border-b` rule.
+- **Row card** (`Link`): horizontal flex, `border bg-card rounded-md shadow-sm hover:shadow-md`.
+  - Left: 256px-wide property thumbnail (`propertyImage(null, id)`), hidden on mobile, `group-hover:scale-105`.
+  - Right (`p-8`, flex column, justify-between):
+    - Top row: title (`text-lg font-semibold`) + "Last viewed" pill (primary tones) on the left; price (`text-xl font-semibold`) with "Asking Price" caption on the right. Location with `MapPin` under title.
+    - Bottom row (above `border-t`): Asset Type and Status mini-columns (uppercase tracked captions + value, status with colored dot) on the left; underlined "View Details" link on the right.
 
-## Card design
-
-Each card is small (roughly 220–260px wide), with:
-
-- **Photo thumbnail** on top (16:9), using the existing `propertyImage(null, listing.id)` helper so we get a deterministic neutral real-estate placeholder per listing. A status badge ("Draft", "Active", etc.) sits in the top-left corner of the photo; a "Last" pill sits top-right when this was the last opened listing.
-- **Price** as the prominent line just below the photo (e.g. `$2.4M`), using the existing `fmtPrice` helper. Falls back to "Price TBD" when null.
-- **Title** = `propertyName || address || "Untitled"`, single line truncated.
-- **Location row** = city, state with a small `MapPin` icon, single line truncated.
-- **Asset type** as a subtle muted chip on the bottom row (when present).
-
-The whole card is a `<Link>` to `/agent/workspace/{id}` with hover lift (border + soft shadow), matching the premium minimal look already used by `PipelineListingCard`.
-
-## Layout
-
-Replace the current `<ul className="divide-y rounded-lg border bg-card">` block with a responsive grid:
-
-```text
-1 col on mobile · 2 cols on sm · 3 cols on lg · 4 cols on xl
-gap-3
-```
-
-The client header row above each grid stays unchanged (colored dot + uppercase client name).
-
-Also widen the page container in `AgentListings.tsx` from `max-w-3xl` to `max-w-6xl` so the grid has room to breathe at 3–4 columns. Empty state and loading state are unchanged.
-
-## Technical notes
-
-- File touched: `src/features/workspace/components/ListingSwitcher.tsx` (swap the inner list rendering for cards) and `src/pages/agent/AgentListings.tsx` (widen the wrapper).
-- No data model changes. Photo uses the existing `propertyImage` placeholder helper — no new fields on `AgentListing`.
-- No changes to filters, search, sort, grouping, or routing.
+**Semantic tokens only** — `foreground`, `muted-foreground`, `card`, `border`, `primary`. Status dot uses `bg-amber-500` / `bg-emerald-500` / `bg-primary` / `bg-muted-foreground/40` based on status (these are utility colors, kept consistent with the rest of the app's status indicators).
 
 ## Out of scope
+- No changes to search/filter UI, "Continue where you left off" banner, data hooks, or routing.
+- No new fonts — stay on Inter per project memory (the prototype's Playfair Display is dropped).
+- No image uploads / extra fields beyond what `AgentListing` already exposes.
 
-- Real uploaded property photos (not exposed by `useAgentListings` today).
-- Beds/baths/sqft — this is commercial 1031 inventory, not residential; we use asset type + price + location instead, which is what already exists on the model.
+## Files
+- `src/features/workspace/components/ListingSwitcher.tsx` (only the `groups.map` render block)
