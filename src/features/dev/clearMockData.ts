@@ -4,7 +4,8 @@ const MOCK_TAG = "__mock__";
 
 /**
  * Removes mock data scoped to this agent. Reverse FK order:
- * notifications → messages → connections → matches → exchanges → properties → clients.
+ * notifications → messages → connections → matches → identification list →
+ * criteria → property children (financials/images) → properties → clients.
  */
 export async function clearAgentMockData(userId: string) {
   // notifications: tagged in metadata
@@ -38,7 +39,6 @@ export async function clearAgentMockData(userId: string) {
     .in("client_id", clientIds.length ? clientIds : ["00000000-0000-0000-0000-000000000000"]);
   const exchangeIds = (exchanges ?? []).map((e) => e.id);
 
-  // Matches via buyer_exchange_id
   if (exchangeIds.length) {
     const { data: matches } = await supabase
       .from("matches")
@@ -47,7 +47,6 @@ export async function clearAgentMockData(userId: string) {
     const matchIds = (matches ?? []).map((m) => m.id);
 
     if (matchIds.length) {
-      // Connections referencing those matches
       const { data: connections } = await supabase
         .from("exchange_connections")
         .select("id")
@@ -61,22 +60,31 @@ export async function clearAgentMockData(userId: string) {
       await supabase.from("matches").delete().in("id", matchIds);
     }
 
-    // Clear FK references on exchanges, then delete via insert tool would fail (no DELETE policy on exchanges)
-    // But agents have no DELETE policy on exchanges — leave them, just null FKs to allow property deletion.
+    // ID list entries reference exchanges and properties — remove before both
+    await supabase.from("identification_list").delete().in("exchange_id", exchangeIds);
+
+    // Null FK references on exchanges so criteria and properties can be removed.
+    // Agents have no DELETE policy on exchanges, so the rows themselves stay.
     await supabase
       .from("exchanges")
       .update({ relinquished_property_id: null, criteria_id: null })
       .in("id", exchangeIds);
+
+    await supabase.from("replacement_criteria").delete().in("exchange_id", exchangeIds);
   }
 
   if (propertyIds.length) {
-    // pledged_properties has no agent DELETE policy in schema shown — try anyway (admins only).
-    // Fallback: mark withdrawn so they disappear from pipelines.
+    // Children first in case the FK lacks ON DELETE CASCADE
+    await supabase.from("property_financials").delete().in("property_id", propertyIds);
+    await supabase.from("property_images").delete().in("property_id", propertyIds);
+    await supabase.from("property_documents").delete().in("property_id", propertyIds);
+
     const { error: delErr } = await supabase
       .from("pledged_properties")
       .delete()
       .in("id", propertyIds);
     if (delErr) {
+      // Fallback when no DELETE policy: withdraw so they leave all pipelines
       await supabase
         .from("pledged_properties")
         .update({ status: "withdrawn", withdrawn_at: new Date().toISOString() })
