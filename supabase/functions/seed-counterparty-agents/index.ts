@@ -354,14 +354,29 @@ Deno.serve(async (req) => {
         userId = created.user!.id;
       }
 
-      await admin.from("profiles").upsert({
+      const { error: profileErr } = await admin.from("profiles").upsert({
         id: userId,
         email: m.email,
         full_name: m.full_name,
         brokerage_name: m.brokerage_name,
-        role: "agent",
         verification_status: "verified",
       });
+      if (profileErr) throw profileErr;
+
+      // The auth trigger normally grants the agent role from metadata;
+      // backfill here in case it didn't run for pre-existing mock users.
+      const { data: existingRole } = await admin
+        .from("user_roles")
+        .select("user_id")
+        .eq("user_id", userId)
+        .eq("role", "agent")
+        .maybeSingle();
+      if (!existingRole) {
+        const { error: roleErr } = await admin
+          .from("user_roles")
+          .insert({ user_id: userId, role: "agent" });
+        if (roleErr) throw roleErr;
+      }
 
       const agentEntry = {
         agent_id: userId,
