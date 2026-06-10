@@ -329,16 +329,22 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
           No listings match your filters.
         </p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-10">
           {groups.map((g) => {
             const accent = getClientAccent(g.clientId);
             return (
-              <div key={g.clientId ?? "_unassigned"}>
-                <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span className={cn("h-1.5 w-1.5 rounded-full", accent.dot)} />
-                  {g.clientName}
+              <section key={g.clientId ?? "_unassigned"} className="space-y-4">
+                <div className="flex items-center gap-3 border-b pb-3">
+                  <span className={cn("h-2 w-2 rounded-full", accent.dot)} />
+                  <h2 className="text-base font-semibold tracking-tight text-foreground">
+                    {g.clientName}
+                  </h2>
+                  <span className="ml-auto text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    {g.items.length} {g.items.length === 1 ? "Listing" : "Listings"}
+                  </span>
                 </div>
-                <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+
+                <ul className="space-y-3">
                   {g.items.map((l) => {
                     const title =
                       l.propertyName ||
@@ -349,51 +355,85 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                     const assetLabel = l.assetType
                       ? (ASSET_TYPE_LABELS as Record<string, string>)[l.assetType] ?? l.assetType
                       : null;
+                    const statusLabel = EXCHANGE_STATUS_LABELS[l.status] ?? l.status;
+                    const statusDot =
+                      l.status === "closing"
+                        ? "bg-amber-500"
+                        : l.status === "identification"
+                          ? "bg-emerald-500"
+                          : l.status === "draft"
+                            ? "bg-muted-foreground/40"
+                            : "bg-primary";
                     return (
                       <li key={l.id}>
                         <Link
                           to={`/agent/workspace/${l.id}`}
-                          className="group flex min-w-0 items-center gap-3 rounded-lg border bg-card p-2 transition-all hover:border-primary/40 hover:shadow-sm"
+                          className="group flex overflow-hidden rounded-md border bg-card shadow-sm transition-shadow hover:shadow-md"
                         >
-                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
+                          <div className="relative hidden w-64 shrink-0 overflow-hidden bg-muted sm:block">
                             <img
                               src={propertyImage(null, l.id)}
                               alt=""
                               loading="lazy"
-                              className="h-full w-full object-cover"
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
-                              <p className="truncate text-sm font-semibold text-foreground">
-                                {title}
-                              </p>
-                              {isLast && (
-                                <Badge
-                                  variant="secondary"
-                                  className="h-4 shrink-0 px-1 text-[9px] uppercase"
-                                >
-                                  Last
-                                </Badge>
-                              )}
+                          <div className="flex flex-1 flex-col justify-between gap-6 p-6 sm:p-8">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h3 className="truncate text-lg font-semibold tracking-tight text-foreground">
+                                    {title}
+                                  </h3>
+                                  {isLast && (
+                                    <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
+                                      Last viewed
+                                    </span>
+                                  )}
+                                </div>
+                                {loc && (
+                                  <p className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground">
+                                    <MapPin className="h-3.5 w-3.5" />
+                                    {loc}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="shrink-0 text-right">
+                                <p className="text-xl font-semibold text-foreground">
+                                  {l.askingPrice != null ? fmtPrice(l.askingPrice) : "—"}
+                                </p>
+                                <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                                  Asking Price
+                                </p>
+                              </div>
                             </div>
-                            {loc && (
-                              <p className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate text-[11px] text-muted-foreground">
-                                <MapPin className="h-2.5 w-2.5 shrink-0" />
-                                <span className="truncate">{loc}</span>
-                              </p>
-                            )}
-                            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0 text-[11px]">
-                              {l.askingPrice != null && (
-                                <span className="font-semibold text-foreground">
-                                  {fmtPrice(l.askingPrice)}
-                                </span>
-                              )}
-                              {assetLabel && (
-                                <span className="text-muted-foreground">{assetLabel}</span>
-                              )}
-                              <span className="text-muted-foreground/70">
-                                {EXCHANGE_STATUS_LABELS[l.status] ?? l.status}
+
+                            <div className="flex items-end justify-between gap-4 border-t pt-5">
+                              <div className="flex gap-8">
+                                {assetLabel && (
+                                  <div>
+                                    <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                                      Asset Type
+                                    </p>
+                                    <p className="mt-1 text-sm font-medium text-foreground">
+                                      {assetLabel}
+                                    </p>
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                                    Status
+                                  </p>
+                                  <div className="mt-1 flex items-center gap-1.5">
+                                    <span className={cn("h-1.5 w-1.5 rounded-full", statusDot)} />
+                                    <p className="text-sm font-medium text-foreground">
+                                      {statusLabel}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              <span className="border-b border-foreground pb-0.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground transition-colors group-hover:border-muted-foreground group-hover:text-muted-foreground">
+                                View Details
                               </span>
                             </div>
                           </div>
@@ -402,7 +442,7 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                     );
                   })}
                 </ul>
-              </div>
+              </section>
             );
           })}
         </div>
