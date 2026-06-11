@@ -819,6 +819,10 @@ async function seedAll(admin: Admin, userId: string) {
       seller_exchange_id: null,
       status: "pending",
       initiated_by: "seller_agent",
+      facilitation_fee_agreed: false,
+      facilitation_fee_status: "pending",
+
+
     },
     {
       match_id: matchFor(exWilson, crosspoint.propertyId).id,
@@ -884,38 +888,57 @@ Deno.serve(async (req) => {
     );
 
     let action = "counterparties-only";
+    let targetUserId: string | null = null;
     try {
       const body = await req.json();
       if (body?.action) action = body.action;
+      if (body?.target_user_id) targetUserId = body.target_user_id;
     } catch {
       // empty body - default action
     }
 
     if (action === "seed-all" || action === "clear-all") {
-      // Identify the caller - users can only seed/clear their own workspace
       const jwt = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
-      const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
-      const caller = userData?.user;
-      if (userErr || !caller) {
-        return new Response(JSON.stringify({ version: SEED_VERSION, error: "Not authenticated" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      let callerId: string | null = null;
+      // Decode JWT payload (no verification - gateway already verified)
+      let jwtRole: string | null = null;
+      try {
+        const payload = jwt.split(".")[1];
+        if (payload) {
+          const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+          jwtRole = decoded?.role ?? null;
+        }
+      } catch { /* not a JWT */ }
+      if (targetUserId && jwtRole === "service_role") {
+        callerId = targetUserId;
+      } else {
+
+
+        const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
+        const caller = userData?.user;
+        if (userErr || !caller) {
+          return new Response(JSON.stringify({ version: SEED_VERSION, error: "Not authenticated" }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        callerId = caller.id;
       }
 
       if (action === "clear-all") {
-        await clearAll(admin, caller.id);
+        await clearAll(admin, callerId!);
         return new Response(JSON.stringify({ version: SEED_VERSION, cleared: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      await clearAll(admin, caller.id);
-      const counts = await seedAll(admin, caller.id);
+      await clearAll(admin, callerId!);
+      const counts = await seedAll(admin, callerId!);
       return new Response(JSON.stringify({ version: SEED_VERSION, seeded: counts }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const { counterparties } = await ensureCounterparties(admin);
     return new Response(JSON.stringify({ version: SEED_VERSION, counterparties }), {
