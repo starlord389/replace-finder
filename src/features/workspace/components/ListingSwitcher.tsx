@@ -13,6 +13,7 @@ import { getClientAccent } from "@/features/matches/lib/clientAccent";
 import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS } from "@/lib/constants";
 import { useAuth } from "@/hooks/useAuth";
 import type { AgentListing } from "@/features/pipeline/hooks/useAgentListings";
+import { ListingPreviewDialog } from "./ListingPreviewDialog";
 import {
   EMPTY_SWITCHER_FILTERS,
   getLastListing,
@@ -20,6 +21,7 @@ import {
   saveFilters,
   type SwitcherFilters,
 } from "../lib/lastListing";
+
 
 function fmtPrice(v: number | null) {
   if (v == null) return "";
@@ -32,6 +34,8 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
   const { user } = useAuth();
   const [filters, setFilters] = useState<SwitcherFilters>(EMPTY_SWITCHER_FILTERS);
   const [hydrated, setHydrated] = useState(false);
+  const [previewListing, setPreviewListing] = useState<AgentListing | null>(null);
+
 
   useEffect(() => {
     if (user?.id) {
@@ -366,10 +370,12 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                             : "bg-primary";
                     return (
                       <li key={l.id}>
-                        <Link
-                          to={`/agent/workspace/${l.id}`}
-                          className="group flex overflow-hidden rounded-md border bg-card shadow-sm transition-shadow hover:shadow-md"
+                        <button
+                          type="button"
+                          onClick={() => setPreviewListing(l)}
+                          className="group flex w-full overflow-hidden rounded-md border bg-card text-left shadow-sm transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         >
+
                           <div className="relative hidden w-64 shrink-0 overflow-hidden bg-muted sm:block">
                             <img
                               src={propertyImage(null, l.id)}
@@ -437,7 +443,7 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                               </span>
                             </div>
                           </div>
-                        </Link>
+                        </button>
                       </li>
                     );
                   })}
@@ -447,9 +453,16 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
           })}
         </div>
       )}
+
+      <ListingPreviewDialog
+        listing={previewListing}
+        open={previewListing !== null}
+        onOpenChange={(o) => !o && setPreviewListing(null)}
+      />
     </div>
   );
 }
+
 
 function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
