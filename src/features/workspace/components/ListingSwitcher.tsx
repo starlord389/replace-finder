@@ -34,6 +34,8 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
   const { user } = useAuth();
   const [filters, setFilters] = useState<SwitcherFilters>(EMPTY_SWITCHER_FILTERS);
   const [hydrated, setHydrated] = useState(false);
+  const [previewListing, setPreviewListing] = useState<AgentListing | null>(null);
+
 
   useEffect(() => {
     if (user?.id) {
