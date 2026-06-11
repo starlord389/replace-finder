@@ -1,6 +1,6 @@
 import {
   TrendingUp, DollarSign, ArrowRight, Shield, MessageSquare, History,
-  Sparkles, Send, Handshake, XCircle, HelpCircle, Bell, Phone, FileText,
+  Sparkles, Send, Handshake, XCircle, Bell, Phone, FileText,
   FileCheck, FileSignature, Archive, RotateCcw, Scale, PiggyBank,
   type LucideIcon,
 } from "lucide-react";
@@ -22,19 +22,17 @@ interface Props {
 
 const ACTION_ICONS: Record<string, LucideIcon> = {
   send_to_client: Send,
-  request_seller_details: HelpCircle,
   not_a_fit: XCircle,
   mark_interested: Sparkles,
   follow_up_client: Bell,
   client_passed: XCircle,
-  request_agent_intro: Handshake,
-  send_client_questions: HelpCircle,
+  message_listing_agent: MessageSquare,
   open_conversation: MessageSquare,
   schedule_call: Phone,
   request_documents: FileText,
-  start_reviewing_docs: FileCheck,
   mark_loi_sent: FileSignature,
-  mark_under_contract: FileSignature,
+  mark_under_contract: FileCheck,
+  mark_closed: Handshake,
   archive: Archive,
   reactivate: RotateCcw,
 };
@@ -149,8 +147,8 @@ export function ListingSidebar({ rel, onOpenHistory, onJumpToMatch, onOpenConver
             );
           })}
 
-          {/* Always-available conversation shortcut once connected */}
-          {(status === "agent_connected" || status === "reviewing_docs" || status === "loi" || status === "under_contract") && primary?.id !== "open_conversation" && (
+          {/* Always-available conversation shortcut once talking */}
+          {(status === "in_conversation" || status === "loi" || status === "under_contract") && primary?.id !== "message_listing_agent" && (
             <Button
               variant="outline"
               className="h-9 w-full justify-center gap-1.5 text-xs font-semibold"

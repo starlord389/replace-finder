@@ -8,10 +8,10 @@ import { useCallback, useEffect, useState } from "react";
 export interface MatchLocalState {
   sentToClientAt: string | null;
   clientInterestedAt: string | null;
-  reviewingDocs: boolean;
-  reviewingDocsAt: string | null;
+  conversationStartedAt: string | null;
   loiSentAt: string | null;
   underContractAt: string | null;
+  closedAt: string | null;
   archivedAt: string | null;
   notFitAt: string | null;
   clientPassedAt: string | null;
@@ -22,10 +22,10 @@ export interface MatchLocalState {
 const DEFAULT: MatchLocalState = {
   sentToClientAt: null,
   clientInterestedAt: null,
-  reviewingDocs: false,
-  reviewingDocsAt: null,
+  conversationStartedAt: null,
   loiSentAt: null,
   underContractAt: null,
+  closedAt: null,
   archivedAt: null,
   notFitAt: null,
   clientPassedAt: null,
@@ -64,12 +64,15 @@ export function useMatchLocalState(matchId: string | null) {
         const next = { ...prev, ...patch };
         try {
           window.localStorage.setItem(KEY(matchId), JSON.stringify(next));
-          window.dispatchEvent(new CustomEvent("match-local-state-change"));
         } catch {
           /* ignore */
         }
         return next;
       });
+      // Notify other subscribed components AFTER this render commits —
+      // dispatching synchronously inside the state updater makes React
+      // warn about setState-during-render in the listeners.
+      setTimeout(() => window.dispatchEvent(new CustomEvent("match-local-state-change")), 0);
     },
     [matchId],
   );

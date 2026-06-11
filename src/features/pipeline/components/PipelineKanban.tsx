@@ -21,7 +21,7 @@ const STAGE_RANK: Record<StageKey, number> = { new: 0, interested: 1, connected:
 
 function uiStatusToStage(s: UiStatus): StageKey {
   if (s === "closed" || s === "archived") return "closed";
-  if (s === "agent_connected" || s === "reviewing_docs" || s === "loi" || s === "under_contract")
+  if (s === "in_conversation" || s === "loi" || s === "under_contract")
     return "connected";
   if (s === "client_interested" || s === "sent_to_client") return "interested";
   return "new";

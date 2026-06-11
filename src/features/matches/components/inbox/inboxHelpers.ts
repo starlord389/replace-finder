@@ -5,8 +5,7 @@ export type UiStatus =
   | "new"
   | "sent_to_client"
   | "client_interested"
-  | "agent_connected"
-  | "reviewing_docs"
+  | "in_conversation"
   | "loi"
   | "under_contract"
   | "closed"
@@ -16,9 +15,8 @@ export const UI_STATUS_LABEL: Record<UiStatus, string> = {
   new: "New Match",
   sent_to_client: "Sent to Client",
   client_interested: "Client Interested",
-  agent_connected: "Agent Connected",
-  reviewing_docs: "Reviewing Docs",
-  loi: "LOI / Offer",
+  in_conversation: "In Conversation",
+  loi: "Offer Sent",
   under_contract: "Under Contract",
   closed: "Closed",
   archived: "Archived",
@@ -28,8 +26,7 @@ export const UI_STATUS_CLASS: Record<UiStatus, string> = {
   new: "bg-blue-50 text-blue-700 border-blue-200",
   sent_to_client: "bg-violet-50 text-violet-700 border-violet-200",
   client_interested: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200",
-  agent_connected: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  reviewing_docs: "bg-cyan-50 text-cyan-700 border-cyan-200",
+  in_conversation: "bg-emerald-50 text-emerald-700 border-emerald-200",
   loi: "bg-amber-50 text-amber-800 border-amber-200",
   under_contract: "bg-orange-50 text-orange-800 border-orange-200",
   closed: "bg-secondary text-secondary-foreground border-border",
@@ -40,8 +37,7 @@ export const LIFECYCLE_ORDER: UiStatus[] = [
   "new",
   "sent_to_client",
   "client_interested",
-  "agent_connected",
-  "reviewing_docs",
+  "in_conversation",
   "loi",
   "under_contract",
   "closed",
@@ -51,11 +47,10 @@ export const LIFECYCLE_ORDER: UiStatus[] = [
 export const STATUS_HINTS: Record<UiStatus, string> = {
   new: "Fresh match — share it with your client to gauge interest.",
   sent_to_client: "Waiting on your client. Nudge them or log their response.",
-  client_interested: "Client is in. Request an intro to the listing agent.",
-  agent_connected: "You're connected — keep the conversation moving.",
-  reviewing_docs: "Diligence underway. Move to LOI when ready.",
+  client_interested: "Your client wants it — message the listing agent directly.",
+  in_conversation: "You're talking. Request docs, schedule a call, work toward an offer.",
   loi: "Offer on the table. Update once it goes under contract.",
-  under_contract: "Under contract. Track to close in the conversation.",
+  under_contract: "Under contract — mark it closed once the deal completes.",
   closed: "Deal closed. Nice work.",
   archived: "Archived. Reactivate to resume work on this match.",
 };
@@ -66,12 +61,13 @@ export function deriveUiStatus(rel: Relationship, local: MatchLocalState): UiSta
   if (local.archivedAt || local.notFitAt || local.clientPassedAt || local.sellerUnavailableAt) {
     return "archived";
   }
-  if (rel.stage === "closed_won") return "closed";
+  if (rel.stage === "closed_won" || local.closedAt) return "closed";
   if (rel.stage === "closed_lost") return "archived";
   if (rel.underContractAt || local.underContractAt) return "under_contract";
   if (local.loiSentAt) return "loi";
-  if (local.reviewingDocs) return "reviewing_docs";
-  if (rel.stage === "connected" || rel.stage === "conversing") return "agent_connected";
+  if (rel.stage === "connected" || rel.stage === "conversing" || local.conversationStartedAt) {
+    return "in_conversation";
+  }
   if (local.clientInterestedAt) return "client_interested";
   if (local.sentToClientAt) return "sent_to_client";
   return "new";
@@ -82,7 +78,7 @@ export const FILTER_TABS: Array<{ key: "all" | UiStatus; label: string }> = [
   { key: "new", label: "New" },
   { key: "sent_to_client", label: "Sent" },
   { key: "client_interested", label: "Interested" },
-  { key: "agent_connected", label: "Connected" },
+  { key: "in_conversation", label: "Talking" },
   { key: "loi", label: "Offers" },
   { key: "closed", label: "Closed" },
   { key: "archived", label: "Archived" },
@@ -102,10 +98,7 @@ export function nextActionsFor(status: UiStatus): {
     case "new":
       return {
         primary: { id: "send_to_client", label: "Send to Client" },
-        secondary: [
-          { id: "request_seller_details", label: "Request Seller Details" },
-          { id: "not_a_fit", label: "Not a Fit", tone: "destructive" },
-        ],
+        secondary: [{ id: "not_a_fit", label: "Not a Fit", tone: "destructive" }],
       };
     case "sent_to_client":
       return {
@@ -117,22 +110,17 @@ export function nextActionsFor(status: UiStatus): {
       };
     case "client_interested":
       return {
-        primary: { id: "request_agent_intro", label: "Request Agent Intro" },
-        secondary: [{ id: "send_client_questions", label: "Send Client Questions" }],
+        primary: { id: "message_listing_agent", label: "Message Listing Agent" },
+        secondary: [{ id: "client_passed", label: "Client Passed", tone: "destructive" }],
       };
-    case "agent_connected":
+    case "in_conversation":
       return {
-        primary: { id: "open_conversation", label: "Open Conversation" },
+        primary: { id: "mark_loi_sent", label: "Mark Offer Sent" },
         secondary: [
-          { id: "schedule_call", label: "Schedule Call" },
           { id: "request_documents", label: "Request Documents" },
-          { id: "start_reviewing_docs", label: "Mark Reviewing Docs" },
+          { id: "schedule_call", label: "Schedule Call" },
+          { id: "archive", label: "Archive", tone: "destructive" },
         ],
-      };
-    case "reviewing_docs":
-      return {
-        primary: { id: "mark_loi_sent", label: "Mark LOI / Offer Sent" },
-        secondary: [{ id: "archive", label: "Archive", tone: "destructive" }],
       };
     case "loi":
       return {
@@ -141,8 +129,8 @@ export function nextActionsFor(status: UiStatus): {
       };
     case "under_contract":
       return {
-        primary: { id: "open_conversation", label: "Open Conversation" },
-        secondary: [],
+        primary: { id: "mark_closed", label: "Mark Deal Closed" },
+        secondary: [{ id: "archive", label: "Deal Fell Through", tone: "destructive" }],
       };
     case "closed":
       return { primary: null, secondary: [] };

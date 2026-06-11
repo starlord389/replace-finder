@@ -32,8 +32,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
   const { state } = useMatchLocalState(rel.matchId);
   const status = useMemo(() => deriveUiStatus(rel, state), [rel, state]);
   const conversationAvailable =
-    status === "agent_connected" ||
-    status === "reviewing_docs" ||
+    status === "in_conversation" ||
     status === "loi" ||
     status === "under_contract" ||
     status === "closed";

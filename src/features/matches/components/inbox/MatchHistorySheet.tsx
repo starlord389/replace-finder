@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Send, Sparkles, Handshake, FileCheck, FileSignature, Home, CheckCircle2,
-  XCircle, Archive, StickyNote, SearchCheck, Banknote, type LucideIcon,
+  XCircle, Archive, StickyNote, Banknote, type LucideIcon,
 } from "lucide-react";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
@@ -40,13 +40,12 @@ export function MatchHistorySheet({ rel, open, onOpenChange }: Props) {
 
   push(state.sentToClientAt, "Sent to client", Send);
   push(state.clientInterestedAt, "Client marked interested", Sparkles);
-  push(rel.acceptedAt, "Connected with listing agent", Handshake);
-  push(state.reviewingDocsAt, "Started reviewing documents", SearchCheck);
-  push(state.loiSentAt, "LOI / offer sent", FileSignature);
+  push(rel.acceptedAt ?? state.conversationStartedAt, "Conversation started with listing agent", Handshake);
+  push(state.loiSentAt, "Offer sent", FileSignature);
   push(rel.underContractAt ?? state.underContractAt, "Under contract", FileCheck);
   push(rel.inspectionCompleteAt, "Inspection complete", CheckCircle2);
   push(rel.financingApprovedAt, "Financing approved", Banknote);
-  push(rel.closedAt, "Deal closed", Home);
+  push(rel.closedAt ?? state.closedAt, "Deal closed", Home);
   push(state.notFitAt, "Marked not a fit", XCircle);
   push(state.clientPassedAt, "Client passed", XCircle);
   push(rel.declinedAt, "Listing agent declined", XCircle);
