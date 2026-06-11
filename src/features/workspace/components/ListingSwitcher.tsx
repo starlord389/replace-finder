@@ -443,7 +443,7 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                               </span>
                             </div>
                           </div>
-                        </Link>
+                        </button>
                       </li>
                     );
                   })}
@@ -453,9 +453,16 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
           })}
         </div>
       )}
+
+      <ListingPreviewDialog
+        listing={previewListing}
+        open={previewListing !== null}
+        onOpenChange={(o) => !o && setPreviewListing(null)}
+      />
     </div>
   );
 }
+
 
 function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
