@@ -13,6 +13,7 @@ import { getClientAccent } from "@/features/matches/lib/clientAccent";
 import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS } from "@/lib/constants";
 import { useAuth } from "@/hooks/useAuth";
 import type { AgentListing } from "@/features/pipeline/hooks/useAgentListings";
+import { ListingPreviewDialog } from "./ListingPreviewDialog";
 import {
   EMPTY_SWITCHER_FILTERS,
   getLastListing,
@@ -20,6 +21,7 @@ import {
   saveFilters,
   type SwitcherFilters,
 } from "../lib/lastListing";
+
 
 function fmtPrice(v: number | null) {
   if (v == null) return "";
