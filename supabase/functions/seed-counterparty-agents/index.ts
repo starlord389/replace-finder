@@ -884,38 +884,47 @@ Deno.serve(async (req) => {
     );
 
     let action = "counterparties-only";
+    let targetUserId: string | null = null;
     try {
       const body = await req.json();
       if (body?.action) action = body.action;
+      if (body?.target_user_id) targetUserId = body.target_user_id;
     } catch {
       // empty body - default action
     }
 
     if (action === "seed-all" || action === "clear-all") {
-      // Identify the caller - users can only seed/clear their own workspace
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const jwt = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
-      const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
-      const caller = userData?.user;
-      if (userErr || !caller) {
-        return new Response(JSON.stringify({ version: SEED_VERSION, error: "Not authenticated" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      let callerId: string | null = null;
+      if (targetUserId && jwt === serviceKey) {
+        callerId = targetUserId;
+      } else {
+        const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
+        const caller = userData?.user;
+        if (userErr || !caller) {
+          return new Response(JSON.stringify({ version: SEED_VERSION, error: "Not authenticated" }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        callerId = caller.id;
       }
 
       if (action === "clear-all") {
-        await clearAll(admin, caller.id);
+        await clearAll(admin, callerId!);
         return new Response(JSON.stringify({ version: SEED_VERSION, cleared: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      await clearAll(admin, caller.id);
-      const counts = await seedAll(admin, caller.id);
+      await clearAll(admin, callerId!);
+      const counts = await seedAll(admin, callerId!);
       return new Response(JSON.stringify({ version: SEED_VERSION, seeded: counts }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const { counterparties } = await ensureCounterparties(admin);
     return new Response(JSON.stringify({ version: SEED_VERSION, counterparties }), {
