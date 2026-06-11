@@ -820,6 +820,8 @@ async function seedAll(admin: Admin, userId: string) {
       status: "pending",
       initiated_by: "seller_agent",
       facilitation_fee_agreed: false,
+      facilitation_fee_status: "pending",
+
 
     },
     {
