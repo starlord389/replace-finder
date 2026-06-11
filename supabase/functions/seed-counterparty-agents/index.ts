@@ -896,10 +896,13 @@ Deno.serve(async (req) => {
     if (action === "seed-all" || action === "clear-all") {
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const jwt = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
+      const xAdmin = req.headers.get("x-admin-key") ?? "";
       let callerId: string | null = null;
-      if (targetUserId && jwt === serviceKey) {
+      console.log("seed auth check", { hasTarget: !!targetUserId, jwtLen: jwt.length, keyLen: serviceKey.length, jwtMatch: jwt === serviceKey, xAdminMatch: xAdmin === serviceKey });
+      if (targetUserId && (jwt === serviceKey || xAdmin === serviceKey)) {
         callerId = targetUserId;
       } else {
+
         const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
         const caller = userData?.user;
         if (userErr || !caller) {
