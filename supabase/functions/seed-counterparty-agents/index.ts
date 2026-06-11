@@ -894,14 +894,21 @@ Deno.serve(async (req) => {
     }
 
     if (action === "seed-all" || action === "clear-all") {
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const jwt = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
-      const xAdmin = req.headers.get("x-admin-key") ?? "";
       let callerId: string | null = null;
-      console.log("seed auth check", { hasTarget: !!targetUserId, jwtLen: jwt.length, keyLen: serviceKey.length, jwtMatch: jwt === serviceKey, xAdminMatch: xAdmin === serviceKey });
-      if (targetUserId && (jwt === serviceKey || xAdmin === serviceKey)) {
+      // Decode JWT payload (no verification - gateway already verified)
+      let jwtRole: string | null = null;
+      try {
+        const payload = jwt.split(".")[1];
+        if (payload) {
+          const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+          jwtRole = decoded?.role ?? null;
+        }
+      } catch { /* not a JWT */ }
+      if (targetUserId && jwtRole === "service_role") {
         callerId = targetUserId;
       } else {
+
 
         const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
         const caller = userData?.user;
