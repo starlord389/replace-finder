@@ -49,7 +49,7 @@ export function useMatchActions(rel: Relationship, cb: Callbacks = {}) {
           toast({ title: "Document request sent" });
           return;
         case "start_reviewing_docs":
-          update({ reviewingDocs: true });
+          update({ reviewingDocs: true, reviewingDocsAt: new Date().toISOString() });
           toast({ title: "Marked Reviewing Docs" });
           return;
         case "mark_loi_sent":
@@ -57,7 +57,8 @@ export function useMatchActions(rel: Relationship, cb: Callbacks = {}) {
           toast({ title: "LOI / Offer logged" });
           return;
         case "mark_under_contract":
-          toast({ title: "Update under-contract status from the full match page." });
+          update({ underContractAt: new Date().toISOString() });
+          toast({ title: "Marked Under Contract" });
           return;
         case "archive":
           update({ archivedAt: new Date().toISOString() });

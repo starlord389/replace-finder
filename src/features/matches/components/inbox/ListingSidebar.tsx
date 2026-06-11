@@ -1,45 +1,77 @@
-import { TrendingUp, DollarSign, Building, Users, ArrowRight, Shield, MessageSquare, Settings2, Sparkles, Send, Handshake, XCircle } from "lucide-react";
+import {
+  TrendingUp, DollarSign, ArrowRight, Shield, MessageSquare, History,
+  Sparkles, Send, Handshake, XCircle, HelpCircle, Bell, Phone, FileText,
+  FileCheck, FileSignature, Archive, RotateCcw, Scale, PiggyBank,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { currency, scoreDotClass } from "../helpers";
-import { financialMetrics, UI_STATUS_LABEL, UI_STATUS_CLASS } from "./inboxHelpers";
+import { financialMetrics, STATUS_HINTS, UI_STATUS_LABEL, UI_STATUS_CLASS } from "./inboxHelpers";
+import { LifecycleTracker } from "./LifecycleTracker";
 import { useMatchActions } from "./useMatchActions";
 
 interface Props {
   rel: Relationship;
-  onOpenWorkflow: () => void;
+  onOpenHistory: () => void;
   onJumpToMatch: () => void;
   onOpenConversation?: () => void;
+  onSendToClient?: () => void;
 }
 
-const PRIMARY_ICONS: Record<string, typeof Send> = {
+const ACTION_ICONS: Record<string, LucideIcon> = {
   send_to_client: Send,
+  request_seller_details: HelpCircle,
+  not_a_fit: XCircle,
   mark_interested: Sparkles,
+  follow_up_client: Bell,
+  client_passed: XCircle,
   request_agent_intro: Handshake,
+  send_client_questions: HelpCircle,
   open_conversation: MessageSquare,
+  schedule_call: Phone,
+  request_documents: FileText,
+  start_reviewing_docs: FileCheck,
+  mark_loi_sent: FileSignature,
+  mark_under_contract: FileSignature,
+  archive: Archive,
+  reactivate: RotateCcw,
 };
 
-export function ListingSidebar({ rel, onOpenWorkflow, onJumpToMatch, onOpenConversation }: Props) {
+function prettyBoot(bootStatus: string | null): string | null {
+  switch (bootStatus) {
+    case "no_boot": return "No boot";
+    case "minor_boot": return "Minor boot";
+    case "significant_boot": return "Significant";
+    default: return null;
+  }
+}
+
+export function ListingSidebar({ rel, onOpenHistory, onJumpToMatch, onOpenConversation, onSendToClient }: Props) {
   const all = financialMetrics(rel);
   const cap = all.find((m) => m.key === "cap")?.value ?? "—";
   const noi = all.find((m) => m.key === "noi")?.value ?? "—";
-  const occ = all.find((m) => m.key === "occupancy")?.value ?? "—";
 
-  const seed = rel.matchId.charCodeAt(0) || 7;
-  const totalUnits = ((seed % 12) + 4);
-
-  const { status, primary, handle, busy } = useMatchActions(rel, {
+  const { status, primary, secondary, handle, busy } = useMatchActions(rel, {
     onOpenConversation,
+    onSendToClient,
   });
 
-  const PrimaryIcon = primary ? PRIMARY_ICONS[primary.id] ?? ArrowRight : null;
+  const PrimaryIcon = primary ? ACTION_ICONS[primary.id] ?? ArrowRight : null;
+  const constructive = secondary.filter((a) => a.tone !== "destructive");
+  const destructive = secondary.filter((a) => a.tone === "destructive");
 
-  const kpis = [
+  // Real per-deal numbers only — no invented placeholders
+  const boot = prettyBoot(rel.bootStatus);
+  const roeUplift = rel.roeImprovementPp != null
+    ? `${rel.roeImprovementPp >= 0 ? "+" : ""}${rel.roeImprovementPp.toFixed(1)}pp`
+    : null;
+  const kpis: Array<{ icon: LucideIcon; label: string; value: string; tint: string }> = [
     { icon: TrendingUp, label: "Cap Rate", value: cap, tint: "text-emerald-600" },
     { icon: DollarSign, label: "NOI", value: noi, tint: "text-primary" },
-    { icon: Building, label: "Units", value: String(totalUnits), tint: "text-foreground" },
-    { icon: Users, label: "Occupied", value: occ, tint: "text-foreground" },
+    ...(roeUplift ? [{ icon: PiggyBank, label: "Return Uplift", value: roeUplift, tint: "text-emerald-600" }] : []),
+    ...(boot ? [{ icon: Scale, label: "Boot Exposure", value: boot, tint: "text-foreground" }] : []),
   ];
 
   // Anonymized brokerage initials only — no PII surfaced
@@ -77,19 +109,14 @@ export function ListingSidebar({ rel, onOpenWorkflow, onJumpToMatch, onOpenConve
 
         <div className="my-5 border-t border-border" />
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 gap-2.5">
-          {kpis.map((k) => (
-            <div key={k.label} className="rounded-xl bg-muted/50 px-3 py-3 text-center">
-              <k.icon className={cn("mx-auto h-4 w-4", k.tint)} />
-              <p className="mt-1.5 text-lg font-bold leading-tight text-foreground">{k.value}</p>
-              <p className="text-[11px] text-muted-foreground">{k.label}</p>
-            </div>
-          ))}
-        </div>
+        {/* Where this deal is */}
+        <LifecycleTracker status={status} variant="compact" />
+        <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
+          {STATUS_HINTS[status]}
+        </p>
 
-        {/* Primary decision CTA */}
-        <div className="mt-5 space-y-2">
+        {/* What to do next */}
+        <div className="mt-4 space-y-2">
           {primary ? (
             <Button
               className="h-12 w-full justify-center gap-2 text-sm font-semibold"
@@ -106,30 +133,65 @@ export function ListingSidebar({ rel, onOpenWorkflow, onJumpToMatch, onOpenConve
             </div>
           )}
 
-          {/* Pass / not a fit — only when still in early stages */}
-          {(status === "new" || status === "sent_to_client" || status === "client_interested") && (
-            <Button
-              variant="ghost"
-              className="h-10 w-full justify-center gap-1.5 text-xs font-medium text-muted-foreground hover:bg-destructive/5 hover:text-destructive"
-              onClick={() => handle("not_a_fit", "Not a Fit")}
-              disabled={busy === "not_a_fit"}
-            >
-              <XCircle className="h-3.5 w-3.5" />
-              Not a fit for {rel.clientName?.split(" ")[0] ?? "this client"}
-            </Button>
-          )}
+          {constructive.map((a) => {
+            const Icon = ACTION_ICONS[a.id];
+            return (
+              <Button
+                key={a.id}
+                variant="outline"
+                className="h-9 w-full justify-center gap-1.5 text-xs font-medium"
+                onClick={() => handle(a.id, a.label)}
+                disabled={busy === a.id}
+              >
+                {Icon && <Icon className="h-3.5 w-3.5" />}
+                {a.label}
+              </Button>
+            );
+          })}
 
           {/* Always-available conversation shortcut once connected */}
           {(status === "agent_connected" || status === "reviewing_docs" || status === "loi" || status === "under_contract") && primary?.id !== "open_conversation" && (
             <Button
               variant="outline"
-              className="h-10 w-full justify-center gap-1.5 text-xs font-semibold"
+              className="h-9 w-full justify-center gap-1.5 text-xs font-semibold"
               onClick={onOpenConversation}
             >
               <MessageSquare className="h-3.5 w-3.5" />
               Open conversation
             </Button>
           )}
+
+          {destructive.map((a) => {
+            const Icon = ACTION_ICONS[a.id];
+            const label = a.id === "not_a_fit" && rel.clientName
+              ? `Not a fit for ${rel.clientName.split(" ")[0]}`
+              : a.label;
+            return (
+              <Button
+                key={a.id}
+                variant="ghost"
+                className="h-9 w-full justify-center gap-1.5 text-xs font-medium text-muted-foreground hover:bg-destructive/5 hover:text-destructive"
+                onClick={() => handle(a.id, a.label)}
+                disabled={busy === a.id}
+              >
+                {Icon && <Icon className="h-3.5 w-3.5" />}
+                {label}
+              </Button>
+            );
+          })}
+        </div>
+
+        <div className="my-5 border-t border-border" />
+
+        {/* Deal numbers — real values only */}
+        <div className="grid grid-cols-2 gap-2.5">
+          {kpis.map((k) => (
+            <div key={k.label} className="rounded-xl bg-muted/50 px-3 py-3 text-center">
+              <k.icon className={cn("mx-auto h-4 w-4", k.tint)} />
+              <p className="mt-1.5 text-lg font-bold leading-tight text-foreground">{k.value}</p>
+              <p className="text-[11px] text-muted-foreground">{k.label}</p>
+            </div>
+          ))}
         </div>
 
         {/* Match score callout */}
@@ -187,10 +249,10 @@ export function ListingSidebar({ rel, onOpenWorkflow, onJumpToMatch, onOpenConve
         <Button
           variant="ghost"
           className="w-full justify-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
-          onClick={onOpenWorkflow}
+          onClick={onOpenHistory}
         >
-          <Settings2 className="h-3.5 w-3.5" />
-          More actions & lifecycle
+          <History className="h-3.5 w-3.5" />
+          History &amp; notes
         </Button>
       </div>
     </aside>

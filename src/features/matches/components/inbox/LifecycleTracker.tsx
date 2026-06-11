@@ -13,13 +13,13 @@ export function LifecycleTracker({ status, variant = "compact" }: Props) {
 
   if (variant === "compact") {
     return (
-      <div className="rounded-xl border bg-card p-3">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Lifecycle
-          </h3>
-          <span className="text-[11px] font-medium text-foreground">
-            {isArchived ? "Archived" : UI_STATUS_LABEL[status]}
+      <div>
+        <div className="mb-2 flex items-baseline justify-between gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {isArchived ? "Archived" : `Stage ${currentIdx + 1} of ${LIFECYCLE_ORDER.length}`}
+          </span>
+          <span className="truncate text-xs font-semibold text-foreground">
+            {isArchived ? "—" : UI_STATUS_LABEL[status]}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -31,7 +31,7 @@ export function LifecycleTracker({ status, variant = "compact" }: Props) {
                 key={s}
                 title={UI_STATUS_LABEL[s]}
                 className={cn(
-                  "h-1.5 flex-1 rounded-full",
+                  "h-1.5 flex-1 rounded-full transition-colors",
                   done && "bg-emerald-500",
                   current && "bg-primary",
                   !done && !current && "bg-muted",

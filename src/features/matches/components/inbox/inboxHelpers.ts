@@ -47,6 +47,19 @@ export const LIFECYCLE_ORDER: UiStatus[] = [
   "closed",
 ];
 
+/** One-line guidance shown under the stage strip — tells the agent what the stage means for them. */
+export const STATUS_HINTS: Record<UiStatus, string> = {
+  new: "Fresh match — share it with your client to gauge interest.",
+  sent_to_client: "Waiting on your client. Nudge them or log their response.",
+  client_interested: "Client is in. Request an intro to the listing agent.",
+  agent_connected: "You're connected — keep the conversation moving.",
+  reviewing_docs: "Diligence underway. Move to LOI when ready.",
+  loi: "Offer on the table. Update once it goes under contract.",
+  under_contract: "Under contract. Track to close in the conversation.",
+  closed: "Deal closed. Nice work.",
+  archived: "Archived. Reactivate to resume work on this match.",
+};
+
 export const SIDE_EXIT_STATUSES: UiStatus[] = ["archived"];
 
 export function deriveUiStatus(rel: Relationship, local: MatchLocalState): UiStatus {
@@ -55,7 +68,7 @@ export function deriveUiStatus(rel: Relationship, local: MatchLocalState): UiSta
   }
   if (rel.stage === "closed_won") return "closed";
   if (rel.stage === "closed_lost") return "archived";
-  if (rel.underContractAt) return "under_contract";
+  if (rel.underContractAt || local.underContractAt) return "under_contract";
   if (local.loiSentAt) return "loi";
   if (local.reviewingDocs) return "reviewing_docs";
   if (rel.stage === "connected" || rel.stage === "conversing") return "agent_connected";

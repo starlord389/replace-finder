@@ -9,7 +9,9 @@ export interface MatchLocalState {
   sentToClientAt: string | null;
   clientInterestedAt: string | null;
   reviewingDocs: boolean;
+  reviewingDocsAt: string | null;
   loiSentAt: string | null;
+  underContractAt: string | null;
   archivedAt: string | null;
   notFitAt: string | null;
   clientPassedAt: string | null;
@@ -21,7 +23,9 @@ const DEFAULT: MatchLocalState = {
   sentToClientAt: null,
   clientInterestedAt: null,
   reviewingDocs: false,
+  reviewingDocsAt: null,
   loiSentAt: null,
+  underContractAt: null,
   archivedAt: null,
   notFitAt: null,
   clientPassedAt: null,

@@ -1,6 +1,4 @@
 import { useState, useMemo } from "react";
-import { Settings2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
@@ -14,7 +12,8 @@ import { FinancialsTab } from "./tabs/FinancialsTab";
 import { LocationTab } from "./tabs/LocationTab";
 import { MatchTab } from "./tabs/MatchTab";
 import { DocsTab } from "./tabs/DocsTab";
-import { MatchWorkflowDrawer } from "./MatchWorkflowDrawer";
+import { MatchHistorySheet } from "./MatchHistorySheet";
+import { SendToClientDialog } from "./SendToClientDialog";
 import { AgentCommsCard } from "./AgentCommsCard";
 import { deriveUiStatus } from "./inboxHelpers";
 import { useMatchLocalState } from "./useMatchLocalState";
@@ -26,7 +25,8 @@ interface Props {
 }
 
 export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
   const [tab, setTab] = useState<string>("overview");
   const accent = getClientAccent(rel.clientId);
   const { state } = useMatchLocalState(rel.matchId);
@@ -115,26 +115,17 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
           <div className="mt-8 lg:mt-0">
             <ListingSidebar
               rel={rel}
-              onOpenWorkflow={() => setDrawerOpen(true)}
+              onOpenHistory={() => setHistoryOpen(true)}
               onJumpToMatch={() => setTab("match")}
               onOpenConversation={() => setTab(conversationAvailable ? "conversation" : "overview")}
+              onSendToClient={() => setSendOpen(true)}
             />
           </div>
         </div>
-
-        {/* Floating workflow shortcut */}
-        <Button
-          variant="outline"
-          onClick={() => setDrawerOpen(true)}
-          className="fixed bottom-6 right-6 z-20 h-11 gap-2 rounded-full bg-card/95 px-4 shadow-lg backdrop-blur lg:absolute lg:bottom-6 lg:right-6"
-          size="sm"
-        >
-          <Settings2 className="h-3.5 w-3.5" />
-          Lifecycle & history
-        </Button>
       </div>
 
-      <MatchWorkflowDrawer rel={rel} open={drawerOpen} onOpenChange={setDrawerOpen} />
+      <MatchHistorySheet rel={rel} open={historyOpen} onOpenChange={setHistoryOpen} />
+      <SendToClientDialog rel={rel} open={sendOpen} onOpenChange={setSendOpen} />
     </div>
   );
 }
