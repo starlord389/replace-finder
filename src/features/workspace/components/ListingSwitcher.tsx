@@ -370,10 +370,12 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                             : "bg-primary";
                     return (
                       <li key={l.id}>
-                        <Link
-                          to={`/agent/workspace/${l.id}`}
-                          className="group flex overflow-hidden rounded-md border bg-card shadow-sm transition-shadow hover:shadow-md"
+                        <button
+                          type="button"
+                          onClick={() => setPreviewListing(l)}
+                          className="group flex w-full overflow-hidden rounded-md border bg-card text-left shadow-sm transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         >
+
                           <div className="relative hidden w-64 shrink-0 overflow-hidden bg-muted sm:block">
                             <img
                               src={propertyImage(null, l.id)}
