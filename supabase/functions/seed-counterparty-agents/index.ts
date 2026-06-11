@@ -819,6 +819,8 @@ async function seedAll(admin: Admin, userId: string) {
       seller_exchange_id: null,
       status: "pending",
       initiated_by: "seller_agent",
+      facilitation_fee_agreed: false,
+
     },
     {
       match_id: matchFor(exWilson, crosspoint.propertyId).id,
