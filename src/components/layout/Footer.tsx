@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 
 const links = {
   Platform: [
-    { label: "How It Works", to: "/how-it-works" },
-    { label: "For Agents", to: "/signup" },
+    { label: "For Agents", to: "/agents" },
+    { label: "For Landlords", to: "/landlords" },
   ],
   Legal: [
     { label: "Terms of Service", to: "#" },

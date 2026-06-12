@@ -301,8 +301,8 @@ const NAVBAR_STYLE = `
 `;
 
 const MOBILE_NAV_LINKS = [
-  { label: "How It Works", href: "#process", scrollKey: "process" },
-  { label: "Features", href: "#feature", scrollKey: "feature" },
+  { label: "For Agents", href: "/agents" },
+  { label: "For Landlords", href: "/landlords" },
   { label: "Contact", href: "#contact", scrollKey: "contact" },
   { label: "Login", href: "/login" },
   { label: "Get Started", href: "/signup", primary: true },
@@ -2845,8 +2845,8 @@ type FooterPageLink = {
 };
 const FOOTER_PAGE_LINKS: readonly FooterPageLink[] = [
   { label: "Home", href: "/" },
-  { label: "How It Works", href: "#process", scrollKey: "process" },
-  { label: "Features", href: "#feature", scrollKey: "feature" },
+  { label: "For Agents", href: "/agents" },
+  { label: "For Landlords", href: "/landlords" },
   { label: "Contact", href: "#contact", scrollKey: "contact" },
   { label: "Login", href: "/login" },
   { label: "Get Started", href: "/signup" },
@@ -4575,8 +4575,8 @@ export default function Index() {
         string,
         { href: string; label?: string; scrollKey?: "process" | "feature" | "contact" }
       > = {
-        about: { href: "#process", label: "How It Works", scrollKey: "process" },
-        features: { href: "#feature", label: "Features", scrollKey: "feature" },
+        about: { href: "/agents", label: "For Agents" },
+        features: { href: "/landlords", label: "For Landlords" },
         pricing: { href: "#contact", label: "Contact", scrollKey: "contact" },
         "contact us": { href: "/signup", label: "Get Started" },
       };

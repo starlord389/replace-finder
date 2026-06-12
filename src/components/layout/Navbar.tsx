@@ -100,14 +100,12 @@ export default function Navbar() {
           {/* Center nav links */}
           <div className="hidden flex-1 items-center justify-center gap-0 md:flex">
             {PUBLIC_NAV_LINKS.map((link) => {
-              const active = isSectionNavActive(
-                location.pathname,
-                location.hash,
-                link.hash,
-              );
+              const active = link.hash
+                ? isSectionNavActive(location.pathname, location.hash, link.hash)
+                : location.pathname === link.to;
               return (
                 <Link
-                  key={link.hash}
+                  key={link.label}
                   to={link.to}
                   className={`${desktopLinkClass} ${
                     active ? "text-[#1d1d1d]" : secondaryDesktopText
@@ -192,14 +190,12 @@ export default function Navbar() {
           <div className="px-2 pb-2 pt-1 md:hidden">
             <div className="flex flex-col gap-2 border-t border-[#e8e5de] pt-3">
               {PUBLIC_NAV_LINKS.map((link) => {
-                const active = isSectionNavActive(
-                  location.pathname,
-                  location.hash,
-                  link.hash,
-                );
+                const active = link.hash
+                  ? isSectionNavActive(location.pathname, location.hash, link.hash)
+                  : location.pathname === link.to;
                 return (
                   <Link
-                    key={link.hash}
+                    key={link.label}
                     to={link.to}
                     className={mobileNavLinkClass(active)}
                   >

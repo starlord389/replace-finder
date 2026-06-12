@@ -9,17 +9,16 @@ export const PUBLIC_NAV_SECTION_HASHES = {
 export type PublicNavSectionHash =
   (typeof PUBLIC_NAV_SECTION_HASHES)[keyof typeof PUBLIC_NAV_SECTION_HASHES];
 
-export const PUBLIC_NAV_LINKS = [
-  {
-    label: "How It Works",
-    to: `${ROUTES.home}#${PUBLIC_NAV_SECTION_HASHES.process}`,
-    hash: PUBLIC_NAV_SECTION_HASHES.process,
-  },
-  {
-    label: "Features",
-    to: `${ROUTES.home}#${PUBLIC_NAV_SECTION_HASHES.feature}`,
-    hash: PUBLIC_NAV_SECTION_HASHES.feature,
-  },
+export type PublicNavLink = {
+  label: string;
+  to: string;
+  /** Present only for links that scroll to a homepage section. */
+  hash?: PublicNavSectionHash;
+};
+
+export const PUBLIC_NAV_LINKS: readonly PublicNavLink[] = [
+  { label: "For Agents", to: ROUTES.forAgents },
+  { label: "For Landlords", to: ROUTES.forLandlords },
   {
     label: "Contact",
     to: `${ROUTES.home}#${PUBLIC_NAV_SECTION_HASHES.contact}`,
