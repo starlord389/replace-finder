@@ -58,7 +58,7 @@ export default function Navbar() {
     "whitespace-nowrap px-1.5 py-1 text-[14px] font-medium tracking-[-0.02em] transition-colors";
   const secondaryDesktopText = "text-[#5d5d5d] hover:text-[#1d1d1d]";
   const primaryDesktopButton =
-    "flex items-center gap-1 whitespace-nowrap rounded-full bg-[#1d1d1d] py-1.5 pl-3.5 pr-1.5 text-[14px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black";
+    "flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#1d1d1d] py-2 pl-4 pr-2 text-[14px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black";
   const mobileNavLinkClass = (active: boolean) =>
     `flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
       active
@@ -80,7 +80,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="h-16" />
+      <div className="h-20" />
 
       <nav
         className={`fixed left-1/2 top-3 z-50 w-[calc(100%-1.5rem)] max-w-[752px] -translate-x-1/2 border border-[#e0ddd6] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)] sm:w-[calc(100%-2rem)] ${
@@ -88,7 +88,7 @@ export default function Navbar() {
         }`}
         aria-label="Main navigation"
       >
-        <div className="flex h-12 items-center justify-between px-3 sm:px-3.5">
+        <div className="flex h-[58px] items-center justify-between px-3 sm:px-3.5">
           {/* Logo */}
           <Link to={ROUTES.home} className="flex shrink-0 items-center gap-1.5">
             <ExchangeLogoIcon className="h-8 w-8 shrink-0" />
@@ -132,7 +132,7 @@ export default function Navbar() {
                   className={primaryDesktopButton}
                 >
                   Sign Out
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white">
                     <X className="h-3 w-3 text-[#1d1d1d]" />
                   </span>
                 </button>
@@ -150,7 +150,7 @@ export default function Navbar() {
                   className={primaryDesktopButton}
                 >
                   Get Started
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white">
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
