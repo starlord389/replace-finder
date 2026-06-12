@@ -14,6 +14,7 @@ import RequireGuest from "@/components/layout/RequireGuest";
 
 const Index = lazy(() => import("@/pages/Index"));
 const ForAgents = lazy(() => import("@/pages/ForAgents"));
+const ForLandlords = lazy(() => import("@/pages/ForLandlords"));
 const BookDemo = lazy(() => import("@/pages/BookDemo"));
 const Login = lazy(() => import("@/pages/auth/Login"));
 const Signup = lazy(() => import("@/pages/auth/Signup"));
@@ -72,6 +73,7 @@ const App = () => (
               <Route element={<PublicLayout />}>
                 <Route path={ROUTES.home} element={<Index />} />
                 <Route path={ROUTES.forAgents} element={<ForAgents />} />
+                <Route path={ROUTES.forLandlords} element={<ForLandlords />} />
                 <Route path={ROUTES.bookDemo} element={<BookDemo />} />
                 <Route path={ROUTES.login} element={<Login />} />
                 <Route path={ROUTES.signup} element={<Signup />} />

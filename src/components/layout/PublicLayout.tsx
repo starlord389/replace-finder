@@ -14,12 +14,14 @@ export default function PublicLayout() {
     pathname === ROUTES.forgotPassword ||
     pathname === ROUTES.resetPassword ||
     pathname === ROUTES.bookDemo ||
-    pathname === ROUTES.forAgents;
+    pathname === ROUTES.forAgents ||
+    pathname === ROUTES.forLandlords;
   const usesLandingFooter =
     pathname === ROUTES.signup ||
     pathname === ROUTES.login ||
     pathname === ROUTES.bookDemo ||
-    pathname === ROUTES.forAgents;
+    pathname === ROUTES.forAgents ||
+    pathname === ROUTES.forLandlords;
 
   return (
     <div
