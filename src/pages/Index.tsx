@@ -102,9 +102,17 @@ const NAVBAR_STYLE = `
     display: none !important;
   }
 
+  /* Nav labels grew (For Agents / For Landlords) — widen the pill so the
+     logo and Get Started button keep breathing room from the edges. */
+  @media (min-width: 1200px) {
+    [data-exchangeup-navbar="true"] {
+      width: 752px !important;
+    }
+  }
+
   @media (min-width: 810px) and (max-width: 1199.98px) {
     [data-exchangeup-navbar="true"] {
-      width: min(730px, calc(100vw - 40px)) !important;
+      width: min(752px, calc(100vw - 40px)) !important;
       max-width: calc(100vw - 40px) !important;
     }
 

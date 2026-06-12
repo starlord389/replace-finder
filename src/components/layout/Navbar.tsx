@@ -83,7 +83,7 @@ export default function Navbar() {
       <div className="h-16" />
 
       <nav
-        className={`fixed left-1/2 top-3 z-50 w-[calc(100%-1.5rem)] max-w-[730px] -translate-x-1/2 border border-[#e0ddd6] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)] sm:w-[calc(100%-2rem)] ${
+        className={`fixed left-1/2 top-3 z-50 w-[calc(100%-1.5rem)] max-w-[752px] -translate-x-1/2 border border-[#e0ddd6] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)] sm:w-[calc(100%-2rem)] ${
           mobileOpen ? "rounded-[28px]" : "rounded-full"
         }`}
         aria-label="Main navigation"
