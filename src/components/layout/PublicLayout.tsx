@@ -13,11 +13,13 @@ export default function PublicLayout() {
     pathname === ROUTES.login ||
     pathname === ROUTES.forgotPassword ||
     pathname === ROUTES.resetPassword ||
-    pathname === ROUTES.bookDemo;
+    pathname === ROUTES.bookDemo ||
+    pathname === ROUTES.forAgents;
   const usesLandingFooter =
     pathname === ROUTES.signup ||
     pathname === ROUTES.login ||
-    pathname === ROUTES.bookDemo;
+    pathname === ROUTES.bookDemo ||
+    pathname === ROUTES.forAgents;
 
   return (
     <div
