@@ -1308,6 +1308,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_invite_by_token: {
+        Args: { _token: string }
+        Returns: {
+          accepted_at: string
+          accepted_user_id: string
+          agent_brokerage_name: string
+          agent_full_name: string
+          agent_id: string
+          client_id: string
+          email: string
+          expires_at: string
+          id: string
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

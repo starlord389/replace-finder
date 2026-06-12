@@ -31,11 +31,8 @@ export default function AcceptInvite() {
       return;
     }
     (async () => {
-      const { data: inv } = await supabase
-        .from("client_invites")
-        .select("*")
-        .eq("token", token)
-        .maybeSingle();
+      const { data: invList } = await supabase.rpc("get_invite_by_token", { _token: token });
+      const inv = Array.isArray(invList) ? invList[0] : invList;
 
       if (!inv) {
         setError("This invite is invalid or has been removed.");
@@ -54,14 +51,8 @@ export default function AcceptInvite() {
       }
 
       setInvite(inv);
-
-      const { data: agent } = await supabase
-        .from("profiles")
-        .select("full_name, brokerage_name")
-        .eq("id", inv.agent_id)
-        .maybeSingle();
-      if (agent) {
-        setAgentName([agent.full_name, agent.brokerage_name].filter(Boolean).join(" · "));
+      if (inv.agent_full_name || inv.agent_brokerage_name) {
+        setAgentName([inv.agent_full_name, inv.agent_brokerage_name].filter(Boolean).join(" · "));
       }
 
       setLoading(false);
