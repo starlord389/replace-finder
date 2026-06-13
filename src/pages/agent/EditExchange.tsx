@@ -146,7 +146,7 @@ export default function EditExchange() {
         move_to_draft: "Exchange moved to draft.",
       };
       toast.success(messages[intent]);
-      navigate(`/agent/workspace/${id}`);
+      navigate("/agent/listings");
     } catch (err: any) {
       console.error("Update error:", err);
       toast.error("Failed to save: " + (err.message || "Unknown error"));
