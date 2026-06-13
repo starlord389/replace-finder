@@ -79,8 +79,6 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
         {/* Facts bar */}
         <ListingFactsBar rel={rel} />
 
-        {/* Main grid: content + sticky sidebar */}
-        <div className="px-5 py-6 lg:grid lg:grid-cols-[1fr_340px] lg:gap-8 lg:px-8 lg:py-8">
         {/* Main grid: content + sticky sidebar (sidebar hidden in preview mode) */}
         <div
           className={cn(
