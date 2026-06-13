@@ -69,7 +69,11 @@ export function ListingPreviewDialog({ listing, open, onOpenChange }: Props) {
   if (!listing) return null;
 
   const title = listing.propertyName || listing.address || "Untitled listing";
-  const hasProperty = !!listing.propertyId;
+  const hasProperty =
+    !!listing.propertyId ||
+    !!listing.propertyName ||
+    !!listing.address ||
+    listing.askingPrice != null;
   const isDraft = listing.status === "draft";
   const rel = hasProperty ? buildPreviewRel(listing) : null;
 
