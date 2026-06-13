@@ -44,8 +44,8 @@ export default function EditExchange() {
       if (cancelled) return;
 
       if (exErr || !ex) {
-        toast.error("Exchange not found");
-        navigate("/agent/exchanges");
+        toast.error("Listing not found");
+        navigate("/agent/listings");
         return;
       }
 
