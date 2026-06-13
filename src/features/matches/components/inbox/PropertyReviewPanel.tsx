@@ -22,9 +22,10 @@ interface Props {
   rel: Relationship;
   rank?: number | null;
   totalInScope?: number;
+  previewMode?: boolean;
 }
 
-export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
+export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = false }: Props) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
   const [tab, setTab] = useState<string>("overview");
@@ -32,16 +33,17 @@ export function PropertyReviewPanel({ rel, rank, totalInScope }: Props) {
   const { state } = useMatchLocalState(rel.matchId);
   const status = useMemo(() => deriveUiStatus(rel, state), [rel, state]);
   const conversationAvailable =
-    status === "in_conversation" ||
-    status === "loi" ||
-    status === "under_contract" ||
-    status === "closed";
+    !previewMode &&
+    (status === "in_conversation" ||
+      status === "loi" ||
+      status === "under_contract" ||
+      status === "closed");
 
   const tabs = [
     { v: "overview", label: "Overview" },
     { v: "financials", label: "Financials" },
     { v: "location", label: "Location" },
-    { v: "match", label: "Match" },
+    ...(previewMode ? [] : [{ v: "match", label: "Match" }]),
     ...(conversationAvailable ? [{ v: "conversation", label: "Conversation" }] : []),
     { v: "docs", label: "Docs" },
   ];
