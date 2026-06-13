@@ -398,8 +398,10 @@ export function ListingPreviewDialog({ listing, open, onOpenChange }: Props) {
               </Link>
             </Button>
             <Button size="sm" asChild>
-              <Link to={`/agent/workspace/${listing.id}`}>
-                Open workspace
+              <Link
+                to={`/agent/matches?${listing.clientId ? `client=${listing.clientId}&` : ""}listing=${listing.id}`}
+              >
+                View matches
               </Link>
             </Button>
           </div>
