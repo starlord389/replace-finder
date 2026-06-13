@@ -81,6 +81,13 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
 
         {/* Main grid: content + sticky sidebar */}
         <div className="px-5 py-6 lg:grid lg:grid-cols-[1fr_340px] lg:gap-8 lg:px-8 lg:py-8">
+        {/* Main grid: content + sticky sidebar (sidebar hidden in preview mode) */}
+        <div
+          className={cn(
+            "px-5 py-6 lg:gap-8 lg:px-8 lg:py-8",
+            previewMode ? "lg:px-8" : "lg:grid lg:grid-cols-[1fr_340px]",
+          )}
+        >
           <div className="min-w-0">
             <Tabs value={tab} onValueChange={setTab} className="w-full">
               <div className="sticky top-0 z-10 mb-6 border-b border-border bg-card/95 py-2 backdrop-blur">
@@ -103,7 +110,9 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
               <TabsContent value="overview" className="mt-0"><OverviewTab rel={rel} /></TabsContent>
               <TabsContent value="financials" className="mt-0"><FinancialsTab rel={rel} /></TabsContent>
               <TabsContent value="location" className="mt-0"><LocationTab rel={rel} /></TabsContent>
-              <TabsContent value="match" className="mt-0"><MatchTab rel={rel} rank={rank} totalInScope={totalInScope} /></TabsContent>
+              {!previewMode && (
+                <TabsContent value="match" className="mt-0"><MatchTab rel={rel} rank={rank} totalInScope={totalInScope} /></TabsContent>
+              )}
               {conversationAvailable && (
                 <TabsContent value="conversation" className="mt-0">
                   <div className="min-h-[520px]">
@@ -115,20 +124,26 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
             </Tabs>
           </div>
 
-          <div className="mt-8 lg:mt-0">
-            <ListingSidebar
-              rel={rel}
-              onOpenHistory={() => setHistoryOpen(true)}
-              onJumpToMatch={() => setTab("match")}
-              onOpenConversation={() => setTab(conversationAvailable ? "conversation" : "overview")}
-              onSendToClient={() => setSendOpen(true)}
-            />
-          </div>
+          {!previewMode && (
+            <div className="mt-8 lg:mt-0">
+              <ListingSidebar
+                rel={rel}
+                onOpenHistory={() => setHistoryOpen(true)}
+                onJumpToMatch={() => setTab("match")}
+                onOpenConversation={() => setTab(conversationAvailable ? "conversation" : "overview")}
+                onSendToClient={() => setSendOpen(true)}
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      <MatchHistorySheet rel={rel} open={historyOpen} onOpenChange={setHistoryOpen} />
-      <SendToClientDialog rel={rel} open={sendOpen} onOpenChange={setSendOpen} />
+      {!previewMode && (
+        <>
+          <MatchHistorySheet rel={rel} open={historyOpen} onOpenChange={setHistoryOpen} />
+          <SendToClientDialog rel={rel} open={sendOpen} onOpenChange={setSendOpen} />
+        </>
+      )}
     </div>
   );
 }
