@@ -234,6 +234,28 @@ export default function AgentMatches() {
         </div>
       </div>
 
+      {listingFilterId && listingFilterName && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+          <p className="text-xs text-foreground">
+            Showing matches for{" "}
+            <span className="font-semibold">{listingFilterName}</span>
+          </p>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 text-xs"
+            onClick={() => {
+              const next = new URLSearchParams(searchParams);
+              next.delete("listing");
+              next.delete("match");
+              setSearchParams(next);
+            }}
+          >
+            Clear
+          </Button>
+        </div>
+      )}
+
       {buyerRels.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed bg-card p-12 text-center">
           <InboxIcon className="mb-3 h-10 w-10 text-muted-foreground/40" />
