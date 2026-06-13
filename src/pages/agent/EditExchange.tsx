@@ -123,9 +123,37 @@ export default function EditExchange() {
     return () => { cancelled = true; };
   }, [id, user, navigate]);
 
+  function validatePublish(d: WizardState): { valid: boolean; firstInvalidStep: number; message: string } {
+    if (!d.selectedClientId) return { valid: false, firstInvalidStep: 1, message: "Select a client before publishing." };
+
+    const p = d.property;
+    if (!p.address.trim() || !p.city.trim() || !p.state || !p.zip.trim() || !p.asset_type) {
+      return { valid: false, firstInvalidStep: 2, message: "Fill in all required property fields before publishing." };
+    }
+
+    const f = d.financials;
+    const askingPrice = parseCurrency(f.asking_price);
+    if (!f.asking_price || askingPrice === null || askingPrice <= 0) {
+      return { valid: false, firstInvalidStep: 2, message: "Asking price is required before publishing." };
+    }
+    const noi = parseCurrency(f.noi);
+    if (!f.noi || noi === null || noi < 0) {
+      return { valid: false, firstInvalidStep: 2, message: "NOI is required before publishing." };
+    }
+    const occupancy = parseCurrency(f.occupancy_rate);
+    if (!f.occupancy_rate || occupancy === null || occupancy < 0 || occupancy > 100) {
+      return { valid: false, firstInvalidStep: 2, message: "Occupancy rate is required before publishing." };
+    }
+    const loanBalance = parseCurrency(f.loan_balance);
+    if (f.loan_balance === "" || loanBalance === null || loanBalance < 0) {
+      return { valid: false, firstInvalidStep: 2, message: "Loan balance is required before publishing (enter 0 if free and clear)." };
+    }
+
+    return { valid: true, firstInvalidStep: 1, message: "" };
+  }
+
   const handleSubmit = async (primaryAction: boolean) => {
     if (!id) return;
-    setSaving(true);
 
     // Determine intent based on current status & button pressed
     // Draft: secondary=save_draft, primary(true)=publish
@@ -137,6 +165,16 @@ export default function EditExchange() {
       intent = primaryAction ? "save_active" : "move_to_draft";
     }
 
+    if (intent === "publish" || intent === "save_active") {
+      const check = validatePublish(data);
+      if (!check.valid) {
+        toast.error(check.message);
+        setStep(check.firstInvalidStep);
+        return;
+      }
+    }
+
+    setSaving(true);
     try {
       await updateExchange.mutateAsync({ exchangeId: id, intent, data });
       const messages: Record<typeof intent, string> = {
