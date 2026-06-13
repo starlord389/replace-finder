@@ -235,17 +235,23 @@ export default function AgentTopNav() {
                     </p>
                   </div>
                   <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-                    {PRIMARY_NAV.map((item) => (
-                      <NavLink
-                        key={item.url}
-                        to={item.url}
-                        end={item.end}
-                        className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                        activeClassName="bg-primary/10 text-primary"
-                      >
-                        {item.title}
-                      </NavLink>
-                    ))}
+                    {PRIMARY_NAV.map((item) => {
+                      const forcedActive = item.activeMatch?.test(location.pathname);
+                      return (
+                        <NavLink
+                          key={item.url}
+                          to={item.url}
+                          end={item.end}
+                          className={cn(
+                            "flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
+                            forcedActive && "bg-primary/10 text-primary",
+                          )}
+                          activeClassName="bg-primary/10 text-primary"
+                        >
+                          {item.title}
+                        </NavLink>
+                      );
+                    })}
                     <Link
                       to="/agent/clients/new"
                       className="mt-2 flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
