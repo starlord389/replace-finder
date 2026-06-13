@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { WizardState, initialWizardState, parseCurrency } from "@/lib/exchangeWizardTypes";
 import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
