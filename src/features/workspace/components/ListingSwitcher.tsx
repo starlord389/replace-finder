@@ -333,22 +333,24 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
           No listings match your filters.
         </p>
       ) : (
-        <div className="space-y-12">
+        <div className="space-y-8">
           {groups.map((g) => {
             const accent = getClientAccent(g.clientId);
             return (
-              <section key={g.clientId ?? "_unassigned"}>
-                <div className="mb-5 flex items-center gap-2.5 border-b border-border/60 pb-2.5">
-                  <span className={cn("h-2 w-2 rounded-full", accent.dot)} />
-                  <h2 className="text-[15px] font-semibold tracking-tight text-foreground">
-                    {g.clientName}
-                  </h2>
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {g.items.length} {g.items.length === 1 ? "listing" : "listings"}
-                  </span>
-                </div>
+              <section key={g.clientId ?? "_unassigned"} className="space-y-3">
+                <header className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className={cn("h-2 w-2 rounded-full", accent.dot)} />
+                    <h2 className="text-[13px] font-semibold tracking-tight text-foreground">
+                      {g.clientName}
+                    </h2>
+                    <span className="rounded-full border border-border/60 bg-muted/50 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      {g.items.length} {g.items.length === 1 ? "listing" : "listings"}
+                    </span>
+                  </div>
+                </header>
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="space-y-2">
                   {g.items.map((l) => {
                     const title =
                       l.propertyName ||
@@ -360,63 +362,77 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                       ? (ASSET_TYPE_LABELS as Record<string, string>)[l.assetType] ?? l.assetType
                       : null;
                     const statusLabel = EXCHANGE_STATUS_LABELS[l.status] ?? l.status;
-                    const statusDot =
-                      l.status === "closing"
-                        ? "bg-amber-500"
-                        : l.status === "identification"
-                          ? "bg-emerald-500"
-                          : l.status === "draft"
-                            ? "bg-muted-foreground/40"
-                            : "bg-primary";
+                    const meta: { label: string; value: string }[] = [];
+                    if (statusLabel) meta.push({ label: "Status", value: statusLabel });
+                    if (isLast) meta.push({ label: "Activity", value: "Last viewed" });
                     return (
                       <button
                         key={l.id}
                         type="button"
                         onClick={() => setPreviewListing(l)}
-                        className="group flex flex-col overflow-hidden rounded-xl border border-border/70 bg-card text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        className="group relative flex w-full items-center gap-4 rounded-xl border border-border/70 bg-card p-3 text-left transition-all duration-200 hover:border-primary/40 hover:shadow-[0_8px_20px_-12px_rgba(37,99,235,0.15)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                       >
-                        <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                        <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-lg bg-muted">
                           <img
                             src={propertyImage(null, l.id)}
                             alt=""
                             loading="lazy"
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            className="h-full w-full object-cover"
                           />
-                          <div className="absolute left-3 top-3">
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/85 px-2 py-1 text-xs font-medium text-foreground backdrop-blur">
-                              <span className={cn("h-1.5 w-1.5 rounded-full", statusDot)} />
+                          <div className="absolute left-1.5 top-1.5">
+                            <span className="rounded border border-border/60 bg-background/95 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-foreground shadow-sm backdrop-blur-sm">
                               {statusLabel}
                             </span>
                           </div>
-                          {isLast && (
-                            <div className="absolute right-3 top-3">
-                              <span className="inline-flex items-center rounded-full bg-primary px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
-                                Last viewed
-                              </span>
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3 className="truncate text-sm font-bold text-foreground transition-colors group-hover:text-primary">
+                                {title}
+                              </h3>
+                              {loc && (
+                                <p className="mt-0.5 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <MapPin className="h-3 w-3 shrink-0" />
+                                  <span className="truncate">{loc}</span>
+                                </p>
+                              )}
+                            </div>
+                            <div className="shrink-0 text-right">
+                              <p className="text-base font-bold tabular-nums text-foreground">
+                                {l.askingPrice != null ? fmtPrice(l.askingPrice) : "—"}
+                              </p>
+                              {assetLabel && (
+                                <p className="mt-1 inline-block rounded border border-primary/10 bg-primary/5 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                                  {assetLabel}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {meta.length > 0 && (
+                            <div className="mt-2.5 flex items-center gap-4">
+                              {meta.map((m, idx) => (
+                                <div key={m.label} className="flex items-center gap-4">
+                                  {idx > 0 && <span className="h-3 w-px bg-border" />}
+                                  <div className="flex items-baseline gap-1.5">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                      {m.label}
+                                    </span>
+                                    <span className="text-xs font-semibold text-foreground/80">
+                                      {m.value}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
 
-                        <div className="flex flex-1 flex-col gap-3 p-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <h3 className="line-clamp-1 text-[15px] font-semibold tracking-tight text-foreground">
-                              {title}
-                            </h3>
-                            <p className="shrink-0 text-[15px] font-semibold tabular-nums text-foreground">
-                              {l.askingPrice != null ? fmtPrice(l.askingPrice) : "—"}
-                            </p>
-                          </div>
-                          {loc && (
-                            <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                              <MapPin className="h-3.5 w-3.5 shrink-0" />
-                              <span className="line-clamp-1">{loc}</span>
-                            </p>
-                          )}
-                          <div className="mt-auto flex items-center justify-between border-t border-border/60 pt-3">
-                            <span className="text-xs text-muted-foreground">
-                              {assetLabel ?? "—"}
-                            </span>
-                            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                        <div className="shrink-0 px-1">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground/50 transition-all group-hover:bg-primary/10 group-hover:text-primary">
+                            <ChevronRight className="h-5 w-5" />
                           </div>
                         </div>
                       </button>
