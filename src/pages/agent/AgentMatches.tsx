@@ -77,12 +77,15 @@ export default function AgentMatches() {
   const listingFilterId = searchParams.get("listing");
   const listingFilterName = useMemo(() => {
     if (!listingFilterId) return null;
-    for (const c of clientGroups) {
-      const l = c.listings.find((x) => x.id === listingFilterId);
-      if (l) return l.name;
-    }
-    return null;
-  }, [clientFilterId_unused_placeholder => null, clientGroups, listingFilterId]);
+    const l = agentListings.find((x) => x.id === listingFilterId);
+    if (!l) return null;
+    return (
+      l.propertyName ||
+      l.address ||
+      [l.city, l.state].filter(Boolean).join(", ") ||
+      "this listing"
+    );
+  }, [agentListings, listingFilterId]);
 
   const scopedRels = useMemo(() => {
     let rels = buyerRels;
