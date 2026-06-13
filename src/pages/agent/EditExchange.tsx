@@ -163,9 +163,18 @@ export default function EditExchange() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Edit Exchange</h1>
-        <p className="text-sm text-muted-foreground">Update details for {clientName || "this exchange"}.</p>
+      <div className="space-y-3">
+        <Link
+          to="/agent/listings"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to listings
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Edit listing</h1>
+          <p className="text-sm text-muted-foreground">Update details for {clientName || "this listing"}.</p>
+        </div>
       </div>
 
       <nav className="flex items-center gap-1">
