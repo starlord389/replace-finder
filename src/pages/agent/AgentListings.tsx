@@ -43,7 +43,7 @@ export default function AgentListings() {
           </Button>
         </div>
       ) : (
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto w-full max-w-7xl">
           <ListingSwitcher listings={listings} />
         </div>
       )}
