@@ -234,7 +234,7 @@ export default function EditExchange() {
           onSubmit={handleSubmit}
           saving={saving}
           mode={reviewMode}
-          onCancel={() => navigate(`/agent/workspace/${id}`)}
+          onCancel={() => navigate("/agent/listings")}
         />
       )}
     </div>
