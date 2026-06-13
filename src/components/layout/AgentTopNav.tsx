@@ -23,6 +23,7 @@ interface NavItem {
   title: string;
   url: string;
   end?: boolean;
+  activeMatch?: RegExp;
 }
 
 const PRIMARY_NAV: NavItem[] = [
@@ -30,7 +31,11 @@ const PRIMARY_NAV: NavItem[] = [
   { title: "Dashboard", url: "/agent/dashboard", end: true },
   { title: "My Clients", url: "/agent/clients" },
   { title: "Pipeline", url: "/agent/pipeline" },
-  { title: "Listings", url: "/agent/listings" },
+  {
+    title: "Listings",
+    url: "/agent/listings",
+    activeMatch: /^\/agent\/(listings|exchanges\/[^/]+\/edit)/,
+  },
   { title: "Matches", url: "/agent/matches" },
 ];
 
@@ -147,17 +152,23 @@ export default function AgentTopNav() {
 
         {/* Desktop primary nav */}
         <nav className="hidden flex-1 items-center gap-1 md:flex">
-          {PRIMARY_NAV.map((item) => (
-            <NavLink
-              key={item.url}
-              to={item.url}
-              end={item.end}
-              className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              activeClassName="bg-primary/10 text-primary"
-            >
-              {item.title}
-            </NavLink>
-          ))}
+          {PRIMARY_NAV.map((item) => {
+            const forcedActive = item.activeMatch?.test(location.pathname);
+            return (
+              <NavLink
+                key={item.url}
+                to={item.url}
+                end={item.end}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  forcedActive && "bg-primary/10 text-primary",
+                )}
+                activeClassName="bg-primary/10 text-primary"
+              >
+                {item.title}
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
@@ -224,17 +235,23 @@ export default function AgentTopNav() {
                     </p>
                   </div>
                   <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-                    {PRIMARY_NAV.map((item) => (
-                      <NavLink
-                        key={item.url}
-                        to={item.url}
-                        end={item.end}
-                        className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                        activeClassName="bg-primary/10 text-primary"
-                      >
-                        {item.title}
-                      </NavLink>
-                    ))}
+                    {PRIMARY_NAV.map((item) => {
+                      const forcedActive = item.activeMatch?.test(location.pathname);
+                      return (
+                        <NavLink
+                          key={item.url}
+                          to={item.url}
+                          end={item.end}
+                          className={cn(
+                            "flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
+                            forcedActive && "bg-primary/10 text-primary",
+                          )}
+                          activeClassName="bg-primary/10 text-primary"
+                        >
+                          {item.title}
+                        </NavLink>
+                      );
+                    })}
                     <Link
                       to="/agent/clients/new"
                       className="mt-2 flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"

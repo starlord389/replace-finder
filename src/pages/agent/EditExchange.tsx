@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Check } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { WizardState, initialWizardState } from "@/lib/exchangeWizardTypes";
 import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
@@ -44,8 +44,8 @@ export default function EditExchange() {
       if (cancelled) return;
 
       if (exErr || !ex) {
-        toast.error("Exchange not found");
-        navigate("/agent/exchanges");
+        toast.error("Listing not found");
+        navigate("/agent/listings");
         return;
       }
 
@@ -146,7 +146,7 @@ export default function EditExchange() {
         move_to_draft: "Exchange moved to draft.",
       };
       toast.success(messages[intent]);
-      navigate(`/agent/workspace/${id}`);
+      navigate("/agent/listings");
     } catch (err: any) {
       console.error("Update error:", err);
       toast.error("Failed to save: " + (err.message || "Unknown error"));
@@ -163,9 +163,18 @@ export default function EditExchange() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Edit Exchange</h1>
-        <p className="text-sm text-muted-foreground">Update details for {clientName || "this exchange"}.</p>
+      <div className="space-y-3">
+        <Link
+          to="/agent/listings"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to listings
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Edit listing</h1>
+          <p className="text-sm text-muted-foreground">Update details for {clientName || "this listing"}.</p>
+        </div>
       </div>
 
       <nav className="flex items-center gap-1">
@@ -225,7 +234,7 @@ export default function EditExchange() {
           onSubmit={handleSubmit}
           saving={saving}
           mode={reviewMode}
-          onCancel={() => navigate(`/agent/workspace/${id}`)}
+          onCancel={() => navigate("/agent/listings")}
         />
       )}
     </div>
