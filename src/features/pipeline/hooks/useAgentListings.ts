@@ -65,7 +65,6 @@ async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
       status: r.status,
       createdAt: r.created_at,
       propertyId: r.relinquished_property_id,
-      createdAt: r.created_at,
       clientId: r.client_id,
       clientName: r.agent_clients?.client_name ?? null,
       propertyName: p?.property_name ?? null,
