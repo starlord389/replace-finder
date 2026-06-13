@@ -23,6 +23,7 @@ interface NavItem {
   title: string;
   url: string;
   end?: boolean;
+  activeMatch?: RegExp;
 }
 
 const PRIMARY_NAV: NavItem[] = [
@@ -30,7 +31,11 @@ const PRIMARY_NAV: NavItem[] = [
   { title: "Dashboard", url: "/agent/dashboard", end: true },
   { title: "My Clients", url: "/agent/clients" },
   { title: "Pipeline", url: "/agent/pipeline" },
-  { title: "Listings", url: "/agent/listings" },
+  {
+    title: "Listings",
+    url: "/agent/listings",
+    activeMatch: /^\/agent\/(listings|exchanges\/[^/]+\/edit)/,
+  },
   { title: "Matches", url: "/agent/matches" },
 ];
 
