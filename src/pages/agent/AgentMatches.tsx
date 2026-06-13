@@ -74,10 +74,22 @@ export default function AgentMatches() {
     [clientGroups, scopeClientId],
   );
 
+  const listingFilterId = searchParams.get("listing");
+  const listingFilterName = useMemo(() => {
+    if (!listingFilterId) return null;
+    for (const c of clientGroups) {
+      const l = c.listings.find((x) => x.id === listingFilterId);
+      if (l) return l.name;
+    }
+    return null;
+  }, [clientFilterId_unused_placeholder => null, clientGroups, listingFilterId]);
+
   const scopedRels = useMemo(() => {
-    if (!scopeClientId) return buyerRels;
-    return buyerRels.filter((r) => r.clientId === scopeClientId);
-  }, [buyerRels, scopeClientId]);
+    let rels = buyerRels;
+    if (scopeClientId) rels = rels.filter((r) => r.clientId === scopeClientId);
+    if (listingFilterId) rels = rels.filter((r) => r.propertyId === listingFilterId);
+    return rels;
+  }, [buyerRels, scopeClientId, listingFilterId]);
 
   // Filter / sort / search state
   const [search, setSearch] = useState("");
