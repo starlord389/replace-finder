@@ -1,45 +1,47 @@
-## Issues
+## Goal
 
-The Edit Listing page (`/agent/exchanges/:id/edit`) feels disconnected from the rest of the app:
+Inside the editor (`/agent/exchanges/:id/edit`), let the user freely jump between the four step tabs — **Client**, **Property & Financials**, **Criteria**, **Review** — instead of being gated to "completed/current/next" only. Required-field enforcement happens at **publish/save time**, not when switching tabs.
 
-1. The top nav's **Listings** item is not highlighted while editing a listing, because the route is under `/agent/exchanges/…/edit`, not `/agent/listings`.
-2. There is **no way back** to the listing / preview from the edit page.
-3. The page is titled "Edit Exchange" and on save it navigates to `/agent/workspace/:id`, which is the removed workspace area.
+## Behavior
 
-## Fix
+- Clicking any step tab always switches to that step. The current step shows the primary fill; other steps show the standard muted style (no green checks gating navigation).
+- Navigating away from a step does **not** validate. Inline error messages set by a step's own `validate()` stay if already triggered, but tab clicks bypass them.
+- Required-field enforcement runs only when the primary submit fires (`handleSubmit(true)` in `EditExchange.tsx`) — i.e. **Publish** (draft → active) and **Save** on an active listing. Secondary action (`Save as draft` / `Move to draft`) skips validation, as today.
+- On submit, run a single validator over the full `WizardState`. If any required field is missing, show a toast, set `step` to the first invalid step, and abort the save.
 
-### 1. `src/components/layout/AgentTopNav.tsx` — highlight Listings on edit routes
+## Required fields at publish
 
-Add an `activeMatch?: RegExp` field to the `NavItem` shape. For the Listings item, set `activeMatch: /^\/agent\/(listings|exchanges\/[^/]+\/edit)/`.
+Mirror the existing `StepPropertyAndFinancials.validate()`:
 
-In the rendered nav, read `useLocation()` and, when an item has `activeMatch`, force the active classes manually instead of relying on `NavLink`'s built-in match:
+- Property: `address`, `city`, `state`, `zip`, `asset_type`
+- Financials: `asking_price > 0`, `noi >= 0`, `0 ≤ occupancy_rate ≤ 100`, `loan_balance >= 0`
+- Client: `selectedClientId` set (always true for edit, but guard anyway)
+- Criteria: no required fields (matches current StepCriteria — nothing required there)
 
-```tsx
-const { pathname } = useLocation();
-// inside map:
-const forcedActive = item.activeMatch?.test(pathname);
-<NavLink
-  to={item.url}
-  end={item.end}
-  className={cn("rounded-md px-3 py-1.5 ...", forcedActive && "bg-primary/10 text-primary")}
-  activeClassName="bg-primary/10 text-primary"
->
-```
+## Changes
 
-(Mobile sheet nav gets the same treatment.)
+### `src/pages/agent/EditExchange.tsx`
 
-### 2. `src/pages/agent/EditExchange.tsx` — wire it back into Listings
+1. **Free-navigation step tabs.** Replace the gated button logic:
 
-- Rename header from "Edit Exchange" → **"Edit listing"**; subtitle stays.
-- Add a top breadcrumb / back link above the header:
-  `← Back to listings` → `Link to="/agent/listings"`.
-- After successful save (`handleSubmit`), navigate to `/agent/listings` instead of `/agent/workspace/${id}`.
-- `onCancel` from `StepReview` → navigate to `/agent/listings`.
-- On "Exchange not found" toast, navigate to `/agent/listings` instead of `/agent/exchanges`.
+   ```tsx
+   onClick={() => setStep(stepNum)}
+   className={... isCurrent ? "bg-primary text-primary-foreground"
+     : "bg-muted text-muted-foreground hover:bg-muted/80 cursor-pointer"}
+   ```
 
-No schema or routing changes.
+   Drop the `isCompleted` branch and the check icon (no completion tracking when free-nav). Keep the step number + label.
+
+2. **Publish-time validation.** Add a `validatePublish(data)` helper returning `{ valid, firstInvalidStep, message }`. In `handleSubmit`, when `intent === "publish"` or `intent === "save_active"`, run it before `updateExchange.mutateAsync`. On failure: `toast.error(message)`, `setStep(firstInvalidStep)`, `setSaving(false)`, return.
+
+3. Keep `StepPropertyAndFinancials`'s own inline `validate()` for the in-step "Continue" button — useful when the user actually clicks Continue. No code change there.
+
+### Step components (no required behavior change)
+
+- `StepSelectClient`, `StepPropertyAndFinancials`, `StepCriteria`, `StepReview` keep their current `onNext/onBack/onSubmit` props. The wizard nav buttons inside the steps continue to work for users who prefer linear flow.
 
 ## Files
 
-- `src/components/layout/AgentTopNav.tsx`
 - `src/pages/agent/EditExchange.tsx`
+
+No schema changes. No new components.

@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ArrowLeft, Check } from "lucide-react";
-import { WizardState, initialWizardState } from "@/lib/exchangeWizardTypes";
+import { ArrowLeft } from "lucide-react";
+import { WizardState, initialWizardState, parseCurrency } from "@/lib/exchangeWizardTypes";
 import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
 import StepCriteria from "@/components/exchange/StepCriteria";
@@ -123,9 +123,37 @@ export default function EditExchange() {
     return () => { cancelled = true; };
   }, [id, user, navigate]);
 
+  function validatePublish(d: WizardState): { valid: boolean; firstInvalidStep: number; message: string } {
+    if (!d.selectedClientId) return { valid: false, firstInvalidStep: 1, message: "Select a client before publishing." };
+
+    const p = d.property;
+    if (!p.address.trim() || !p.city.trim() || !p.state || !p.zip.trim() || !p.asset_type) {
+      return { valid: false, firstInvalidStep: 2, message: "Fill in all required property fields before publishing." };
+    }
+
+    const f = d.financials;
+    const askingPrice = parseCurrency(f.asking_price);
+    if (!f.asking_price || askingPrice === null || askingPrice <= 0) {
+      return { valid: false, firstInvalidStep: 2, message: "Asking price is required before publishing." };
+    }
+    const noi = parseCurrency(f.noi);
+    if (!f.noi || noi === null || noi < 0) {
+      return { valid: false, firstInvalidStep: 2, message: "NOI is required before publishing." };
+    }
+    const occupancy = parseCurrency(f.occupancy_rate);
+    if (!f.occupancy_rate || occupancy === null || occupancy < 0 || occupancy > 100) {
+      return { valid: false, firstInvalidStep: 2, message: "Occupancy rate is required before publishing." };
+    }
+    const loanBalance = parseCurrency(f.loan_balance);
+    if (f.loan_balance === "" || loanBalance === null || loanBalance < 0) {
+      return { valid: false, firstInvalidStep: 2, message: "Loan balance is required before publishing (enter 0 if free and clear)." };
+    }
+
+    return { valid: true, firstInvalidStep: 1, message: "" };
+  }
+
   const handleSubmit = async (primaryAction: boolean) => {
     if (!id) return;
-    setSaving(true);
 
     // Determine intent based on current status & button pressed
     // Draft: secondary=save_draft, primary(true)=publish
@@ -137,6 +165,16 @@ export default function EditExchange() {
       intent = primaryAction ? "save_active" : "move_to_draft";
     }
 
+    if (intent === "publish" || intent === "save_active") {
+      const check = validatePublish(data);
+      if (!check.valid) {
+        toast.error(check.message);
+        setStep(check.firstInvalidStep);
+        return;
+      }
+    }
+
+    setSaving(true);
     try {
       await updateExchange.mutateAsync({ exchangeId: id, intent, data });
       const messages: Record<typeof intent, string> = {
@@ -180,16 +218,16 @@ export default function EditExchange() {
       <nav className="flex items-center gap-1">
         {STEPS.map((label, i) => {
           const stepNum = i + 1;
-          const isCompleted = step > stepNum;
           const isCurrent = step === stepNum;
           return (
             <div key={label} className="flex items-center gap-1 flex-1">
               <button
-                onClick={() => (isCompleted || stepNum < step + 1) && setStep(stepNum)}
-                className={`flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors w-full justify-center
-                  ${isCurrent ? "bg-primary text-primary-foreground" : isCompleted ? "bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer" : "bg-muted text-muted-foreground hover:bg-muted/80 cursor-pointer"}`}
+                type="button"
+                onClick={() => setStep(stepNum)}
+                className={`flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors w-full justify-center cursor-pointer
+                  ${isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
               >
-                {isCompleted ? <Check className="h-3.5 w-3.5" /> : <span>{stepNum}</span>}
+                <span>{stepNum}</span>
                 <span className="sm:hidden">{MOBILE_STEP_LABELS[i]}</span>
                 <span className="hidden sm:inline">{label}</span>
               </button>
