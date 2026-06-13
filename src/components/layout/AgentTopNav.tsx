@@ -152,17 +152,23 @@ export default function AgentTopNav() {
 
         {/* Desktop primary nav */}
         <nav className="hidden flex-1 items-center gap-1 md:flex">
-          {PRIMARY_NAV.map((item) => (
-            <NavLink
-              key={item.url}
-              to={item.url}
-              end={item.end}
-              className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              activeClassName="bg-primary/10 text-primary"
-            >
-              {item.title}
-            </NavLink>
-          ))}
+          {PRIMARY_NAV.map((item) => {
+            const forcedActive = item.activeMatch?.test(location.pathname);
+            return (
+              <NavLink
+                key={item.url}
+                to={item.url}
+                end={item.end}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  forcedActive && "bg-primary/10 text-primary",
+                )}
+                activeClassName="bg-primary/10 text-primary"
+              >
+                {item.title}
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
