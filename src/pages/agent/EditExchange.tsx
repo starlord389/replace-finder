@@ -218,16 +218,16 @@ export default function EditExchange() {
       <nav className="flex items-center gap-1">
         {STEPS.map((label, i) => {
           const stepNum = i + 1;
-          const isCompleted = step > stepNum;
           const isCurrent = step === stepNum;
           return (
             <div key={label} className="flex items-center gap-1 flex-1">
               <button
-                onClick={() => (isCompleted || stepNum < step + 1) && setStep(stepNum)}
-                className={`flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors w-full justify-center
-                  ${isCurrent ? "bg-primary text-primary-foreground" : isCompleted ? "bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer" : "bg-muted text-muted-foreground hover:bg-muted/80 cursor-pointer"}`}
+                type="button"
+                onClick={() => setStep(stepNum)}
+                className={`flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors w-full justify-center cursor-pointer
+                  ${isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
               >
-                {isCompleted ? <Check className="h-3.5 w-3.5" /> : <span>{stepNum}</span>}
+                <span>{stepNum}</span>
                 <span className="sm:hidden">{MOBILE_STEP_LABELS[i]}</span>
                 <span className="hidden sm:inline">{label}</span>
               </button>
