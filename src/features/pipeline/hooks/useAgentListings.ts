@@ -7,6 +7,7 @@ export interface AgentListing {
   createdAt: string;
   clientId: string | null;
   clientName: string | null;
+  propertyId: string | null;
   propertyName: string | null;
   address: string | null;
   city: string | null;
@@ -63,6 +64,7 @@ async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
       id: r.id,
       status: r.status,
       createdAt: r.created_at,
+      propertyId: r.relinquished_property_id,
       clientId: r.client_id,
       clientName: r.agent_clients?.client_name ?? null,
       propertyName: p?.property_name ?? null,
