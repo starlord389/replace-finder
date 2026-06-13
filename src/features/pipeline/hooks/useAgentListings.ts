@@ -7,6 +7,7 @@ export interface AgentListing {
   createdAt: string;
   clientId: string | null;
   clientName: string | null;
+  propertyId: string | null;
   propertyName: string | null;
   address: string | null;
   city: string | null;
