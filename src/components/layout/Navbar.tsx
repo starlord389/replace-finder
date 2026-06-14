@@ -12,31 +12,30 @@ function ExchangeLogoIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="100 60 312 392"
+      viewBox="100 130 290 224"
       className={className}
       aria-hidden="true"
     >
-      <rect
-        x="126"
-        y="86"
-        width="52"
-        height="340"
-        rx="26"
-        ry="26"
-        fill="#1A1A1A"
-        transform="rotate(20 256 256)"
+      <path
+        fill="none"
+        stroke="#1A1A1A"
+        strokeWidth="16"
+        strokeLinejoin="miter"
+        d="M 188 191.4 L 243 134 L 298 191.4"
       />
-      <rect
-        x="334"
-        y="86"
-        width="52"
-        height="340"
-        rx="26"
-        ry="26"
+      <rect x="278" y="144" width="15" height="34" fill="#1A1A1A" />
+      <path
         fill="#1A1A1A"
-        transform="rotate(-20 256 256)"
+        d="M 243 158 L 312 230 L 282 230 L 282 348 L 204 348 L 204 230 L 174 230 Z"
       />
-      <circle cx="382" cy="124" r="34" fill="#FADC6A" />
+      <path
+        fill="#F5B41C"
+        d="M 138 348 L 138 296 L 110 296 L 166 240 L 222 296 L 194 296 L 194 348 Z"
+      />
+      <path
+        fill="#F5B41C"
+        d="M 292 348 L 292 296 L 264 296 L 320 240 L 376 296 L 348 296 L 348 348 Z"
+      />
     </svg>
   );
 }
