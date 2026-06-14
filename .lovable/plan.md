@@ -1,47 +1,33 @@
 ## Goal
 
-Inside the editor (`/agent/exchanges/:id/edit`), let the user freely jump between the four step tabs — **Client**, **Property & Financials**, **Criteria**, **Review** — instead of being gated to "completed/current/next" only. Required-field enforcement happens at **publish/save time**, not when switching tabs.
+Remove the lonely "Group by client" strip on the matches inbox and tidy the filter footer so "Showing X of Y" sits at the very bottom of the filter section.
 
-## Behavior
+## Current layout (in `src/features/matches/components/inbox/InboxList.tsx`)
 
-- Clicking any step tab always switches to that step. The current step shows the primary fill; other steps show the standard muted style (no green checks gating navigation).
-- Navigating away from a step does **not** validate. Inline error messages set by a step's own `validate()` stay if already triggered, but tab clicks bypass them.
-- Required-field enforcement runs only when the primary submit fires (`handleSubmit(true)` in `EditExchange.tsx`) — i.e. **Publish** (draft → active) and **Save** on an active listing. Secondary action (`Save as draft` / `Move to draft`) skips validation, as today.
-- On submit, run a single validator over the full `WizardState`. If any required field is missing, show a toast, set `step` to the first invalid step, and abort the save.
+```text
+[ Search + Filter popover ]
+[ Active chips ............................. Showing 10 of 10 ]
+[ Group by client ]   ← own bar, looks orphaned
+[ List ]
+```
 
-## Required fields at publish
+## Proposed layout
 
-Mirror the existing `StepPropertyAndFinancials.validate()`:
+```text
+[ Search + Filter popover ]
+[ Active chips    [Group by client]   ...   Showing 10 of 10 ]
+[ List ]
+```
 
-- Property: `address`, `city`, `state`, `zip`, `asset_type`
-- Financials: `asking_price > 0`, `noi >= 0`, `0 ≤ occupancy_rate ≤ 100`, `loan_balance >= 0`
-- Client: `selectedClientId` set (always true for edit, but guard anyway)
-- Criteria: no required fields (matches current StepCriteria — nothing required there)
+One combined footer row for the filter section. "Showing X of Y" is now the last element on the last row of the filter area.
 
 ## Changes
 
-### `src/pages/agent/EditExchange.tsx`
+`src/features/matches/components/inbox/InboxList.tsx`
 
-1. **Free-navigation step tabs.** Replace the gated button logic:
+1. Delete the standalone Group-by-client block (the `{onGroupByClientChange && (<div …border-b…>…</div>)}` wrapper, lines ~427–444).
+2. Inside the active chips row (lines ~371–423), insert the Group-by-client pill button after the chips/"Clear all" and before the `Showing … of …` span. Keep the same styling it has today (Users icon, active = `bg-primary/10 text-primary`, inactive = muted hover). Only render it when `onGroupByClientChange` is provided.
+3. Make sure the chip row renders whenever `onGroupByClientChange` is provided too, so the toggle is always reachable even when no chips/results exist. Update the wrapping condition from `(anyActive || totalInScope > 0)` to `(anyActive || totalInScope > 0 || !!onGroupByClientChange)`.
+4. Keep `ml-auto` on the "Showing X of Y" span so it stays pinned to the right edge of that final row.
 
-   ```tsx
-   onClick={() => setStep(stepNum)}
-   className={... isCurrent ? "bg-primary text-primary-foreground"
-     : "bg-muted text-muted-foreground hover:bg-muted/80 cursor-pointer"}
-   ```
-
-   Drop the `isCompleted` branch and the check icon (no completion tracking when free-nav). Keep the step number + label.
-
-2. **Publish-time validation.** Add a `validatePublish(data)` helper returning `{ valid, firstInvalidStep, message }`. In `handleSubmit`, when `intent === "publish"` or `intent === "save_active"`, run it before `updateExchange.mutateAsync`. On failure: `toast.error(message)`, `setStep(firstInvalidStep)`, `setSaving(false)`, return.
-
-3. Keep `StepPropertyAndFinancials`'s own inline `validate()` for the in-step "Continue" button — useful when the user actually clicks Continue. No code change there.
-
-### Step components (no required behavior change)
-
-- `StepSelectClient`, `StepPropertyAndFinancials`, `StepCriteria`, `StepReview` keep their current `onNext/onBack/onSubmit` props. The wizard nav buttons inside the steps continue to work for users who prefer linear flow.
-
-## Files
-
-- `src/pages/agent/EditExchange.tsx`
-
-No schema changes. No new components.
+No other files, no behavior changes to grouping logic, no styling system changes.

@@ -367,8 +367,8 @@ export function InboxList({
           </Popover>
         </div>
 
-        {/* Active filter chips + result count */}
-        {(anyActive || totalInScope > 0) && (
+        {/* Active filter chips + group toggle + result count */}
+        {(anyActive || totalInScope > 0 || !!onGroupByClientChange) && (
           <div className="flex flex-wrap items-center gap-1.5 border-t border-border/60 px-2.5 py-1.5">
             {search.trim() && (
               <ActiveChip
@@ -416,6 +416,21 @@ export function InboxList({
                 Clear all
               </button>
             )}
+            {onGroupByClientChange && (
+              <button
+                type="button"
+                onClick={() => onGroupByClientChange(!groupByClient)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors",
+                  groupByClient
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Users className="h-3 w-3" />
+                Group by client
+              </button>
+            )}
             <span className="ml-auto text-[11px] text-muted-foreground">
               Showing <span className="font-semibold text-foreground">{showingCount}</span>
               {" "}of {totalInScope}
@@ -424,24 +439,6 @@ export function InboxList({
         )}
       </div>
 
-      {/* Group-by-client toggle */}
-      {onGroupByClientChange && (
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-1.5">
-          <button
-            type="button"
-            onClick={() => onGroupByClientChange(!groupByClient)}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
-              groupByClient
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-          >
-            <Users className="h-3 w-3" />
-            Group by client
-          </button>
-        </div>
-      )}
 
       {/* List */}
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
