@@ -1,6 +1,6 @@
 import {
-  Settings2, Globe,
-  UserCircle, UserPlus, FileText, Workflow, Search, Handshake,
+  Settings2, Compass,
+  UserCircle, UserPlus, FileText, Workflow, Search, KanbanSquare,
   type LucideIcon,
 } from "lucide-react";
 
@@ -10,10 +10,10 @@ export type AgentLaunchpadStepId =
   | "exchange"
   | "matching"
   | "matches"
-  | "connection";
+  | "pipeline";
 
 export interface AgentLaunchpadGroup {
-  id: string;
+  id: "setup" | "workflow";
   title: string;
   description: string;
   icon: LucideIcon;
@@ -24,6 +24,7 @@ export interface AgentLaunchpadStepContent {
   id: AgentLaunchpadStepId;
   title: string;
   description: string;
+  tip: string;
   actionLabel: string;
   icon: LucideIcon;
   href?: string;
@@ -33,17 +34,17 @@ export interface AgentLaunchpadStepContent {
 export const AGENT_LAUNCHPAD_GROUPS: AgentLaunchpadGroup[] = [
   {
     id: "setup",
-    title: "Foundational Setup",
-    description: "Complete the core tasks that make your agent workspace usable and match-ready.",
+    title: "Setup",
+    description: "Get your workspace ready so the platform can start working for you.",
     icon: Settings2,
     steps: ["profile", "client", "exchange"],
   },
   {
-    id: "network",
-    title: "Matching & Connections",
-    description: "Learn the matching flow, review opportunities, and initiate collaboration.",
-    icon: Globe,
-    steps: ["matching", "matches", "connection"],
+    id: "workflow",
+    title: "Daily workflow",
+    description: "Learn the flow and run your pipeline day-to-day.",
+    icon: Compass,
+    steps: ["matching", "matches", "pipeline"],
   },
 ];
 
@@ -51,7 +52,8 @@ export const AGENT_LAUNCHPAD_STEPS: AgentLaunchpadStepContent[] = [
   {
     id: "profile",
     title: "Complete your profile",
-    description: "Add your brokerage details, specializations, and bio so your workspace reflects how you operate.",
+    description: "Add your brokerage details, specializations, and a short bio so your workspace reflects how you operate.",
+    tip: "Tip: Specializations and markets help us route the most relevant matches your way.",
     actionLabel: "Open settings",
     icon: UserCircle,
     href: "/agent/settings",
@@ -60,22 +62,25 @@ export const AGENT_LAUNCHPAD_STEPS: AgentLaunchpadStepContent[] = [
     id: "client",
     title: "Add your first client",
     description: "Create a client record for someone you're representing in a 1031 exchange so you can start real workflow activity.",
+    tip: "Tip: You can invite the client later — start by capturing their info and replacement goals.",
     actionLabel: "Add client",
     icon: UserPlus,
     href: "/agent/clients/new",
   },
   {
     id: "exchange",
-    title: "Create your first exchange",
-    description: "Pledge a property and set replacement criteria so the network can begin finding relevant opportunities.",
-    actionLabel: "New exchange",
+    title: "Create your first listing",
+    description: "Pledge a property with financials and replacement criteria so the platform can begin scoring fit on your behalf.",
+    tip: "Tip: The more accurate your criteria (price, geography, asset type, strategy), the sharper your matches.",
+    actionLabel: "New listing",
     icon: FileText,
     href: "/agent/exchanges/new",
   },
   {
     id: "matching",
     title: "Understand how matching works",
-    description: "See how 1031ExchangeUp scores and connects opportunities across the network before you start reviewing results.",
+    description: "See how 1031ExchangeUp privately scores opportunities for your clients before you start reviewing results.",
+    tip: "Tip: This is a private platform — your clients never browse a public marketplace.",
     actionLabel: "See how matching works",
     icon: Workflow,
     isInline: true,
@@ -83,17 +88,19 @@ export const AGENT_LAUNCHPAD_STEPS: AgentLaunchpadStepContent[] = [
   {
     id: "matches",
     title: "Review your matches",
-    description: "Once your exchange is active, this is where matched properties appear for evaluation and follow-up.",
+    description: "Once a listing is active, matched properties appear here for you to evaluate and approve before sharing with your client.",
+    tip: "Tip: Only matches you approve are surfaced to your client — you stay in control of what they see.",
     actionLabel: "View matches",
     icon: Search,
-    href: "/agent/pipeline",
+    href: "/agent/matches",
   },
   {
-    id: "connection",
-    title: "Start your first connection",
-    description: "When you find a strong fit, initiate a connection to move the exchange forward and unlock counterpart visibility.",
-    actionLabel: "Open connections",
-    icon: Handshake,
-    href: "/agent/connections",
+    id: "pipeline",
+    title: "Move deals forward in Pipeline",
+    description: "Track every approved match through conversation, LOI, under contract, and close from a single pipeline view.",
+    tip: "Tip: Use Pipeline daily to keep the 45-day ID and 180-day close windows on track.",
+    actionLabel: "Open Pipeline",
+    icon: KanbanSquare,
+    href: "/agent/pipeline",
   },
 ];

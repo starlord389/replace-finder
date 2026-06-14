@@ -1,5 +1,8 @@
 import { type ReactNode } from "react";
 import { CheckCircle2, ChevronRight, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export type LaunchpadStepStatus = "done" | "attention" | "todo";
 
 interface LaunchpadChecklistCardProps {
   title: string;
@@ -9,23 +12,30 @@ interface LaunchpadChecklistCardProps {
   onClick?: () => void;
   children?: ReactNode;
   isLast?: boolean;
+  tip?: string;
+  status?: LaunchpadStepStatus;
 }
 
-function CompletionBadge({ complete }: { complete: boolean }) {
-  if (complete) {
+function StatusChip({ status }: { status: LaunchpadStepStatus }) {
+  if (status === "done") {
     return (
-      <div className="flex items-center gap-1.5">
-        <CheckCircle2 className="h-5 w-5 text-green-500" />
-        <span className="text-sm font-medium text-green-600">100%</span>
-      </div>
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        Done
+      </span>
     );
   }
-
+  if (status === "attention") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+        Needs attention
+      </span>
+    );
+  }
   return (
-    <div className="flex items-center gap-1.5">
-      <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30" />
-      <span className="text-sm font-medium text-muted-foreground">0%</span>
-    </div>
+    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+      Not started
+    </span>
   );
 }
 
@@ -37,34 +47,47 @@ export default function LaunchpadChecklistCard({
   onClick,
   children,
   isLast = false,
+  tip,
+  status,
 }: LaunchpadChecklistCardProps) {
   return (
     <div>
       <button
         type="button"
         onClick={onClick}
-        className={`flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/50 ${
-          !isLast ? "border-b" : ""
-        }`}
+        className={cn(
+          "flex w-full items-start gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/50",
+          !isLast && "border-b",
+        )}
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted/60">
-          <Icon className={`h-5 w-5 ${complete ? "text-muted-foreground" : "text-foreground/70"}`} />
+          <Icon
+            className={cn(
+              "h-5 w-5",
+              complete ? "text-muted-foreground" : "text-foreground/70",
+            )}
+          />
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className={`text-sm font-semibold ${complete ? "text-muted-foreground" : "text-primary"}`}>
+          <p
+            className={cn(
+              "text-sm font-semibold",
+              complete ? "text-muted-foreground" : "text-foreground",
+            )}
+          >
             {title}
           </p>
-          <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">
-            {description}
-          </p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+          {tip ? (
+            <p className="mt-1.5 text-xs text-muted-foreground/80">{tip}</p>
+          ) : null}
         </div>
 
-        <div className="shrink-0">
-          <CompletionBadge complete={complete} />
+        <div className="flex shrink-0 items-center gap-2 pt-0.5">
+          {status ? <StatusChip status={status} /> : null}
+          <ChevronRight className="h-5 w-5 text-muted-foreground/50" />
         </div>
-
-        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/50" />
       </button>
 
       {children ? <div className="border-b px-5 pb-4 pt-1">{children}</div> : null}

@@ -9,13 +9,13 @@ describe("agent launchpad content", () => {
       "exchange",
       "matching",
       "matches",
-      "connection",
+      "pipeline",
     ]);
   });
 
-  it("uses grouped sections for setup and network actions", () => {
-    expect(AGENT_LAUNCHPAD_GROUPS.map((group) => group.id)).toEqual(["setup", "network"]);
+  it("uses grouped sections for setup and daily workflow", () => {
+    expect(AGENT_LAUNCHPAD_GROUPS.map((group) => group.id)).toEqual(["setup", "workflow"]);
     expect(AGENT_LAUNCHPAD_GROUPS[0].steps).toEqual(["profile", "client", "exchange"]);
-    expect(AGENT_LAUNCHPAD_GROUPS[1].steps).toEqual(["matching", "matches", "connection"]);
+    expect(AGENT_LAUNCHPAD_GROUPS[1].steps).toEqual(["matching", "matches", "pipeline"]);
   });
 });

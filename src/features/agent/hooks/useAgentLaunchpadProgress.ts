@@ -15,7 +15,7 @@ export interface AgentLaunchpadProgressData {
   clientCount: number;
   exchangeCount: number;
   matchCount: number;
-  connectionCount: number;
+  pipelineActivity: number;
   profileComplete: boolean;
 }
 
@@ -63,7 +63,7 @@ async function fetchAgentLaunchpadProgress(userId: string): Promise<AgentLaunchp
     clientCount: clientsRes.count ?? 0,
     exchangeCount: exchangesRes.count ?? 0,
     matchCount,
-    connectionCount: connectionsRes.count ?? 0,
+    pipelineActivity: connectionsRes.count ?? 0,
     profileComplete: isAgentProfileComplete(profile),
   };
 }
