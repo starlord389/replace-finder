@@ -45,10 +45,12 @@ const NAVBAR_FONT_STACK =
 
 const NAVBAR_LOGO_LOCKUP = `
   <span style="display:inline-flex;align-items:center;justify-content:center;flex:none;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="100 60 312 392" width="32" height="32" aria-hidden="true" style="display:block;flex:none;">
-      <rect x="126" y="86" width="52" height="340" rx="26" ry="26" fill="#1A1A1A" transform="rotate(20 256 256)"></rect>
-      <rect x="334" y="86" width="52" height="340" rx="26" ry="26" fill="#1A1A1A" transform="rotate(-20 256 256)"></rect>
-      <circle cx="382" cy="124" r="34" fill="#FADC6A"></circle>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="100 130 290 224" height="32" aria-hidden="true" style="display:block;flex:none;">
+      <path fill="none" stroke="#1A1A1A" stroke-width="16" stroke-linejoin="miter" d="M 188 191.4 L 243 134 L 298 191.4"></path>
+      <rect x="278" y="144" width="15" height="34" fill="#1A1A1A"></rect>
+      <path fill="#1A1A1A" d="M 243 158 L 312 230 L 282 230 L 282 348 L 204 348 L 204 230 L 174 230 Z"></path>
+      <path fill="#F5B41C" d="M 138 348 L 138 296 L 110 296 L 166 240 L 222 296 L 194 296 L 194 348 Z"></path>
+      <path fill="#F5B41C" d="M 292 348 L 292 296 L 264 296 L 320 240 L 376 296 L 348 296 L 348 348 Z"></path>
     </svg>
   </span>
   <span style="font-family: ${NAVBAR_FONT_STACK}; font-size: 15px; font-weight: 600; letter-spacing: -0.03em; color: #1d1d1d; line-height: 1; white-space: nowrap;">
