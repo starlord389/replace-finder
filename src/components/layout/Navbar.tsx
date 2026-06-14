@@ -91,7 +91,7 @@ export default function Navbar() {
         <div className="flex h-[58px] items-center justify-between px-3 sm:px-3.5">
           {/* Logo */}
           <Link to={ROUTES.home} className="flex shrink-0 items-center gap-1.5">
-            <ExchangeLogoIcon className="h-8 w-8 shrink-0" />
+            <ExchangeLogoIcon className="h-10 w-10 shrink-0" />
             <span className="whitespace-nowrap text-[15px] font-semibold tracking-[-0.03em] text-[#1d1d1d]">
               1031 Exchange Up
             </span>
