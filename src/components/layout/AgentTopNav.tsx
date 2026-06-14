@@ -174,12 +174,6 @@ export default function AgentTopNav() {
         <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
           {/* Desktop right cluster */}
           <div className="hidden items-center gap-2 md:flex">
-            <Button asChild size="sm">
-              <Link to="/agent/clients/new">
-                <Plus className="mr-1.5 h-4 w-4" />
-                Add Client
-              </Link>
-            </Button>
             <NotificationsBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -252,12 +246,6 @@ export default function AgentTopNav() {
                         </NavLink>
                       );
                     })}
-                    <Link
-                      to="/agent/clients/new"
-                      className="mt-2 flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-                    >
-                      <Plus className="mr-2 h-4 w-4" /> Add Client
-                    </Link>
                     <div className="my-3 border-t" />
                     <Link
                       to="/agent/settings"
