@@ -1,73 +1,77 @@
 ## Goal
 
-Rebuild the Agent Launchpad so it reflects today's product (Clients, Listings, Matches, Pipeline) with grouped sections, per-step status chips, richer inline guidance, and a high-level matching explainer (no exact weights).
+Make `/agent/dashboard` a useful "cockpit": action-first, sharper KPIs, and pipeline at a glance — laid out as two columns on desktop. Keep all current sections; refresh and reorganize them.
 
-## New structure
+## New layout
 
-Two grouped sections rendered as cards:
+```text
+[ Header + quick actions ]
+[ Alert banners (suspended / launchpad) — unchanged ]
 
-**1. Setup — Get your workspace ready**
-- Complete your profile — `/agent/settings` — brokerage details, specializations, bio.
-- Add your first client — `/agent/clients/new` — represent a real 1031 exchanger.
-- Create your first listing — `/agent/exchanges/new` — pledge property, financials, replacement criteria.
+Desktop (lg+): two columns
+┌─────────────────────────────┬──────────────────┐
+│ Today (action-first hero)   │ KPIs (2x2)       │
+│ Needs your attention        │ Pipeline funnel  │
+│ Top matches                 │ Deadlines · 30d  │
+│ Listings                    │                  │
+└─────────────────────────────┴──────────────────┘
 
-**2. Daily workflow — Run your pipeline**
-- Understand how matching works — inline expand — high-level explainer (no exact weights).
-- Review your matches — `/agent/matches` — evaluate matched properties for your clients.
-- Move deals forward in Pipeline — `/agent/pipeline` — track stages from match to close.
+Mobile: single column, same order top-to-bottom.
+```
 
-## Status chips per step
+## New "Today" hero
 
-Each step shows one chip on the right based on `useAgentLaunchpadProgress` data:
-- "Done" — green, when complete
-- "Needs attention" — amber, when step is current/next actionable
-- "Not started" — muted, otherwise (later steps that are gated)
-- Inline matching step: "Read" once expanded; otherwise "Not started"
+Replaces nothing — sits above "Needs your attention". Picks up to 3 highest-priority items from data already loaded by `useAgentAttentionQuery`:
+1. Most urgent deadline (lowest `daysRemaining`).
+2. Highest-score unreviewed match.
+3. Oldest pending incoming connection.
 
-The first incomplete step gets "Needs attention"; remaining incomplete steps get "Not started".
+Renders as a single bordered card with a left accent bar, headline "What to do first", and up to 3 row items. Each row: priority dot (red/amber/blue), one-line summary, primary action button linking to the same target as today's "Needs attention" list. If nothing qualifies, show a compact "You're caught up" state and skip rendering. No new data fetching.
 
-## Matching explainer (high-level)
+## Sharper KPIs
 
-Three small cards inside the expandable matching step:
-- "Your client's criteria" — price range, geography, asset type, strategy, financial fit, timing.
-- "Rules-based scoring" — every potential match is ranked across those dimensions. No AI, no public browse.
-- "Private review" — only matches you approve are surfaced to your client; clients never browse a public marketplace.
+Replace `StatCard` content (right column on desktop, 2x2 grid):
+- **Active clients** — value = `clientCount`. Sublabel: "X with active listing" (count of distinct `client_id`s across `exchanges` with `status === 'active'`).
+- **Listings** — value = active listings count. Sublabel: "Y drafts" (status not active). Drafts = `exchanges.length - active`.
+- **Open matches** — value = `openMatchCount`. Sublabel: "Z new this week" (relationships where `stage === 'new'` and `createdAt` within 7 days, using `lastActivityAt` as proxy if no createdAt).
+- **Deadlines · 30d** — value = total. Sublabel: "A ID · B closing" split.
 
-Plus a muted footnote: "45-day identification and 180-day close windows shape urgency on every exchange."
+All derivations from data already on the page — no new queries.
 
-## Inline tips per step
+## Pipeline-at-a-glance
 
-Below each step's description, one short muted "Tip:" line (e.g. "Tip: Specializations help us route the right matches your way."). Tips are static strings in the content file.
+New card under KPIs in the right rail: horizontal mini funnel.
+
+Stages and groupings (using existing `RelationshipStage`):
+- New → `new` + `incoming`
+- Conversing → `connected` + `conversing` + `pending_in` + `pending_out`
+- LOI → (none yet in data; show 0)
+- Under contract → (none yet; show 0)
+- Closed → `closed_won`
+
+```text
+[12]   [4]    [0]    [0]    [3]
+ New  Conv.  LOI    UC    Closed
+```
+
+Each segment is clickable and links to `/agent/pipeline` (no query param needed for v1). Counts use the already-loaded `relationships`. Card title: "Pipeline" with a "View pipeline →" link.
 
 ## Files
 
-`src/content/agentLaunchpad.ts`
-- Replace `AGENT_LAUNCHPAD_STEPS` and `AGENT_LAUNCHPAD_GROUPS` with the new 6 steps grouped into "setup" and "workflow", each step gaining a `tip: string`, accurate `href`, and accurate copy.
-- Step IDs stay: `profile`, `client`, `exchange`, `matching`, `matches`, `connection` → rename `connection` to `pipeline`. Update the `AgentLaunchpadStepId` union accordingly.
-- Update `matches` href to `/agent/matches` (was `/agent/pipeline`).
-- Update `pipeline` step (replacing `connection`) href to `/agent/pipeline`.
+`src/pages/agent/AgentDashboard.tsx`
+- Add `TodayPanel` component (defined in-file) that takes `attention` and returns up to 3 priority items.
+- Add `PipelineFunnel` component (in-file) computing counts from `relationships`.
+- Add KPI sublabel computations (active listings, drafts, new-this-week, ID vs closing).
+- Wrap main content in a `lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-6` layout. Left column: Today, Needs attention, Top matches, Listings. Right rail: KPIs (2x2), Pipeline funnel, Deadlines mini-list (next 5 from existing `attention.urgentDeadlines` + upcoming from exchanges within 30d, capped at 5).
+- Keep "Top matches", "Listings", and empty-onboarding sections as-is (light style polish only).
+- Remove the standalone full-width stat row in favor of the right-rail version.
+- Keep `SeedMockDataPanel` at the very bottom in dev.
 
-`src/features/agent/hooks/useAgentLaunchpadProgress.ts`
-- Rename `connectionCount` semantics: replace with `pipelineActivity` derived from any non-`new` match for the agent's exchanges (reuse the matches we already fetch — count rows where `status != 'new'` or there are messages). Simpler: keep the connections count query as a proxy for "pipeline activity"; just rename the returned field to `pipelineActivity`. No schema changes.
-
-`src/pages/agent/AgentLaunchpad.tsx`
-- Render the two grouped sections instead of one flat list.
-- Compute `firstIncompleteIndex` to drive the "Needs attention" chip.
-- Pass a new `status: "done" | "attention" | "todo"` prop into `LaunchpadChecklistCard`.
-- Replace the inline matching content with the new 3-card high-level explainer (no percentages).
-- Keep the overall progress bar, completion banner, and "Go to dashboard" action.
-- Keep `launchpad_completed_at` write + `LAUNCHPAD_VERSION` bumped to `"v2"`.
-
-`src/components/agent/LaunchpadChecklistCard.tsx`
-- Add optional `status` prop. If provided, render a small right-side chip: green "Done", amber "Needs attention", muted "Not started". Falls back to current check-icon behavior when status is omitted.
-- Render an optional `tip` below the description in muted small text.
-
-`src/test/agent-launchpad-progress.test.ts`
-- Update assertions for the renamed field (`pipelineActivity` instead of `connectionCount`).
+No other files, no new hooks, no schema changes, no design token changes (uses existing semantic tokens).
 
 ## Out of scope
 
-- No DB migrations.
-- No nav changes.
-- No new pages or routes.
-- No exposure of exact scoring weights.
+- No new queries or DB fields.
+- No new routes or filters in `/agent/pipeline`.
+- No mobile-specific redesign beyond the existing single-column stack.
+- LOI / Under-contract counts remain 0 until those stages exist in data.
