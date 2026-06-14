@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, CheckCheck, HelpCircle, LogOut, Menu, Plus, Settings, X } from "lucide-react";
+import { Bell, CheckCheck, HelpCircle, LogOut, Menu, Settings, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -174,12 +174,6 @@ export default function AgentTopNav() {
         <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
           {/* Desktop right cluster */}
           <div className="hidden items-center gap-2 md:flex">
-            <Button asChild size="sm">
-              <Link to="/agent/clients/new">
-                <Plus className="mr-1.5 h-4 w-4" />
-                Add Client
-              </Link>
-            </Button>
             <NotificationsBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -252,12 +246,6 @@ export default function AgentTopNav() {
                         </NavLink>
                       );
                     })}
-                    <Link
-                      to="/agent/clients/new"
-                      className="mt-2 flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-                    >
-                      <Plus className="mr-2 h-4 w-4" /> Add Client
-                    </Link>
                     <div className="my-3 border-t" />
                     <Link
                       to="/agent/settings"
