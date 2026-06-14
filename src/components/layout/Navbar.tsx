@@ -12,34 +12,27 @@ function ExchangeLogoIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="100 60 312 392"
+      viewBox="0 0 64 64"
       className={className}
       aria-hidden="true"
     >
-      <rect
-        x="126"
-        y="86"
-        width="52"
-        height="340"
-        rx="26"
-        ry="26"
-        fill="#1A1A1A"
-        transform="rotate(20 256 256)"
-      />
-      <rect
-        x="334"
-        y="86"
-        width="52"
-        height="340"
-        rx="26"
-        ry="26"
-        fill="#1A1A1A"
-        transform="rotate(-20 256 256)"
-      />
-      <circle cx="382" cy="124" r="34" fill="#FADC6A" />
+      {/* Short arrow (left) */}
+      <polygon points="10,30 16,24 22,30" fill="#1d1d1d" />
+      <rect x="13" y="29" width="6" height="22" rx="1.5" fill="#1d1d1d" />
+
+      {/* Medium arrow (center) */}
+      <polygon points="22,22 28,16 34,22" fill="#1d1d1d" />
+      <rect x="25" y="21" width="6" height="30" rx="1.5" fill="#1d1d1d" />
+
+      {/* Tall arrow (right) with gold head and house roof */}
+      <polygon points="34,14 40,8 46,14" fill="#FADC6A" />
+      <rect x="37" y="13" width="6" height="38" rx="1.5" fill="#1d1d1d" />
+      {/* House roof above gold arrowhead */}
+      <polygon points="34,8 40,2 46,8" fill="#1d1d1d" />
     </svg>
   );
 }
+
 
 function isSectionNavActive(
   pathname: string,
