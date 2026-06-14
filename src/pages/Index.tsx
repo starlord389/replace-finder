@@ -6,7 +6,9 @@ const LOGO_BRANDS = [
   { name: "Compass", src: "/logos/compass.svg", height: 22, mobileHeight: 16, blend: false },
   { name: "Churchill Properties", src: "/logos/churchill.svg", height: 52, mobileHeight: 40, blend: false },
   { name: "Keller Williams Realty", src: "/logos/keller-williams.svg", height: 48, mobileHeight: 36, blend: false },
+  { name: "Lyv Realty", src: "/logos/lyv-realty.png", height: 46, mobileHeight: 34, blend: false },
   { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 40, mobileHeight: 30, blend: false },
+  { name: "Aluxety Real Estate", src: "/logos/aluxety.png", height: 34, mobileHeight: 26, blend: false },
 ] as const;
 
 const SMOOTH_SCROLL_STYLE = `
