@@ -11,7 +11,9 @@ const LOGO_BRANDS = [
   { name: "Compass", src: "/logos/compass.svg", height: 26, mobileHeight: 20 },
   { name: "Churchill Properties", src: "/logos/churchill.svg", height: 56, mobileHeight: 44 },
   { name: "Keller Williams Realty", src: "/logos/keller-williams.svg", height: 52, mobileHeight: 40 },
+  { name: "Lyv Realty", src: "/logos/lyv-realty.png", height: 50, mobileHeight: 38 },
   { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 44, mobileHeight: 34 },
+  { name: "Aluxety Real Estate", src: "/logos/aluxety.png", height: 38, mobileHeight: 30 },
 ] as const;
 
 const HERO_PROOF_POINTS = [
