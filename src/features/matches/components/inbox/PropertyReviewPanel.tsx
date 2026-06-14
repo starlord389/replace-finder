@@ -52,15 +52,9 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
     <div
       className={cn(
         "flex w-full min-w-0 flex-col rounded-2xl border bg-card",
-        previewMode ? "" : "h-full min-h-0 overflow-hidden",
       )}
     >
-      <div
-        className={cn(
-          "relative",
-          previewMode ? "" : "min-h-0 flex-1 overflow-y-auto overscroll-contain",
-        )}
-      >
+      <div className="relative">
         {/* Client identity strip — hidden in investor preview mode */}
         {!previewMode && (
           <div
