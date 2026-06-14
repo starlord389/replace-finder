@@ -1,144 +1,207 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+  useDroppable,
+} from "@dnd-kit/core";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
-import type { AgentListing } from "@/features/pipeline/hooks/useAgentListings";
-import { deriveUiStatus, type UiStatus } from "@/features/matches/components/inbox/inboxHelpers";
-import { readMatchLocalState } from "@/features/matches/components/inbox/useMatchLocalState";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
+import { STAGE_DEFS, type StageKey } from "@/features/pipeline/lib/pipelineStages";
+import type { ListingMeta } from "@/features/pipeline/lib/pipelineFilters";
+import { useUpdatePipelineStage } from "@/features/pipeline/hooks/usePipelineStageOverride";
 import { PipelineListingCard } from "./PipelineListingCard";
 
-type StageKey = "new" | "interested" | "connected" | "closed";
-
-const STAGE_DEFS: Array<{ key: StageKey; title: string; subtitle: string }> = [
-  { key: "new", title: "New", subtitle: "Fresh matches to triage" },
-  { key: "interested", title: "Interested", subtitle: "Client engaged" },
-  { key: "connected", title: "Connected", subtitle: "Agents working it" },
-  { key: "closed", title: "Closed", subtitle: "Won or archived" },
-];
-
-const STAGE_RANK: Record<StageKey, number> = { new: 0, interested: 1, connected: 2, closed: 3 };
-
-function uiStatusToStage(s: UiStatus): StageKey {
-  if (s === "closed" || s === "archived") return "closed";
-  if (s === "in_conversation" || s === "loi" || s === "under_contract")
-    return "connected";
-  if (s === "client_interested" || s === "sent_to_client") return "interested";
-  return "new";
+function fmtMoney(v: number): string {
+  if (v >= 1_000_000_000) return `$${(v / 1_000_000_000).toFixed(2)}B`;
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K`;
+  return `$${v}`;
 }
 
-interface ListingBucket {
-  listing: AgentListing;
+function StageColumn({
+  stage,
+  title,
+  subtitle,
+  items,
+}: {
   stage: StageKey;
-  matchCount: number;
-  lastActivityAt: string | null;
+  title: string;
+  subtitle: string;
+  items: ListingMeta[];
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: `col-${stage}`, data: { stage } });
+  const value = items.reduce((sum, m) => sum + (m.listing.askingPrice ?? 0), 0);
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex min-h-[260px] w-72 shrink-0 flex-col rounded-xl border bg-muted/30 p-3 transition-colors",
+        isOver && "bg-primary/5 ring-2 ring-primary/40",
+      )}
+    >
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+          <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-0.5">
+          <span className="rounded-full bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground">
+            {items.length}
+          </span>
+          {value > 0 && (
+            <span className="text-[10px] font-medium text-muted-foreground">
+              {fmtMoney(value)}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-0.5">
+        {items.length === 0 ? (
+          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed bg-card/50 p-4 text-center">
+            <p className="text-[11px] text-muted-foreground">
+              Drop a listing here or wait for activity
+            </p>
+          </div>
+        ) : (
+          items.map((m) => <PipelineListingCard key={m.listing.id} meta={m} />)
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface PipelineKanbanProps {
+  rows: ListingMeta[];
+  hasFilters: boolean;
+  onResetFilters: () => void;
 }
 
 export function PipelineKanban({
-  listings,
-  relationships,
-}: {
-  listings: AgentListing[];
-  relationships: Relationship[];
-}) {
-  const buckets = useMemo<ListingBucket[]>(() => {
-    const relsByExchange = new Map<string, Relationship[]>();
-    for (const r of relationships) {
-      const arr = relsByExchange.get(r.buyerExchangeId) ?? [];
-      arr.push(r);
-      relsByExchange.set(r.buyerExchangeId, arr);
-    }
-
-    return listings.map((l) => {
-      const rels = relsByExchange.get(l.id) ?? [];
-      let stage: StageKey = "new";
-      let lastActivityAt: string | null = null;
-      if (l.status === "closed" || l.status === "completed") stage = "closed";
-
-      for (const r of rels) {
-        const s = uiStatusToStage(deriveUiStatus(r, readMatchLocalState(r.matchId)));
-        if (STAGE_RANK[s] > STAGE_RANK[stage]) stage = s;
-        if (!lastActivityAt || r.lastActivityAt > lastActivityAt) lastActivityAt = r.lastActivityAt;
-      }
-
-      return { listing: l, stage, matchCount: rels.length, lastActivityAt };
-    });
-  }, [listings, relationships]);
+  rows,
+  hasFilters,
+  onResetFilters,
+}: PipelineKanbanProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const updateStage = useUpdatePipelineStage();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  );
 
   const columns = useMemo(() => {
-    const grouped: Record<StageKey, ListingBucket[]> = {
+    const grouped: Record<StageKey, ListingMeta[]> = {
       new: [],
       interested: [],
       connected: [],
+      loi: [],
+      under_contract: [],
       closed: [],
     };
-    for (const b of buckets) grouped[b.stage].push(b);
-    for (const k of Object.keys(grouped) as StageKey[]) {
-      grouped[k].sort((a, b) => {
-        const at = a.lastActivityAt ?? a.listing.createdAt;
-        const bt = b.lastActivityAt ?? b.listing.createdAt;
-        return bt.localeCompare(at);
-      });
-    }
+    for (const r of rows) grouped[r.stage].push(r);
     return grouped;
-  }, [buckets]);
+  }, [rows]);
+
+  const activeMeta = activeId ? rows.find((r) => r.listing.id === activeId) : null;
+
+  const handleStart = (e: DragStartEvent) => {
+    setActiveId(String(e.active.id));
+  };
+
+  const handleEnd = (e: DragEndEvent) => {
+    setActiveId(null);
+    if (!user || !e.over) return;
+    const overData = e.over.data.current as { stage?: StageKey } | undefined;
+    const targetStage = overData?.stage;
+    if (!targetStage) return;
+    const exchangeId = String(e.active.id);
+    const meta = rows.find((r) => r.listing.id === exchangeId);
+    if (!meta || meta.stage === targetStage) return;
+
+    // If target matches auto-stage, clear the override so the listing tracks automatically.
+    const newOverride: StageKey | null =
+      targetStage === meta.autoStage ? null : targetStage;
+
+    updateStage.mutate(
+      { exchangeId, stage: newOverride, userId: user.id },
+      {
+        onSuccess: () => {
+          toast({
+            title:
+              newOverride === null
+                ? "Stage reset to auto"
+                : `Moved to ${STAGE_DEFS.find((s) => s.key === targetStage)?.title}`,
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Couldn't move listing",
+            description: "Please try again.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
+
+  if (rows.length === 0) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed bg-card p-10 text-center">
+        <p className="text-sm font-semibold text-foreground">
+          {hasFilters ? "No listings match these filters" : "Nothing in the pipeline yet"}
+        </p>
+        <p className="mt-1 max-w-md text-xs text-muted-foreground">
+          {hasFilters
+            ? "Try clearing the search or filters to see all listings."
+            : "Create a listing and we'll start tracking it here automatically."}
+        </p>
+        <div className="mt-3 flex gap-2">
+          {hasFilters ? (
+            <Button size="sm" variant="outline" onClick={onResetFilters}>
+              Reset filters
+            </Button>
+          ) : (
+            <Button asChild size="sm">
+              <Link to="/agent/exchanges/new">
+                <Plus className="mr-1 h-4 w-4" /> New listing
+              </Link>
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-      {STAGE_DEFS.map((col) => {
-        const items = columns[col.key];
-        return (
-          <div
+    <DndContext sensors={sensors} onDragStart={handleStart} onDragEnd={handleEnd}>
+      <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
+        {STAGE_DEFS.map((col) => (
+          <StageColumn
             key={col.key}
-            className="flex min-h-[200px] flex-col rounded-xl border bg-muted/30 p-3"
-          >
-            <div className="mb-2 flex items-baseline justify-between gap-2">
-              <div>
-                <h2 className="text-sm font-semibold text-foreground">{col.title}</h2>
-                <p className="text-[11px] text-muted-foreground">{col.subtitle}</p>
-              </div>
-              <span className="rounded-full bg-card px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                {items.length}
-              </span>
-            </div>
-            <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-0.5">
-              {items.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed bg-card/50 p-4 text-center">
-                  <p className="text-[11px] text-muted-foreground">No listings here</p>
-                </div>
-              ) : (
-                items.map((b) => {
-                  const title =
-                    b.listing.propertyName ||
-                    b.listing.address ||
-                    (b.listing.status === "draft" ? "Draft listing" : "Untitled");
-                  const loc = [b.listing.city, b.listing.state].filter(Boolean).join(", ") || null;
-                  return (
-                    <PipelineListingCard
-                      key={b.listing.id}
-                      exchangeId={b.listing.id}
-                      clientId={b.listing.clientId}
-                      clientName={b.listing.clientName}
-                      propertyTitle={title}
-                      location={loc}
-                      matchCount={b.matchCount}
-                      lastActivityAt={b.lastActivityAt}
-                      stageLabel={col.title}
-                    />
-                  );
-                })
-              )}
-            </div>
-            {col.key === "new" && items.length === 0 && (
-              <Button asChild size="sm" variant="outline" className="mt-2">
-                <Link to="/agent/exchanges/new">
-                  <Plus className="mr-1 h-3.5 w-3.5" /> New listing
-                </Link>
-              </Button>
-            )}
+            stage={col.key}
+            title={col.title}
+            subtitle={col.subtitle}
+            items={columns[col.key]}
+          />
+        ))}
+      </div>
+      <DragOverlay dropAnimation={null}>
+        {activeMeta ? (
+          <div className="w-72">
+            <PipelineListingCard meta={activeMeta} isDragOverlay />
           </div>
-        );
-      })}
-    </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }

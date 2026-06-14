@@ -1,0 +1,1 @@
+ALTER TABLE public.exchanges ADD COLUMN IF NOT EXISTS pipeline_stage_override TEXT NULL;
