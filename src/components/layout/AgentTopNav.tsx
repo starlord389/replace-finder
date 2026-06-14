@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, CheckCheck, HelpCircle, LogOut, Menu, Plus, Settings, X } from "lucide-react";
+import { Bell, CheckCheck, HelpCircle, LogOut, Menu, Settings, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
