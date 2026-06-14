@@ -1,51 +1,46 @@
+# Add Lyv Realty + Aluxety to the logo slider
+
 ## Goal
+Add two new brand logos — **Lyv Realty** and **Aluxety** — to the marquee on both `Index.tsx` (home) and `ForAgents.tsx` (agents landing). The new logos should look like they belong: same greyscale treatment, similar optical weight, and balanced spacing with the existing four (Compass, Churchill, Keller Williams, eXp).
 
-Replace the current `ExchangeLogoIcon` in `src/components/layout/Navbar.tsx` with a new mark inspired by the reference: a set of upward arrows with a small house roof sitting on top of one of them. Keep the wordmark "1031 Exchange Up" next to it (the new mark has no built-in text, so per your instructions the text stays).
+## Assets
+Save as transparent PNGs at the existing `public/logos/` path so they sit alongside the current SVGs:
 
-## Branding colors (reused from the site, not the reference image)
+- `public/logos/lyv-realty.png`
+- `public/logos/aluxety.png`
 
-- Charcoal `#1d1d1d` — primary brand color (already used for wordmark, nav pill text, buttons)
-- Gold `#FADC6A` — existing accent dot in the current logo
-- That's it — no blues, no navy gradient from the reference
+Source order of preference:
+1. **User-attached images** — run through `imagegen--edit_image` with `transparent_background=true` to strip backgrounds. Lyv's mark is already solid black so it will desaturate cleanly. Aluxety's navy + gold will flatten to a uniform mid-grey via the existing `grayscale(1)` filter.
+2. **Web fallback** — only if a clean cutout isn't achievable from the attachments, fetch the official wordmark from each brand's site (`lyvrealty.com`, `aluxety.com`) and repeat the background-removal step.
 
-## New mark design
+No CSS changes — the existing `filter: grayscale(1) contrast(0.92) brightness(1.05)` on the marquee handles the greyed-out look automatically.
 
-Three upward-pointing arrows arranged side by side, ascending in height left → right (short, medium, tall) — echoes "exchange up" and matches the reference's stepped feel without copying it.
+## Code changes
 
-- All three arrow shafts: charcoal `#1d1d1d`
-- Tallest (right) arrow's arrowhead: gold `#FADC6A` — single accent, mirrors the gold circle in the current logo so the brand DNA carries over
-- A small house roof (simple triangle/chevron) sits on top of the tallest arrow's head, in charcoal — this is the "home/property" cue from the reference
-- Pure SVG, no raster, no gradients
+### `src/pages/Index.tsx` — `brands` array
+Append two entries sized to sit between Compass (22) and Churchill (52):
 
-```text
-        /\        <- house roof (charcoal)
-        ▲         <- gold arrowhead
-   ▲    █
-▲  █    █
-█  █    █         <- three charcoal shafts
-█  █    █
+```ts
+{ name: "Lyv Realty",   src: "/logos/lyv-realty.png", height: 30, mobileHeight: 22, blend: false },
+{ name: "Aluxety",      src: "/logos/aluxety.png",    height: 34, mobileHeight: 26, blend: false },
 ```
 
-## Fit into the navbar — zero layout shift
+### `src/pages/ForAgents.tsx` — `brands` array
+Slightly larger to match that page's scale:
 
-Current slot: `<ExchangeLogoIcon className="h-8 w-8 shrink-0" />` inside a pill with `h-[58px]`. The new SVG will:
+```ts
+{ name: "Lyv Realty", src: "/logos/lyv-realty.png", height: 34, mobileHeight: 26 },
+{ name: "Aluxety",    src: "/logos/aluxety.png",    height: 38, mobileHeight: 30 },
+```
 
-- Use the exact same `h-8 w-8` (32×32) outer box
-- Use a square `viewBox` (e.g. `0 0 64 64`) with internal padding so the arrows + roof visually center in the same footprint as today's icon
-- Stay `shrink-0` and keep the same gap to the wordmark (`gap-1.5`)
+Heights are starting values — will be nudged ±4px after a visual check so neither logo dominates or shrinks beside its neighbors.
 
-Result: pill height, pill width, wordmark position, and right-side actions all stay pixel-identical. No CSS outside the icon component changes.
-
-## Files touched
-
-- `src/components/layout/Navbar.tsx` — replace the `ExchangeLogoIcon` SVG body only. No changes to the surrounding `<Link>`, wordmark span, classes, or any other navbar code.
+## Verification
+1. Load `/` and `/for-agents` in the preview.
+2. Confirm both logos appear in the marquee loop, render fully greyscale, and have visual weight comparable to Compass/eXp.
+3. If Lyv or Aluxety look too tall/short or too dense, adjust the corresponding `height`/`mobileHeight` and recheck.
 
 ## Out of scope
-
-- No favicon / `index.html` `<link rel="icon">` update (can be a follow-up if you want)
-- No changes to other pages, footers, or marketing assets
-- No new dependencies, no new files
-
-## Open question
-
-Want me to also refresh the **favicon** (`public/favicon.ico` / og image references in `index.html`) to match the new mark in the same pass, or keep this strictly to the navbar?
+- No changes to marquee animation, spacing CSS, or duplication logic.
+- No new dependencies.
+- No edits outside the two `brands` arrays + two new asset files.
