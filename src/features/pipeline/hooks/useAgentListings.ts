@@ -15,13 +15,16 @@ export interface AgentListing {
   assetType: string | null;
   strategyType: string | null;
   askingPrice: number | null;
+  identificationDeadline: string | null;
+  closingDeadline: string | null;
+  pipelineStageOverride: string | null;
 }
 
 async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
   const { data, error } = await supabase
     .from("exchanges")
     .select(
-      "id, status, created_at, relinquished_property_id, client_id, agent_clients(client_name)"
+      "id, status, created_at, relinquished_property_id, client_id, identification_deadline, closing_deadline, pipeline_stage_override, agent_clients(client_name)"
     )
     .eq("agent_id", userId)
     .order("created_at", { ascending: false });
@@ -33,6 +36,9 @@ async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
     created_at: string;
     relinquished_property_id: string | null;
     client_id: string | null;
+    identification_deadline: string | null;
+    closing_deadline: string | null;
+    pipeline_stage_override: string | null;
     agent_clients: { client_name: string } | null;
   }>;
 
@@ -114,6 +120,9 @@ async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
       assetType: p?.asset_type ?? null,
       strategyType: p?.strategy_type ?? null,
       askingPrice: f?.asking_price ?? null,
+      identificationDeadline: r.identification_deadline,
+      closingDeadline: r.closing_deadline,
+      pipelineStageOverride: r.pipeline_stage_override,
     };
   });
 }
