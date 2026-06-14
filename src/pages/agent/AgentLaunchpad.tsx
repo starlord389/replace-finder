@@ -1,19 +1,22 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, CheckCircle2, Building2, Workflow, FileSearch } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  AGENT_LAUNCHPAD_GROUPS,
   AGENT_LAUNCHPAD_STEPS,
   type AgentLaunchpadStepId,
 } from "@/content/agentLaunchpad";
 import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
-import LaunchpadChecklistCard from "@/components/agent/LaunchpadChecklistCard";
+import LaunchpadChecklistCard, {
+  type LaunchpadStepStatus,
+} from "@/components/agent/LaunchpadChecklistCard";
 
-const LAUNCHPAD_VERSION = "v1";
+const LAUNCHPAD_VERSION = "v2";
 
 export default function AgentLaunchpad() {
   const { user, profileName } = useAuth();
@@ -30,7 +33,7 @@ export default function AgentLaunchpad() {
     const exchangeComplete = (data?.exchangeCount ?? 0) > 0;
     const matchingComplete = matchingExpanded || Boolean(data?.profile.launchpad_completed_at);
     const matchesComplete = (data?.matchCount ?? 0) > 0;
-    const connectionComplete = (data?.connectionCount ?? 0) > 0;
+    const pipelineComplete = (data?.pipelineActivity ?? 0) > 0;
 
     return {
       profile: profileComplete,
@@ -38,7 +41,7 @@ export default function AgentLaunchpad() {
       exchange: exchangeComplete,
       matching: matchingComplete,
       matches: matchesComplete,
-      connection: connectionComplete,
+      pipeline: pipelineComplete,
     } satisfies Record<AgentLaunchpadStepId, boolean>;
   }, [data, matchingExpanded]);
 
@@ -46,6 +49,19 @@ export default function AgentLaunchpad() {
   const totalCompleted = Object.values(completionMap).filter(Boolean).length;
   const overallPercent = Math.round((totalCompleted / totalSteps) * 100);
   const allStepsComplete = totalCompleted === totalSteps;
+
+  const firstIncompleteId = useMemo<AgentLaunchpadStepId | null>(() => {
+    for (const step of AGENT_LAUNCHPAD_STEPS) {
+      if (!completionMap[step.id]) return step.id;
+    }
+    return null;
+  }, [completionMap]);
+
+  const statusFor = (id: AgentLaunchpadStepId): LaunchpadStepStatus => {
+    if (completionMap[id]) return "done";
+    if (firstIncompleteId === id) return "attention";
+    return "todo";
+  };
 
   const handleCompleteLaunchpad = async () => {
     if (!user) return;
@@ -73,7 +89,7 @@ export default function AgentLaunchpad() {
       title: "Launchpad complete",
       description: "You're all set. Head to your dashboard to manage the live pipeline.",
     });
-    navigate("/agent");
+    navigate("/agent/dashboard");
   };
 
   const handleStepClick = (step: (typeof AGENT_LAUNCHPAD_STEPS)[number]) => {
@@ -98,9 +114,14 @@ export default function AgentLaunchpad() {
     <div className="mx-auto max-w-3xl">
       {/* Personalized header */}
       <div className="space-y-6 pb-6">
-        <h1 className="text-xl font-semibold text-foreground md:text-2xl">
-          Hey {firstName}, here&apos;s your personalized setup list with everything you need to get started.
-        </h1>
+        <div>
+          <h1 className="text-xl font-semibold text-foreground md:text-2xl">
+            Hey {firstName}, here&apos;s your launchpad.
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Set up your workspace, then run your pipeline. Each step links to the exact place to act.
+          </p>
+        </div>
 
         {/* Overall progress bar */}
         <div className="space-y-2">
@@ -122,7 +143,7 @@ export default function AgentLaunchpad() {
             <div>
               <p className="font-semibold text-green-900">You&apos;re all set!</p>
               <p className="text-sm text-green-700">
-                Your workspace is configured and ready for day-to-day execution.
+                Your workspace is configured and your pipeline is live.
               </p>
             </div>
           </div>
@@ -133,61 +154,97 @@ export default function AgentLaunchpad() {
         </div>
       )}
 
-      {/* Single flat checklist */}
-      <div className="overflow-hidden rounded-xl border bg-card">
-        {AGENT_LAUNCHPAD_STEPS.map((step, idx) => {
-          const complete = completionMap[step.id];
-          const isLast = idx === AGENT_LAUNCHPAD_STEPS.length - 1;
+      {/* Grouped sections */}
+      <div className="space-y-6">
+        {AGENT_LAUNCHPAD_GROUPS.map((group) => {
+          const GroupIcon = group.icon;
+          const groupSteps = group.steps
+            .map((id) => AGENT_LAUNCHPAD_STEPS.find((s) => s.id === id))
+            .filter(Boolean) as typeof AGENT_LAUNCHPAD_STEPS;
+          const groupDone = groupSteps.filter((s) => completionMap[s.id]).length;
 
           return (
-            <LaunchpadChecklistCard
-              key={step.id}
-              title={step.title}
-              description={step.description}
-              complete={complete}
-              icon={step.icon}
-              isLast={isLast && !(step.id === "matching" && matchingExpanded)}
-              onClick={() => handleStepClick(step)}
-            >
-              {step.id === "matching" && matchingExpanded ? (
-                <div className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-lg border bg-background p-3">
-                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                        <Building2 className="h-4 w-4 text-primary" />
-                        Your exchange
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Property, value, timing, and replacement criteria create the signal the network uses to score fit.
-                      </p>
-                    </div>
-                    <div className="rounded-lg border bg-background p-3">
-                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                        <Workflow className="h-4 w-4 text-primary" />
-                        Match scoring
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        The platform evaluates geography, asset type, timing, price, and financial fit to rank opportunities.
-                      </p>
-                    </div>
-                    <div className="rounded-lg border bg-background p-3">
-                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                        <FileSearch className="h-4 w-4 text-primary" />
-                        Review and connect
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        You review the best options first, then start a connection when a match is worth pursuing.
-                      </p>
-                    </div>
+            <section key={group.id}>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                    <GroupIcon className="h-4 w-4 text-primary" />
                   </div>
-                  <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                    45-day identification and 180-day close windows shape urgency, while the facilitator fee is acknowledged in the connection workflow before deeper collaboration begins.
+                  <div>
+                    <h2 className="text-sm font-semibold text-foreground">{group.title}</h2>
+                    <p className="text-xs text-muted-foreground">{group.description}</p>
                   </div>
                 </div>
-              ) : null}
-            </LaunchpadChecklistCard>
+                <span className="shrink-0 text-xs font-medium text-muted-foreground">
+                  {groupDone}/{groupSteps.length}
+                </span>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border bg-card">
+                {groupSteps.map((step, idx) => {
+                  const complete = completionMap[step.id];
+                  const isLast = idx === groupSteps.length - 1;
+                  const expanded = step.id === "matching" && matchingExpanded;
+
+                  return (
+                    <LaunchpadChecklistCard
+                      key={step.id}
+                      title={step.title}
+                      description={step.description}
+                      tip={step.tip}
+                      complete={complete}
+                      status={statusFor(step.id)}
+                      icon={step.icon}
+                      isLast={isLast && !expanded}
+                      onClick={() => handleStepClick(step)}
+                    >
+                      {expanded ? <MatchingExplainer /> : null}
+                    </LaunchpadChecklistCard>
+                  );
+                })}
+              </div>
+            </section>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function MatchingExplainer() {
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border bg-background p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Target className="h-4 w-4 text-primary" />
+            Your client&apos;s criteria
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Price range, geography, asset type, strategy, financial fit, and timing — captured on every listing.
+          </p>
+        </div>
+        <div className="rounded-lg border bg-background p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Rules-based scoring
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Every potential property is ranked across those dimensions. No AI guesswork, no public MLS — just fit.
+          </p>
+        </div>
+        <div className="rounded-lg border bg-background p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            Private review
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You review the top matches first. Only matches you approve become visible to your client.
+          </p>
+        </div>
+      </div>
+      <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+        45-day identification and 180-day close windows shape urgency on every exchange — Pipeline keeps both clocks visible.
       </div>
     </div>
   );
