@@ -353,6 +353,7 @@ export type Database = {
           exchange_proceeds: number | null
           id: string
           identification_deadline: string | null
+          pipeline_stage_override: string | null
           relinquished_property_id: string | null
           sale_close_date: string | null
           status: Database["public"]["Enums"]["exchange_status"]
@@ -372,6 +373,7 @@ export type Database = {
           exchange_proceeds?: number | null
           id?: string
           identification_deadline?: string | null
+          pipeline_stage_override?: string | null
           relinquished_property_id?: string | null
           sale_close_date?: string | null
           status?: Database["public"]["Enums"]["exchange_status"]
@@ -391,6 +393,7 @@ export type Database = {
           exchange_proceeds?: number | null
           id?: string
           identification_deadline?: string | null
+          pipeline_stage_override?: string | null
           relinquished_property_id?: string | null
           sale_close_date?: string | null
           status?: Database["public"]["Enums"]["exchange_status"]
