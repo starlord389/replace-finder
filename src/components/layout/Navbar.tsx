@@ -3,55 +3,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getDefaultRouteForRole, ROUTES } from "@/app/routes/routeManifest";
+import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
 import {
   PUBLIC_NAV_LINKS,
   type PublicNavSectionHash,
 } from "@/content/publicNavLinks";
-
-function ExchangeLogoIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 486 354"
-      className={className}
-      aria-hidden="true"
-    >
-      <path
-        fill="none"
-        stroke="#000000"
-        strokeWidth="17"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M 191 186 L 243 134 L 295 186"
-      />
-      <rect x="278" y="142" width="15" height="34" rx="6" fill="#000000" />
-      <rect x="207" y="206" width="72" height="142" rx="11" fill="#000000" />
-      <path
-        fill="#000000"
-        stroke="#000000"
-        strokeWidth="18"
-        strokeLinejoin="round"
-        d="M 243 166 L 295 214 L 191 214 Z"
-      />
-      <rect x="146" y="294" width="44" height="54" rx="9" fill="#FECD1A" />
-      <path
-        fill="#FECD1A"
-        stroke="#FECD1A"
-        strokeWidth="16"
-        strokeLinejoin="round"
-        d="M 168 254 L 204 290 L 132 290 Z"
-      />
-      <rect x="296" y="294" width="44" height="54" rx="9" fill="#FECD1A" />
-      <path
-        fill="#FECD1A"
-        stroke="#FECD1A"
-        strokeWidth="16"
-        strokeLinejoin="round"
-        d="M 318 254 L 354 290 L 282 290 Z"
-      />
-    </svg>
-  );
-}
 
 function isSectionNavActive(
   pathname: string,
@@ -103,10 +59,7 @@ export default function Navbar() {
         <div className="flex h-[58px] items-center justify-between px-3 sm:px-3.5">
           {/* Logo */}
           <Link to={ROUTES.home} className="flex shrink-0 items-center gap-1.5">
-            <ExchangeLogoIcon className="h-14 w-auto shrink-0" />
-            <span className="whitespace-nowrap text-[15px] font-semibold tracking-[-0.03em] text-[#1d1d1d]">
-              1031 Exchange Up
-            </span>
+            <ExchangeLogoLockup markClassName="h-9" />
           </Link>
 
           {/* Center nav links */}

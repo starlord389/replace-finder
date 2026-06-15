@@ -45,7 +45,7 @@ const NAVBAR_FONT_STACK =
 
 const NAVBAR_LOGO_LOCKUP = `
   <span style="display:inline-flex;align-items:center;justify-content:center;flex:none;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 486 354" height="32" aria-hidden="true" style="display:block;flex:none;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="118 118 250 240" height="36" aria-hidden="true" style="display:block;flex:none;width:auto;">
       <path fill="none" stroke="#000000" stroke-width="17" stroke-linecap="round" stroke-linejoin="round" d="M 191 186 L 243 134 L 295 186"></path>
       <rect x="278" y="142" width="15" height="34" rx="6" fill="#000000"></rect>
       <rect x="207" y="206" width="72" height="142" rx="11" fill="#000000"></rect>
@@ -128,8 +128,8 @@ const NAVBAR_STYLE = `
     }
 
     [data-exchangeup-navbar="true"] [data-framer-name="Logo"] svg {
-      width: 30px !important;
-      height: 30px !important;
+      width: auto !important;
+      height: 32px !important;
     }
 
     [data-exchangeup-navbar="true"] [data-framer-name="Logo"] span:last-child {
@@ -195,8 +195,8 @@ const NAVBAR_STYLE = `
     }
 
     [data-exchangeup-mobile-brand] svg {
-      width: 30px !important;
-      height: 30px !important;
+      width: auto !important;
+      height: 32px !important;
       display: block !important;
       flex: none !important;
     }
@@ -4659,7 +4659,7 @@ export default function Index() {
         logoLink.target = "_parent";
         logoLink.innerHTML = NAVBAR_LOGO_LOCKUP;
         logoLink.style.cssText =
-          "display:inline-flex; align-items:center; gap:6px; width:auto; height:36px; " +
+          "display:inline-flex; align-items:center; gap:8px; width:auto; height:38px; " +
           "position:relative; text-decoration:none; color:#1d1d1d; white-space:nowrap; overflow:visible;";
       }
 
