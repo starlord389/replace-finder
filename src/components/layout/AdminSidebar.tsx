@@ -2,6 +2,7 @@ import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings } from "l
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { ExchangeLogoLockup, ExchangeLogoMark } from "@/components/brand/ExchangeLogo";
 import {
   Sidebar,
   SidebarContent,
@@ -38,16 +39,16 @@ export default function AdminSidebar() {
           <div className="flex items-center gap-2 px-4 py-4 border-b">
             {!collapsed && (
               <div className="flex items-center gap-2">
-                <span className="text-lg font-semibold tracking-tight text-foreground">
-                  1031<span className="text-primary">ExchangeUp</span>
-                </span>
-                <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700">
-                  Admin
-                </span>
+                <ExchangeLogoLockup
+                  markClassName="h-8"
+                  textClassName="text-[15px] tracking-[-0.03em] text-foreground"
+                  suffix="Admin"
+                  suffixClassName="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700"
+                />
               </div>
             )}
             {collapsed && (
-              <span className="text-lg font-bold text-primary">1031</span>
+              <ExchangeLogoMark className="h-7 w-auto" title="1031 Exchange Up" />
             )}
           </div>
 

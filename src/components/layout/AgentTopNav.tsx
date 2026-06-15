@@ -16,6 +16,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
+import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
 
 import { cn } from "@/lib/utils";
 
@@ -142,12 +143,12 @@ export default function AgentTopNav() {
       <div className="flex h-14 items-center gap-4 px-4 sm:px-6">
         {/* Brand */}
         <Link to="/agent/dashboard" className="flex shrink-0 items-center gap-2">
-          <span className="text-lg font-semibold tracking-tight text-foreground">
-            1031<span className="text-primary">ExchangeUp</span>
-          </span>
-          <span className="rounded bg-[#FADC6A]/25 px-1.5 py-0.5 text-[10px] font-semibold text-[#1d1d1d]">
-            Agent
-          </span>
+          <ExchangeLogoLockup
+            markClassName="h-8"
+            textClassName="text-[15px] tracking-[-0.03em] text-foreground"
+            suffix="Agent"
+            suffixClassName="rounded bg-[#FADC6A]/25 px-1.5 py-0.5 text-[10px] font-semibold text-[#1d1d1d]"
+          />
         </Link>
 
         {/* Desktop primary nav */}
