@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
 
 const links = {
   Platform: [
@@ -21,9 +22,11 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link to="/" className="text-lg font-bold tracking-tight">
-              <span className="text-gray-400">1031</span>
-              <span className="text-gray-900">ExchangeUp</span>
+            <Link to="/" className="inline-flex items-center">
+              <ExchangeLogoLockup
+                markClassName="h-8"
+                textClassName="text-[15px] font-semibold tracking-[-0.03em] text-gray-900"
+              />
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-gray-400">
               The exchange network for 1031 agents. Automatic matching, boot
