@@ -19,23 +19,35 @@ function ExchangeLogoIcon({ className }: { className?: string }) {
       <path
         fill="none"
         stroke="#000000"
-        strokeWidth="16"
-        strokeLinecap="butt"
-        strokeLinejoin="miter"
-        d="M 188 191.4 L 243 134 L 298 191.4"
+        strokeWidth="17"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M 191 186 L 243 134 L 295 186"
       />
-      <rect x="278" y="144" width="15" height="34" fill="#000000" />
+      <rect x="278" y="142" width="15" height="34" rx="6" fill="#000000" />
+      <rect x="207" y="206" width="72" height="142" rx="11" fill="#000000" />
       <path
         fill="#000000"
-        d="M 243 158 L 312 230 L 282 230 L 282 348 L 204 348 L 204 230 L 174 230 Z"
+        stroke="#000000"
+        strokeWidth="18"
+        strokeLinejoin="round"
+        d="M 243 166 L 295 214 L 191 214 Z"
       />
+      <rect x="146" y="294" width="44" height="54" rx="9" fill="#FECD1A" />
       <path
         fill="#FECD1A"
-        d="M 138 348 L 138 296 L 110 296 L 166 240 L 222 296 L 194 296 L 194 348 Z"
+        stroke="#FECD1A"
+        strokeWidth="16"
+        strokeLinejoin="round"
+        d="M 168 254 L 204 290 L 132 290 Z"
       />
+      <rect x="296" y="294" width="44" height="54" rx="9" fill="#FECD1A" />
       <path
         fill="#FECD1A"
-        d="M 292 348 L 292 296 L 264 296 L 320 240 L 376 296 L 348 296 L 348 348 Z"
+        stroke="#FECD1A"
+        strokeWidth="16"
+        strokeLinejoin="round"
+        d="M 318 254 L 354 290 L 282 290 Z"
       />
     </svg>
   );
