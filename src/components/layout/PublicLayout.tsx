@@ -8,18 +8,23 @@ import { cn } from "@/lib/utils";
 export default function PublicLayout() {
   const { pathname } = useLocation();
   const isTemplateHome = pathname === "/";
+  // The native homepage rebuild previews here with the same floating nav.
+  const isNativeHomePreview = pathname === "/preview-home";
+  const floatingNav = isTemplateHome || isNativeHomePreview;
   const isAuthBeigeShell =
     pathname === ROUTES.signup ||
     pathname === ROUTES.login ||
     pathname === ROUTES.forgotPassword ||
     pathname === ROUTES.resetPassword ||
     pathname === ROUTES.bookDemo ||
-    pathname === ROUTES.forLandlords;
+    pathname === ROUTES.forLandlords ||
+    isNativeHomePreview;
   const usesLandingFooter =
     pathname === ROUTES.signup ||
     pathname === ROUTES.login ||
     pathname === ROUTES.bookDemo ||
-    pathname === ROUTES.forLandlords;
+    pathname === ROUTES.forLandlords ||
+    isNativeHomePreview;
 
   return (
     <div
@@ -32,7 +37,7 @@ export default function PublicLayout() {
         Skip to content
       </a>
       {/* Homepage floats the nav over its hero (overlay); other pages reserve space. */}
-      <Navbar overlay={isTemplateHome} />
+      <Navbar overlay={floatingNav} />
       <main id="main-content" className="flex-1">
         <Outlet />
       </main>
