@@ -62,17 +62,30 @@ function NavDropdown({ group }: { group: PublicNavGroup }) {
         <div
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
-          className="absolute left-1/2 top-full z-50 mt-2 w-56 -translate-x-1/2 rounded-2xl border border-[#e0ddd6] bg-white p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.1)]"
+          className="absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 rounded-2xl border border-[#e7e3db] bg-white p-2 shadow-[0_16px_40px_rgba(40,35,28,0.14)]"
         >
-          {group.items.map((it) => (
-            <Link
-              key={it.label}
-              to={it.to}
-              className="block rounded-xl px-3 py-2 text-[13.5px] font-medium tracking-[-0.02em] text-[#4f4a43] transition-colors hover:bg-[#f7f5f0] hover:text-[#1d1d1d]"
-            >
-              {it.label}
-            </Link>
-          ))}
+          {group.items.map((it) => {
+            const Icon = it.icon;
+            return (
+              <Link
+                key={it.label}
+                to={it.to}
+                className="group/item flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-[#f7f5f0]"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#f6f1e8] text-[#1d1d1d] transition-colors group-hover/item:bg-[#fadc6a]">
+                  <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} aria-hidden="true" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[14px] font-semibold tracking-[-0.02em] text-[#1d1d1d]">
+                    {it.label}
+                  </span>
+                  <span className="mt-0.5 block text-[12.5px] leading-snug text-[#5f5a53]">
+                    {it.description}
+                  </span>
+                </span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
