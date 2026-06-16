@@ -3,7 +3,7 @@ import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
 
 const links = {
   Platform: [
-    { label: "For Agents", to: "/agents" },
+    { label: "How It Works", to: "/#process" },
     { label: "For Landlords", to: "/landlords" },
   ],
   Legal: [

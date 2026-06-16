@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getDefaultRouteForRole, ROUTES } from "@/app/routes/routeManifest";
 import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
@@ -62,8 +62,8 @@ export default function Navbar() {
             <ExchangeLogoLockup markClassName="h-8" textClassName="text-[14px] tracking-[-0.02em]" />
           </Link>
 
-          {/* Center nav links */}
-          <div className="hidden flex-1 items-center justify-center gap-0 md:flex">
+          {/* Center group — page-section links that scroll (with chevron) */}
+          <div className="hidden flex-1 items-center justify-center gap-1 md:flex">
             {PUBLIC_NAV_LINKS.map((link) => {
               const active = link.hash
                 ? isSectionNavActive(location.pathname, location.hash, link.hash)
@@ -72,17 +72,18 @@ export default function Navbar() {
                 <Link
                   key={link.label}
                   to={link.to}
-                  className={`${desktopLinkClass} ${
+                  className={`flex items-center gap-1 ${desktopLinkClass} ${
                     active ? "text-[#1d1d1d]" : secondaryDesktopText
                   }`}
                 >
                   {link.label}
+                  {link.hash && <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />}
                 </Link>
               );
             })}
           </div>
 
-          {/* Right side actions */}
+          {/* Right group — destinations + action (divider separates from section links) */}
           <div className="hidden shrink-0 items-center gap-1.5 md:flex">
             {user ? (
               <>
@@ -104,6 +105,17 @@ export default function Navbar() {
               </>
             ) : (
               <>
+                <span className="mr-1 h-5 w-px bg-[#e0ddd6]" aria-hidden="true" />
+                <Link
+                  to={ROUTES.forLandlords}
+                  className={`${desktopLinkClass} ${
+                    location.pathname === ROUTES.forLandlords
+                      ? "text-[#1d1d1d]"
+                      : secondaryDesktopText
+                  }`}
+                >
+                  For Landlords
+                </Link>
                 <Link
                   to={ROUTES.login}
                   className={`${desktopLinkClass} ${secondaryDesktopText}`}
@@ -187,6 +199,12 @@ export default function Navbar() {
                 </>
               ) : (
                 <div className="flex flex-col gap-2 pt-1">
+                  <Link
+                    to={ROUTES.forLandlords}
+                    className={mobileNavLinkClass(location.pathname === ROUTES.forLandlords)}
+                  >
+                    For Landlords
+                  </Link>
                   <Link
                     to={ROUTES.login}
                     className="flex min-h-[42px] w-full items-center justify-center rounded-[18px] bg-[#f7f5f0] px-4 text-center text-sm font-semibold tracking-[-0.02em] text-[#4f4a43] transition-colors hover:bg-[#f0ede7] hover:text-[#1d1d1d]"

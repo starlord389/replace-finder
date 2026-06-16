@@ -332,9 +332,9 @@ const NAVBAR_STYLE = `
 `;
 
 const MOBILE_NAV_LINKS = [
-  { label: "For Agents", href: "/agents" },
+  { label: "How It Works", href: "#process", scrollKey: "process" },
+  { label: "Features", href: "#feature", scrollKey: "feature" },
   { label: "For Landlords", href: "/landlords" },
-  { label: "Contact", href: "#contact", scrollKey: "contact" },
   { label: "Login", href: "/login" },
   { label: "Get Started", href: "/signup", primary: true },
 ] as const;
@@ -2876,7 +2876,8 @@ type FooterPageLink = {
 };
 const FOOTER_PAGE_LINKS: readonly FooterPageLink[] = [
   { label: "Home", href: "/" },
-  { label: "For Agents", href: "/agents" },
+  { label: "How It Works", href: "#process", scrollKey: "process" },
+  { label: "Features", href: "#feature", scrollKey: "feature" },
   { label: "For Landlords", href: "/landlords" },
   { label: "Contact", href: "#contact", scrollKey: "contact" },
   { label: "Login", href: "/login" },
@@ -4602,13 +4603,15 @@ export default function Index() {
         return;
       }
 
+      // Option B nav: the two section links scroll (and get a chevron); the
+      // remaining slots are destinations. Contact moved to the footer.
       const linkMap: Record<
         string,
         { href: string; label?: string; scrollKey?: "process" | "feature" | "contact" }
       > = {
-        about: { href: "/agents", label: "For Agents" },
-        features: { href: "/landlords", label: "For Landlords" },
-        pricing: { href: "#contact", label: "Contact", scrollKey: "contact" },
+        about: { href: "#process", label: "How It Works", scrollKey: "process" },
+        features: { href: "#feature", label: "Features", scrollKey: "feature" },
+        pricing: { href: "/landlords", label: "For Landlords" },
         "contact us": { href: "/signup", label: "Get Started" },
       };
 
@@ -4625,6 +4628,13 @@ export default function Index() {
           const textEl = anchor.querySelector("[data-framer-component-type='RichTextContainer'] p");
           if (textEl) {
             textEl.textContent = match.label;
+            // Down-chevron signals "scrolls down this page" vs. a page jump.
+            if (match.scrollKey) {
+              textEl.insertAdjacentHTML(
+                "beforeend",
+                `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;width:12px;height:12px;margin-left:4px;vertical-align:-1px;opacity:0.7;"><path d="m6 9 6 6 6-6"/></svg>`,
+              );
+            }
           }
         }
       }
@@ -4679,6 +4689,10 @@ export default function Index() {
           "position:relative; text-decoration:none; color:#1d1d1d; white-space:nowrap; overflow:visible;";
       }
 
+      navEl
+        .querySelectorAll("[data-exchangeup-injected-divider]")
+        .forEach((node) => node.remove());
+
       const contactBtn = navEl.querySelector("a[href='/signup']") as HTMLAnchorElement | null;
       if (contactBtn) {
         contactBtn.style.textDecoration = "none";
@@ -4702,6 +4716,21 @@ export default function Index() {
           "transition: color 0.2s;";
         loginLink.addEventListener("mouseenter", () => { loginLink.style.color = "#1d1d1d"; });
         loginLink.addEventListener("mouseleave", () => { loginLink.style.color = "#5d5d5d"; });
+
+        // Option B grouping: move "For Landlords" out of the section-link row
+        // into the right-hand destination cluster, with a divider before it —
+        // so this nav matches the shared <Navbar> exactly.
+        if (actionContainer) {
+          const landlordsLink = navEl.querySelector("a[href='/landlords']") as HTMLAnchorElement | null;
+          if (landlordsLink) {
+            const divider = doc.createElement("span");
+            divider.setAttribute("data-exchangeup-injected-divider", "true");
+            divider.style.cssText =
+              "display:inline-block; flex:none; width:1px; height:16px; margin:0 4px; background:#e0ddd6;";
+            actionContainer.insertBefore(landlordsLink, contactBtn);
+            actionContainer.insertBefore(divider, landlordsLink);
+          }
+        }
 
         contactBtn.parentElement?.insertBefore(loginLink, contactBtn);
       }

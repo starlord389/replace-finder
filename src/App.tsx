@@ -13,7 +13,6 @@ import AgentLayout from "@/components/layout/AgentLayout";
 import RequireGuest from "@/components/layout/RequireGuest";
 
 const Index = lazy(() => import("@/pages/Index"));
-const ForAgents = lazy(() => import("@/pages/ForAgents"));
 const ForLandlords = lazy(() => import("@/pages/ForLandlords"));
 const BookDemo = lazy(() => import("@/pages/BookDemo"));
 const Login = lazy(() => import("@/pages/auth/Login"));
@@ -72,7 +71,8 @@ const App = () => (
             <Route element={<RequireGuest />}>
               <Route element={<PublicLayout />}>
                 <Route path={ROUTES.home} element={<Index />} />
-                <Route path={ROUTES.forAgents} element={<ForAgents />} />
+                {/* Agent page merged into the homepage — keep the old URL alive */}
+                <Route path="/agents" element={<Navigate to={ROUTES.home} replace />} />
                 <Route path={ROUTES.forLandlords} element={<ForLandlords />} />
                 <Route path={ROUTES.bookDemo} element={<BookDemo />} />
                 <Route path={ROUTES.login} element={<Login />} />

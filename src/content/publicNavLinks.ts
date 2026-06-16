@@ -16,19 +16,31 @@ export type PublicNavLink = {
   hash?: PublicNavSectionHash;
 };
 
+// Center group = links that scroll to a homepage section (rendered with a
+// down-chevron). The right-hand group (For Landlords, Login, Get Started)
+// is rendered separately in Navbar.tsx so the two link *types* read
+// differently. Contact lives in the footers, not the nav.
 export const PUBLIC_NAV_LINKS: readonly PublicNavLink[] = [
-  { label: "For Agents", to: ROUTES.forAgents },
-  { label: "For Landlords", to: ROUTES.forLandlords },
   {
-    label: "Contact",
-    to: `${ROUTES.home}#${PUBLIC_NAV_SECTION_HASHES.contact}`,
-    hash: PUBLIC_NAV_SECTION_HASHES.contact,
+    label: "How It Works",
+    to: `${ROUTES.home}#${PUBLIC_NAV_SECTION_HASHES.process}`,
+    hash: PUBLIC_NAV_SECTION_HASHES.process,
+  },
+  {
+    label: "Features",
+    to: `${ROUTES.home}#${PUBLIC_NAV_SECTION_HASHES.feature}`,
+    hash: PUBLIC_NAV_SECTION_HASHES.feature,
   },
 ] as const;
 
 export const PUBLIC_FOOTER_LINKS = [
   { label: "Home", to: ROUTES.home },
   ...PUBLIC_NAV_LINKS,
+  { label: "For Landlords", to: ROUTES.forLandlords },
+  {
+    label: "Contact",
+    to: `${ROUTES.home}#${PUBLIC_NAV_SECTION_HASHES.contact}`,
+  },
   { label: "Login", to: ROUTES.login },
   { label: "Get Started", to: ROUTES.signup },
 ] as const;
