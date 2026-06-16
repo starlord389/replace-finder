@@ -4534,7 +4534,12 @@ export default function Index() {
 
     const slider = doc.createElement("section");
     slider.setAttribute("data-exchangeup-logo-slider", "true");
-    slider.setAttribute("aria-label", "Partner logo slider");
+    slider.setAttribute("aria-label", "Trusted by agents from");
+
+    const title = doc.createElement("p");
+    title.setAttribute("data-logo-title", "true");
+    title.textContent = "Trusted by agents from";
+    slider.appendChild(title);
 
     const viewport = doc.createElement("div");
     viewport.setAttribute("data-logo-slider-viewport", "true");
@@ -4542,32 +4547,31 @@ export default function Index() {
     const track = doc.createElement("div");
     track.setAttribute("data-logo-slider-track", "true");
 
-    for (let groupIndex = 0; groupIndex < 2; groupIndex += 1) {
-      const group = doc.createElement("div");
-      group.setAttribute("data-logo-slider-group", "true");
+    const group = doc.createElement("div");
+    group.setAttribute("data-logo-slider-group", "true");
 
-      LOGO_BRANDS.forEach((brand) => {
-        const item = doc.createElement("div");
-        item.setAttribute("data-logo-item", "true");
-        item.setAttribute("aria-label", brand.name);
-        if (brand.blend) item.setAttribute("data-logo-blend", "multiply");
-        item.style.setProperty("--brand-h", `${brand.height}px`);
-        item.style.setProperty("--brand-h-mobile", `${brand.mobileHeight}px`);
+    LOGO_BRANDS.forEach((brand) => {
+      const item = doc.createElement("div");
+      item.setAttribute("data-logo-item", "true");
+      item.setAttribute("aria-label", brand.name);
+      if (brand.blend) item.setAttribute("data-logo-blend", "multiply");
+      item.style.setProperty("--brand-h", `${brand.height}px`);
+      item.style.setProperty("--brand-h-mobile", `${brand.mobileHeight}px`);
 
-        const icon = doc.createElement("span");
-        icon.innerHTML = getLogoImgMarkup(brand);
+      const icon = doc.createElement("span");
+      icon.innerHTML = getLogoImgMarkup(brand);
 
-        item.append(icon);
-        group.appendChild(item);
-      });
+      item.append(icon);
+      group.appendChild(item);
+    });
 
-      track.appendChild(group);
-    }
+    track.appendChild(group);
 
     viewport.appendChild(track);
     slider.appendChild(viewport);
     heroSection.insertAdjacentElement("afterend", slider);
   }, []);
+
 
   const cleanIframe = useCallback((frame: HTMLIFrameElement | null) => {
     const doc = frame?.contentDocument;
