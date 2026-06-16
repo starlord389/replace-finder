@@ -89,7 +89,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
     "whitespace-nowrap px-1.5 py-1 text-[14px] font-medium tracking-[-0.02em] transition-colors";
   const secondaryDesktopText = "text-[#5d5d5d] hover:text-[#1d1d1d]";
   const primaryDesktopButton =
-    "flex items-center gap-2 whitespace-nowrap rounded-full bg-[#1d1d1d] py-2 pl-5 pr-2 text-[14px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black";
+    "flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#1d1d1d] py-2 pl-4 pr-2 text-[14px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black";
   const mobileNavLinkClass = (active: boolean) =>
     `flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
       active
@@ -115,7 +115,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
         }`}
         aria-label="Main navigation"
       >
-        <div className="flex h-[64px] items-center justify-between pl-5 pr-2.5 sm:pl-6 sm:pr-3">
+        <div className="flex h-[58px] items-center justify-between pl-4 pr-2 sm:pl-5 sm:pr-2.5">
           {/* Logo */}
           <Link to={ROUTES.home} className="flex shrink-0 items-center gap-2">
             <ExchangeLogoLockup markClassName="h-8" textClassName="text-[14px] tracking-[-0.02em]" />
@@ -137,8 +137,8 @@ export default function Navbar({ overlay = false }: NavbarProps) {
                 </Link>
                 <button onClick={signOut} className={primaryDesktopButton}>
                   Sign Out
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white">
-                    <X className="h-3.5 w-3.5 text-[#1d1d1d]" />
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white">
+                    <X className="h-3 w-3 text-[#1d1d1d]" />
                   </span>
                 </button>
               </>
@@ -158,7 +158,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
                 </Link>
                 <Link to={ROUTES.signup} className={primaryDesktopButton}>
                   Get Started
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white">
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
@@ -166,7 +166,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="h-3.5 w-3.5 text-[#1d1d1d]"
+                      className="h-3 w-3 text-[#1d1d1d]"
                       aria-hidden="true"
                     >
                       <path d="M7 17 17 7M9 7h8v8" />
