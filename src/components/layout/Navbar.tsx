@@ -1,27 +1,90 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getDefaultRouteForRole, ROUTES } from "@/app/routes/routeManifest";
 import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
-import {
-  PUBLIC_NAV_LINKS,
-  type PublicNavSectionHash,
-} from "@/content/publicNavLinks";
+import { PUBLIC_NAV_GROUPS, type PublicNavGroup } from "@/content/publicNavLinks";
 
-function isSectionNavActive(
-  pathname: string,
-  hash: string,
-  sectionHash: PublicNavSectionHash,
-): boolean {
-  if (pathname !== ROUTES.home) return false;
-  return hash.replace(/^#/, "") === sectionHash;
+interface NavbarProps {
+  /** Homepage floats the nav over the hero — omit the layout spacer. */
+  overlay?: boolean;
 }
 
-export default function Navbar() {
+/** Desktop hover/focus dropdown for one nav group. */
+function NavDropdown({ group }: { group: PublicNavGroup }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<number>();
+
+  const scheduleClose = () => {
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setOpen(false), 120);
+  };
+  const cancelClose = () => window.clearTimeout(closeTimer.current);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onClick);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onClick);
+    };
+  }, [open]);
+
+  return (
+    <div
+      ref={ref}
+      className="relative"
+      onMouseEnter={() => { cancelClose(); setOpen(true); }}
+      onMouseLeave={scheduleClose}
+    >
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 whitespace-nowrap px-2 py-1 text-[14px] font-medium tracking-[-0.02em] text-[#5d5d5d] transition-colors hover:text-[#1d1d1d]"
+      >
+        {group.label}
+        <ChevronDown
+          className={`h-3.5 w-3.5 opacity-70 transition-transform ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {open && (
+        <div
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
+          className="absolute left-1/2 top-full z-50 mt-2 w-56 -translate-x-1/2 rounded-2xl border border-[#e0ddd6] bg-white p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.1)]"
+        >
+          {group.items.map((it) => (
+            <Link
+              key={it.label}
+              to={it.to}
+              className="block rounded-xl px-3 py-2 text-[13.5px] font-medium tracking-[-0.02em] text-[#4f4a43] transition-colors hover:bg-[#f7f5f0] hover:text-[#1d1d1d]"
+            >
+              {it.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Navbar({ overlay = false }: NavbarProps) {
   const { user, signOut, profileRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const location = useLocation();
+
   const desktopLinkClass =
     "whitespace-nowrap px-1.5 py-1 text-[14px] font-medium tracking-[-0.02em] transition-colors";
   const secondaryDesktopText = "text-[#5d5d5d] hover:text-[#1d1d1d]";
@@ -35,20 +98,16 @@ export default function Navbar() {
     }`;
 
   const dashboardLink = getDefaultRouteForRole(profileRole);
-  const dashboardLabel =
-    profileRole === "admin"
-      ? "Admin"
-      : profileRole === "agent"
-        ? "Dashboard"
-        : "Dashboard";
+  const dashboardLabel = profileRole === "admin" ? "Admin" : "Dashboard";
 
   useEffect(() => {
     setMobileOpen(false);
+    setOpenGroup(null);
   }, [location.pathname, location.hash]);
 
   return (
     <>
-      <div className="h-20" />
+      {!overlay && <div className="h-20" />}
 
       <nav
         className={`fixed left-1/2 top-3 z-50 w-[calc(100%-1.5rem)] max-w-[752px] -translate-x-1/2 border border-[#e0ddd6] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)] sm:w-[calc(100%-2rem)] ${
@@ -62,41 +121,21 @@ export default function Navbar() {
             <ExchangeLogoLockup markClassName="h-8" textClassName="text-[14px] tracking-[-0.02em]" />
           </Link>
 
-          {/* Center group — page-section links that scroll (with chevron) */}
+          {/* Center group — category dropdowns */}
           <div className="hidden flex-1 items-center justify-center gap-1 md:flex">
-            {PUBLIC_NAV_LINKS.map((link) => {
-              const active = link.hash
-                ? isSectionNavActive(location.pathname, location.hash, link.hash)
-                : location.pathname === link.to;
-              return (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  className={`flex items-center gap-1 ${desktopLinkClass} ${
-                    active ? "text-[#1d1d1d]" : secondaryDesktopText
-                  }`}
-                >
-                  {link.label}
-                  {link.hash && <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />}
-                </Link>
-              );
-            })}
+            {PUBLIC_NAV_GROUPS.map((group) => (
+              <NavDropdown key={group.label} group={group} />
+            ))}
           </div>
 
-          {/* Right group — destinations + action (divider separates from section links) */}
+          {/* Right group — destinations + action */}
           <div className="hidden shrink-0 items-center gap-1.5 md:flex">
             {user ? (
               <>
-                <Link
-                  to={dashboardLink}
-                  className={`${desktopLinkClass} ${secondaryDesktopText}`}
-                >
+                <Link to={dashboardLink} className={`${desktopLinkClass} ${secondaryDesktopText}`}>
                   {dashboardLabel}
                 </Link>
-                <button
-                  onClick={signOut}
-                  className={primaryDesktopButton}
-                >
+                <button onClick={signOut} className={primaryDesktopButton}>
                   Sign Out
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white">
                     <X className="h-3 w-3 text-[#1d1d1d]" />
@@ -109,23 +148,15 @@ export default function Navbar() {
                 <Link
                   to={ROUTES.forLandlords}
                   className={`${desktopLinkClass} ${
-                    location.pathname === ROUTES.forLandlords
-                      ? "text-[#1d1d1d]"
-                      : secondaryDesktopText
+                    location.pathname === ROUTES.forLandlords ? "text-[#1d1d1d]" : secondaryDesktopText
                   }`}
                 >
                   For Landlords
                 </Link>
-                <Link
-                  to={ROUTES.login}
-                  className={`${desktopLinkClass} ${secondaryDesktopText}`}
-                >
+                <Link to={ROUTES.login} className={`${desktopLinkClass} ${secondaryDesktopText}`}>
                   Login
                 </Link>
-                <Link
-                  to={ROUTES.signup}
-                  className={primaryDesktopButton}
-                >
+                <Link to={ROUTES.signup} className={primaryDesktopButton}>
                   Get Started
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white">
                     <svg
@@ -154,11 +185,7 @@ export default function Navbar() {
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
             <span>{mobileOpen ? "Close" : "Menu"}</span>
-            {mobileOpen ? (
-              <X className="h-[15px] w-[15px]" />
-            ) : (
-              <Menu className="h-[15px] w-[15px]" />
-            )}
+            {mobileOpen ? <X className="h-[15px] w-[15px]" /> : <Menu className="h-[15px] w-[15px]" />}
           </button>
         </div>
 
@@ -166,49 +193,64 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="px-2 pb-2 pt-1 md:hidden">
             <div className="flex flex-col gap-2 border-t border-[#e8e5de] pt-3">
-              {PUBLIC_NAV_LINKS.map((link) => {
-                const active = link.hash
-                  ? isSectionNavActive(location.pathname, location.hash, link.hash)
-                  : location.pathname === link.to;
+              {/* Category groups as accordions */}
+              {PUBLIC_NAV_GROUPS.map((group) => {
+                const expanded = openGroup === group.label;
                 return (
-                  <Link
-                    key={link.label}
-                    to={link.to}
-                    className={mobileNavLinkClass(active)}
-                  >
-                    {link.label}
-                  </Link>
+                  <div key={group.label} className="rounded-[18px] bg-[#f7f5f0]">
+                    <button
+                      type="button"
+                      aria-expanded={expanded}
+                      onClick={() => setOpenGroup(expanded ? null : group.label)}
+                      className="flex min-h-[42px] w-full items-center justify-between px-4 text-sm font-semibold tracking-[-0.02em] text-[#4f4a43]"
+                    >
+                      {group.label}
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {expanded && (
+                      <div className="flex flex-col gap-0.5 px-2 pb-2">
+                        {group.items.map((it) => (
+                          <Link
+                            key={it.label}
+                            to={it.to}
+                            className="flex min-h-[38px] items-center rounded-[14px] px-3 text-[13.5px] font-medium tracking-[-0.02em] text-[#5f5a53] hover:bg-white hover:text-[#1d1d1d]"
+                          >
+                            {it.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
+
+              {/* Divider between sections and destinations */}
+              <div className="my-1 h-px bg-[#e8e5de]" />
+
               {user ? (
                 <>
-                  <Link
-                    to={dashboardLink}
-                    className="flex min-h-[42px] items-center justify-center rounded-[18px] bg-[#f7f5f0] px-4 text-sm font-semibold tracking-[-0.02em] text-[#4f4a43] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
-                  >
+                  <Link to={dashboardLink} className={mobileNavLinkClass(false)}>
                     {dashboardLabel}
                   </Link>
-                  <div className="pt-1">
-                    <button
-                      onClick={signOut}
-                      className="min-h-[42px] w-full rounded-full bg-[#1d1d1d] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
+                  <button
+                    onClick={signOut}
+                    className="min-h-[42px] w-full rounded-full bg-[#1d1d1d] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black"
+                  >
+                    Sign Out
+                  </button>
                 </>
               ) : (
-                <div className="flex flex-col gap-2 pt-1">
+                <>
                   <Link
                     to={ROUTES.forLandlords}
                     className={mobileNavLinkClass(location.pathname === ROUTES.forLandlords)}
                   >
                     For Landlords
                   </Link>
-                  <Link
-                    to={ROUTES.login}
-                    className="flex min-h-[42px] w-full items-center justify-center rounded-[18px] bg-[#f7f5f0] px-4 text-center text-sm font-semibold tracking-[-0.02em] text-[#4f4a43] transition-colors hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
-                  >
+                  <Link to={ROUTES.login} className={mobileNavLinkClass(false)}>
                     Login
                   </Link>
                   <Link
@@ -217,7 +259,7 @@ export default function Navbar() {
                   >
                     Get Started
                   </Link>
-                </div>
+                </>
               )}
             </div>
           </div>

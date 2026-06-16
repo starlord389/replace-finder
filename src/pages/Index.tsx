@@ -1,5 +1,6 @@
 import Lenis from "lenis";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const LOGO_BRANDS = [
@@ -3023,6 +3024,7 @@ async function submitContactLead({
 }
 
 export default function Index() {
+  const location = useLocation();
   const lenisRef = useRef<Lenis | null>(null);
   const lenisRafRef = useRef<number | null>(null);
   const revealRafRef = useRef<number | null>(null);
@@ -3477,21 +3479,17 @@ export default function Index() {
   }, []);
 
   const resolveScrollTarget = useCallback(
-    (
-      doc: Document,
-      key: "process" | "feature" | "contact",
-    ): HTMLElement | null => {
-      if (key === "contact") {
-        const contactMarkers = Array.from(
-          doc.querySelectorAll<HTMLElement>("[data-exchangeup-anchor='contact']"),
-        );
-        return (
-          contactMarkers.find((node) => node.offsetParent !== null) ??
-          contactMarkers[0] ??
-          null
-        );
+    (doc: Document, key: string): HTMLElement | null => {
+      if (!key) return null;
+      // Anchored sections (e.g. contact) use a data attribute; everything
+      // else resolves by element id. Unknown keys return null so links to
+      // not-yet-built sections simply no-op.
+      const markers = Array.from(
+        doc.querySelectorAll<HTMLElement>(`[data-exchangeup-anchor='${key}']`),
+      );
+      if (markers.length) {
+        return markers.find((node) => node.offsetParent !== null) ?? markers[0];
       }
-
       return doc.getElementById(key);
     },
     [],
@@ -3503,9 +3501,7 @@ export default function Index() {
       behavior: ScrollBehavior = "smooth",
     ) => {
       const hash = window.location.hash.replace(/^#/, "");
-      if (hash !== "process" && hash !== "feature" && hash !== "contact") {
-        return false;
-      }
+      if (!hash) return false;
 
       const doc = frame?.contentDocument;
       if (!doc) return false;
@@ -4664,107 +4660,12 @@ export default function Index() {
     const navRoots = Array.from(
       doc.querySelectorAll<HTMLElement>(".framer-9FYxx"),
     );
+    // The homepage now uses the shared React <Navbar> (rendered by
+    // PublicLayout as a floating overlay). Hide the Framer template's own
+    // nav so the two don't double up.
     navRoots.forEach((navEl) => {
       navEl.setAttribute("data-exchangeup-navbar", "true");
-      if (frame.clientWidth >= 960) {
-        navEl.style.width = "730px";
-        navEl.style.maxWidth = "calc(100vw - 48px)";
-      } else {
-        navEl.style.removeProperty("width");
-        navEl.style.removeProperty("max-width");
-      }
-
-      const logoWrap = navEl.querySelector(
-        '[data-framer-name="Logo"]',
-      ) as HTMLElement | null;
-      const logoLink = logoWrap?.querySelector("a") as HTMLAnchorElement | null;
-      if (logoWrap && logoLink) {
-        logoWrap.style.width = "auto";
-
-        logoLink.href = "/";
-        logoLink.target = "_parent";
-        logoLink.innerHTML = NAVBAR_LOGO_LOCKUP;
-        logoLink.style.cssText =
-          "display:inline-flex; align-items:center; gap:8px; width:auto; height:38px; " +
-          "position:relative; text-decoration:none; color:#1d1d1d; white-space:nowrap; overflow:visible;";
-      }
-
-      navEl
-        .querySelectorAll("[data-exchangeup-injected-divider]")
-        .forEach((node) => node.remove());
-
-      const contactBtn = navEl.querySelector("a[href='/signup']") as HTMLAnchorElement | null;
-      if (contactBtn) {
-        contactBtn.style.textDecoration = "none";
-        const actionContainer = contactBtn.parentElement as HTMLElement | null;
-        if (actionContainer) {
-          actionContainer.style.display = "flex";
-          actionContainer.style.alignItems = "center";
-          actionContainer.style.gap = "8px";
-          actionContainer.style.whiteSpace = "nowrap";
-        }
-
-        const loginLink = doc.createElement("a");
-        loginLink.setAttribute("data-exchangeup-injected-login", "true");
-        loginLink.href = "/login";
-        loginLink.target = "_parent";
-        loginLink.textContent = "Login";
-        loginLink.style.cssText =
-          `font-family: ${NAVBAR_FONT_STACK}; font-size: 14px; font-weight: 500; letter-spacing: -0.02em; color: #5d5d5d; ` +
-          "text-decoration: none; padding: 4px 4px; white-space: nowrap; " +
-          "line-height: 1; display: inline-flex; align-items: center; " +
-          "transition: color 0.2s;";
-        loginLink.addEventListener("mouseenter", () => { loginLink.style.color = "#1d1d1d"; });
-        loginLink.addEventListener("mouseleave", () => { loginLink.style.color = "#5d5d5d"; });
-
-        // Option B grouping: move "For Landlords" out of the section-link row
-        // into the right-hand destination cluster, with a divider before it —
-        // so this nav matches the shared <Navbar> exactly.
-        if (actionContainer) {
-          const landlordsLink = navEl.querySelector("a[href='/landlords']") as HTMLAnchorElement | null;
-          if (landlordsLink) {
-            const divider = doc.createElement("span");
-            divider.setAttribute("data-exchangeup-injected-divider", "true");
-            divider.style.cssText =
-              "display:inline-block; flex:none; width:1px; height:16px; margin:0 4px; background:#e0ddd6;";
-            actionContainer.insertBefore(landlordsLink, contactBtn);
-            actionContainer.insertBefore(divider, landlordsLink);
-          }
-        }
-
-        contactBtn.parentElement?.insertBefore(loginLink, contactBtn);
-      }
-
-      navEl
-        .querySelectorAll<HTMLElement>("[data-exchangeup-mobile-nav]")
-        .forEach((node) => node.remove());
-
-      const mobileNav = doc.createElement("div");
-      mobileNav.setAttribute("data-exchangeup-mobile-nav", "true");
-      mobileNav.setAttribute("data-state", "closed");
-      mobileNav.innerHTML = getMobileNavMarkup();
-      navEl.appendChild(mobileNav);
-
-      const toggle = mobileNav.querySelector<HTMLButtonElement>(
-        "[data-exchangeup-mobile-toggle]",
-      );
-      const toggleLabel = mobileNav.querySelector<HTMLElement>(
-        "[data-mobile-toggle-label]",
-      );
-      const setMobileNavOpen = (open: boolean) => {
-        mobileNav.setAttribute("data-state", open ? "open" : "closed");
-        toggle?.setAttribute("aria-expanded", String(open));
-        toggle?.setAttribute("aria-label", open ? "Close menu" : "Open menu");
-        if (toggleLabel) toggleLabel.textContent = open ? "Close" : "Menu";
-      };
-
-      toggle?.addEventListener("click", () => {
-        setMobileNavOpen(mobileNav.getAttribute("data-state") !== "open");
-      });
-
-      mobileNav.querySelectorAll<HTMLAnchorElement>("a").forEach((anchor) => {
-        anchor.addEventListener("click", () => setMobileNavOpen(false));
-      });
+      navEl.style.setProperty("display", "none", "important");
     });
 
     doc
@@ -4844,6 +4745,14 @@ export default function Index() {
       window.removeEventListener("hashchange", syncHashScroll);
     };
   }, [scrollFrameToHash]);
+
+  // React Router navigation (e.g. a nav dropdown <Link> to "/#process")
+  // updates the hash via history.pushState, which does NOT fire the window
+  // "hashchange" event — so scroll the iframe whenever the router hash changes.
+  useEffect(() => {
+    if (!frameReady) return;
+    scrollFrameToHash(frameRef.current, "smooth");
+  }, [location.hash, frameReady, scrollFrameToHash]);
 
   useEffect(() => {
     return () => {
