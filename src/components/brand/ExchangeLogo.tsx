@@ -73,8 +73,8 @@ export function ExchangeLogoLockup({
 }: ExchangeLogoLockupProps) {
   return (
     <span className={cn("inline-flex min-w-0 items-center gap-2", className)}>
-      <ExchangeLogoMark className={cn("h-9 w-auto shrink-0", markClassName)} />
-      <span className={cn("whitespace-nowrap text-[15px] font-semibold tracking-[-0.03em] text-[#1d1d1d]", textClassName)}>
+      <ExchangeLogoMark className={cn("h-8 w-auto shrink-0", markClassName)} />
+      <span className={cn("whitespace-nowrap text-[14px] font-semibold tracking-[-0.02em] text-[#1d1d1d]", textClassName)}>
         1031 Exchange Up
       </span>
       {suffix ? (
