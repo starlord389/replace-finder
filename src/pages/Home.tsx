@@ -30,7 +30,9 @@ const PAGE_STYLE = `
   [data-landing] {
     font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #1d1d1d;
-    background: #f4f2ee;
+    /* Cream base + the template's faint 70px vertical-stripe texture. */
+    background-color: #f4f2ee;
+    background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0px, rgba(255, 255, 255, 0) 70px);
   }
 
   [data-landing] h1, [data-landing] .lp-h2, [data-landing] .lp-display {
@@ -39,11 +41,11 @@ const PAGE_STYLE = `
 
   [data-landing] h1 {
     margin: 0;
-    font-size: clamp(38px, 5.6vw, 58px);
+    font-size: clamp(36px, 8vw, 56px);
     font-weight: 400;
-    line-height: 1.0;
+    line-height: 1.1;
     letter-spacing: -0.05em;
-    color: #0d0d0d;
+    color: #000;
   }
 
   [data-landing] .lp-h2 {
@@ -58,16 +60,17 @@ const PAGE_STYLE = `
   [data-landing] .lp-eyebrow {
     display: inline-flex;
     width: fit-content;
-    padding: 7px 14px;
+    padding: 6px 14px;
     border: 1px solid rgba(29, 29, 29, 0.12);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.55);
-    font-size: 11px;
+    background: rgba(29, 29, 29, 0.04);
+    font-family: "Plus Jakarta Sans", -apple-system, sans-serif;
+    font-size: 12px;
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #56524b;
+    color: #1d1d1d;
   }
 
   [data-landing] .lp-sub {
@@ -78,46 +81,44 @@ const PAGE_STYLE = `
     color: #605f5f;
   }
 
-  /* Pill CTAs */
+  /* Pill CTAs — secondary ("Book a Demo") is a plain transparent text button,
+     primary ("Get Started") is a black pill with a white circle-arrow, matching the template. */
   [data-landing] .lp-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 48px;
-    padding: 0 22px;
+    height: 44px;
+    padding: 0 20px;
     border-radius: 999px;
-    font-family: "Geist", sans-serif;
-    font-size: 15px;
-    font-weight: 500;
+    font-family: "Plus Jakarta Sans", -apple-system, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
     letter-spacing: -0.01em;
     line-height: 1;
     text-decoration: none;
     color: #1d1d1d;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: inset 0 0 0 1px rgba(214, 207, 196, 0.95), 0 10px 22px rgba(80, 71, 58, 0.07);
-    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    background: transparent;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
-  [data-landing] .lp-pill:hover {
-    transform: translateY(-1px);
-    box-shadow: inset 0 0 0 1px rgba(214, 207, 196, 0.95), 0 14px 28px rgba(80, 71, 58, 0.12);
-  }
+  [data-landing] .lp-pill:hover { background: rgba(29, 29, 29, 0.05); }
   [data-landing] .lp-pill[data-primary="true"] {
     color: #fff;
     background: #1d1d1d;
-    padding: 0 8px 0 22px;
-    box-shadow: 0 12px 24px rgba(29, 29, 29, 0.18);
+    padding: 0 6px 0 18px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
   [data-landing] .lp-pill[data-primary="true"]:hover {
     background: #000;
-    box-shadow: 0 16px 30px rgba(29, 29, 29, 0.24);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
   }
   [data-landing] .lp-pill-arrow {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 999px;
     background: #fff;
     color: #1d1d1d;
@@ -179,8 +180,9 @@ const PAGE_STYLE = `
   [data-landing] [data-reveal].is-visible { opacity: 1; transform: translateY(0); }
 
   @media (prefers-reduced-motion: reduce) {
+    /* The logo marquee keeps running (gentle, continuous, matches the template);
+       only the entrance/hover motion is suppressed. */
     [data-landing] [data-reveal] { opacity: 1; transform: none; transition: none; }
-    [data-landing] .lp-marquee-track { animation: none; }
     [data-landing] .lp-pill { transition: none; }
   }
 `;
@@ -210,11 +212,11 @@ function revealStyle(delay: number): CSSProperties {
 
 function Hero() {
   return (
-    <section className="px-5 pb-8 pt-24 sm:px-8 sm:pt-28">
+    <section className="px-5 pb-10 pt-28 sm:px-8 sm:pt-[176px]">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <div>
           <p className="lp-eyebrow" data-reveal>{HERO.eyebrow}</p>
-          <h1 className="mt-6 max-w-2xl" data-reveal style={revealStyle(0.06)}>{HERO.headline}</h1>
+          <h1 className="mt-6 max-w-[440px]" data-reveal style={revealStyle(0.06)}>{HERO.headline}</h1>
           <p className="lp-sub mt-6 max-w-[34rem]" data-reveal style={revealStyle(0.12)}>
             {HERO.subheadline}
           </p>
