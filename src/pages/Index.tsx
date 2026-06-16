@@ -4382,50 +4382,59 @@ export default function Index() {
     const style = doc.createElement("style");
     style.setAttribute("data-exchangeup-logo-slider-style", "true");
     style.textContent = `
-      @keyframes exchangeupLogoMarquee {
-        from { transform: translateX(0); }
-        to { transform: translateX(-50%); }
-      }
-
       header[data-framer-name="Hero Section"] {
         margin-bottom: -24px;
       }
 
       [data-exchangeup-logo-slider] {
         width: 100%;
-        padding: 2px 0 6px;
+        padding: 8px 0 14px;
         background: transparent;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+      }
+
+      [data-exchangeup-logo-slider] [data-logo-title] {
+        margin: 0;
+        font-family: ${NAVBAR_FONT_STACK};
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #8a847b;
+        text-align: center;
       }
 
       [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
-        overflow: hidden;
-        width: min(1000px, calc(100vw - 160px));
-        mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-        -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        width: min(1100px, calc(100vw - 80px));
+        display: flex;
+        justify-content: center;
       }
 
       [data-exchangeup-logo-slider] [data-logo-slider-track] {
         display: flex;
         align-items: center;
-        gap: 0;
-        width: max-content;
-        animation: exchangeupLogoMarquee 52s linear infinite;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 100%;
       }
 
       [data-exchangeup-logo-slider] [data-logo-slider-group] {
         display: flex;
         align-items: center;
-        gap: 80px;
-        padding-right: 80px;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 56px 64px;
       }
 
       [data-exchangeup-logo-slider] [data-logo-item] {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 68px;
+        height: 60px;
         white-space: nowrap;
         flex: none;
         user-select: none;
@@ -4459,9 +4468,7 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] {
-          order: 1 !important;
-          margin-top: 0;
-          padding: 18px 0 18px;
+          padding: 22px 0 22px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
@@ -4469,12 +4476,11 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-group] {
-          gap: 64px;
-          padding-right: 64px;
+          gap: 40px 48px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] {
-          height: 62px;
+          height: 56px;
         }
       }
 
@@ -4484,7 +4490,8 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] {
-          padding: 16px 0 14px;
+          padding: 18px 0 18px;
+          gap: 14px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
@@ -4492,12 +4499,11 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-group] {
-          gap: 52px;
-          padding-right: 52px;
+          gap: 28px 36px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] {
-          height: 54px;
+          height: 48px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] img {
@@ -4515,15 +4521,15 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-group] {
-          gap: 42px;
-          padding-right: 42px;
+          gap: 22px 28px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] {
-          height: 48px;
+          height: 42px;
         }
       }
     `;
+
     doc.head.appendChild(style);
 
     const slider = doc.createElement("section");
