@@ -30,10 +30,30 @@ const PAGE_STYLE = `
   [data-landing] {
     font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #1d1d1d;
-    /* Cream base + the template's faint 70px vertical-stripe texture. */
     background-color: #f4f2ee;
-    background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0px, rgba(255, 255, 255, 0) 70px);
   }
+
+  /* Hero-only vertical-stripe texture: 70px white bands, strongest at the
+     left/right edges and fading toward the center, and fading out toward the
+     bottom — matching the template's 3 stripe layers. */
+  [data-landing] .lp-hero { position: relative; overflow: hidden; }
+  [data-landing] .lp-hero-stripes {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  }
+  [data-landing] .lp-hero-stripes::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.55) 0px, rgba(255, 255, 255, 0) 70px);
+    -webkit-mask-image: linear-gradient(to right, #000 0%, transparent 40%, transparent 60%, #000 100%);
+    mask-image: linear-gradient(to right, #000 0%, transparent 40%, transparent 60%, #000 100%);
+  }
+  [data-landing] .lp-hero-inner { position: relative; z-index: 1; }
 
   [data-landing] h1, [data-landing] .lp-h2, [data-landing] .lp-display {
     font-family: "Albert Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -98,13 +118,15 @@ const PAGE_STYLE = `
     line-height: 1;
     text-decoration: none;
     color: #1d1d1d;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(29, 29, 29, 0.14);
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
-  [data-landing] .lp-pill:hover { background: rgba(29, 29, 29, 0.05); }
+  [data-landing] .lp-pill:hover { background: rgba(255, 255, 255, 0.9); }
   [data-landing] .lp-pill[data-primary="true"] {
     color: #fff;
     background: #1d1d1d;
+    border-color: #1d1d1d;
     padding: 0 6px 0 18px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
@@ -212,8 +234,9 @@ function revealStyle(delay: number): CSSProperties {
 
 function Hero() {
   return (
-    <section className="px-5 pb-10 pt-28 sm:px-8 sm:pt-[176px]">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+    <section className="lp-hero px-5 pb-10 pt-28 sm:px-8 sm:pt-[176px]">
+      <div className="lp-hero-stripes" aria-hidden="true" />
+      <div className="lp-hero-inner mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <div>
           <p className="lp-eyebrow" data-reveal>{HERO.eyebrow}</p>
           <h1 className="mt-6 max-w-[440px]" data-reveal style={revealStyle(0.06)}>{HERO.headline}</h1>
