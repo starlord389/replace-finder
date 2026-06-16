@@ -56,10 +56,10 @@ export default function Navbar() {
         }`}
         aria-label="Main navigation"
       >
-        <div className="flex h-[58px] items-center justify-between px-3 sm:px-3.5">
+        <div className="flex h-[58px] items-center justify-between pl-4 pr-2 sm:pl-5 sm:pr-2.5">
           {/* Logo */}
-          <Link to={ROUTES.home} className="flex shrink-0 items-center gap-1.5">
-            <ExchangeLogoLockup markClassName="h-9" />
+          <Link to={ROUTES.home} className="flex shrink-0 items-center gap-2">
+            <ExchangeLogoLockup markClassName="h-8" textClassName="text-[14px] tracking-[-0.02em]" />
           </Link>
 
           {/* Center nav links */}
