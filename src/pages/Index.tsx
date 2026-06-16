@@ -114,6 +114,22 @@ const NAVBAR_STYLE = `
   @media (min-width: 1200px) {
     [data-exchangeup-navbar="true"] {
       width: 752px !important;
+      padding-left: 20px !important;
+      padding-right: 10px !important;
+    }
+
+    [data-exchangeup-navbar="true"] [data-framer-name="Logo"] a {
+      gap: 8px !important;
+    }
+
+    [data-exchangeup-navbar="true"] [data-framer-name="Logo"] svg {
+      width: auto !important;
+      height: 32px !important;
+    }
+
+    [data-exchangeup-navbar="true"] [data-framer-name="Logo"] span:last-child {
+      font-size: 14px !important;
+      letter-spacing: -0.02em !important;
     }
   }
 
