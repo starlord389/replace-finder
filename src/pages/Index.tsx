@@ -4382,59 +4382,50 @@ export default function Index() {
     const style = doc.createElement("style");
     style.setAttribute("data-exchangeup-logo-slider-style", "true");
     style.textContent = `
+      @keyframes exchangeupLogoMarquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+
       header[data-framer-name="Hero Section"] {
         margin-bottom: -24px;
       }
 
       [data-exchangeup-logo-slider] {
         width: 100%;
-        padding: 8px 0 14px;
+        padding: 2px 0 6px;
         background: transparent;
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 18px;
-      }
-
-      [data-exchangeup-logo-slider] [data-logo-title] {
-        margin: 0;
-        font-family: ${NAVBAR_FONT_STACK};
-        font-size: 11px;
-        font-weight: 700;
-        line-height: 1;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: #8a847b;
-        text-align: center;
+        justify-content: center;
       }
 
       [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
-        width: min(1100px, calc(100vw - 80px));
-        display: flex;
-        justify-content: center;
+        overflow: hidden;
+        width: min(1000px, calc(100vw - 160px));
+        mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
       }
 
       [data-exchangeup-logo-slider] [data-logo-slider-track] {
         display: flex;
         align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        width: 100%;
+        gap: 0;
+        width: max-content;
+        animation: exchangeupLogoMarquee 52s linear infinite;
       }
 
       [data-exchangeup-logo-slider] [data-logo-slider-group] {
         display: flex;
         align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 56px 64px;
+        gap: 80px;
+        padding-right: 80px;
       }
 
       [data-exchangeup-logo-slider] [data-logo-item] {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 60px;
+        height: 68px;
         white-space: nowrap;
         flex: none;
         user-select: none;
@@ -4468,7 +4459,9 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] {
-          padding: 22px 0 22px;
+          order: 1 !important;
+          margin-top: 0;
+          padding: 18px 0 18px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
@@ -4476,11 +4469,12 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-group] {
-          gap: 40px 48px;
+          gap: 64px;
+          padding-right: 64px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] {
-          height: 56px;
+          height: 62px;
         }
       }
 
@@ -4490,8 +4484,7 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] {
-          padding: 18px 0 18px;
-          gap: 14px;
+          padding: 16px 0 14px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-viewport] {
@@ -4499,11 +4492,12 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-group] {
-          gap: 28px 36px;
+          gap: 52px;
+          padding-right: 52px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] {
-          height: 48px;
+          height: 54px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] img {
@@ -4521,25 +4515,20 @@ export default function Index() {
         }
 
         [data-exchangeup-logo-slider] [data-logo-slider-group] {
-          gap: 22px 28px;
+          gap: 42px;
+          padding-right: 42px;
         }
 
         [data-exchangeup-logo-slider] [data-logo-item] {
-          height: 42px;
+          height: 48px;
         }
       }
     `;
-
     doc.head.appendChild(style);
 
     const slider = doc.createElement("section");
     slider.setAttribute("data-exchangeup-logo-slider", "true");
-    slider.setAttribute("aria-label", "Trusted by agents from");
-
-    const title = doc.createElement("p");
-    title.setAttribute("data-logo-title", "true");
-    title.textContent = "Trusted by agents from";
-    slider.appendChild(title);
+    slider.setAttribute("aria-label", "Partner logo slider");
 
     const viewport = doc.createElement("div");
     viewport.setAttribute("data-logo-slider-viewport", "true");
@@ -4547,31 +4536,32 @@ export default function Index() {
     const track = doc.createElement("div");
     track.setAttribute("data-logo-slider-track", "true");
 
-    const group = doc.createElement("div");
-    group.setAttribute("data-logo-slider-group", "true");
+    for (let groupIndex = 0; groupIndex < 2; groupIndex += 1) {
+      const group = doc.createElement("div");
+      group.setAttribute("data-logo-slider-group", "true");
 
-    LOGO_BRANDS.forEach((brand) => {
-      const item = doc.createElement("div");
-      item.setAttribute("data-logo-item", "true");
-      item.setAttribute("aria-label", brand.name);
-      if (brand.blend) item.setAttribute("data-logo-blend", "multiply");
-      item.style.setProperty("--brand-h", `${brand.height}px`);
-      item.style.setProperty("--brand-h-mobile", `${brand.mobileHeight}px`);
+      LOGO_BRANDS.forEach((brand) => {
+        const item = doc.createElement("div");
+        item.setAttribute("data-logo-item", "true");
+        item.setAttribute("aria-label", brand.name);
+        if (brand.blend) item.setAttribute("data-logo-blend", "multiply");
+        item.style.setProperty("--brand-h", `${brand.height}px`);
+        item.style.setProperty("--brand-h-mobile", `${brand.mobileHeight}px`);
 
-      const icon = doc.createElement("span");
-      icon.innerHTML = getLogoImgMarkup(brand);
+        const icon = doc.createElement("span");
+        icon.innerHTML = getLogoImgMarkup(brand);
 
-      item.append(icon);
-      group.appendChild(item);
-    });
+        item.append(icon);
+        group.appendChild(item);
+      });
 
-    track.appendChild(group);
+      track.appendChild(group);
+    }
 
     viewport.appendChild(track);
     slider.appendChild(viewport);
     heroSection.insertAdjacentElement("afterend", slider);
   }, []);
-
 
   const cleanIframe = useCallback((frame: HTMLIFrameElement | null) => {
     const doc = frame?.contentDocument;
