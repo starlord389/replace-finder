@@ -185,22 +185,64 @@ const PAGE_STYLE = `
   [data-landing] .lp-pill[data-primary="true"]:hover .lp-arrow-a { transform: translate(150%, -150%); }
   [data-landing] .lp-pill[data-primary="true"]:hover .lp-arrow-b { transform: translate(0, 0); }
 
-  /* Hero layered renders */
-  [data-landing] .lp-hero-visual { position: relative; }
-  [data-landing] .lp-hero-main {
-    display: block;
-    width: 90%;
-    border-radius: 16px;
-    box-shadow: 0 34px 70px rgba(38, 34, 28, 0.16), 0 6px 18px rgba(38, 34, 28, 0.07);
+  /* Hero marketing visuals — crisp, frosted-glass UI cards, layered & branded */
+  [data-landing] .lp-hero-visual { position: relative; padding-bottom: 8%; }
+  [data-landing] .lp-card {
+    background: rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 30px 60px rgba(38, 34, 28, 0.16), 0 6px 18px rgba(38, 34, 28, 0.07);
+    font-family: "Plus Jakarta Sans", -apple-system, sans-serif;
+    color: #1d1d1d;
   }
-  [data-landing] .lp-hero-kpi {
-    position: absolute;
-    right: -2%;
-    bottom: -10%;
-    width: 54%;
-    border-radius: 14px;
-    box-shadow: 0 28px 56px rgba(38, 34, 28, 0.2), 0 4px 14px rgba(38, 34, 28, 0.1);
-    transform: rotate(-3deg);
+  [data-landing] .lp-card-main { position: relative; width: 100%; border-radius: 22px; padding: 18px 18px 14px; }
+  [data-landing] .lp-card-detail {
+    position: absolute; right: -5%; bottom: -8%; width: 66%;
+    border-radius: 18px; padding: 15px; transform: rotate(-3deg);
+    background: rgba(255, 255, 255, 0.85);
+  }
+  [data-landing] .lp-card-head, [data-landing] .lp-detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  [data-landing] .lp-card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+  [data-landing] .lp-card-sub { margin-top: 2px; font-size: 11px; color: #8a847b; }
+  [data-landing] .lp-card-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; background: rgba(29,29,29,0.05); font-size: 10px; font-weight: 600; color: #56524b; white-space: nowrap; }
+  [data-landing] .lp-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 13px 0; }
+  [data-landing] .lp-stat { background: rgba(255,255,255,0.6); border: 1px solid rgba(29,29,29,0.06); border-radius: 12px; padding: 8px 9px; }
+  [data-landing] .lp-stat:first-child { background: linear-gradient(135deg, #fff4c2, #ffe98a); border-color: rgba(214,178,40,0.3); }
+  [data-landing] .lp-stat span { display: block; font-size: 8px; font-weight: 700; letter-spacing: 0.05em; color: #9a948b; text-transform: uppercase; }
+  [data-landing] .lp-stat b { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+  [data-landing] .lp-rows { display: flex; flex-direction: column; gap: 5px; }
+  [data-landing] .lp-row { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 12px; }
+  [data-landing] .lp-row-hot { background: linear-gradient(135deg, rgba(255,244,166,0.95), rgba(255,233,138,0.9)); }
+  [data-landing] .lp-score { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; color: #fff; font-size: 11px; font-weight: 800; flex: none; }
+  [data-landing] .lp-score-high { background: linear-gradient(135deg, #34d36b, #16a34a); }
+  [data-landing] .lp-score-good { background: linear-gradient(135deg, #6fcf73, #36a93f); }
+  [data-landing] .lp-score-mid { background: linear-gradient(135deg, #f7b955, #ef9a2a); }
+  [data-landing] .lp-score-lg { width: 40px; height: 40px; font-size: 16px; }
+  [data-landing] .lp-thumb { width: 34px; height: 34px; border-radius: 9px; flex: none; }
+  [data-landing] .lp-thumb[data-v="1"] { background: linear-gradient(135deg, #5a7a84, #2c3e44); }
+  [data-landing] .lp-thumb[data-v="2"] { background: linear-gradient(135deg, #c98b6a, #9c5b3b); }
+  [data-landing] .lp-thumb[data-v="3"] { background: linear-gradient(135deg, #7d8aa6, #4a5772); }
+  [data-landing] .lp-thumb[data-v="4"] { background: linear-gradient(135deg, #87a98f, #50745a); }
+  [data-landing] .lp-row-main { flex: 1; min-width: 0; }
+  [data-landing] .lp-row-title { font-size: 12px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  [data-landing] .lp-row-meta { font-size: 10px; color: #8a847b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  [data-landing] .lp-tag { font-size: 9px; font-weight: 700; color: #5a471b; background: rgba(255,255,255,0.7); border: 1px solid rgba(214,178,40,0.4); padding: 3px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
+  [data-landing] .lp-card-foot { margin-top: 10px; font-size: 11px; font-weight: 600; color: #56524b; }
+  [data-landing] .lp-chips { display: flex; gap: 5px; margin: 9px 0 11px; }
+  [data-landing] .lp-chips span { font-size: 9px; font-weight: 600; color: #56524b; background: rgba(29,29,29,0.05); padding: 3px 8px; border-radius: 999px; }
+  [data-landing] .lp-bd-label { font-size: 8px; font-weight: 700; letter-spacing: 0.07em; color: #9a948b; text-transform: uppercase; margin-bottom: 8px; }
+  [data-landing] .lp-bars { display: flex; flex-direction: column; gap: 6px; }
+  [data-landing] .lp-bar { display: grid; grid-template-columns: 56px 1fr 18px; align-items: center; gap: 8px; }
+  [data-landing] .lp-bar-label { font-size: 9px; font-weight: 600; color: #56524b; }
+  [data-landing] .lp-bar-track { height: 6px; border-radius: 999px; background: rgba(29,29,29,0.08); overflow: hidden; }
+  [data-landing] .lp-bar-fill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #34d36b, #16a34a); }
+  [data-landing] .lp-bar-val { font-size: 9px; font-weight: 700; text-align: right; }
+  [data-landing] .lp-detail-foot { display: flex; gap: 22px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(29,29,29,0.08); }
+  [data-landing] .lp-detail-foot span { display: block; font-size: 8px; font-weight: 700; letter-spacing: 0.05em; color: #9a948b; text-transform: uppercase; }
+  [data-landing] .lp-detail-foot b { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+  @media (max-width: 809.98px) {
+    [data-landing] .lp-card-detail { right: 0; bottom: -5%; width: 72%; }
   }
 
   /* Logo marquee */
@@ -300,12 +342,88 @@ function Hero() {
           </div>
         </div>
 
-        <div className="lp-hero-visual lp-in" style={inDelay(0.2)}>
-          <img className="lp-hero-main" src="/landing-hero-list-render.png" alt="1031 Exchange Up property matches dashboard" loading="eager" />
-          <img className="lp-hero-kpi" src="/landing-hero-kpi-render.png" alt="Match score breakdown for a replacement property" loading="eager" />
-        </div>
+        <HeroVisual />
       </div>
     </section>
+  );
+}
+
+type HeroMatch = { score: number; cls: string; v: string; title: string; meta: string; tag?: string; hot?: boolean };
+const HERO_MATCHES: HeroMatch[] = [
+  { score: 92, cls: "lp-score-high", v: "1", title: "Harbor Point Office Park", meta: "$4.2M · 6.8% cap · Boston, MA", tag: "No-Boot", hot: true },
+  { score: 88, cls: "lp-score-good", v: "2", title: "Back Bay Retail Center", meta: "$3.75M · 7.2% cap · Newton, MA" },
+  { score: 74, cls: "lp-score-mid", v: "3", title: "Merrimack Logistics", meta: "$5.1M · 5.9% cap · Lowell, MA" },
+  { score: 71, cls: "lp-score-mid", v: "4", title: "Seaport Landing Apartments", meta: "$6.8M · 5.4% cap · Quincy, MA" },
+];
+
+const HERO_BARS = [
+  { label: "Price", v: 94 },
+  { label: "Geography", v: 96 },
+  { label: "Asset Type", v: 100 },
+  { label: "Strategy", v: 88 },
+  { label: "Financial", v: 90 },
+  { label: "Timing", v: 85 },
+] as const;
+
+function HeroVisual() {
+  return (
+    <div className="lp-hero-visual lp-in" style={inDelay(0.2)}>
+      {/* Main card — scored off-market matches */}
+      <div className="lp-card lp-card-main">
+        <div className="lp-card-head">
+          <div>
+            <div className="lp-card-title">Property matches</div>
+            <div className="lp-card-sub">Sarah Chen exchange · sorted by score</div>
+          </div>
+          <span className="lp-card-pill">Sort by Score ▾</span>
+        </div>
+        <div className="lp-stat-row">
+          <div className="lp-stat"><span>Strong matches</span><b>5</b></div>
+          <div className="lp-stat"><span>Total matches</span><b>21</b></div>
+          <div className="lp-stat"><span>No-boot</span><b>12</b></div>
+        </div>
+        <div className="lp-rows">
+          {HERO_MATCHES.map((m) => (
+            <div key={m.title} className={`lp-row${m.hot ? " lp-row-hot" : ""}`}>
+              <span className={`lp-score ${m.cls}`}>{m.score}</span>
+              <span className="lp-thumb" data-v={m.v} />
+              <div className="lp-row-main">
+                <div className="lp-row-title">{m.title}</div>
+                <div className="lp-row-meta">{m.meta}</div>
+              </div>
+              {m.tag && <span className="lp-tag">{m.tag}</span>}
+            </div>
+          ))}
+        </div>
+        <div className="lp-card-foot">See all matches →</div>
+      </div>
+
+      {/* Detail card — match score breakdown */}
+      <div className="lp-card lp-card-detail">
+        <div className="lp-detail-head">
+          <div>
+            <div className="lp-card-title">Harbor Point Office Park</div>
+            <div className="lp-card-sub">Boston, MA</div>
+          </div>
+          <span className="lp-score lp-score-high lp-score-lg">92</span>
+        </div>
+        <div className="lp-chips"><span>Office</span><span>Stabilized</span><span>No-Boot</span></div>
+        <div className="lp-bd-label">Match score breakdown</div>
+        <div className="lp-bars">
+          {HERO_BARS.map((b) => (
+            <div key={b.label} className="lp-bar">
+              <span className="lp-bar-label">{b.label}</span>
+              <span className="lp-bar-track"><span className="lp-bar-fill" style={{ width: `${b.v}%` }} /></span>
+              <span className="lp-bar-val">{b.v}</span>
+            </div>
+          ))}
+        </div>
+        <div className="lp-detail-foot">
+          <div><span>Asking price</span><b>$4.2M</b></div>
+          <div><span>Cap rate</span><b>6.8%</b></div>
+        </div>
+      </div>
+    </div>
   );
 }
 
