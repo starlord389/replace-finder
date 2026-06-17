@@ -92,6 +92,35 @@ function NavDropdown({ group }: { group: PublicNavGroup }) {
   );
 }
 
+/** White circle with a diagonal arrow that slides out top-right and a fresh one
+ *  slides in from bottom-left on hover (matches the template's button effect).
+ *  Requires the parent button/link to have the `group` class. */
+function CtaArrow() {
+  const path = "M7 17 17 7M9 7h8v8";
+  const base =
+    "absolute inset-0 m-auto h-3 w-3 text-[#1d1d1d] transition-transform duration-300 ease-out";
+  const svg = (extra: string) => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`${base} ${extra}`}
+      aria-hidden="true"
+    >
+      <path d={path} />
+    </svg>
+  );
+  return (
+    <span className="relative flex h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white">
+      {svg("group-hover:translate-x-[150%] group-hover:-translate-y-[150%]")}
+      {svg("-translate-x-[150%] translate-y-[150%] group-hover:translate-x-0 group-hover:translate-y-0")}
+    </span>
+  );
+}
+
 export default function Navbar({ overlay = false }: NavbarProps) {
   const { user, signOut, profileRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -102,7 +131,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
     "whitespace-nowrap px-1.5 py-1 text-[14px] font-medium tracking-[-0.02em] transition-colors";
   const secondaryDesktopText = "text-[#5d5d5d] hover:text-[#1d1d1d]";
   const primaryDesktopButton =
-    "flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#1d1d1d] py-2 pl-4 pr-2 text-[14px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black";
+    "group flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#1d1d1d] py-2 pl-4 pr-2 text-[14px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black";
   const mobileNavLinkClass = (active: boolean) =>
     `flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
       active
@@ -171,20 +200,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
                 </Link>
                 <Link to={ROUTES.signup} className={primaryDesktopButton}>
                   Get Started
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-3 w-3 text-[#1d1d1d]"
-                      aria-hidden="true"
-                    >
-                      <path d="M7 17 17 7M9 7h8v8" />
-                    </svg>
-                  </span>
+                  <CtaArrow />
                 </Link>
               </>
             )}
