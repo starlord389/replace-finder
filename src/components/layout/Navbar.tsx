@@ -131,7 +131,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
     "whitespace-nowrap px-1.5 py-1 text-[14px] font-medium tracking-[-0.02em] transition-colors";
   const secondaryDesktopText = "text-[#5d5d5d] hover:text-[#1d1d1d]";
   const primaryDesktopButton =
-    "group flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#1d1d1d] py-2 pl-4 pr-2 text-[14px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black";
+    "group flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#1d1d1d] py-2 pl-4 pr-2 text-[14px] font-semibold tracking-[-0.02em] text-white transition-all duration-200 hover:bg-black hover:shadow-[0_0_0_5px_rgba(29,29,29,0.08)]";
   const mobileNavLinkClass = (active: boolean) =>
     `flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
       active

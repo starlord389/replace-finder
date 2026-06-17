@@ -158,19 +158,32 @@ const PAGE_STYLE = `
   }
   [data-landing] .lp-pill[data-primary="true"]:hover {
     background: #000;
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2), 0 0 0 5px rgba(29, 29, 29, 0.08);
   }
+  /* Circle with the arrow-slide hover (arrow exits top-right, a fresh one
+     slides in from bottom-left) — matches the template's button. */
   [data-landing] .lp-pill-arrow {
+    position: relative;
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    flex: none;
     width: 30px;
     height: 30px;
     border-radius: 999px;
     background: #fff;
-    color: #1d1d1d;
+    overflow: hidden;
   }
+  [data-landing] .lp-pill-arrow .lp-arrow {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 14px;
+    height: 14px;
+    color: #1d1d1d;
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  [data-landing] .lp-pill-arrow .lp-arrow-b { transform: translate(-150%, 150%); }
+  [data-landing] .lp-pill[data-primary="true"]:hover .lp-arrow-a { transform: translate(150%, -150%); }
+  [data-landing] .lp-pill[data-primary="true"]:hover .lp-arrow-b { transform: translate(0, 0); }
 
   /* Hero layered renders */
   [data-landing] .lp-hero-visual { position: relative; }
@@ -249,7 +262,10 @@ function PillLink({ to, primary, children }: { to: string; primary?: boolean; ch
       {children}
       {primary && (
         <span className="lp-pill-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="lp-arrow lp-arrow-a" aria-hidden="true">
+            <path d="M7 17 17 7M9 7h8v8" />
+          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="lp-arrow lp-arrow-b" aria-hidden="true">
             <path d="M7 17 17 7M9 7h8v8" />
           </svg>
         </span>
