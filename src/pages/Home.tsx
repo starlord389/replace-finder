@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from "react";
 import Lenis from "lenis";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
@@ -240,6 +240,56 @@ const PAGE_STYLE = `
     [data-landing] .lp-card-detail { right: 0; bottom: 0; width: 66%; }
   }
 
+  /* ── How It Works — expand-on-hover step cards ── */
+  [data-landing] .hiw-row { display: flex; gap: 12px; height: 360px; }
+  [data-landing] .hiw-card {
+    position: relative; overflow: hidden; flex: 1 1 0; min-width: 0;
+    display: flex; flex-direction: column; justify-content: space-between;
+    border-radius: 24px; border: 1px solid #e7e1d7; background: rgba(255, 255, 255, 0.55);
+    padding: 26px; cursor: pointer;
+    transition: flex-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease;
+  }
+  [data-landing] .hiw-card-active { flex-grow: 2.7; background: #fff; box-shadow: 0 24px 54px rgba(38, 34, 28, 0.1); }
+  [data-landing] .hiw-num { font-family: "Albert Sans", sans-serif; font-size: 30px; font-weight: 500; letter-spacing: -0.03em; color: #d8d0c2; }
+  [data-landing] .hiw-card-text { position: relative; z-index: 2; max-width: 100%; transition: max-width 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+  [data-landing] .hiw-card-active .hiw-card-text { max-width: calc(100% - 252px); }
+  [data-landing] .hiw-title { font-family: "Albert Sans", sans-serif; font-size: 22px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.12; color: #1d1d1d; }
+  [data-landing] .hiw-body { margin-top: 12px; font-size: 13.5px; line-height: 1.55; color: #6b655c; max-width: 21rem; }
+  [data-landing] .hiw-card-preview {
+    position: absolute; top: 26px; right: 26px; width: 226px;
+    opacity: 0; transform: translateX(14px);
+    transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  [data-landing] .hiw-card-active .hiw-card-preview { opacity: 1; transform: translateX(0); }
+
+  /* preview mini-cards */
+  [data-landing] .hiw-pv { background: #fff; border: 1px solid #ece6db; border-radius: 16px; box-shadow: 0 16px 38px rgba(38, 34, 28, 0.1); padding: 16px; font-family: "Plus Jakarta Sans", sans-serif; }
+  [data-landing] .hiw-pv-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+  [data-landing] .hiw-pv-sub { font-size: 10.5px; color: #8a847b; margin: 2px 0 13px; }
+  [data-landing] .hiw-pv-field { margin-bottom: 9px; }
+  [data-landing] .hiw-pv-field label { display: block; font-size: 9.5px; font-weight: 600; color: #8a847b; margin-bottom: 4px; }
+  [data-landing] .hiw-pv-input { font-size: 11.5px; padding: 8px 10px; border-radius: 9px; background: #f5f2ec; color: #4a453d; }
+  [data-landing] .hiw-pv-hl { background: #fcec8f; color: #5a471b; font-weight: 600; }
+  [data-landing] .hiw-pv-match { display: flex; align-items: center; gap: 9px; padding: 8px; border-radius: 11px; margin-bottom: 6px; }
+  [data-landing] .hiw-pv-match-hot { background: #fcec8f; }
+  [data-landing] .hiw-pv-score { width: 26px; height: 26px; border-radius: 999px; background: rgba(22,163,74,0.14); color: #15803d; font-size: 10.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  [data-landing] .hiw-pv-mt { font-size: 11.5px; font-weight: 600; }
+  [data-landing] .hiw-pv-mm { font-size: 9.5px; color: #8a847b; margin-top: 1px; }
+  [data-landing] .hiw-pv-chat { font-size: 11px; line-height: 1.4; background: #f5f2ec; padding: 9px 11px; border-radius: 11px; border-top-left-radius: 3px; margin-bottom: 10px; color: #4a453d; }
+  [data-landing] .hiw-pv-offer { background: #fcec8f; padding: 11px; border-radius: 11px; }
+  [data-landing] .hiw-pv-offer-label { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #7a5a0a; }
+  [data-landing] .hiw-pv-offer-row { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+  [data-landing] .hiw-pv-offer-row b { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
+  [data-landing] .hiw-pv-sent { margin-left: auto; font-size: 9px; font-weight: 700; background: rgba(29,29,29,0.12); padding: 3px 8px; border-radius: 999px; }
+
+  @media (max-width: 809.98px) {
+    [data-landing] .hiw-row { flex-direction: column; height: auto; }
+    [data-landing] .hiw-card { flex: none; gap: 18px; }
+    [data-landing] .hiw-card-text, [data-landing] .hiw-card-active .hiw-card-text { max-width: 100%; }
+    [data-landing] .hiw-card-preview { position: relative; top: auto; right: auto; opacity: 1; transform: none; width: 100%; max-width: 280px; margin-top: 4px; }
+  }
+
   /* Logo marquee */
   @keyframes lpMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   [data-landing] .lp-marquee-viewport {
@@ -436,6 +486,94 @@ function LogoMarquee() {
   );
 }
 
+const HIW_STEPS = [
+  {
+    num: "01",
+    title: "Add your client's property",
+    body: "Enter the property your client currently holds. It anchors every replacement the system scores.",
+    preview: (
+      <div className="hiw-pv">
+        <div className="hiw-pv-title">New exchange</div>
+        <div className="hiw-pv-sub">Step 1 of 3</div>
+        <div className="hiw-pv-field">
+          <label>Relinquished property</label>
+          <div className="hiw-pv-input">Cambridge, MA office</div>
+        </div>
+        <div className="hiw-pv-field">
+          <label>Asset type</label>
+          <div className="hiw-pv-input hiw-pv-hl">Office · stabilized</div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    num: "02",
+    title: "Filter and find your match",
+    body: "Filter by ROI target, location, asset type, or cap rate. Every off-market property is auto-scored against your client's exchange.",
+    preview: (
+      <div className="hiw-pv">
+        <div className="hiw-pv-title">Match found</div>
+        <div className="hiw-pv-sub">Auto-scored against the network</div>
+        <div className="hiw-pv-match hiw-pv-match-hot">
+          <span className="hiw-pv-score">92</span>
+          <div><div className="hiw-pv-mt">Harbor Point Office</div><div className="hiw-pv-mm">$4.2M · Boston, MA</div></div>
+        </div>
+        <div className="hiw-pv-match">
+          <span className="hiw-pv-score">88</span>
+          <div><div className="hiw-pv-mt">Back Bay Retail</div><div className="hiw-pv-mm">$3.75M · Newton, MA</div></div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    num: "03",
+    title: "Connect and offer",
+    body: "Open a private line with the listing agent, submit an offer, and lock it in before the old property lists.",
+    preview: (
+      <div className="hiw-pv">
+        <div className="hiw-pv-title">Private connection</div>
+        <div className="hiw-pv-sub">With Alex Chen</div>
+        <div className="hiw-pv-chat">Financials attached. Open to offers.</div>
+        <div className="hiw-pv-offer">
+          <div className="hiw-pv-offer-label">Offer submitted</div>
+          <div className="hiw-pv-offer-row"><b>$4.15M</b><span className="hiw-pv-sent">Sent</span></div>
+        </div>
+      </div>
+    ),
+  },
+] as const;
+
+function HowItWorks() {
+  const [active, setActive] = useState(0);
+  return (
+    <section id="process" className="px-5 py-16 sm:px-8 sm:py-24">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-11 max-w-2xl" data-reveal>
+          <p className="lp-eyebrow">How it works</p>
+          <h2 className="lp-h2 mt-4">From your client's property to a closed deal.</h2>
+        </div>
+        <div className="hiw-row" data-reveal>
+          {HIW_STEPS.map((s, i) => (
+            <div
+              key={s.num}
+              className={`hiw-card${active === i ? " hiw-card-active" : ""}`}
+              onMouseEnter={() => setActive(i)}
+              onClick={() => setActive(i)}
+            >
+              <span className="hiw-num">{s.num}</span>
+              <div className="hiw-card-text">
+                <h3 className="hiw-title">{s.title}</h3>
+                <p className="hiw-body">{s.body}</p>
+              </div>
+              <div className="hiw-card-preview">{s.preview}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ───────────────────────── Page ───────────────────────── */
 
 export default function Home() {
@@ -483,6 +621,7 @@ export default function Home() {
       <div className="lp-content">
         <Hero />
         <LogoMarquee />
+        <HowItWorks />
       </div>
     </div>
   );
