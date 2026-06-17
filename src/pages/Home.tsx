@@ -192,16 +192,19 @@ const PAGE_STYLE = `
     background: rgba(255, 255, 255, 0.82);
     -webkit-backdrop-filter: blur(26px);
     backdrop-filter: blur(26px);
-    border: 1px solid rgba(255, 255, 255, 0.85);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
     box-shadow: 0 32px 64px rgba(38, 34, 28, 0.15), 0 4px 14px rgba(38, 34, 28, 0.05);
     font-family: "Plus Jakarta Sans", -apple-system, sans-serif;
     color: #1d1d1d;
   }
-  [data-landing] .lp-card-main { position: relative; width: 100%; border-radius: 24px; padding: 24px 24px 18px; }
+  [data-landing] .lp-card-main {
+    position: relative; width: 100%; border-radius: 24px; padding: 24px 24px 18px;
+    transform: rotate(-1.5deg);
+  }
   [data-landing] .lp-card-detail {
-    position: absolute; right: -4%; bottom: -2%; width: 60%;
-    border-radius: 20px; padding: 20px; transform: rotate(-2.5deg);
-    background: rgba(255, 255, 255, 0.9);
+    position: absolute; right: -4%; bottom: -4%; width: 60%;
+    border-radius: 20px; padding: 20px; transform: rotate(3deg);
+    background: rgba(255, 255, 255, 0.92);
   }
 
   /* Card 1 — matches list */
