@@ -185,64 +185,56 @@ const PAGE_STYLE = `
   [data-landing] .lp-pill[data-primary="true"]:hover .lp-arrow-a { transform: translate(150%, -150%); }
   [data-landing] .lp-pill[data-primary="true"]:hover .lp-arrow-b { transform: translate(0, 0); }
 
-  /* Hero marketing visuals — crisp, frosted-glass UI cards, layered & branded */
-  [data-landing] .lp-hero-visual { position: relative; padding-bottom: 8%; }
+  /* Hero marketing visuals — crisp, frosted-glass product UI, layered & branded.
+     Designed for restraint: generous whitespace, real photos, one highlight. */
+  [data-landing] .lp-hero-visual { position: relative; padding-bottom: 12%; }
   [data-landing] .lp-card {
-    background: rgba(255, 255, 255, 0.72);
-    -webkit-backdrop-filter: blur(22px);
-    backdrop-filter: blur(22px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 30px 60px rgba(38, 34, 28, 0.16), 0 6px 18px rgba(38, 34, 28, 0.07);
+    background: rgba(255, 255, 255, 0.82);
+    -webkit-backdrop-filter: blur(26px);
+    backdrop-filter: blur(26px);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 32px 64px rgba(38, 34, 28, 0.15), 0 4px 14px rgba(38, 34, 28, 0.05);
     font-family: "Plus Jakarta Sans", -apple-system, sans-serif;
     color: #1d1d1d;
   }
-  [data-landing] .lp-card-main { position: relative; width: 100%; border-radius: 22px; padding: 18px 18px 14px; }
+  [data-landing] .lp-card-main { position: relative; width: 100%; border-radius: 24px; padding: 24px 24px 18px; }
   [data-landing] .lp-card-detail {
-    position: absolute; right: -5%; bottom: -8%; width: 66%;
-    border-radius: 18px; padding: 15px; transform: rotate(-3deg);
-    background: rgba(255, 255, 255, 0.85);
+    position: absolute; right: -4%; bottom: -2%; width: 60%;
+    border-radius: 20px; padding: 20px; transform: rotate(-2.5deg);
+    background: rgba(255, 255, 255, 0.9);
   }
-  [data-landing] .lp-card-head, [data-landing] .lp-detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-  [data-landing] .lp-card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
-  [data-landing] .lp-card-sub { margin-top: 2px; font-size: 11px; color: #8a847b; }
-  [data-landing] .lp-card-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; background: rgba(29,29,29,0.05); font-size: 10px; font-weight: 600; color: #56524b; white-space: nowrap; }
-  [data-landing] .lp-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 13px 0; }
-  [data-landing] .lp-stat { background: rgba(255,255,255,0.6); border: 1px solid rgba(29,29,29,0.06); border-radius: 12px; padding: 8px 9px; }
-  [data-landing] .lp-stat:first-child { background: linear-gradient(135deg, #fff4c2, #ffe98a); border-color: rgba(214,178,40,0.3); }
-  [data-landing] .lp-stat span { display: block; font-size: 8px; font-weight: 700; letter-spacing: 0.05em; color: #9a948b; text-transform: uppercase; }
-  [data-landing] .lp-stat b { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
-  [data-landing] .lp-rows { display: flex; flex-direction: column; gap: 5px; }
-  [data-landing] .lp-row { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 12px; }
-  [data-landing] .lp-row-hot { background: linear-gradient(135deg, rgba(255,244,166,0.95), rgba(255,233,138,0.9)); }
-  [data-landing] .lp-score { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; color: #fff; font-size: 11px; font-weight: 800; flex: none; }
-  [data-landing] .lp-score-high { background: linear-gradient(135deg, #34d36b, #16a34a); }
-  [data-landing] .lp-score-good { background: linear-gradient(135deg, #6fcf73, #36a93f); }
-  [data-landing] .lp-score-mid { background: linear-gradient(135deg, #f7b955, #ef9a2a); }
-  [data-landing] .lp-score-lg { width: 40px; height: 40px; font-size: 16px; }
-  [data-landing] .lp-thumb { width: 34px; height: 34px; border-radius: 9px; flex: none; }
-  [data-landing] .lp-thumb[data-v="1"] { background: linear-gradient(135deg, #5a7a84, #2c3e44); }
-  [data-landing] .lp-thumb[data-v="2"] { background: linear-gradient(135deg, #c98b6a, #9c5b3b); }
-  [data-landing] .lp-thumb[data-v="3"] { background: linear-gradient(135deg, #7d8aa6, #4a5772); }
-  [data-landing] .lp-thumb[data-v="4"] { background: linear-gradient(135deg, #87a98f, #50745a); }
+
+  /* Card 1 — matches list */
+  [data-landing] .lp-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  [data-landing] .lp-card-title { font-size: 17px; font-weight: 700; letter-spacing: -0.025em; }
+  [data-landing] .lp-card-sort { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 500; color: #8a847b; }
+  [data-landing] .lp-rows { display: flex; flex-direction: column; gap: 2px; }
+  [data-landing] .lp-row { display: flex; align-items: center; gap: 13px; padding: 11px 12px; border-radius: 14px; }
+  [data-landing] .lp-row-hot { background: #fcec8f; }
+  [data-landing] .lp-photo { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex: none; }
   [data-landing] .lp-row-main { flex: 1; min-width: 0; }
-  [data-landing] .lp-row-title { font-size: 12px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  [data-landing] .lp-row-meta { font-size: 10px; color: #8a847b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  [data-landing] .lp-tag { font-size: 9px; font-weight: 700; color: #5a471b; background: rgba(255,255,255,0.7); border: 1px solid rgba(214,178,40,0.4); padding: 3px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
-  [data-landing] .lp-card-foot { margin-top: 10px; font-size: 11px; font-weight: 600; color: #56524b; }
-  [data-landing] .lp-chips { display: flex; gap: 5px; margin: 9px 0 11px; }
-  [data-landing] .lp-chips span { font-size: 9px; font-weight: 600; color: #56524b; background: rgba(29,29,29,0.05); padding: 3px 8px; border-radius: 999px; }
-  [data-landing] .lp-bd-label { font-size: 8px; font-weight: 700; letter-spacing: 0.07em; color: #9a948b; text-transform: uppercase; margin-bottom: 8px; }
-  [data-landing] .lp-bars { display: flex; flex-direction: column; gap: 6px; }
-  [data-landing] .lp-bar { display: grid; grid-template-columns: 56px 1fr 18px; align-items: center; gap: 8px; }
-  [data-landing] .lp-bar-label { font-size: 9px; font-weight: 600; color: #56524b; }
-  [data-landing] .lp-bar-track { height: 6px; border-radius: 999px; background: rgba(29,29,29,0.08); overflow: hidden; }
-  [data-landing] .lp-bar-fill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #34d36b, #16a34a); }
-  [data-landing] .lp-bar-val { font-size: 9px; font-weight: 700; text-align: right; }
-  [data-landing] .lp-detail-foot { display: flex; gap: 22px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(29,29,29,0.08); }
-  [data-landing] .lp-detail-foot span { display: block; font-size: 8px; font-weight: 700; letter-spacing: 0.05em; color: #9a948b; text-transform: uppercase; }
-  [data-landing] .lp-detail-foot b { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+  [data-landing] .lp-row-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: #1d1d1d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  [data-landing] .lp-row-sub { margin-top: 2px; font-size: 12px; color: #8a847b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  [data-landing] .lp-score { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 999px; font-size: 12.5px; font-weight: 700; flex: none; }
+  [data-landing] .lp-score-high { background: rgba(22, 163, 74, 0.13); color: #15803d; }
+  [data-landing] .lp-score-mid { background: rgba(202, 138, 4, 0.15); color: #a16207; }
+  [data-landing] .lp-card-foot { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 12.5px; font-weight: 500; color: #8a847b; }
+
+  /* Card 2 — clean weekly chart */
+  [data-landing] .lp-chart-head { display: flex; align-items: baseline; justify-content: space-between; }
+  [data-landing] .lp-chart-label { font-size: 12px; font-weight: 500; color: #8a847b; }
+  [data-landing] .lp-chart-delta { font-size: 11.5px; font-weight: 600; color: #e2683d; }
+  [data-landing] .lp-chart-big { margin-top: 3px; font-size: 26px; font-weight: 700; letter-spacing: -0.03em; }
+  [data-landing] .lp-chart { display: flex; align-items: flex-end; justify-content: space-between; gap: 7px; height: 84px; margin-top: 16px; }
+  [data-landing] .lp-col { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 7px; }
+  [data-landing] .lp-bar2 { display: flex; flex-direction: column; width: 100%; max-width: 13px; border-radius: 6px; overflow: hidden; }
+  [data-landing] .lp-seg-b { background: #74cfe6; }
+  [data-landing] .lp-seg-c { background: #f4a09a; }
+  [data-landing] .lp-seg-y { background: #f6c544; }
+  [data-landing] .lp-day { font-size: 10px; font-weight: 500; color: #a39d93; }
+
   @media (max-width: 809.98px) {
-    [data-landing] .lp-card-detail { right: 0; bottom: -5%; width: 72%; }
+    [data-landing] .lp-card-detail { right: 0; bottom: 0; width: 66%; }
   }
 
   /* Logo marquee */
@@ -348,79 +340,66 @@ function Hero() {
   );
 }
 
-type HeroMatch = { score: number; cls: string; v: string; title: string; meta: string; tag?: string; hot?: boolean };
+type HeroMatch = { score: number; cls: string; photo: string; title: string; sub: string; hot?: boolean };
 const HERO_MATCHES: HeroMatch[] = [
-  { score: 92, cls: "lp-score-high", v: "1", title: "Harbor Point Office Park", meta: "$4.2M · 6.8% cap · Boston, MA", tag: "No-Boot", hot: true },
-  { score: 88, cls: "lp-score-good", v: "2", title: "Back Bay Retail Center", meta: "$3.75M · 7.2% cap · Newton, MA" },
-  { score: 74, cls: "lp-score-mid", v: "3", title: "Merrimack Logistics", meta: "$5.1M · 5.9% cap · Lowell, MA" },
-  { score: 71, cls: "lp-score-mid", v: "4", title: "Seaport Landing Apartments", meta: "$6.8M · 5.4% cap · Quincy, MA" },
+  { score: 92, cls: "lp-score-high", photo: "/landing-prop-office.jpg", title: "Harbor Point Office Park", sub: "Boston, MA · $4.2M · 6.8% cap", hot: true },
+  { score: 88, cls: "lp-score-high", photo: "/landing-prop-retail.jpg", title: "Back Bay Retail Center", sub: "Newton, MA · $3.75M · 7.2% cap" },
+  { score: 74, cls: "lp-score-mid", photo: "/landing-prop-industrial.jpg", title: "Merrimack Logistics", sub: "Lowell, MA · $5.1M · 5.9% cap" },
 ];
 
-const HERO_BARS = [
-  { label: "Price", v: 94 },
-  { label: "Geography", v: 96 },
-  { label: "Asset Type", v: 100 },
-  { label: "Strategy", v: 88 },
-  { label: "Financial", v: 90 },
-  { label: "Timing", v: 85 },
+// Weekly match-activity chart: each day stacks 3 segments (px heights).
+const HERO_CHART = [
+  { d: "M", b: 10, c: 14, y: 22 },
+  { d: "T", b: 16, c: 18, y: 30 },
+  { d: "W", b: 12, c: 16, y: 26 },
+  { d: "T", b: 18, c: 20, y: 34 },
+  { d: "F", b: 10, c: 14, y: 24 },
+  { d: "S", b: 8, c: 12, y: 18 },
+  { d: "S", b: 10, c: 12, y: 20 },
 ] as const;
 
 function HeroVisual() {
   return (
     <div className="lp-hero-visual lp-in" style={inDelay(0.2)}>
-      {/* Main card — scored off-market matches */}
+      {/* Card 1 — scored off-market matches */}
       <div className="lp-card lp-card-main">
         <div className="lp-card-head">
-          <div>
-            <div className="lp-card-title">Property matches</div>
-            <div className="lp-card-sub">Sarah Chen exchange · sorted by score</div>
-          </div>
-          <span className="lp-card-pill">Sort by Score ▾</span>
-        </div>
-        <div className="lp-stat-row">
-          <div className="lp-stat"><span>Strong matches</span><b>5</b></div>
-          <div className="lp-stat"><span>Total matches</span><b>21</b></div>
-          <div className="lp-stat"><span>No-boot</span><b>12</b></div>
+          <div className="lp-card-title">Property matches</div>
+          <span className="lp-card-sort">Sort by Score ▾</span>
         </div>
         <div className="lp-rows">
           {HERO_MATCHES.map((m) => (
             <div key={m.title} className={`lp-row${m.hot ? " lp-row-hot" : ""}`}>
-              <span className={`lp-score ${m.cls}`}>{m.score}</span>
-              <span className="lp-thumb" data-v={m.v} />
+              <img className="lp-photo" src={m.photo} alt="" loading="eager" />
               <div className="lp-row-main">
                 <div className="lp-row-title">{m.title}</div>
-                <div className="lp-row-meta">{m.meta}</div>
+                <div className="lp-row-sub">{m.sub}</div>
               </div>
-              {m.tag && <span className="lp-tag">{m.tag}</span>}
+              <span className={`lp-score ${m.cls}`}>{m.score}</span>
             </div>
           ))}
         </div>
-        <div className="lp-card-foot">See all matches →</div>
+        <div className="lp-card-foot">All matches →</div>
       </div>
 
-      {/* Detail card — match score breakdown */}
+      {/* Card 2 — weekly match activity chart */}
       <div className="lp-card lp-card-detail">
-        <div className="lp-detail-head">
-          <div>
-            <div className="lp-card-title">Harbor Point Office Park</div>
-            <div className="lp-card-sub">Boston, MA</div>
-          </div>
-          <span className="lp-score lp-score-high lp-score-lg">92</span>
+        <div className="lp-chart-head">
+          <span className="lp-chart-label">New matches</span>
+          <span className="lp-chart-delta">+5 this week</span>
         </div>
-        <div className="lp-chips"><span>Office</span><span>Stabilized</span><span>No-Boot</span></div>
-        <div className="lp-bd-label">Match score breakdown</div>
-        <div className="lp-bars">
-          {HERO_BARS.map((b) => (
-            <div key={b.label} className="lp-bar">
-              <span className="lp-bar-label">{b.label}</span>
-              <span className="lp-bar-track"><span className="lp-bar-fill" style={{ width: `${b.v}%` }} /></span>
-              <span className="lp-bar-val">{b.v}</span>
+        <div className="lp-chart-big">21</div>
+        <div className="lp-chart">
+          {HERO_CHART.map((col, i) => (
+            <div className="lp-col" key={i}>
+              <div className="lp-bar2">
+                <span className="lp-seg-b" style={{ height: col.b }} />
+                <span className="lp-seg-c" style={{ height: col.c }} />
+                <span className="lp-seg-y" style={{ height: col.y }} />
+              </div>
+              <span className="lp-day">{col.d}</span>
             </div>
           ))}
-        </div>
-        <div className="lp-detail-foot">
-          <div><span>Asking price</span><b>$4.2M</b></div>
-          <div><span>Cap rate</span><b>6.8%</b></div>
         </div>
       </div>
     </div>
