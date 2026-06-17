@@ -240,12 +240,20 @@ const PAGE_STYLE = `
     [data-landing] .lp-card-detail { right: 0; bottom: 0; width: 66%; }
   }
 
-  /* ── How It Works — expand-on-hover step cards ── */
-  [data-landing] .hiw-row { display: flex; gap: 12px; height: 360px; }
+  /* ── How It Works — dashboard showcase + expand-on-hover step cards ── */
+  [data-landing] .hiw-dash {
+    position: relative; z-index: 1;
+    border-radius: 24px; overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 40px 80px rgba(38, 34, 28, 0.15), 0 8px 24px rgba(38, 34, 28, 0.06);
+  }
+  [data-landing] .hiw-dash img { display: block; width: 100%; height: auto; }
+  [data-landing] .hiw-row { position: relative; z-index: 2; margin-top: -120px; display: flex; gap: 12px; height: 360px; }
   [data-landing] .hiw-card {
     position: relative; overflow: hidden; flex: 1 1 0; min-width: 0;
     display: flex; flex-direction: column; justify-content: space-between;
-    border-radius: 24px; border: 1px solid #e7e1d7; background: rgba(255, 255, 255, 0.55);
+    border-radius: 24px; border: 1px solid #e7e1d7; background: rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
     padding: 26px; cursor: pointer;
     transition: flex-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease;
   }
@@ -284,7 +292,7 @@ const PAGE_STYLE = `
   [data-landing] .hiw-pv-sent { margin-left: auto; font-size: 9px; font-weight: 700; background: rgba(29,29,29,0.12); padding: 3px 8px; border-radius: 999px; }
 
   @media (max-width: 809.98px) {
-    [data-landing] .hiw-row { flex-direction: column; height: auto; }
+    [data-landing] .hiw-row { flex-direction: column; height: auto; margin-top: 16px; }
     [data-landing] .hiw-card { flex: none; gap: 18px; }
     [data-landing] .hiw-card-text, [data-landing] .hiw-card-active .hiw-card-text { max-width: 100%; }
     [data-landing] .hiw-card-preview { position: relative; top: auto; right: auto; opacity: 1; transform: none; width: 100%; max-width: 280px; margin-top: 4px; }
@@ -547,10 +555,9 @@ function HowItWorks() {
   const [active, setActive] = useState(0);
   return (
     <section id="process" className="px-5 py-16 sm:px-8 sm:py-24">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-11 max-w-2xl" data-reveal>
-          <p className="lp-eyebrow">How it works</p>
-          <h2 className="lp-h2 mt-4">From your client's property to a closed deal.</h2>
+      <div className="mx-auto max-w-5xl">
+        <div className="hiw-dash" data-reveal>
+          <img src="/landing-dashboard-render.png" alt="The 1031 Exchange Up agent dashboard" loading="lazy" />
         </div>
         <div className="hiw-row" data-reveal>
           {HIW_STEPS.map((s, i) => (
