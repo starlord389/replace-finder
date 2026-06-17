@@ -135,17 +135,20 @@ const PAGE_STYLE = `
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
   [data-landing] .lp-pill:hover { background: rgba(255, 255, 255, 0.9); }
-  /* Secondary CTA ("Book a Demo") — plain text-style button in Geist 16/500,
-     matching the template exactly (no box, no border). */
+  /* Secondary CTA ("Book a Demo") — outlined pill: visible border, transparent
+     center, Geist 16/500 text. */
   [data-landing] .lp-pill:not([data-primary="true"]) {
     font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 16px;
     font-weight: 500;
     background: transparent;
-    border-color: transparent;
-    padding: 0 20px;
+    border: 1px solid rgba(29, 29, 29, 0.22);
+    padding: 0 22px;
   }
-  [data-landing] .lp-pill:not([data-primary="true"]):hover { background: rgba(29, 29, 29, 0.05); }
+  [data-landing] .lp-pill:not([data-primary="true"]):hover {
+    background: rgba(29, 29, 29, 0.05);
+    border-color: rgba(29, 29, 29, 0.32);
+  }
   [data-landing] .lp-pill[data-primary="true"] {
     color: #fff;
     background: #1d1d1d;
