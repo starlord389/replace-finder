@@ -215,7 +215,20 @@ const PAGE_STYLE = `
     [data-landing] .lp-logo img { height: var(--brand-h-mobile, 24px); }
   }
 
-  /* Reveal on scroll */
+  /* On-load entrance: hero elements fade + rise in, staggered (matches the
+     template's appear animation). Plays on mount via CSS keyframes so it always
+     fires on first paint. */
+  @keyframes lpFadeUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  [data-landing] .lp-in {
+    opacity: 0;
+    animation: lpFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--in-delay, 0s);
+  }
+
+  /* Reveal on scroll (below-the-fold sections) */
   [data-landing] [data-reveal] {
     opacity: 0;
     transform: translateY(22px);
@@ -223,13 +236,6 @@ const PAGE_STYLE = `
     transition-delay: var(--reveal-delay, 0s);
   }
   [data-landing] [data-reveal].is-visible { opacity: 1; transform: translateY(0); }
-
-  @media (prefers-reduced-motion: reduce) {
-    /* The logo marquee keeps running (gentle, continuous, matches the template);
-       only the entrance/hover motion is suppressed. */
-    [data-landing] [data-reveal] { opacity: 1; transform: none; transition: none; }
-    [data-landing] .lp-pill { transition: none; }
-  }
 `;
 
 /* ───────────────────────── Primitives ───────────────────────── */
@@ -253,6 +259,10 @@ function revealStyle(delay: number): CSSProperties {
   return { ["--reveal-delay" as string]: `${delay}s` };
 }
 
+function inDelay(delay: number): CSSProperties {
+  return { ["--in-delay" as string]: `${delay}s` };
+}
+
 /* ───────────────────────── Sections ───────────────────────── */
 
 function Hero() {
@@ -260,18 +270,18 @@ function Hero() {
     <section className="px-5 pb-10 pt-28 sm:px-8 sm:pt-[176px]">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <div>
-          <p className="lp-eyebrow" data-reveal>{HERO.eyebrow}</p>
-          <h1 className="mt-6 max-w-[440px]" data-reveal style={revealStyle(0.06)}>{HERO.headline}</h1>
-          <p className="lp-sub mt-6 max-w-[34rem]" data-reveal style={revealStyle(0.12)}>
+          <p className="lp-eyebrow lp-in" style={inDelay(0)}>{HERO.eyebrow}</p>
+          <h1 className="lp-in max-w-[440px]" style={inDelay(0.08)}>{HERO.headline}</h1>
+          <p className="lp-sub lp-in mt-6 max-w-[34rem]" style={inDelay(0.16)}>
             {HERO.subheadline}
           </p>
-          <div className="mt-9 flex flex-wrap items-center gap-3" data-reveal style={revealStyle(0.18)}>
+          <div className="lp-in mt-9 flex flex-wrap items-center gap-3" style={inDelay(0.24)}>
             <PillLink to={ROUTES.signup} primary>Get Started</PillLink>
             <PillLink to={ROUTES.bookDemo}>Book a Demo</PillLink>
           </div>
         </div>
 
-        <div className="lp-hero-visual" data-reveal style={revealStyle(0.16)}>
+        <div className="lp-hero-visual lp-in" style={inDelay(0.2)}>
           <img className="lp-hero-main" src="/landing-hero-list-render.png" alt="1031 Exchange Up property matches dashboard" loading="eager" />
           <img className="lp-hero-kpi" src="/landing-hero-kpi-render.png" alt="Match score breakdown for a replacement property" loading="eager" />
         </div>
