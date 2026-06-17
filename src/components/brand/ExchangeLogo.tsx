@@ -29,33 +29,32 @@ export function ExchangeLogoMark({ className, title }: ExchangeLogoMarkProps) {
       {title ? <title id={titleId}>{title}</title> : null}
       <path
         fill="none"
-        stroke="#000000"
+        stroke="#1d1d1d"
         strokeWidth="17"
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M 191 186 L 243 134 L 295 186"
       />
-      <rect x="278" y="142" width="15" height="34" rx="6" fill="#000000" />
-      <rect x="207" y="206" width="72" height="142" rx="11" fill="#000000" />
+      <rect x="207" y="206" width="72" height="142" rx="11" fill="#1d1d1d" />
       <path
-        fill="#000000"
-        stroke="#000000"
+        fill="#1d1d1d"
+        stroke="#1d1d1d"
         strokeWidth="18"
         strokeLinejoin="round"
         d="M 243 166 L 295 214 L 191 214 Z"
       />
-      <rect x="146" y="294" width="44" height="54" rx="9" fill="#FECD1A" />
+      <rect x="146" y="294" width="44" height="54" rx="9" fill="#E3A82E" />
       <path
-        fill="#FECD1A"
-        stroke="#FECD1A"
+        fill="#E3A82E"
+        stroke="#E3A82E"
         strokeWidth="16"
         strokeLinejoin="round"
         d="M 168 254 L 204 290 L 132 290 Z"
       />
-      <rect x="296" y="294" width="44" height="54" rx="9" fill="#FECD1A" />
+      <rect x="296" y="294" width="44" height="54" rx="9" fill="#E3A82E" />
       <path
-        fill="#FECD1A"
-        stroke="#FECD1A"
+        fill="#E3A82E"
+        stroke="#E3A82E"
         strokeWidth="16"
         strokeLinejoin="round"
         d="M 318 254 L 354 290 L 282 290 Z"
