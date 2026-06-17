@@ -28,24 +28,30 @@ const LOGO_BRANDS = [
 
 const PAGE_STYLE = `
   [data-landing] {
+    position: relative;
     font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #1d1d1d;
     background-color: #f4f2ee;
   }
 
-  /* Hero-only vertical-stripe texture: 70px white bands, strongest at the
-     left/right edges and fading toward the center, and fading out toward the
-     bottom — matching the template's 3 stripe layers. */
-  [data-landing] .lp-hero { position: relative; overflow: hidden; }
-  [data-landing] .lp-hero-stripes {
+  /* Top-of-page background, spanning the first ~1024px and fading smoothly to
+     nothing (no hard edge) — matches the template's stripe + BG-texture layers:
+     70px white vertical stripes strongest at the left/right edges, fading toward
+     the horizontal center; plus a faint grain via overlay blend. Both fade out
+     vertically so the stripes trail past the logo strip and disappear. */
+  [data-landing] .lp-bg,
+  [data-landing] .lp-grain {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1024px;
     z-index: 0;
     pointer-events: none;
-    -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
   }
-  [data-landing] .lp-hero-stripes::before {
+  [data-landing] .lp-bg::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -53,7 +59,13 @@ const PAGE_STYLE = `
     -webkit-mask-image: linear-gradient(to right, #000 0%, transparent 40%, transparent 60%, #000 100%);
     mask-image: linear-gradient(to right, #000 0%, transparent 40%, transparent 60%, #000 100%);
   }
-  [data-landing] .lp-hero-inner { position: relative; z-index: 1; }
+  [data-landing] .lp-grain {
+    background-image: url("/landing-grain.png");
+    background-size: 128px 128px;
+    background-repeat: repeat;
+    mix-blend-mode: overlay;
+  }
+  [data-landing] .lp-content { position: relative; z-index: 1; }
 
   [data-landing] h1, [data-landing] .lp-h2, [data-landing] .lp-display {
     font-family: "Albert Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -234,9 +246,8 @@ function revealStyle(delay: number): CSSProperties {
 
 function Hero() {
   return (
-    <section className="lp-hero px-5 pb-10 pt-28 sm:px-8 sm:pt-[176px]">
-      <div className="lp-hero-stripes" aria-hidden="true" />
-      <div className="lp-hero-inner mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+    <section className="px-5 pb-10 pt-28 sm:px-8 sm:pt-[176px]">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <div>
           <p className="lp-eyebrow" data-reveal>{HERO.eyebrow}</p>
           <h1 className="mt-6 max-w-[440px]" data-reveal style={revealStyle(0.06)}>{HERO.headline}</h1>
@@ -327,8 +338,12 @@ export default function Home() {
   return (
     <div ref={rootRef} data-landing className="min-h-screen">
       <style>{PAGE_STYLE}</style>
-      <Hero />
-      <LogoMarquee />
+      <div className="lp-bg" aria-hidden="true" />
+      <div className="lp-grain" aria-hidden="true" />
+      <div className="lp-content">
+        <Hero />
+        <LogoMarquee />
+      </div>
     </div>
   );
 }
