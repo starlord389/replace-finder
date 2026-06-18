@@ -740,7 +740,13 @@ const PIPELINE_STYLE = `
      and --hiw-board-h are set by a ResizeObserver in HowItWorks so the board
      fills any phone width. Must NOT affect ≥640px. ── */
   @media (max-width: 639.98px) {
-    [data-landing] .hiw-dash { height: var(--hiw-board-h, 250px); }
+    [data-landing] .hiw-dash {
+      height: var(--hiw-board-h, 250px);
+      /* Fade the bottom of the board so it dissolves into the page before the
+         step cards below (matches the Grovia template). */
+      -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+    }
     [data-landing] .hiw-dash::after { display: none; }
     [data-landing] .pb {
       width: 863px; height: 604px;
