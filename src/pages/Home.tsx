@@ -1207,7 +1207,7 @@ function HowItWorks() {
   }, []);
 
   return (
-    <section id="process" className="px-5 pt-14 pb-16 sm:px-8 sm:pt-16 sm:pb-24">
+    <section id="process" className="px-5 pt-10 pb-16 sm:px-8 sm:pt-16 sm:pb-24">
       <div className="mx-auto max-w-[1040px]">
         <div className="hiw-dash" data-reveal ref={dashRef}>
           <PipelineBoard />
