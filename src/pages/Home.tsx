@@ -193,7 +193,10 @@ const PAGE_STYLE = `
 
   /* Hero marketing visuals — crisp, frosted-glass product UI, layered & branded.
      Designed for restraint: generous whitespace, real photos, one highlight. */
-  [data-landing] .lp-hero-visual { position: relative; left: -40px; width: 530px; max-width: 100%; margin: 0 auto; padding-bottom: 12%; }
+  [data-landing] .lp-hero-visual { position: relative; width: 100%; max-width: 530px; min-width: 0; margin: 0 auto; padding-bottom: 12%; }
+  /* Desktop (two-column hero) nudges the visual toward the copy; on smaller
+     screens it stays centered and fluid so it never spills off the page. */
+  @media (min-width: 1024px) { [data-landing] .lp-hero-visual { left: -40px; } }
   [data-landing] .lp-card {
     background: rgba(255, 255, 255, 0.89);
     -webkit-backdrop-filter: blur(18px) saturate(1.3);
