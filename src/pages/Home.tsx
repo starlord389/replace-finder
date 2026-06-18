@@ -411,11 +411,28 @@ const PAGE_STYLE = `
     [data-landing] .lp-hero-copy .lp-sub { margin-left: auto; margin-right: auto; }
     [data-landing] .lp-hero-cta { justify-content: center; flex-wrap: nowrap; }
 
-    /* Smaller hero cards, nearly the same size, tilted as a coordinated pair:
-       the matches card sits left, the chart card overlaps its lower-right. */
-    [data-landing] .lp-hero-visual { max-width: 304px; padding-bottom: 14%; }
-    [data-landing] .lp-card-main { width: 84%; margin-left: 0; margin-right: auto; transform: rotate(-4deg); }
-    [data-landing] .lp-card-detail { left: auto; right: 0; bottom: -1%; width: 76%; transform: rotate(5deg); }
+    /* Eyebrow: smaller, on a single line */
+    [data-landing] .lp-eyebrow { font-size: 10px; letter-spacing: 0.05em; padding: 5px 12px; white-space: nowrap; }
+
+    /* Logo marquee: a touch faster (only ~2 logos visible at a time) */
+    [data-landing] .lp-marquee-track { animation-duration: 30s; }
+
+    /* Hero cards: render at full desktop proportions, then scale the whole
+       composition down uniformly so they look identical to the desktop cards,
+       just smaller (matching the Grovia template) — no reflow/cramping.
+       The cards live in an absolutely-centered inner wrapper that's scaled as
+       one unit; .lp-hero-visual is just a fixed-height stage for them. */
+    [data-landing] .lp-hero-grid { grid-template-columns: minmax(0, 1fr); }
+    [data-landing] .lp-hero-visual {
+      width: 100%; max-width: 360px; height: 208px; padding-bottom: 0;
+      margin-left: auto; margin-right: auto;
+    }
+    [data-landing] .lp-hero-cards {
+      position: absolute; top: 0; left: 50%; width: 530px;
+      transform: translateX(-50%) scale(0.57); transform-origin: top center;
+    }
+    /* desktop chart-card geometry (undo the ≤809.98px tablet tweak) */
+    [data-landing] .lp-card-detail { right: -3%; bottom: -11%; width: 56%; transform: rotate(5deg); }
   }
 `;
 
@@ -452,7 +469,7 @@ function inDelay(delay: number): CSSProperties {
 function Hero() {
   return (
     <section className="px-5 pb-10 pt-28 sm:px-8 sm:pt-[176px]">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+      <div className="lp-hero-grid mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <div className="lp-hero-copy lg:relative lg:left-10">
           <p className="lp-eyebrow lp-in" style={inDelay(0)}>{HERO.eyebrow}</p>
           <h1 className="lp-in max-w-[440px]" style={inDelay(0.08)}>{HERO.headline}</h1>
@@ -492,6 +509,7 @@ const HERO_CHART = [
 function HeroVisual() {
   return (
     <div className="lp-hero-visual lp-in" style={inDelay(0.2)}>
+      <div className="lp-hero-cards">
       {/* Card 1 — scored off-market matches */}
       <div className="lp-card lp-card-main">
         <div className="lp-card-head">
@@ -532,6 +550,7 @@ function HeroVisual() {
             </div>
           ))}
         </div>
+      </div>
       </div>
     </div>
   );
