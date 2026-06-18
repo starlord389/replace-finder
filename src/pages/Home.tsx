@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, Sparkles, MessageSquare, Settings, Pencil,
   Link2, Plus, SlidersHorizontal, Calendar, ChevronDown, Share2,
-  LayoutGrid, Paperclip, Lightbulb,
+  LayoutGrid, Paperclip, Lightbulb, Building2, Gauge, TrendingUp,
+  ShieldCheck, Check, User, ArrowRight, X,
 } from "lucide-react";
 import { ROUTES } from "@/app/routes/routeManifest";
 
@@ -837,6 +838,301 @@ function PipelineBoard() {
   );
 }
 
+/* ───────── Features showcase — tabbed feature section (mirrors the template) ───────── */
+
+const FEATURES_STYLE = `
+  [data-landing] .fs { width: min(960px, 100%); margin: 0 auto; }
+  [data-landing] .fs-head { width: min(580px, 100%); margin: 0 auto; text-align: center; }
+  [data-landing] .fs-head h2 { margin: 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(28px, 3.7vw, 46px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.04; color: #171717; }
+  [data-landing] .fs-sub { margin: 14px auto 0; max-width: 520px; font-family: 'Geist', sans-serif; font-size: 17px; font-weight: 400; line-height: 1.5; letter-spacing: -0.02em; color: rgba(86,82,75,0.86); }
+
+  /* Tab bar — full-pill segmented control on a soft warm cream panel (matches Grovia) */
+  [data-landing] .fs-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; padding: 7px; margin: 26px 0 16px; border-radius: 999px; background: linear-gradient(180deg, #f1ece3 0%, #ede7dd 100%); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.025); }
+  [data-landing] .fs-tab { appearance: none; border: none; background: transparent; border-radius: 999px; min-height: 58px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer; font-family: 'Geist', sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -0.02em; color: rgba(96,91,84,0.92); white-space: nowrap; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+  [data-landing] .fs-tab svg { width: 18px; height: 18px; flex: none; stroke-width: 1.9; color: #9c958b; transition: color 0.2s ease; }
+  [data-landing] .fs-tab:hover:not(.is-active) { background: rgba(255,255,255,0.5); color: #2c2a26; }
+  [data-landing] .fs-tab:hover:not(.is-active) svg { color: #6b655c; }
+  [data-landing] .fs-tab:active:not(.is-active) { transform: scale(0.985); }
+  [data-landing] .fs-tab.is-active svg { color: #1d1d1d; }
+  [data-landing] .fs-tab.is-active { position: relative; z-index: 1; background: #ffffff; color: #1d1d1d; box-shadow: rgba(0,0,0,0.17) 0px 0.6px 1.57px -1.5px, rgba(0,0,0,0.14) 0px 2.29px 5.95px -3px, rgba(0,0,0,0.02) 0px 10px 26px -4.5px; }
+
+  /* Content card */
+  [data-landing] .fs-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); overflow: hidden; border-radius: 24px; background: linear-gradient(180deg, #faf8f4 0%, #f7f5f0 100%); border: 1px solid rgba(0,0,0,0.04); box-shadow: 0 8px 20px rgba(104,99,80,0.15); }
+  [data-landing] .fs-left { position: relative; min-height: 372px; margin: 8px; border-radius: 18px; overflow: hidden; background: radial-gradient(circle at 10% 92%, rgba(132,24,0,0.9) 0%, rgba(132,24,0,0) 30%), radial-gradient(circle at 95% 88%, rgba(122,23,0,0.78) 0%, rgba(122,23,0,0) 28%), linear-gradient(180deg, #39484d 0%, #344248 56%, #27363a 100%); }
+  [data-landing] .fs-right { display: flex; flex-direction: column; justify-content: center; padding: 44px 42px; }
+  [data-landing] .fs-eyebrow { align-self: flex-start; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.01em; color: #1d1d1d; background: #fef7af; padding: 7px 12px; border-radius: 999px; line-height: 1; }
+  [data-landing] .fs-title { margin-top: 18px; font-family: 'Albert Sans', sans-serif; font-size: clamp(23px, 2.7vw, 33px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.12; color: #1a1a1a; }
+  [data-landing] .fs-desc { margin-top: 18px; max-width: 366px; font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 400; line-height: 1.55; letter-spacing: -0.015em; color: rgba(86,82,75,0.86); }
+
+  /* Mockup window — a contained rounded panel sitting inside the dark frame */
+  [data-landing] .fs-mock { position: absolute; left: 14px; right: 14px; top: 18px; bottom: 14px; border-radius: 26px; overflow: hidden; background: rgba(255,255,255,0.98); box-shadow: 0 20px 36px rgba(20,28,32,0.22); padding: 20px 18px; font-family: 'Geist', sans-serif; color: #1d1d1d; }
+  [data-landing] .fs-mock-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  [data-landing] .fs-mock-title { font-size: 13px; font-weight: 700; letter-spacing: -0.02em; }
+  [data-landing] .fs-verified { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #39484d; background: rgba(57,72,77,0.1); padding: 4px 9px; border-radius: 999px; letter-spacing: -0.01em; }
+  [data-landing] .fs-verified svg { width: 11px; height: 11px; }
+
+  /* Off-market inventory grid */
+  [data-landing] .fs-inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+  [data-landing] .fs-inv-photo { position: relative; height: 66px; border-radius: 17px; background-size: cover; background-position: center; }
+  [data-landing] .fs-inv-private { position: absolute; top: 6px; right: 6px; font-size: 7.5px; font-weight: 700; color: #fff; background: rgba(29,29,29,0.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); padding: 2px 7px; border-radius: 999px; }
+  [data-landing] .fs-inv-name { margin-top: 7px; font-size: 11px; font-weight: 700; letter-spacing: -0.01em; }
+  [data-landing] .fs-inv-meta { margin-top: 1px; font-size: 9px; color: #a39d93; }
+
+  /* Score breakdown */
+  [data-landing] .fs-score-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 13px; }
+  [data-landing] .fs-score-sub { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #a39d93; margin-top: 3px; }
+  [data-landing] .fs-score-circle { width: 34px; height: 34px; border-radius: 999px; background: #7fae8c; color: #fff; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  [data-landing] .fs-score-rows { display: flex; flex-direction: column; gap: 7px; }
+  [data-landing] .fs-score-row { display: flex; align-items: center; gap: 8px; }
+  [data-landing] .fs-score-label { width: 60px; flex: none; font-size: 9.5px; font-weight: 500; color: #6b655c; }
+  [data-landing] .fs-score-bar { flex: 1; height: 7px; border-radius: 999px; background: #efe9df; overflow: hidden; }
+  [data-landing] .fs-score-bar span { display: block; height: 100%; border-radius: 999px; }
+  [data-landing] .fs-score-val { width: 22px; flex: none; text-align: right; font-size: 9.5px; font-weight: 700; }
+  [data-landing] .fs-score-tags { display: flex; gap: 6px; margin-top: 13px; }
+  [data-landing] .fs-pill { font-size: 9px; font-weight: 600; color: #8a847b; background: #f2efe9; padding: 3px 9px; border-radius: 999px; }
+
+  /* Filters */
+  [data-landing] .fs-mock-filters { display: flex; gap: 13px; }
+  [data-landing] .fs-filt-panel { width: 120px; flex: none; }
+  [data-landing] .fs-filt-sub { font-size: 7.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #a39d93; margin: 2px 0 11px; }
+  [data-landing] .fs-filt-field { margin-bottom: 8px; }
+  [data-landing] .fs-filt-label { display: block; font-size: 7.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #b0a99e; margin-bottom: 3px; }
+  [data-landing] .fs-filt-val { display: block; font-size: 10px; font-weight: 600; color: #4a453d; background: #f5f2ec; padding: 6px 8px; border-radius: 7px; }
+  [data-landing] .fs-filt-results { flex: 1; min-width: 0; }
+  [data-landing] .fs-filt-rhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 9px; }
+  [data-landing] .fs-filt-sort { font-size: 7.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #b0a99e; }
+  [data-landing] .fs-filt-match { display: flex; align-items: center; gap: 9px; padding: 8px; border-radius: 10px; background: #f7f4ee; margin-bottom: 8px; }
+  [data-landing] .fs-filt-match.is-hot { background: #fbeaa0; }
+  [data-landing] .fs-filt-score { width: 24px; height: 24px; border-radius: 999px; background: #7fae8c; color: #fff; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  [data-landing] .fs-filt-name { font-size: 10.5px; font-weight: 700; }
+  [data-landing] .fs-filt-meta { font-size: 8.5px; color: #8a847b; margin-top: 1px; }
+
+  /* Upside comparison */
+  [data-landing] .fs-up-head { margin-bottom: 12px; }
+  [data-landing] .fs-up-sub { font-size: 8.5px; font-weight: 600; color: #a39d93; margin-top: 2px; }
+  [data-landing] .fs-up-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  [data-landing] .fs-up-col { border-radius: 12px; padding: 11px; background: #f5f2ec; }
+  [data-landing] .fs-up-col.is-candidate { background: #fbeaa0; }
+  [data-landing] .fs-up-label, [data-landing] .fs-up-clabel { font-size: 7.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #a39d93; display: flex; align-items: center; gap: 5px; }
+  [data-landing] .fs-up-col.is-candidate .fs-up-clabel { color: #8a6d12; }
+  [data-landing] .fs-up-badge { font-size: 6.5px; font-weight: 800; color: #fff; background: #1d1d1d; padding: 2px 5px; border-radius: 999px; }
+  [data-landing] .fs-up-name { margin-top: 7px; font-size: 11px; font-weight: 700; letter-spacing: -0.01em; }
+  [data-landing] .fs-up-loc { font-size: 8.5px; color: #8a847b; }
+  [data-landing] .fs-up-stat { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; font-size: 9px; color: #8a847b; }
+  [data-landing] .fs-up-stat b { font-size: 10px; font-weight: 700; color: #1d1d1d; }
+  [data-landing] .fs-up-gain { display: flex; align-items: center; gap: 9px; margin-top: 12px; padding: 9px 12px; border-radius: 12px; background: #e4ede0; }
+  [data-landing] .fs-up-gain svg { width: 17px; height: 17px; color: #5f8f6b; flex: none; }
+  [data-landing] .fs-up-gain b { font-size: 13px; font-weight: 800; color: #2f6b46; }
+  [data-landing] .fs-up-gain span { display: block; font-size: 8.5px; color: #6f9070; }
+
+  /* ── In-image life — popping tooltip, live pulses (Grovia-style motion) ── */
+  [data-landing] .fs-tip { position: absolute; z-index: 7; font-size: 9px; font-weight: 700; color: #fff; background: #1d1d1d; padding: 4px 8px; border-radius: 8px; white-space: nowrap; box-shadow: 0 7px 16px rgba(0,0,0,0.24); animation: fsTipPop 11s ease-in-out infinite; }
+  [data-landing] .fs-tip::after { content: ''; position: absolute; left: 11px; bottom: -3px; width: 7px; height: 7px; background: #1d1d1d; transform: rotate(45deg); }
+  [data-landing] .fs-live { position: relative; display: inline-block; width: 7px; height: 7px; border-radius: 999px; background: #4fae6e; flex: none; }
+  [data-landing] .fs-live::after { content: ''; position: absolute; inset: 0; border-radius: 999px; background: #4fae6e; animation: fsLive 1.9s ease-out infinite; }
+  [data-landing] .fs-ring { animation: fsRing 2.4s ease-out infinite; }
+  [data-landing] .fs-bob { animation: fsBob 2.6s ease-in-out infinite; }
+  [data-landing] .fs-glow { animation: fsGlow 3.2s ease-in-out infinite; }
+
+  @keyframes fsTipPop { 0%, 16% { opacity: 0; transform: translateY(4px) scale(0.92); } 26%, 46% { opacity: 1; transform: none; } 58%, 100% { opacity: 0; transform: translateY(4px) scale(0.92); } }
+  @keyframes fsLive { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(2.6); opacity: 0; } }
+  @keyframes fsRing { 0% { box-shadow: 0 0 0 0 rgba(127,174,140,0.5); } 70%, 100% { box-shadow: 0 0 0 10px rgba(127,174,140,0); } }
+  @keyframes fsBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  @keyframes fsGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(217,175,42,0); } 50% { box-shadow: 0 0 0 3px rgba(217,175,42,0.3); } }
+
+  /* Entrance animations — the panel is keyed by tab id, so these replay on every switch */
+  @keyframes fsMockIn { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: none; } }
+  @keyframes fsUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes fsFill { from { transform: scaleX(0.04); } to { transform: scaleX(1); } }
+  [data-landing] .fs-mock { animation: fsMockIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  [data-landing] .fs-right > * { animation: fsUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  [data-landing] .fs-eyebrow { animation-delay: 0.05s; }
+  [data-landing] .fs-title { animation-delay: 0.12s; }
+  [data-landing] .fs-desc { animation-delay: 0.19s; }
+  [data-landing] .fs-anim { animation: fsUp 0.48s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 0.06s + 0.14s); }
+  [data-landing] .fs-score-bar span { transform-origin: left center; animation: fsFill 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 0.05s + 0.2s); }
+  @media (prefers-reduced-motion: reduce) {
+    [data-landing] .fs-mock, [data-landing] .fs-right > *, [data-landing] .fs-anim, [data-landing] .fs-score-bar span,
+    [data-landing] .fs-tip, [data-landing] .fs-live::after, [data-landing] .fs-ring, [data-landing] .fs-bob, [data-landing] .fs-glow { animation: none !important; }
+  }
+
+  @media (max-width: 809.98px) {
+    [data-landing] .fs-card { grid-template-columns: 1fr; height: auto; }
+    [data-landing] .fs-left { height: 300px; }
+    [data-landing] .fs-right { padding: 28px 24px; }
+    /* Four equal columns can't fit the labels on a phone — switch to a
+       horizontally scrollable row so each tab keeps its full label on one line. */
+    [data-landing] .fs-tabs { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    [data-landing] .fs-tabs::-webkit-scrollbar { display: none; }
+    [data-landing] .fs-tab { flex: 0 0 auto; min-height: 46px; padding: 0 16px; font-size: 14px; }
+  }
+`;
+
+function FsOffMarket() {
+  const props = [
+    { photo: "/landing-prop-office.jpg", name: "Harbor Point Office", meta: "$4.2M · Boston, MA" },
+    { photo: "/landing-prop-retail.jpg", name: "Back Bay Retail", meta: "$3.75M · Newton, MA" },
+    { photo: "/landing-prop-industrial.jpg", name: "Merrimack Logistics", meta: "$5.1M · Lowell, MA" },
+    { photo: "/landing-prop-office.jpg", name: "Seaport Landing Apts", meta: "$6.8M · Quincy, MA" },
+  ];
+  return (
+    <div className="fs-mock">
+      <div className="fs-mock-head">
+        <span className="fs-mock-title">Off-market inventory</span>
+        <span className="fs-verified"><ShieldCheck />4 verified</span>
+      </div>
+      <div className="fs-inv-grid">
+        {props.map((p, i) => (
+          <div key={p.name} className="fs-anim" style={{ "--i": i } as CSSProperties}>
+            <div className="fs-inv-photo" style={{ backgroundImage: `url(${p.photo})` }}>
+              <span className="fs-inv-private">Private</span>
+            </div>
+            <div className="fs-inv-name">{p.name}</div>
+            <div className="fs-inv-meta">{p.meta}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FsScoring() {
+  const factors = [
+    { label: "Price", score: 94 }, { label: "Geography", score: 95 },
+    { label: "Asset type", score: 100 }, { label: "Strategy", score: 88 },
+    { label: "Financial", score: 90 }, { label: "Timing", score: 85 },
+    { label: "Debt fit", score: 92 }, { label: "Scale fit", score: 78 },
+  ];
+  return (
+    <div className="fs-mock">
+      <div className="fs-score-head">
+        <div>
+          <div className="fs-mock-title">Harbor Point Office Park</div>
+          <div className="fs-score-sub">Match score breakdown</div>
+        </div>
+        <span className="fs-score-circle fs-ring">92</span>
+      </div>
+      <div className="fs-score-rows">
+        {factors.map((f, i) => (
+          <div key={f.label} className="fs-score-row fs-anim" style={{ "--i": i } as CSSProperties}>
+            <span className="fs-score-label">{f.label}</span>
+            <span className="fs-score-bar"><span style={{ width: `${f.score}%`, background: f.score < 80 ? "#e0a84a" : "#7fae8c" }} /></span>
+            <span className="fs-score-val">{f.score}</span>
+          </div>
+        ))}
+      </div>
+      <div className="fs-score-tags">
+        <span className="fs-pill">No boot</span><span className="fs-pill">Office</span><span className="fs-pill">Stabilized</span>
+      </div>
+      <div className="fs-tip" style={{ top: "92px", left: "150px" }}>Strongest factor: Asset type</div>
+    </div>
+  );
+}
+
+function FsFilters() {
+  const fields = [["Geography", "Greater Boston"], ["Asset type", "Office, Retail"], ["Price", "$3M – $6M"], ["Cap rate", "6.5%+"]];
+  const matches = [
+    { s: 94, n: "Harbor Point Office", m: "$4.2M · 6.8% cap · Boston", hot: true },
+    { s: 88, n: "Back Bay Retail", m: "$3.75M · 7.2% cap · Newton" },
+    { s: 85, n: "Worcester Square Plaza", m: "$4.8M · 6.9% cap · Worcester" },
+  ];
+  return (
+    <div className="fs-mock fs-mock-filters">
+      <div className="fs-filt-panel">
+        <div className="fs-mock-title" style={{ fontSize: "11px" }}>Filters</div>
+        <div className="fs-filt-sub">Saved · Marcus Reeves</div>
+        {fields.map(([l, v]) => (
+          <div key={l} className="fs-filt-field">
+            <span className="fs-filt-label">{l}</span>
+            <span className="fs-filt-val">{v}</span>
+          </div>
+        ))}
+      </div>
+      <div className="fs-filt-results">
+        <div className="fs-filt-rhead">
+          <span className="fs-mock-title" style={{ fontSize: "12px", display: "inline-flex", alignItems: "center", gap: "6px" }}><span className="fs-live" />12 matches</span>
+          <span className="fs-filt-sort">Sorted by score</span>
+        </div>
+        {matches.map((r, i) => (
+          <div key={r.n} className={`fs-filt-match fs-anim${r.hot ? " is-hot fs-glow" : ""}`} style={{ "--i": i } as CSSProperties}>
+            <span className="fs-filt-score">{r.s}</span>
+            <div><div className="fs-filt-name">{r.n}</div><div className="fs-filt-meta">{r.m}</div></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FsUpside() {
+  const cur = [["Value", "$3.2M"], ["NOI", "$180K/yr"], ["Cap rate", "5.6%"]];
+  const cand = [["Value", "$4.2M"], ["NOI", "$245K/yr"], ["Cap rate", "6.8%"]];
+  return (
+    <div className="fs-mock">
+      <div className="fs-up-head">
+        <div className="fs-mock-title">Upside comparison</div>
+        <div className="fs-up-sub">Marcus Reeves · current vs candidate</div>
+      </div>
+      <div className="fs-up-cols">
+        <div className="fs-up-col fs-anim" style={{ "--i": 0 } as CSSProperties}>
+          <div className="fs-up-label">Current property</div>
+          <div className="fs-up-name">Cambridge Office Plaza</div>
+          <div className="fs-up-loc">Cambridge, MA</div>
+          {cur.map(([l, v]) => <div key={l} className="fs-up-stat"><span>{l}</span><b>{v}</b></div>)}
+        </div>
+        <div className="fs-up-col is-candidate fs-anim" style={{ "--i": 1 } as CSSProperties}>
+          <div className="fs-up-clabel">Replacement <span className="fs-up-badge">Candidate</span></div>
+          <div className="fs-up-name">Harbor Point Office</div>
+          <div className="fs-up-loc">Boston, MA</div>
+          {cand.map(([l, v]) => <div key={l} className="fs-up-stat"><span>{l}</span><b>{v}</b></div>)}
+        </div>
+      </div>
+      <div className="fs-up-gain fs-anim" style={{ "--i": 2 } as CSSProperties}>
+        <TrendingUp className="fs-bob" />
+        <div><b>+$65K / yr</b><span>+$480K over 10 years</span></div>
+      </div>
+    </div>
+  );
+}
+
+const FEATURES = [
+  { id: "off-market", Icon: Building2, label: "Off-market marketplace", eyebrow: "Private inventory", title: "Inventory you won't find anywhere else.", desc: "Every listing in the network is off-market, posted by a verified 1031 agent. Your client finds replacements their competition will never see — before the seller ever needs to go public.", Visual: FsOffMarket },
+  { id: "scoring", Icon: Gauge, label: "Auto-scoring", eyebrow: "Match engine", title: "Every match, built for your client's exchange.", desc: "Every property is scored for your client's specific exchange across eight factors — holding, strategy, boot, debt, timing, price, geography, and scale. You see the full breakdown behind every score, and so does your client.", Visual: FsScoring },
+  { id: "filters", Icon: SlidersHorizontal, label: "Precision filters", eyebrow: "Custom search", title: "Dial in exactly what your client wants.", desc: "Filter every listing by ROI target, geography, asset type, price band, cap rate, or debt profile. Save your client's criteria once and apply it to every new listing that joins the network.", Visual: FsFilters },
+  { id: "upside", Icon: TrendingUp, label: "Upside preview", eyebrow: "Projected return", title: "See exactly how much more your client could be earning.", desc: "Compare your client's current property against any candidate side-by-side — NOI, cap rate, projected 10-year return. Turn a “maybe someday” exchange into a clear yes.", Visual: FsUpside },
+];
+
+function FeaturesSection() {
+  const [active, setActive] = useState(0);
+  const f = FEATURES[active];
+  const Visual = f.Visual;
+  return (
+    <section id="feature" className="px-5 py-16 sm:px-8 sm:py-24">
+      <div className="fs">
+        <div className="fs-head" data-reveal>
+          <h2>Every tool a 1031 agent actually needs.</h2>
+          <p className="fs-sub">One private workspace for the clients you represent, the matches you're watching, the connections you've opened, and the offers on the table.</p>
+        </div>
+        <div className="fs-tabs" data-reveal>
+          {FEATURES.map((t, i) => (
+            <button key={t.id} type="button" className={`fs-tab${active === i ? " is-active" : ""}`} onClick={() => setActive(i)}>
+              <t.Icon /><span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="fs-card" data-reveal>
+          <div className="fs-left" key={`v-${f.id}`}><Visual /></div>
+          <div className="fs-right" key={`c-${f.id}`}>
+            <span className="fs-eyebrow">{f.eyebrow}</span>
+            <h3 className="fs-title">{f.title}</h3>
+            <p className="fs-desc">{f.desc}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function HowItWorks() {
   const [active, setActive] = useState(0);
   return (
@@ -861,6 +1157,607 @@ function HowItWorks() {
               <div className="hiw-card-preview">{s.preview}</div>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ───────── Network coverage — asset classes the marketplace covers (matches the template's integrations layout) ───────── */
+
+const INTEG_STYLE = `
+  [data-landing] .ig { width: min(1040px, 100%); margin: 0 auto; }
+  [data-landing] .ig-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 64px; align-items: center; }
+  [data-landing] .ig-left { max-width: 440px; }
+  [data-landing] .ig-left h2 { margin: 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(28px, 3.6vw, 44px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.06; color: #171717; }
+  [data-landing] .ig-sub { margin: 18px 0 0; font-family: 'Geist', sans-serif; font-size: 16px; font-weight: 400; line-height: 1.5; letter-spacing: -0.02em; color: rgba(86,82,75,0.86); }
+  [data-landing] .ig-cta { margin-top: 26px; }
+  [data-landing] .ig-plus { display: flex; justify-content: space-between; width: 248px; margin: 34px 0; color: rgba(40,36,30,0.2); }
+  [data-landing] .ig-plus svg { width: 13px; height: 13px; }
+  [data-landing] .ig-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+  [data-landing] .ig-step { display: flex; align-items: center; gap: 14px; font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 450; letter-spacing: -0.01em; color: #2c2a26; }
+  [data-landing] .ig-step-num { flex: none; width: 26px; height: 26px; border-radius: 999px; background: #1d1d1d; color: #fff; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+
+  [data-landing] .ig-tiles { display: grid; grid-template-columns: repeat(2, 96px); gap: 16px; }
+  [data-landing] .ig-tile { width: 96px; height: 96px; border-radius: 16px; background: #ebe6dd; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s ease, transform 0.2s ease; }
+  [data-landing] .ig-tile:hover { background: #e6e0d4; transform: translateY(-2px); }
+  [data-landing] .ig-tile svg { width: 30px; height: 30px; }
+  [data-landing] .ig-tile span { font-family: 'Geist', sans-serif; font-size: 9.5px; font-weight: 500; letter-spacing: -0.01em; color: #6b655c; }
+
+  @keyframes igUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  [data-landing] .ig-left[data-reveal].is-visible > * { animation: igUp 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+  [data-landing] .ig-left[data-reveal].is-visible > *:nth-child(2) { animation-delay: 0.06s; }
+  [data-landing] .ig-left[data-reveal].is-visible > *:nth-child(3) { animation-delay: 0.12s; }
+  [data-landing] .ig-left[data-reveal].is-visible > *:nth-child(4) { animation-delay: 0.16s; }
+  [data-landing] .ig-left[data-reveal].is-visible > *:nth-child(5) { animation-delay: 0.2s; }
+  [data-landing] .ig-right[data-reveal].is-visible .ig-tile { animation: igUp 0.5s cubic-bezier(0.22,1,0.36,1) both; animation-delay: calc(var(--i,0) * 0.05s + 0.1s); }
+  @media (prefers-reduced-motion: reduce) {
+    [data-landing] .ig-left[data-reveal].is-visible > *, [data-landing] .ig-right[data-reveal].is-visible .ig-tile { animation: none; }
+  }
+
+  @media (max-width: 880px) {
+    [data-landing] .ig-grid { grid-template-columns: 1fr; gap: 40px; }
+    [data-landing] .ig-left { max-width: none; }
+    [data-landing] .ig-right { display: flex; justify-content: center; }
+    [data-landing] .ig-tiles { grid-template-columns: repeat(4, 1fr); width: 100%; max-width: 420px; }
+    [data-landing] .ig-tile { width: 100%; }
+    [data-landing] .ig-plus { display: none; }
+  }
+  @media (max-width: 480px) {
+    [data-landing] .ig-tiles { grid-template-columns: repeat(2, 1fr); }
+  }
+`;
+
+const IG_TILES = [
+  { label: "Office", mark: (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3.5" y="9" width="7" height="11.5" rx="2" fill="#a9e0ef" />
+      <rect x="11.5" y="4" width="8.5" height="16.5" rx="2" fill="#74cfe6" />
+      <rect x="13.7" y="7.3" width="1.7" height="1.7" rx="0.5" fill="#fff" opacity="0.92" />
+      <rect x="16.3" y="7.3" width="1.7" height="1.7" rx="0.5" fill="#fff" opacity="0.92" />
+      <rect x="13.7" y="10.6" width="1.7" height="1.7" rx="0.5" fill="#fff" opacity="0.92" />
+      <rect x="16.3" y="10.6" width="1.7" height="1.7" rx="0.5" fill="#fff" opacity="0.92" />
+    </svg>
+  ) },
+  { label: "Retail", mark: (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5.2 8h13.6l-1.1 11.2a1.4 1.4 0 0 1-1.4 1.3H7.7a1.4 1.4 0 0 1-1.4-1.3L5.2 8z" fill="#f6c544" />
+      <path d="M8.5 9V7.5a3.5 3.5 0 0 1 7 0V9" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.92" />
+    </svg>
+  ) },
+  { label: "Industrial", mark: (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 20.5v-7l3.5 2.2v-2.2l3.5 2.2v-2.2l3.5 2.2v7H3z" fill="#f9d57e" />
+      <rect x="15.5" y="5.5" width="4.5" height="15" rx="1.2" fill="#f6c544" />
+    </svg>
+  ) },
+  { label: "Multifamily", mark: (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="5" y="3.5" width="14" height="17" rx="2.2" fill="#f4a09a" />
+      <rect x="8" y="6.6" width="2.5" height="2.5" rx="0.6" fill="#fff" opacity="0.92" />
+      <rect x="13.5" y="6.6" width="2.5" height="2.5" rx="0.6" fill="#fff" opacity="0.92" />
+      <rect x="8" y="11" width="2.5" height="2.5" rx="0.6" fill="#fff" opacity="0.92" />
+      <rect x="13.5" y="11" width="2.5" height="2.5" rx="0.6" fill="#fff" opacity="0.92" />
+      <rect x="10" y="15.6" width="4" height="4.9" rx="0.6" fill="#fff" opacity="0.7" />
+    </svg>
+  ) },
+  { label: "Medical", mark: (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="#f4a09a" />
+      <path d="M12 7.6v8.8M7.6 12h8.8" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" />
+    </svg>
+  ) },
+  { label: "Self-storage", mark: (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="4" width="16" height="16" rx="2.5" fill="#74cfe6" />
+      <rect x="6.5" y="8.2" width="11" height="1.5" rx="0.75" fill="#fff" opacity="0.85" />
+      <rect x="6.5" y="11.4" width="11" height="1.5" rx="0.75" fill="#fff" opacity="0.85" />
+      <rect x="6.5" y="14.6" width="11" height="1.5" rx="0.75" fill="#fff" opacity="0.85" />
+      <rect x="10.5" y="17.4" width="3" height="1.4" rx="0.7" fill="#fff" opacity="0.95" />
+    </svg>
+  ) },
+  { label: "Hospitality", mark: (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="6.5" y="8" width="11" height="12.5" rx="1.8" fill="#74cfe6" />
+      <path d="M12 4.2v3.8" stroke="#74cfe6" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12 4.2l3.6 1.1L12 6.6V4.2z" fill="#a9e0ef" />
+      <rect x="8.8" y="11" width="2" height="2" rx="0.5" fill="#fff" opacity="0.92" />
+      <rect x="13.2" y="11" width="2" height="2" rx="0.5" fill="#fff" opacity="0.92" />
+      <rect x="10.5" y="15.8" width="3" height="4.7" rx="0.5" fill="#fff" opacity="0.7" />
+    </svg>
+  ) },
+  { label: "Land", mark: (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="16.8" cy="7.8" r="2.9" fill="#f9d57e" />
+      <path d="M2.5 20.5l5.2-6.8 3.6 4.2 3.9-5.4 6.3 8H2.5z" fill="#f6c544" />
+    </svg>
+  ) },
+];
+
+const IG_STEPS = [
+  "Browse verified off-market inventory",
+  "Filter to your client's exchange criteria",
+  "Connect directly with the property owner",
+];
+
+function IntegrationsSection() {
+  return (
+    <section id="coverage" className="px-5 py-16 sm:px-8 sm:py-24">
+      <div className="ig">
+        <div className="ig-grid">
+          <div className="ig-left" data-reveal>
+            <h2>Off-market inventory across every asset class</h2>
+            <p className="ig-sub">Find 1031 replacement property in every major commercial asset type — each listing verified and matched to your client's exchange and timeline.</p>
+            <div className="ig-cta"><PillLink to={ROUTES.signup} primary>Get started</PillLink></div>
+            <div className="ig-plus" aria-hidden="true"><Plus /><Plus /><Plus /><Plus /></div>
+            <ul className="ig-steps">
+              {IG_STEPS.map((s, i) => (
+                <li key={s} className="ig-step"><span className="ig-step-num">0{i + 1}</span>{s}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="ig-right" data-reveal>
+            <div className="ig-tiles">
+              {IG_TILES.map((t, i) => (
+                <div key={t.label} className="ig-tile" style={{ "--i": i } as CSSProperties}>
+                  {t.mark}
+                  <span>{t.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ───────── Pricing — dark Grovia-style container with a 3-plan selector (all free in early access) ───────── */
+
+const PRICE_STYLE = `
+  [data-landing] .pp { position: relative; overflow: hidden; width: 100%; max-width: 2200px; margin: 0 auto; border-radius: 32px; padding: 92px 40px; background: radial-gradient(ellipse 52% 62% at 72% 50%, rgba(178,74,40,0.42) 0%, rgba(178,74,40,0) 62%), radial-gradient(ellipse 48% 58% at 50% 88%, rgba(74,128,86,0.4) 0%, rgba(74,128,86,0) 60%), radial-gradient(ellipse 42% 52% at 88% 80%, rgba(128,60,120,0.4) 0%, rgba(128,60,120,0) 60%), radial-gradient(ellipse 42% 48% at 14% 90%, rgba(150,36,12,0.5) 0%, rgba(150,36,12,0) 58%), linear-gradient(180deg, #3a4a50 0%, #313f44 55%, #27343a 100%); }
+  [data-landing] .pp-grid { position: relative; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); gap: 48px; align-items: stretch; }
+  [data-landing] .pp-left { display: flex; flex-direction: column; }
+  [data-landing] .pp-left h2 { margin: 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(30px, 3.4vw, 42px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.05; color: #fff; }
+  [data-landing] .pp-left-sub { margin: 12px 0 0; max-width: 330px; font-family: 'Geist', sans-serif; font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.6); }
+  [data-landing] .pp-selectors { margin-top: 38px; max-width: 340px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 5px; }
+  [data-landing] .pp-sel { width: 100%; appearance: none; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 15px; border-radius: 12px; background: transparent; border: 1px solid transparent; transition: background 0.2s ease, border-color 0.2s ease; }
+  [data-landing] .pp-sel-text { display: flex; flex-direction: column; gap: 2px; }
+  [data-landing] .pp-sel-name { font-family: 'Albert Sans', sans-serif; font-size: 16px; font-weight: 500; letter-spacing: -0.02em; color: rgba(255,255,255,0.62); transition: color 0.2s ease; }
+  [data-landing] .pp-sel-tag { font-family: 'Geist', sans-serif; font-size: 12px; color: rgba(255,255,255,0.4); transition: color 0.2s ease; }
+  [data-landing] .pp-sel.is-active { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.22); }
+  [data-landing] .pp-sel.is-active .pp-sel-name { color: #fff; }
+  [data-landing] .pp-sel.is-active .pp-sel-tag { color: rgba(255,255,255,0.55); }
+  [data-landing] .pp-soon { display: inline-block; margin-left: 8px; vertical-align: 1px; font-family: 'Geist', sans-serif; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.72); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16); padding: 2px 6px; border-radius: 999px; }
+  [data-landing] .pp-coming { display: inline-flex; align-items: center; font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #f4e08a; background: rgba(244,224,138,0.12); border: 1px solid rgba(244,224,138,0.32); padding: 8px 14px; border-radius: 999px; }
+  [data-landing] .pp-sel-arrow { flex: none; width: 26px; height: 26px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.3); display: inline-flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; }
+  [data-landing] .pp-sel.is-active .pp-sel-arrow { opacity: 1; }
+  [data-landing] .pp-sel-arrow svg { width: 13px; height: 13px; color: #fff; }
+  [data-landing] .pp-proof { margin-top: auto; padding-top: 40px; display: flex; align-items: center; gap: 12px; }
+  [data-landing] .pp-proof-ic { flex: none; width: 40px; height: 40px; border-radius: 999px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); display: inline-flex; align-items: center; justify-content: center; }
+  [data-landing] .pp-proof-ic svg { width: 19px; height: 19px; color: #f4e08a; }
+  [data-landing] .pp-proof-text b { display: block; font-family: 'Geist', sans-serif; font-size: 13.5px; font-weight: 700; color: #fff; }
+  [data-landing] .pp-proof-text i { font-style: normal; font-family: 'Geist', sans-serif; font-size: 12.5px; color: rgba(255,255,255,0.5); }
+
+  [data-landing] .pp-detail { background: linear-gradient(180deg, rgba(18,24,26,0.5) 0%, rgba(14,19,21,0.72) 100%); border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; padding: 28px 28px 30px; animation: ppFade 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+  @keyframes ppFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  [data-landing] .pp-detail-head { display: flex; align-items: center; gap: 12px; }
+  [data-landing] .pp-detail-ic { flex: none; width: 38px; height: 38px; border-radius: 11px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); display: inline-flex; align-items: center; justify-content: center; }
+  [data-landing] .pp-detail-ic svg { width: 18px; height: 18px; color: #fff; }
+  [data-landing] .pp-detail-name { font-family: 'Albert Sans', sans-serif; font-size: 23px; font-weight: 500; letter-spacing: -0.02em; color: #fff; }
+  [data-landing] .pp-detail-price { margin-top: 18px; display: flex; align-items: baseline; gap: 8px; }
+  [data-landing] .pp-detail-price b { font-family: 'Albert Sans', sans-serif; font-size: 44px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; color: #fff; }
+  [data-landing] .pp-detail-price span { font-family: 'Geist', sans-serif; font-size: 14px; color: rgba(255,255,255,0.5); }
+  [data-landing] .pp-detail-desc { margin: 14px 0 0; max-width: 320px; font-family: 'Geist', sans-serif; font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.6); }
+  [data-landing] .pp-yellow { appearance: none; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; margin-top: 20px; height: 42px; padding: 0 6px 0 18px; border-radius: 999px; background: #f4e08a; color: #1d1d1d; font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; text-decoration: none; transition: transform 0.2s ease, background 0.2s ease; }
+  [data-landing] .pp-yellow:hover { background: #f8e8a3; transform: translateY(-1px); }
+  [data-landing] .pp-yellow-arrow { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 999px; background: #1d1d1d; }
+  [data-landing] .pp-yellow-arrow svg { width: 14px; height: 14px; color: #f4e08a; }
+  [data-landing] .pp-feats { margin: 26px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 13px; }
+  [data-landing] .pp-feat { display: flex; align-items: center; gap: 11px; font-family: 'Geist', sans-serif; font-size: 14px; letter-spacing: -0.01em; color: rgba(255,255,255,0.82); }
+  [data-landing] .pp-feat svg { flex: none; width: 15px; height: 15px; color: #fff; }
+
+  @media (max-width: 860px) {
+    [data-landing] .pp { padding: 36px 22px; border-radius: 26px; }
+    [data-landing] .pp-grid { grid-template-columns: 1fr; gap: 30px; }
+  }
+`;
+
+const PLANS = [
+  { name: "Solo", tag: "For individual agents", Icon: User, desc: "Everything one agent needs to find off-market replacements for every client.", features: ["Unlimited off-market listings", "Match scoring for every client", "Precision filters & saved searches", "Direct counterparty messaging"] },
+  { name: "Team", tag: "For small teams", soon: true, Icon: Users, desc: "Shared inventory and one pipeline for teams running several exchanges at once.", features: ["Everything in Solo", "Shared client pipeline", "Up to 10 agent seats", "Team activity dashboard"] },
+  { name: "Brokerage", tag: "For brokerages", soon: true, Icon: Building2, desc: "Brokerage-wide access with the controls and support a larger shop needs.", features: ["Everything in Team", "Unlimited agent seats", "Brokerage-wide inventory", "Priority support"] },
+];
+
+const WL_STYLE = `
+  [data-landing] .wl-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(25,22,18,0.55); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); animation: wlFade 0.2s ease both; }
+  @keyframes wlFade { from { opacity: 0; } to { opacity: 1; } }
+  [data-landing] .wl-card { position: relative; width: min(440px, 100%); max-height: calc(100vh - 40px); overflow-y: auto; background: #fff; border-radius: 22px; box-shadow: 0 30px 70px rgba(0,0,0,0.32); padding: 34px 32px; animation: wlPop 0.25s cubic-bezier(0.22,1,0.36,1) both; }
+  @keyframes wlPop { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+  [data-landing] .wl-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 999px; border: none; background: #f2efe9; color: #6b655c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s ease; }
+  [data-landing] .wl-close:hover { background: #e8e4dc; }
+  [data-landing] .wl-close svg { width: 16px; height: 16px; }
+  [data-landing] .wl-title { margin: 0; font-family: 'Albert Sans', sans-serif; font-size: 24px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.15; color: #171717; max-width: 320px; }
+  [data-landing] .wl-sub { margin: 8px 0 0; font-family: 'Geist', sans-serif; font-size: 14px; line-height: 1.5; color: rgba(86,82,75,0.82); }
+  [data-landing] .wl-form { margin-top: 22px; display: flex; flex-direction: column; gap: 14px; }
+  [data-landing] .wl-field { display: flex; flex-direction: column; gap: 6px; }
+  [data-landing] .wl-field > span { font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; color: #2c2a26; }
+  [data-landing] .wl-field > span i { font-style: normal; font-weight: 400; color: rgba(86,82,75,0.5); }
+  [data-landing] .wl-field input { font-family: 'Geist', sans-serif; font-size: 14px; color: #1d1d1d; background: #f7f5f0; border: 1px solid rgba(0,0,0,0.08); border-radius: 11px; padding: 11px 13px; outline: none; transition: border-color 0.2s ease, background 0.2s ease; }
+  [data-landing] .wl-field input::placeholder { color: rgba(86,82,75,0.42); }
+  [data-landing] .wl-field input:focus { border-color: #74cfe6; background: #fff; }
+  [data-landing] .wl-err { font-style: normal; font-family: 'Geist', sans-serif; font-size: 12px; color: #c0453a; }
+  [data-landing] .wl-submit { margin-top: 6px; width: 100%; appearance: none; border: none; cursor: pointer; height: 46px; border-radius: 999px; background: #1d1d1d; color: #fff; font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; transition: background 0.2s ease, transform 0.15s ease; }
+  [data-landing] .wl-submit:hover { background: #000; }
+  [data-landing] .wl-submit:active { transform: scale(0.99); }
+  [data-landing] .wl-done { text-align: center; padding: 8px 0; }
+  [data-landing] .wl-done-ic { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 999px; background: #e4f2e9; color: #2f7d52; }
+  [data-landing] .wl-done-ic svg { width: 26px; height: 26px; }
+  [data-landing] .wl-done h3 { margin: 12px 0 0; font-family: 'Albert Sans', sans-serif; font-size: 22px; font-weight: 500; color: #171717; }
+  [data-landing] .wl-done p { margin: 8px 0 20px; font-family: 'Geist', sans-serif; font-size: 14px; line-height: 1.5; color: rgba(86,82,75,0.82); }
+`;
+
+function WaitlistModal({ plan, onClose }: { plan: string; onClose: () => void }) {
+  const [form, setForm] = useState({ name: "", email: "", phone: "", company: "" });
+  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: { name?: string; email?: string } = {};
+    if (!form.name.trim()) errs.name = "Please enter your name.";
+    if (!form.email.trim()) errs.email = "Please enter your email.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = "Please enter a valid email.";
+    setErrors(errs);
+    if (Object.keys(errs).length === 0) {
+      // TODO: persist the lead (Supabase waitlist table or email/CRM) — not wired to a backend yet.
+      setDone(true);
+    }
+  };
+
+  return (
+    <div className="wl-overlay" onClick={onClose}>
+      <div className="wl-card" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="wl-close" onClick={onClose} aria-label="Close"><X /></button>
+        {done ? (
+          <div className="wl-done">
+            <span className="wl-done-ic"><Check /></span>
+            <h3>You're on the list!</h3>
+            <p>We'll reach out the moment {plan} is ready for you.</p>
+            <button type="button" className="wl-submit" onClick={onClose}>Done</button>
+          </div>
+        ) : (
+          <>
+            <h3 className="wl-title">Join the {plan} waitlist</h3>
+            <p className="wl-sub">Be first to know when {plan} launches — we'll only reach out about your spot.</p>
+            <form className="wl-form" onSubmit={submit} noValidate>
+              <label className="wl-field">
+                <span>Name</span>
+                <input type="text" value={form.name} onChange={set("name")} placeholder="Your name" />
+                {errors.name ? <em className="wl-err">{errors.name}</em> : null}
+              </label>
+              <label className="wl-field">
+                <span>Email</span>
+                <input type="email" value={form.email} onChange={set("email")} placeholder="you@email.com" />
+                {errors.email ? <em className="wl-err">{errors.email}</em> : null}
+              </label>
+              <label className="wl-field">
+                <span>Phone</span>
+                <input type="tel" value={form.phone} onChange={set("phone")} placeholder="(555) 123-4567" />
+              </label>
+              <label className="wl-field">
+                <span>Company <i>(optional)</i></span>
+                <input type="text" value={form.company} onChange={set("company")} placeholder="Your brokerage" />
+              </label>
+              <button type="submit" className="wl-submit">Join the waitlist</button>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PricingSection() {
+  const [plan, setPlan] = useState(0);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const p = PLANS[plan];
+  const Icon = p.Icon;
+  return (
+    <section id="pricing" className="px-3 py-4 sm:py-6">
+      <div className="pp" data-reveal>
+        <div className="pp-grid">
+          <div className="pp-left">
+            <h2>Free for every agent</h2>
+            <div className="pp-selectors">
+              {PLANS.map((pl, i) => (
+                <button key={pl.name} type="button" className={`pp-sel${plan === i ? " is-active" : ""}`} onClick={() => setPlan(i)} aria-pressed={plan === i}>
+                  <span className="pp-sel-text">
+                    <span className="pp-sel-name">{pl.name}{pl.soon ? <span className="pp-soon">Coming soon</span> : null}</span>
+                    <span className="pp-sel-tag">{pl.tag}</span>
+                  </span>
+                  <span className="pp-sel-arrow"><ArrowRight /></span>
+                </button>
+              ))}
+            </div>
+            <div className="pp-proof">
+              <span className="pp-proof-ic"><ShieldCheck /></span>
+              <div className="pp-proof-text">
+                <b>Free during early access</b>
+                <i>No credit card required.</i>
+              </div>
+            </div>
+          </div>
+          <div className="pp-detail" key={p.name}>
+            <div className="pp-detail-head">
+              <span className="pp-detail-ic"><Icon /></span>
+              <span className="pp-detail-name">{p.name}</span>
+            </div>
+            {p.soon ? (
+              <>
+                <div className="pp-detail-price"><span className="pp-coming">Coming soon</span></div>
+                <p className="pp-detail-desc">{p.desc} Join the waitlist to be first in line when it launches.</p>
+                <button type="button" className="pp-yellow" onClick={() => setWaitlistOpen(true)}>Join the waitlist <span className="pp-yellow-arrow"><ArrowRight /></span></button>
+              </>
+            ) : (
+              <>
+                <div className="pp-detail-price"><b>Free</b><span>/ early access</span></div>
+                <p className="pp-detail-desc">{p.desc}</p>
+                <Link to={ROUTES.signup} className="pp-yellow">Get started free <span className="pp-yellow-arrow"><ArrowRight /></span></Link>
+              </>
+            )}
+            <ul className="pp-feats">
+              {p.features.map((f) => (
+                <li key={f} className="pp-feat"><Check />{f}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {waitlistOpen ? <WaitlistModal plan={p.name} onClose={() => setWaitlistOpen(false)} /> : null}
+    </section>
+  );
+}
+
+/* ───────── ROE calculator — lead magnet (between pricing and FAQ) ───────── */
+
+const ROE_STYLE = `
+  [data-landing] .roe { width: min(1040px, 100%); margin: 0 auto; }
+  [data-landing] .roe-grid { display: grid; grid-template-columns: minmax(0, 0.86fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+  [data-landing] .roe-left { max-width: 440px; }
+  [data-landing] .roe-eyebrow { display: inline-block; font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #8a6d12; background: #fef7af; padding: 7px 13px; border-radius: 999px; line-height: 1; }
+  [data-landing] .roe-left h2 { margin: 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(28px, 3.6vw, 44px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.06; color: #171717; }
+  [data-landing] .roe-sub { margin: 18px 0 0; font-family: 'Geist', sans-serif; font-size: 16px; font-weight: 400; line-height: 1.5; letter-spacing: -0.02em; color: rgba(86,82,75,0.86); }
+  [data-landing] .roe-cta { margin-top: 26px; }
+  [data-landing] .roe-plus { display: flex; justify-content: space-between; width: 248px; margin: 34px 0; color: rgba(40,36,30,0.2); }
+  [data-landing] .roe-plus svg { width: 13px; height: 13px; }
+  [data-landing] .roe-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+  [data-landing] .roe-step { display: flex; align-items: center; gap: 14px; font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 450; letter-spacing: -0.01em; color: #2c2a26; }
+  [data-landing] .roe-step-num { flex: none; width: 26px; height: 26px; border-radius: 999px; background: #1d1d1d; color: #fff; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+
+  [data-landing] .roe-card { border-radius: 24px; overflow: hidden; background: #fff; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 16px 40px rgba(104,99,80,0.1); }
+  [data-landing] .roe-inputs { padding: 30px 30px; display: flex; flex-direction: column; gap: 24px; }
+  [data-landing] .roe-field-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  [data-landing] .roe-field-label { font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: -0.01em; color: #2c2a26; }
+  [data-landing] .roe-field-val { flex: none; font-family: 'Albert Sans', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; color: #1d1d1d; }
+  [data-landing] .roe-range { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; outline: none; cursor: pointer; }
+  [data-landing] .roe-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 999px; background: #1d1d1d; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.22); cursor: pointer; }
+  [data-landing] .roe-range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 999px; background: #1d1d1d; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.22); cursor: pointer; }
+  [data-landing] .roe-result { padding: 26px 30px 28px; background: #f6f3ee; border-top: 1px solid rgba(0,0,0,0.06); }
+  [data-landing] .roe-result-top { display: flex; align-items: center; gap: 16px; }
+  [data-landing] .roe-big { font-family: 'Albert Sans', sans-serif; font-size: 48px; font-weight: 500; letter-spacing: -0.04em; line-height: 1; }
+  [data-landing] .roe-result-meta { display: flex; flex-direction: column; gap: 6px; }
+  [data-landing] .roe-result-label { font-family: 'Geist', sans-serif; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(86,82,75,0.65); }
+  [data-landing] .roe-verdict { align-self: flex-start; font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: -0.01em; padding: 5px 11px; border-radius: 999px; }
+  [data-landing] .roe-compare { margin-top: 18px; padding: 14px 15px; border-radius: 13px; background: rgba(254,247,175,0.5); border: 1px solid rgba(201,176,74,0.28); }
+  [data-landing] .roe-compare p { margin: 0; font-family: 'Geist', sans-serif; font-size: 12.5px; line-height: 1.55; letter-spacing: -0.01em; color: #4a4320; }
+  [data-landing] .roe-compare b { font-weight: 700; color: #1d1d1d; }
+  [data-landing] .roe-fine { margin: 12px 0 0; font-family: 'Geist', sans-serif; font-size: 11px; line-height: 1.4; color: rgba(86,82,75,0.55); }
+
+  @keyframes roeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  [data-landing] .roe-left[data-reveal].is-visible > * { animation: roeUp 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+  [data-landing] .roe-left[data-reveal].is-visible > *:nth-child(2) { animation-delay: 0.06s; }
+  [data-landing] .roe-left[data-reveal].is-visible > *:nth-child(3) { animation-delay: 0.12s; }
+  [data-landing] .roe-left[data-reveal].is-visible > *:nth-child(4) { animation-delay: 0.16s; }
+  [data-landing] .roe-left[data-reveal].is-visible > *:nth-child(5) { animation-delay: 0.2s; }
+  [data-landing] .roe-right[data-reveal].is-visible { animation: roeUp 0.55s cubic-bezier(0.22,1,0.36,1) both; animation-delay: 0.12s; }
+  @media (prefers-reduced-motion: reduce) {
+    [data-landing] .roe-left[data-reveal].is-visible > *, [data-landing] .roe-right[data-reveal].is-visible { animation: none; }
+  }
+
+  @media (max-width: 880px) {
+    [data-landing] .roe-grid { grid-template-columns: 1fr; gap: 36px; }
+    [data-landing] .roe-left { max-width: none; }
+  }
+`;
+
+const ROE_STEPS = [
+  "See your property's real return on equity",
+  "Compare it to the ~8% platform average",
+  "Reinvest tax-deferred into a stronger property",
+];
+
+function RoeCalculator() {
+  const [value, setValue] = useState(2000000);
+  const [loan, setLoan] = useState(750000);
+  const [cashflow, setCashflow] = useState(82000);
+
+  const PLATFORM = 8; // average return on equity on the platform (%)
+  const equity = Math.max(0, value - loan);
+  const roe = equity > 0 ? (cashflow / equity) * 100 : 0;
+  const potential = equity * (PLATFORM / 100);
+  const uplift = potential - cashflow;
+
+  const usd = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+  const tone = roe < 5 ? "low" : roe < 8 ? "mid" : "high";
+  const verdictText = roe < 5 ? "Equity underperforming" : roe < 8 ? "Below the ~8% average" : "Beating the average";
+  const numColor = tone === "low" ? "#b8543a" : tone === "mid" ? "#9a7b22" : "#4e8466";
+  const verdictStyle =
+    tone === "low" ? { background: "rgba(184,84,58,0.12)", color: "#a8482f" }
+    : tone === "mid" ? { background: "rgba(154,123,34,0.14)", color: "#7e6418" }
+    : { background: "rgba(78,132,102,0.14)", color: "#3f7257" };
+
+  const fields = [
+    { label: "Current market value", val: value, set: setValue, min: 250000, max: 10000000, step: 50000 },
+    { label: "Loan balance", val: loan, set: setLoan, min: 0, max: 9000000, step: 50000 },
+    { label: "Annual cash flow", val: cashflow, set: setCashflow, min: 0, max: 500000, step: 5000 },
+  ];
+
+  return (
+    <section id="roe-calculator" className="px-5 py-16 sm:px-8 sm:py-24">
+      <div className="roe">
+        <div className="roe-grid">
+          <div className="roe-left" data-reveal>
+            <h2>Is your client's equity working hard enough?</h2>
+            <p className="roe-sub">Check a property's return on equity in seconds — and compare it to the ~8% the average property earns on 1031 Exchange Up.</p>
+            <div className="roe-cta"><PillLink to={ROUTES.signup} primary>See off-market exchanges</PillLink></div>
+            <div className="roe-plus" aria-hidden="true"><Plus /><Plus /><Plus /><Plus /></div>
+            <ul className="roe-steps">
+              {ROE_STEPS.map((s, i) => (
+                <li key={s} className="roe-step"><span className="roe-step-num">0{i + 1}</span>{s}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="roe-right" data-reveal>
+            <div className="roe-card">
+              <div className="roe-inputs">
+                {fields.map((f) => {
+                  const pct = ((f.val - f.min) / (f.max - f.min)) * 100;
+                  return (
+                    <div key={f.label}>
+                      <div className="roe-field-top">
+                        <span className="roe-field-label">{f.label}</span>
+                        <span className="roe-field-val">{usd(f.val)}</span>
+                      </div>
+                      <input
+                        type="range"
+                        className="roe-range"
+                        min={f.min}
+                        max={f.max}
+                        step={f.step}
+                        value={f.val}
+                        onChange={(e) => f.set(Number(e.target.value))}
+                        style={{ background: `linear-gradient(90deg, #1d1d1d ${pct}%, #e6e2da ${pct}%)` }}
+                        aria-label={f.label}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="roe-result">
+                <div className="roe-result-top">
+                  <span className="roe-big" style={{ color: numColor }}>{roe.toFixed(1)}%</span>
+                  <div className="roe-result-meta">
+                    <span className="roe-result-label">Return on equity</span>
+                    <span className="roe-verdict" style={verdictStyle}>{verdictText}</span>
+                  </div>
+                </div>
+                <div className="roe-compare">
+                  {uplift > 0 ? (
+                    <p>Properties on 1031 Exchange Up average <b>~8% ROE</b>. Your {usd(equity)} of equity could earn about <b>{usd(potential)}/yr</b> there — roughly <b>{usd(uplift)} more</b> than today.</p>
+                  ) : (
+                    <p>You're already at or above our <b>~8%</b> platform average — nicely done. Browse off-market exchanges to keep that equity working.</p>
+                  )}
+                </div>
+                <p className="roe-fine">Estimate only — not tax or investment advice.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ───────── FAQ ───────── */
+
+const FAQ_STYLE = `
+  [data-landing] .fq { width: min(1080px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.05fr); gap: 56px; align-items: start; }
+  [data-landing] .fq-left h2 { margin: 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(30px, 3.6vw, 46px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.06; color: #171717; }
+  [data-landing] .fq-left p { margin: 18px 0 0; max-width: 320px; font-family: 'Geist', sans-serif; font-size: 16px; line-height: 1.55; letter-spacing: -0.02em; color: rgba(86,82,75,0.86); }
+  [data-landing] .fq-contact { margin-top: 26px; }
+  [data-landing] .fq-list { background: #ece9e2; border-radius: 26px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  [data-landing] .fq-item { background: #faf8f4; border: 1px solid rgba(0,0,0,0.035); border-radius: 16px; box-shadow: 0 1px 2px rgba(80,71,58,0.05); }
+  [data-landing] .fq-q { width: 100%; appearance: none; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 18px; text-align: left; padding: 21px 22px; font-family: 'Albert Sans', sans-serif; font-size: 17.5px; font-weight: 500; letter-spacing: -0.02em; color: #1d1d1d; }
+  [data-landing] .fq-ic { flex: none; width: 18px; height: 18px; color: #9a948b; }
+  [data-landing] .fq-a { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.34s cubic-bezier(0.4, 0, 0.2, 1); }
+  [data-landing] .fq-item.is-open .fq-a { grid-template-rows: 1fr; }
+  [data-landing] .fq-a > div { overflow: hidden; min-height: 0; }
+  [data-landing] .fq-a p { margin: 0; padding: 0 22px 22px; font-family: 'Geist', sans-serif; font-size: 15px; line-height: 1.6; letter-spacing: -0.01em; color: rgba(86,82,75,0.9); }
+  @media (max-width: 820px) {
+    [data-landing] .fq { grid-template-columns: 1fr; gap: 30px; }
+  }
+`;
+
+const FAQS = [
+  { q: "What does off-market actually mean here?", a: "Every listing is shared privately by a verified 1031 agent — it never hits the public portals. Your client sees replacement options their competition won't, often before a seller is ready to list publicly." },
+  { q: "How does the match scoring work?", a: "Each property is scored against your client's specific exchange across eight factors — holding strategy, boot, debt, timing, price, geography, asset type, and scale — and you can see the full breakdown behind every score." },
+  { q: "Are the agents and properties verified?", a: "Yes. Every agent and broker is verified before they can post inventory or connect, so you're always dealing with real, represented properties." },
+  { q: "Is it really free?", a: "Completely free during early access — no card, no commitment. We'll give you clear notice well before we ever introduce a paid plan." },
+  { q: "Can I manage more than one client at a time?", a: "That's exactly what it's built for. You keep each client's exchange criteria separate and apply them to every new listing that joins the network." },
+];
+
+function FaqSection() {
+  const [open, setOpen] = useState(0);
+  return (
+    <section id="faq" className="px-5 py-16 sm:px-8 sm:py-24">
+      <div className="fq">
+        <div className="fq-left" data-reveal>
+          <h2>Your questions, answered</h2>
+          <p>Quick answers about how the off-market network works. Still curious? Reach out any time.</p>
+          <div className="fq-contact"><PillLink to={ROUTES.bookDemo}>Contact us</PillLink></div>
+        </div>
+        <div className="fq-list" data-reveal>
+          {FAQS.map((item, i) => {
+            const isOpen = open === i;
+            return (
+              <div key={item.q} className={`fq-item${isOpen ? " is-open" : ""}`}>
+                <button type="button" className="fq-q" onClick={() => setOpen(isOpen ? -1 : i)} aria-expanded={isOpen}>
+                  <span>{item.q}</span>
+                  {isOpen ? <X className="fq-ic" /> : <Plus className="fq-ic" />}
+                </button>
+                <div className="fq-a"><div><p>{item.a}</p></div></div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ───────── Final CTA ───────── */
+
+const CTA_STYLE = `
+  [data-landing] .cta { position: relative; overflow: hidden; width: min(1000px, 100%); margin: 0 auto; border-radius: 28px; padding: 72px 32px; text-align: center; background: radial-gradient(ellipse 52% 62% at 72% 50%, rgba(178,74,40,0.42) 0%, rgba(178,74,40,0) 62%), radial-gradient(ellipse 48% 58% at 50% 88%, rgba(74,128,86,0.4) 0%, rgba(74,128,86,0) 60%), radial-gradient(ellipse 42% 52% at 88% 80%, rgba(128,60,120,0.4) 0%, rgba(128,60,120,0) 60%), radial-gradient(ellipse 42% 48% at 14% 90%, rgba(150,36,12,0.5) 0%, rgba(150,36,12,0) 58%), linear-gradient(180deg, #3a4a50 0%, #313f44 55%, #27343a 100%); border: 1px solid rgba(255,255,255,0.07); box-shadow: 0 20px 50px rgba(20,28,32,0.18); }
+  [data-landing] .cta-inner { position: relative; }
+  [data-landing] .cta h2 { margin: 0 auto; max-width: 580px; font-family: 'Albert Sans', sans-serif; font-size: clamp(30px, 4vw, 50px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.05; color: #fff; }
+  [data-landing] .cta p { margin: 16px auto 0; max-width: 440px; font-family: 'Geist', sans-serif; font-size: 16px; line-height: 1.5; letter-spacing: -0.02em; color: rgba(255,255,255,0.66); }
+  [data-landing] .cta-actions { margin-top: 30px; display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  [data-landing] .cta .lp-pill:not([data-primary="true"]) { color: #fff; border-color: rgba(255,255,255,0.3); }
+  [data-landing] .cta .lp-pill:not([data-primary="true"]):hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.45); }
+`;
+
+function FinalCta() {
+  return (
+    <section id="get-started" className="px-5 py-12 sm:px-8 sm:py-20">
+      <div className="cta" data-reveal>
+        <div className="cta-inner">
+          <h2>Find your client's next replacement property</h2>
+          <p>Join the off-market network built for 1031 agents — free while we're in early access.</p>
+          <div className="cta-actions">
+            <PillLink to={ROUTES.signup} primary>Get started free</PillLink>
+            <PillLink to={ROUTES.bookDemo}>Book a demo</PillLink>
+          </div>
         </div>
       </div>
     </section>
@@ -910,12 +1807,25 @@ export default function Home() {
     <div ref={rootRef} data-landing className="min-h-screen">
       <style>{PAGE_STYLE}</style>
       <style>{PIPELINE_STYLE}</style>
+      <style>{FEATURES_STYLE}</style>
+      <style>{INTEG_STYLE}</style>
+      <style>{PRICE_STYLE}</style>
+      <style>{WL_STYLE}</style>
+      <style>{ROE_STYLE}</style>
+      <style>{FAQ_STYLE}</style>
+      <style>{CTA_STYLE}</style>
       <div className="lp-bg" aria-hidden="true" />
       <div className="lp-grain" aria-hidden="true" />
       <div className="lp-content">
         <Hero />
         <LogoMarquee />
         <HowItWorks />
+        <FeaturesSection />
+        <IntegrationsSection />
+        <PricingSection />
+        <RoeCalculator />
+        <FaqSection />
+        <FinalCta />
       </div>
     </div>
   );

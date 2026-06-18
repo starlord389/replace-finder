@@ -12,7 +12,6 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import AgentLayout from "@/components/layout/AgentLayout";
 import RequireGuest from "@/components/layout/RequireGuest";
 
-const Index = lazy(() => import("@/pages/Index"));
 const Home = lazy(() => import("@/pages/Home"));
 const ForLandlords = lazy(() => import("@/pages/ForLandlords"));
 const BookDemo = lazy(() => import("@/pages/BookDemo"));
@@ -71,9 +70,7 @@ const App = () => (
             {/* Public (marketing + auth entry) — signed-in users are redirected to their dashboard */}
             <Route element={<RequireGuest />}>
               <Route element={<PublicLayout />}>
-                <Route path={ROUTES.home} element={<Index />} />
-                {/* Native homepage rebuild — preview route until it replaces "/" */}
-                <Route path="/preview-home" element={<Home />} />
+                <Route path={ROUTES.home} element={<Home />} />
                 {/* Agent page merged into the homepage — keep the old URL alive */}
                 <Route path="/agents" element={<Navigate to={ROUTES.home} replace />} />
                 <Route path={ROUTES.forLandlords} element={<ForLandlords />} />
