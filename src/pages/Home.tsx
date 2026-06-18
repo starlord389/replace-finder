@@ -734,6 +734,19 @@ const PIPELINE_STYLE = `
   [data-landing] .pb-meta { display: inline-flex; align-items: center; gap: 11px; }
   [data-landing] .pb-meta-item { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 500; color: #a39d93; }
   [data-landing] .pb-meta-item svg { width: 11px; height: 11px; }
+
+  /* ── Mobile (phones ≤640px): scale the whole board down to fit the frame
+     (Grovia-style) instead of letting the columns reflow + clip. --hiw-scale
+     and --hiw-board-h are set by a ResizeObserver in HowItWorks so the board
+     fills any phone width. Must NOT affect ≥640px. ── */
+  @media (max-width: 639.98px) {
+    [data-landing] .hiw-dash { height: var(--hiw-board-h, 250px); }
+    [data-landing] .hiw-dash::after { display: none; }
+    [data-landing] .pb {
+      width: 863px; height: 604px;
+      transform: scale(var(--hiw-scale, 0.4)); transform-origin: top left;
+    }
+  }
 `;
 
 const PB_NAV = [
@@ -1172,10 +1185,31 @@ function FeaturesSection() {
 
 function HowItWorks() {
   const [active, setActive] = useState(0);
+  const dashRef = useRef<HTMLDivElement>(null);
+
+  // On phones the Pipeline board renders at its full desktop width and is
+  // scaled down to fill the frame (like the Grovia template) instead of the
+  // columns reflowing + clipping. Drive the scale off the frame's real width
+  // so it fits every phone size. The CSS only applies the scale at ≤640px.
+  useEffect(() => {
+    const el = dashRef.current;
+    if (!el) return;
+    const BOARD_W = 863;
+    const apply = () => {
+      const s = el.clientWidth / BOARD_W;
+      el.style.setProperty("--hiw-scale", `${s}`);
+      el.style.setProperty("--hiw-board-h", `${Math.round(604 * s)}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <section id="process" className="px-5 pt-14 pb-16 sm:px-8 sm:pt-16 sm:pb-24">
       <div className="mx-auto max-w-[1040px]">
-        <div className="hiw-dash" data-reveal>
+        <div className="hiw-dash" data-reveal ref={dashRef}>
           <PipelineBoard />
         </div>
         <div className="hiw-row" data-reveal>
