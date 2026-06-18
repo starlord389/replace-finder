@@ -1022,6 +1022,17 @@ const FEATURES_STYLE = `
     [data-landing] .fs-tabs::-webkit-scrollbar { display: none; }
     [data-landing] .fs-tab { flex: 0 0 auto; min-height: 46px; padding: 0 16px; font-size: 14px; }
   }
+
+  /* Phones: stack the feature tabs vertically (Grovia mobile) so all four are
+     visible at once, with the active one as a white pill. Tablet/desktop keep
+     their layouts. */
+  @media (max-width: 639.98px) {
+    [data-landing] .fs-tabs {
+      display: flex; flex-direction: column; flex-wrap: nowrap; overflow: visible;
+      gap: 5px; padding: 8px; border-radius: 22px;
+    }
+    [data-landing] .fs-tab { width: 100%; flex: none; min-height: 50px; font-size: 15px; }
+  }
 `;
 
 function FsOffMarket() {
