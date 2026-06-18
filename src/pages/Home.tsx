@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from "react";
 import Lenis from "lenis";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, Sparkles, MessageSquare, Settings, Pencil,
   Link2, Plus, SlidersHorizontal, Calendar, ChevronDown, Share2,
@@ -1768,6 +1768,7 @@ function FinalCta() {
 
 export default function Home() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
     document.title = "1031 Exchange Up — Off-market 1031 replacement properties for agents";
@@ -1777,11 +1778,25 @@ export default function Home() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 0.9 });
+    lenisRef.current = lenis;
     let raf = 0;
     const loop = (t: number) => { lenis.raf(t); raf = requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(raf); lenis.destroy(); };
+    return () => { cancelAnimationFrame(raf); lenis.destroy(); lenisRef.current = null; };
   }, []);
+
+  // Scroll to a section when the URL carries a hash (nav / footer anchor links).
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const el = document.getElementById(hash.slice(1));
+    if (!el) return;
+    const t = window.setTimeout(() => {
+      if (lenisRef.current) lenisRef.current.scrollTo(el, { offset: -88 });
+      else el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+    return () => window.clearTimeout(t);
+  }, [hash]);
 
   // Reveal on scroll.
   useEffect(() => {
