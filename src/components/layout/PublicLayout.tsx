@@ -7,24 +7,24 @@ import { cn } from "@/lib/utils";
 
 export default function PublicLayout() {
   const { pathname } = useLocation();
-  const isTemplateHome = pathname === "/";
-  // The native homepage rebuild previews here with the same floating nav.
-  const isNativeHomePreview = pathname === "/preview-home";
-  const floatingNav = isTemplateHome || isNativeHomePreview;
+  // The native homepage now lives at "/" — it floats the nav over its hero
+  // and uses the landing footer.
+  const isHome = pathname === ROUTES.home;
+  const floatingNav = isHome;
   const isAuthBeigeShell =
+    isHome ||
     pathname === ROUTES.signup ||
     pathname === ROUTES.login ||
     pathname === ROUTES.forgotPassword ||
     pathname === ROUTES.resetPassword ||
     pathname === ROUTES.bookDemo ||
-    pathname === ROUTES.forLandlords ||
-    isNativeHomePreview;
+    pathname === ROUTES.forLandlords;
   const usesLandingFooter =
+    isHome ||
     pathname === ROUTES.signup ||
     pathname === ROUTES.login ||
     pathname === ROUTES.bookDemo ||
-    pathname === ROUTES.forLandlords ||
-    isNativeHomePreview;
+    pathname === ROUTES.forLandlords;
 
   return (
     <div
@@ -41,7 +41,7 @@ export default function PublicLayout() {
       <main id="main-content" className="flex-1">
         <Outlet />
       </main>
-      {!isTemplateHome && (usesLandingFooter ? <LandingFooter /> : <Footer />)}
+      {usesLandingFooter ? <LandingFooter /> : <Footer />}
     </div>
   );
 }
