@@ -1292,7 +1292,10 @@ const INTEG_STYLE = `
     [data-landing] .ig-plus { display: none; }
   }
   @media (max-width: 480px) {
-    [data-landing] .ig-tiles { grid-template-columns: repeat(2, 1fr); }
+    /* Grovia keeps the tiles 4-per-row on phones too */
+    [data-landing] .ig-tiles { grid-template-columns: repeat(4, 1fr); gap: 9px; }
+    [data-landing] .ig-tile { height: 82px; gap: 6px; }
+    [data-landing] .ig-tile span { font-size: 9px; white-space: nowrap; }
   }
   /* Phones: keep the decorative plus row between the CTA and steps, like the
      Grovia template (it's hidden in the 481–880px range). */
