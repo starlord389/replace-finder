@@ -5,6 +5,7 @@ import {
   DEFAULT_SELLER_COST_ESTIMATE_RATE,
   WizardState,
   formatCurrency,
+  getDerivedFinancials,
   getEstimatedExchangeEconomics,
   parseCurrency,
 } from "@/lib/exchangeWizardTypes";
@@ -36,6 +37,7 @@ function Field({ label, value, recommended }: { label: string; value?: string | 
 export default function StepReview({ data, clientName, onBack, onSubmit, saving, mode = "create", onCancel }: Props) {
   const { property: p, financials: f, criteria: c } = data;
   const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(f);
+  const derived = getDerivedFinancials(f);
   const sellerCostRatePercent = Math.round(DEFAULT_SELLER_COST_ESTIMATE_RATE * 100);
 
   // Button labels per mode
@@ -64,8 +66,7 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Pledged Property</CardTitle></CardHeader>
         <CardContent className="space-y-1">
           {p.property_name && <p className="font-medium">{p.property_name}</p>}
-          <p className="text-sm text-muted-foreground">{p.address}</p>
-          <p className="text-sm text-muted-foreground">{[p.city, p.state, p.zip].filter(Boolean).join(", ")}</p>
+          <p className="text-sm text-muted-foreground">{[p.city, p.state].filter(Boolean).join(", ")}</p>
           <div className="mt-3 grid grid-cols-2 gap-x-8">
             <Field label="Asset Type" value={p.asset_type ? ASSET_TYPE_LABELS[p.asset_type as keyof typeof ASSET_TYPE_LABELS] : undefined} />
             <Field label="Year Built" value={p.year_built} />
@@ -101,10 +102,11 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Financials</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 gap-x-8">
           <Field label="Asking Price" value={formatCurrency(parseCurrency(f.asking_price))} />
-          <Field label="NOI" value={formatCurrency(parseCurrency(f.noi))} />
-          <Field label="Cap Rate" value={f.cap_rate ? `${f.cap_rate}%` : undefined} />
-          <Field label="Occupancy" value={f.occupancy_rate ? `${f.occupancy_rate}%` : undefined} />
+          <Field label="Gross Rent Roll" value={formatCurrency(parseCurrency(f.gross_rent_roll))} />
+          <Field label="Total Operating Expenses" value={formatCurrency(parseCurrency(f.total_operating_expenses))} />
           <Field label="Loan Balance" value={formatCurrency(parseCurrency(f.loan_balance))} />
+          <Field label="NOI (calculated)" value={derived.noi != null ? formatCurrency(derived.noi) : undefined} />
+          <Field label="Cap Rate (calculated)" value={derived.capRate != null ? `${derived.capRate.toFixed(2)}%` : undefined} />
         </CardContent>
       </Card>
 

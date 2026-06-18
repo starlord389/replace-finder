@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { runMatchingSafe } from "../_shared/matching-core.ts";
 import { validateFinancials } from "../_shared/validate-financials.ts";
+import { deriveFinancialColumns } from "../_shared/derive-financials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -77,10 +78,10 @@ Deno.serve(async (req) => {
       const propertyInsert = {
         agent_id: user.id,
         property_name: stringOrNull(payload.property.property_name),
-        address: stringOrNull(payload.property.address),
+        // Street address + ZIP are intentionally not stored — owners only
+        // expose city + state to the network.
         city: stringOrNull(payload.property.city),
         state: stringOrNull(payload.property.state),
-        zip: stringOrNull(payload.property.zip),
         asset_type: valueOrNull(payload.property.asset_type),
         year_built: numberOrNull(payload.property.year_built),
         units: numberOrNull(payload.property.units),
@@ -112,11 +113,7 @@ Deno.serve(async (req) => {
 
       const financialInsert = {
         property_id: propertyId,
-        asking_price: numberOrNull(payload.financials.asking_price),
-        noi: numberOrNull(payload.financials.noi),
-        occupancy_rate: numberOrNull(payload.financials.occupancy_rate),
-        cap_rate: numberOrNull(payload.financials.cap_rate),
-        loan_balance: numberOrNull(payload.financials.loan_balance),
+        ...deriveFinancialColumns(payload.financials),
       };
 
       const { error: financialError } = await db.from("property_financials").insert(financialInsert);

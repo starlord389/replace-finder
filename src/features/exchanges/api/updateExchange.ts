@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { WizardState } from "@/lib/exchangeWizardTypes";
-import { getEstimatedExchangeEconomics, parseCurrency } from "@/lib/exchangeWizardTypes";
+import { getDerivedFinancials, getEstimatedExchangeEconomics, parseCurrency } from "@/lib/exchangeWizardTypes";
 
 export type UpdateIntent = "save_draft" | "publish" | "save_active" | "move_to_draft" | "delete_draft";
 
@@ -19,6 +19,8 @@ export interface UpdateExchangeResponse {
 
 function normalize(data: WizardState) {
   const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(data.financials);
+  // Derived NOI / cap rate / occupancy (100%) — see createExchange.ts.
+  const derived = getDerivedFinancials(data.financials);
   return {
     property: {
       ...data.property,
@@ -28,11 +30,13 @@ function normalize(data: WizardState) {
         ? parseFloat(data.property.building_square_footage) : null,
     },
     financials: {
-      asking_price: parseCurrency(data.financials.asking_price),
-      noi: parseCurrency(data.financials.noi),
-      occupancy_rate: parseCurrency(data.financials.occupancy_rate),
-      cap_rate: parseCurrency(data.financials.cap_rate),
-      loan_balance: parseCurrency(data.financials.loan_balance),
+      asking_price: derived.askingPrice,
+      gross_rent_roll: derived.grossRentRoll,
+      total_operating_expenses: derived.totalOperatingExpenses,
+      loan_balance: derived.loanBalance,
+      noi: derived.noi,
+      cap_rate: derived.capRate,
+      occupancy_rate: derived.occupancyRate,
       exchange_proceeds: exchangeProceeds,
       estimated_equity: estimatedEquity,
     },

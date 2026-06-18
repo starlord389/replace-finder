@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { runMatchingSafe } from "../_shared/matching-core.ts";
 import { validateFinancials } from "../_shared/validate-financials.ts";
+import { deriveFinancialColumns } from "../_shared/derive-financials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -102,10 +103,12 @@ Deno.serve(async (req) => {
     if (payload.property && propertyId) {
       const propUpdate = {
         property_name: stringOrNull(payload.property.property_name),
-        address: stringOrNull(payload.property.address),
+        // Scrub any previously-stored street address — owners only expose
+        // city + state now.
+        address: null,
         city: stringOrNull(payload.property.city),
         state: stringOrNull(payload.property.state),
-        zip: stringOrNull(payload.property.zip),
+        zip: null,
         asset_type: valueOrNull(payload.property.asset_type),
         year_built: numberOrNull(payload.property.year_built),
         units: numberOrNull(payload.property.units),
@@ -117,13 +120,7 @@ Deno.serve(async (req) => {
     }
 
     if (payload.financials && propertyId) {
-      const finUpdate = {
-        asking_price: numberOrNull(payload.financials.asking_price),
-        noi: numberOrNull(payload.financials.noi),
-        occupancy_rate: numberOrNull(payload.financials.occupancy_rate),
-        cap_rate: numberOrNull(payload.financials.cap_rate),
-        loan_balance: numberOrNull(payload.financials.loan_balance),
-      };
+      const finUpdate = deriveFinancialColumns(payload.financials);
       const { error } = await db.from("property_financials").update(finUpdate).eq("property_id", propertyId);
       if (error) throw error;
 

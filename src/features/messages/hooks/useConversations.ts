@@ -53,7 +53,7 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
   const propertyIds = Array.from(new Set((matchesRes.data ?? []).map((m) => m.seller_property_id)));
   const { data: properties } = await supabase
     .from("pledged_properties")
-    .select("id, property_name, address, city, state")
+    .select("id, property_name, city, state")
     .in("id", propertyIds);
 
   const profilesMap = new Map((profilesRes.data ?? []).map((p) => [p.id, p]));
@@ -87,7 +87,7 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
         counterpartyEmail: profile?.email ?? null,
         counterpartyAvatar: profile?.profile_photo_url ?? null,
         propertyName: prop?.property_name ?? "Property",
-        propertyAddress: prop ? [prop.address, prop.city, prop.state].filter(Boolean).join(", ") : null,
+        propertyAddress: prop ? [prop.city, prop.state].filter(Boolean).join(", ") : null,
         lastMessage: lastMsg?.content ?? null,
         lastMessageAt: lastMsg?.created_at ?? null,
         lastMessageSenderId: lastMsg?.sender_id ?? null,

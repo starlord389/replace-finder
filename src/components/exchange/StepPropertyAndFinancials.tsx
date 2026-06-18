@@ -8,6 +8,8 @@ import {
   FinancialsData,
   PropertyData,
   UploadedPropertyImage,
+  formatCurrency,
+  getDerivedFinancials,
   parseCurrency,
 } from "@/lib/exchangeWizardTypes";
 import {
@@ -46,17 +48,27 @@ function CurrencyField({ label, value, onChange, required, error, errorMessage, 
   );
 }
 
-function PercentField({ label, value, onChange, required, error, errorMessage }: {
-  label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean; errorMessage?: string;
-}) {
+// NOI and cap rate are no longer entered — we derive them from the gross rent
+// roll, operating expenses, and asking price (occupancy assumed 100%) and show
+// the result read-only so the agent can sanity-check it.
+function DerivedFinancials({ financials }: { financials: FinancialsData }) {
+  const { noi, capRate } = getDerivedFinancials(financials);
   return (
-    <div>
-      <Label>{label}{required && " *"}</Label>
-      <div className="relative">
-        <Input className={cn("pr-7", error && "border-destructive")} value={value} onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0" />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+    <div className="rounded-lg border bg-muted/40 p-4">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Calculated</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        We compute these from your numbers — occupancy is assumed at 100%.
+      </p>
+      <div className="mt-3 grid gap-4 sm:grid-cols-2">
+        <div>
+          <p className="text-xs text-muted-foreground">Net Operating Income (NOI)</p>
+          <p className="text-lg font-semibold text-foreground">{noi != null ? formatCurrency(noi) : "—"}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Cap Rate</p>
+          <p className="text-lg font-semibold text-foreground">{capRate != null ? `${capRate.toFixed(2)}%` : "—"}</p>
+        </div>
       </div>
-      {errorMessage && <p className="mt-1 text-xs text-destructive">{errorMessage}</p>}
     </div>
   );
 }
@@ -81,25 +93,15 @@ export default function StepPropertyAndFinancials({
   };
 
   const setFinancials = (field: keyof FinancialsData, value: any) => {
-    const updated = { ...financials, [field]: value };
-
-    if ((field === "noi" || field === "asking_price") && updated.asking_price && updated.noi) {
-      const price = parseCurrency(updated.asking_price);
-      const noi = parseCurrency(updated.noi);
-      if (price && noi && price > 0) updated.cap_rate = ((noi / price) * 100).toFixed(2);
-    }
-
-    onChangeFinancials(updated);
+    onChangeFinancials({ ...financials, [field]: value });
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
   const validate = () => {
     const next: Record<string, string | undefined> = {};
 
-    if (!property.address.trim()) next.address = "Required";
     if (!property.city.trim()) next.city = "Required";
     if (!property.state) next.state = "Required";
-    if (!property.zip.trim()) next.zip = "Required";
     if (!property.asset_type) next.asset_type = "Required";
 
     const askingPrice = parseCurrency(financials.asking_price);
@@ -107,15 +109,15 @@ export default function StepPropertyAndFinancials({
     else if (askingPrice === null) next.asking_price = "Must be a valid number";
     else if (askingPrice <= 0) next.asking_price = "Must be greater than 0";
 
-    const noi = parseCurrency(financials.noi);
-    if (!financials.noi) next.noi = "Required";
-    else if (noi === null) next.noi = "Must be a valid number";
-    else if (noi < 0) next.noi = "Must be 0 or greater";
+    const grossRentRoll = parseCurrency(financials.gross_rent_roll);
+    if (!financials.gross_rent_roll) next.gross_rent_roll = "Required";
+    else if (grossRentRoll === null) next.gross_rent_roll = "Must be a valid number";
+    else if (grossRentRoll < 0) next.gross_rent_roll = "Must be 0 or greater";
 
-    const occupancy = parseCurrency(financials.occupancy_rate);
-    if (!financials.occupancy_rate) next.occupancy_rate = "Required";
-    else if (occupancy === null) next.occupancy_rate = "Must be a valid number";
-    else if (occupancy < 0 || occupancy > 100) next.occupancy_rate = "Must be between 0 and 100";
+    const totalOpex = parseCurrency(financials.total_operating_expenses);
+    if (financials.total_operating_expenses === "") next.total_operating_expenses = "Required (enter 0 if none)";
+    else if (totalOpex === null) next.total_operating_expenses = "Must be a valid number";
+    else if (totalOpex < 0) next.total_operating_expenses = "Must be 0 or greater";
 
     const loanBalance = parseCurrency(financials.loan_balance);
     if (financials.loan_balance === "") next.loan_balance = "Required (enter 0 if free and clear)";
@@ -145,6 +147,9 @@ export default function StepPropertyAndFinancials({
 
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Location</h3>
+        <p className="text-xs text-muted-foreground">
+          We only show buyers the city and state — never the street address.
+        </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <Label>Property Name</Label>
@@ -153,10 +158,6 @@ export default function StepPropertyAndFinancials({
               value={property.property_name}
               onChange={e => setProperty("property_name", e.target.value)}
             />
-          </div>
-          <div>
-            <Label>Street Address *</Label>
-            <Input value={property.address} onChange={e => setProperty("address", e.target.value)} className={errors.address ? "border-destructive" : ""} />
           </div>
           <div>
             <Label>City *</Label>
@@ -168,10 +169,6 @@ export default function StepPropertyAndFinancials({
               <SelectTrigger className={errors.state ? "border-destructive" : ""}><SelectValue placeholder="Select state" /></SelectTrigger>
               <SelectContent>{US_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label>ZIP Code *</Label>
-            <Input value={property.zip} onChange={e => setProperty("zip", e.target.value)} className={errors.zip ? "border-destructive" : ""} />
           </div>
         </div>
       </section>
@@ -231,15 +228,19 @@ export default function StepPropertyAndFinancials({
 
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Financials</h3>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <CurrencyField label="Asking Price / Estimated Value" value={financials.asking_price} onChange={v => setFinancials("asking_price", v)} required error={!!errors.asking_price} errorMessage={errors.asking_price} />
-          <CurrencyField label="Net Operating Income (NOI)" value={financials.noi} onChange={v => setFinancials("noi", v)} required error={!!errors.noi} errorMessage={errors.noi} />
-          <PercentField label="Occupancy Rate" value={financials.occupancy_rate} onChange={v => setFinancials("occupancy_rate", v)} required error={!!errors.occupancy_rate} errorMessage={errors.occupancy_rate} />
-          <PercentField label="Cap Rate" value={financials.cap_rate} onChange={v => setFinancials("cap_rate", v)} />
+          <CurrencyField label="Gross Rent Roll" value={financials.gross_rent_roll} onChange={v => setFinancials("gross_rent_roll", v)}
+            required error={!!errors.gross_rent_roll} errorMessage={errors.gross_rent_roll}
+            help="Total annual rent at full (100%) occupancy." />
+          <CurrencyField label="Total Operating Expenses" value={financials.total_operating_expenses} onChange={v => setFinancials("total_operating_expenses", v)}
+            required error={!!errors.total_operating_expenses} errorMessage={errors.total_operating_expenses}
+            help="Annual operating expenses — taxes, insurance, management, maintenance, etc." />
           <CurrencyField label="Current Loan Balance" value={financials.loan_balance} onChange={v => setFinancials("loan_balance", v)}
             required error={!!errors.loan_balance} errorMessage={errors.loan_balance}
-            help="Required to estimate equity and exchange proceeds behind the scenes. Enter 0 if the property is free and clear." />
+            help="Used to estimate equity and exchange proceeds. Enter 0 if the property is free and clear." />
         </div>
+        <DerivedFinancials financials={financials} />
       </section>
 
       <div className="flex justify-between pt-4">

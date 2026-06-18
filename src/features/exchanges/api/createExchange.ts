@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { WizardState } from "@/lib/exchangeWizardTypes";
-import { getEstimatedExchangeEconomics, parseCurrency } from "@/lib/exchangeWizardTypes";
+import { getDerivedFinancials, getEstimatedExchangeEconomics, parseCurrency } from "@/lib/exchangeWizardTypes";
 
 export interface CreateExchangeRequest {
   data: WizardState;
@@ -19,6 +19,10 @@ function normalizeWizardData(data: WizardState) {
   const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(
     data.financials,
   );
+  // NOI, cap rate, and occupancy (assumed 100%) are derived from the four
+  // numbers the agent enters. The edge function recomputes them as the source
+  // of truth; we send them too so the client and server agree.
+  const derived = getDerivedFinancials(data.financials);
 
   return {
     property: {
@@ -28,12 +32,13 @@ function normalizeWizardData(data: WizardState) {
       building_square_footage: data.property.building_square_footage ? parseFloat(data.property.building_square_footage) : null,
     },
     financials: {
-      ...data.financials,
-      asking_price: parseCurrency(data.financials.asking_price),
-      noi: parseCurrency(data.financials.noi),
-      occupancy_rate: parseCurrency(data.financials.occupancy_rate),
-      cap_rate: parseCurrency(data.financials.cap_rate),
-      loan_balance: parseCurrency(data.financials.loan_balance),
+      asking_price: derived.askingPrice,
+      gross_rent_roll: derived.grossRentRoll,
+      total_operating_expenses: derived.totalOperatingExpenses,
+      loan_balance: derived.loanBalance,
+      noi: derived.noi,
+      cap_rate: derived.capRate,
+      occupancy_rate: derived.occupancyRate,
       exchange_proceeds: exchangeProceeds,
       estimated_equity: estimatedEquity,
     },

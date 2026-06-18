@@ -80,10 +80,8 @@ export default function EditExchange() {
         selectedClientId: ex.client_id,
         property: {
           property_name: p?.property_name ?? "",
-          address: p?.address ?? "",
           city: p?.city ?? "",
           state: p?.state ?? "",
-          zip: p?.zip ?? "",
           asset_type: p?.asset_type ?? "",
           year_built: p?.year_built?.toString() ?? "",
           units: p?.units?.toString() ?? "",
@@ -92,9 +90,8 @@ export default function EditExchange() {
         },
         financials: {
           asking_price: f?.asking_price?.toString() ?? "",
-          noi: f?.noi?.toString() ?? "",
-          occupancy_rate: f?.occupancy_rate?.toString() ?? "",
-          cap_rate: f?.cap_rate?.toString() ?? "",
+          gross_rent_roll: f?.gross_rent_roll?.toString() ?? "",
+          total_operating_expenses: f?.total_operating_expenses?.toString() ?? "",
           loan_balance: f?.loan_balance?.toString() ?? "",
         },
         criteria: {
@@ -127,7 +124,7 @@ export default function EditExchange() {
     if (!d.selectedClientId) return { valid: false, firstInvalidStep: 1, message: "Select a client before publishing." };
 
     const p = d.property;
-    if (!p.address.trim() || !p.city.trim() || !p.state || !p.zip.trim() || !p.asset_type) {
+    if (!p.city.trim() || !p.state || !p.asset_type) {
       return { valid: false, firstInvalidStep: 2, message: "Fill in all required property fields before publishing." };
     }
 
@@ -136,13 +133,13 @@ export default function EditExchange() {
     if (!f.asking_price || askingPrice === null || askingPrice <= 0) {
       return { valid: false, firstInvalidStep: 2, message: "Asking price is required before publishing." };
     }
-    const noi = parseCurrency(f.noi);
-    if (!f.noi || noi === null || noi < 0) {
-      return { valid: false, firstInvalidStep: 2, message: "NOI is required before publishing." };
+    const grossRentRoll = parseCurrency(f.gross_rent_roll);
+    if (!f.gross_rent_roll || grossRentRoll === null || grossRentRoll < 0) {
+      return { valid: false, firstInvalidStep: 2, message: "Gross rent roll is required before publishing." };
     }
-    const occupancy = parseCurrency(f.occupancy_rate);
-    if (!f.occupancy_rate || occupancy === null || occupancy < 0 || occupancy > 100) {
-      return { valid: false, firstInvalidStep: 2, message: "Occupancy rate is required before publishing." };
+    const totalOpex = parseCurrency(f.total_operating_expenses);
+    if (f.total_operating_expenses === "" || totalOpex === null || totalOpex < 0) {
+      return { valid: false, firstInvalidStep: 2, message: "Total operating expenses are required before publishing (enter 0 if none)." };
     }
     const loanBalance = parseCurrency(f.loan_balance);
     if (f.loan_balance === "" || loanBalance === null || loanBalance < 0) {

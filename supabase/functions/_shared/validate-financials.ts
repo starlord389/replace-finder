@@ -42,7 +42,14 @@ export function validateFinancials(
     return errors;
   }
 
-  const required = ["asking_price", "noi", "loan_balance", "occupancy_rate"] as const;
+  // Agents now enter four numbers; NOI, cap rate, and occupancy (assumed 100%)
+  // are derived from these by the create/update functions.
+  const required = [
+    "asking_price",
+    "gross_rent_roll",
+    "total_operating_expenses",
+    "loan_balance",
+  ] as const;
 
   for (const field of required) {
     const raw = financials[field];
@@ -65,16 +72,14 @@ export function validateFinancials(
       case "asking_price":
         if (num <= 0) errors.push({ field, message: "Asking price must be greater than 0" });
         break;
-      case "noi":
-        if (num < 0) errors.push({ field, message: "NOI must be 0 or greater" });
+      case "gross_rent_roll":
+        if (num < 0) errors.push({ field, message: "Gross rent roll must be 0 or greater" });
+        break;
+      case "total_operating_expenses":
+        if (num < 0) errors.push({ field, message: "Total operating expenses must be 0 or greater" });
         break;
       case "loan_balance":
         if (num < 0) errors.push({ field, message: "Loan balance must be 0 or greater" });
-        break;
-      case "occupancy_rate":
-        if (num < 0 || num > 100) {
-          errors.push({ field, message: "Occupancy rate must be between 0 and 100" });
-        }
         break;
     }
   }

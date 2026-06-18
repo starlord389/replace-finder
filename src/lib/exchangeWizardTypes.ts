@@ -5,10 +5,10 @@ export type { UploadedPropertyImage };
 
 export interface PropertyData {
   property_name: string;
-  address: string;
+  // Street address + ZIP are intentionally NOT collected — owners don't want
+  // their property address revealed. We only capture city + state.
   city: string;
   state: string;
-  zip: string;
   asset_type: Enums<"asset_type"> | "";
   year_built: string;
   units: string;
@@ -18,9 +18,8 @@ export interface PropertyData {
 
 export interface FinancialsData {
   asking_price: string;
-  noi: string;
-  occupancy_rate: string;
-  cap_rate: string;
+  gross_rent_roll: string;
+  total_operating_expenses: string;
   loan_balance: string;
 }
 
@@ -43,10 +42,8 @@ export interface WizardState {
 
 export const initialPropertyData: PropertyData = {
   property_name: "",
-  address: "",
   city: "",
   state: "",
-  zip: "",
   asset_type: "",
   year_built: "",
   units: "",
@@ -56,9 +53,8 @@ export const initialPropertyData: PropertyData = {
 
 export const initialFinancialsData: FinancialsData = {
   asking_price: "",
-  noi: "",
-  occupancy_rate: "",
-  cap_rate: "",
+  gross_rent_roll: "",
+  total_operating_expenses: "",
   loan_balance: "",
 };
 
@@ -87,6 +83,52 @@ export function parseCurrency(val: string): number | null {
 export function formatCurrency(n: number | null | undefined): string {
   if (n == null) return "";
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+}
+
+// Occupancy is assumed fully leased (100%). We no longer ask for it, so the
+// gross rent roll is treated as the effective gross income.
+export const ASSUMED_OCCUPANCY_RATE = 100;
+
+// NOI = gross rent roll − total operating expenses (occupancy assumed 100%).
+export function calculateNoi(
+  grossRentRoll: number | null | undefined,
+  totalOperatingExpenses: number | null | undefined,
+): number | null {
+  if (grossRentRoll == null || totalOperatingExpenses == null) return null;
+  return grossRentRoll - totalOperatingExpenses;
+}
+
+// Cap rate (%) = NOI / asking price.
+export function calculateCapRate(
+  noi: number | null | undefined,
+  askingPrice: number | null | undefined,
+): number | null {
+  if (noi == null || askingPrice == null || askingPrice <= 0) return null;
+  return (noi / askingPrice) * 100;
+}
+
+/**
+ * Single source of truth for everything we derive from the four numbers an
+ * agent now enters (asking price, gross rent roll, total operating expenses,
+ * loan balance). Used by the form preview, the review step, and the API
+ * wrappers so the client and server always agree.
+ */
+export function getDerivedFinancials(financials: FinancialsData) {
+  const askingPrice = parseCurrency(financials.asking_price);
+  const grossRentRoll = parseCurrency(financials.gross_rent_roll);
+  const totalOperatingExpenses = parseCurrency(financials.total_operating_expenses);
+  const loanBalance = parseCurrency(financials.loan_balance);
+  const noi = calculateNoi(grossRentRoll, totalOperatingExpenses);
+  const capRate = calculateCapRate(noi, askingPrice);
+  return {
+    askingPrice,
+    grossRentRoll,
+    totalOperatingExpenses,
+    loanBalance,
+    noi,
+    capRate,
+    occupancyRate: ASSUMED_OCCUPANCY_RATE,
+  };
 }
 
 export const DEFAULT_SELLER_COST_ESTIMATE_RATE = 0.05;
