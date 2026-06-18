@@ -1,4 +1,16 @@
-import { expect, test, type Frame, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+/* Breakpoint regression coverage for the NATIVE homepage (src/pages/Home.tsx,
+   route "/"). The old Framer-iframe homepage was deleted, so this no longer
+   reaches into an iframe — everything renders directly under [data-landing].
+
+   What we guard at every breakpoint:
+   - the page is the native React rebuild (a [data-landing] wrapper, no iframe)
+   - no horizontal overflow (documentElement.scrollWidth <= innerWidth + 2)
+   - the floating nav stays within the viewport and stays branded
+   - the hero headline renders
+   - the How It Works step titles match the approved copy
+   - every anchored marketing section is present */
 
 type ViewportCase = {
   name: string;
@@ -16,69 +28,31 @@ const VIEWPORTS: ViewportCase[] = [
   { name: "desktop wide", width: 1440, height: 900 },
 ];
 
-const TOUCH_BREAKPOINT_MAX = 1199;
 const APPROVED_HOW_IT_WORKS_TITLES = [
   "Add your client's property",
   "Filter and find your match",
   "Connect and offer",
 ];
-const LEGACY_HOW_IT_WORKS_TEXT = [
-  "Easy setup",
-  "Collaborate",
-  "Track growth",
-  "Create account",
-  "To-do tasks",
+
+// Sections the nav/footer anchor links jump to — each must keep its id.
+const EXPECTED_SECTION_IDS = [
+  "process",
+  "feature",
+  "coverage",
+  "pricing",
+  "roe-calculator",
+  "faq",
+  "get-started",
 ];
 
-async function openLandingFrame(page: Page) {
-  await page.goto("/", { waitUntil: "networkidle" });
-
-  const frameHandle = await page.waitForSelector(
-    'iframe[title="Grovia homepage"]',
-    { timeout: 15_000 },
-  );
-  const frame = await frameHandle.contentFrame();
-
-  if (!frame) {
-    throw new Error("Landing iframe did not attach");
-  }
-
-  await frame.waitForSelector("[data-exchangeup-navbar='true']", {
-    state: "attached",
-    timeout: 15_000,
-  });
-  await frame.waitForSelector("[data-exchangeup-hero-renders]", {
-    state: "attached",
-    timeout: 15_000,
-  });
-  await frame.waitForSelector("[data-exchangeup-logo-slider]", {
-    state: "attached",
-    timeout: 15_000,
-  });
-
-  return frame;
-}
-
-async function getViewportSnapshot(frame: Frame) {
-  return frame.evaluate(() => {
-    const isVisible = (element: Element | null) => {
-      if (!element) return false;
-      const style = window.getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-
-      return (
-        style.display !== "none" &&
-        style.visibility !== "hidden" &&
-        Number(style.opacity) > 0 &&
-        rect.width > 0 &&
-        rect.height > 0
-      );
-    };
+async function getViewportSnapshot(page: Page) {
+  return page.evaluate((expectedIds: string[]) => {
+    const norm = (value: string | null | undefined) =>
+      (value ?? "").replace(/\s+/g, " ").trim();
 
     const rectFor = (element: Element | null) => {
-      const rect = element?.getBoundingClientRect();
-      if (!rect) return null;
-
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
       return {
         top: rect.top,
         right: rect.right,
@@ -89,159 +63,32 @@ async function getViewportSnapshot(frame: Frame) {
       };
     };
 
-    const visibleText = (root: ParentNode = document) => {
-      const element = root instanceof Document ? root.body : root;
+    const landing = document.querySelector("[data-landing]");
+    const nav = document.querySelector('nav[aria-label="Main navigation"]');
+    const heroHeadline = document.querySelector("[data-landing] h1");
 
-      return ((element as HTMLElement | null)?.innerText ?? "")
-        .replace(/\s+/g, " ")
-        .trim();
-    };
+    const howItWorksTitles = Array.from(
+      document.querySelectorAll("[data-landing] .hiw-title"),
+    ).map((element) => norm(element.textContent));
 
-    const navs = Array.from(
-      document.querySelectorAll("[data-exchangeup-navbar='true']"),
-    );
-    const visibleNav = navs.find(isVisible) ?? navs[0] ?? null;
-    const heroCopy =
-      document.querySelector("[data-exchangeup-hero-touch-copy]") ??
-      Array.from(
-        document.querySelectorAll(
-          '[data-framer-name="Strategy and growth for modern teams"]',
-        ),
-      ).find(isVisible) ??
-      null;
-    const heroRenders = document.querySelector("[data-exchangeup-hero-renders]");
-    const logoSlider = document.querySelector("[data-exchangeup-logo-slider]");
-    const touchCards = Array.from(
-      document.querySelectorAll("[data-exchangeup-touch-card='true']"),
-    ).filter(isVisible);
-    const touchTitles = Array.from(
-      document.querySelectorAll("[data-exchangeup-easy-setup-touch-title]"),
-    ).filter(isVisible);
-    const touchBodies = Array.from(
-      document.querySelectorAll("[data-exchangeup-easy-setup-touch-body]"),
-    ).filter(isVisible);
-    const visiblePreviews = Array.from(
-      document.querySelectorAll("[data-exchangeup-easy-setup-preview]"),
-    ).filter(isVisible);
-    const touchPreviewVariants = touchCards.map((card) =>
-      card
-        .querySelector("[data-exchangeup-preview-surface]")
-        ?.getAttribute("data-preview-variant"),
-    );
-    const touchCardsWithPreviewCount = touchCards.filter((card) =>
-      card.querySelector(
-        "[data-exchangeup-easy-setup-preview] [data-exchangeup-preview-surface]",
-      ),
-    ).length;
-
-    const touchCardBounds =
-      touchCards.length > 0
-        ? touchCards.reduce(
-            (bounds, card) => {
-              const rect = card.getBoundingClientRect();
-              return {
-                top: Math.min(bounds.top, rect.top),
-                bottom: Math.max(bounds.bottom, rect.bottom),
-              };
-            },
-            { top: Number.POSITIVE_INFINITY, bottom: Number.NEGATIVE_INFINITY },
-          )
-        : null;
-    const overlapsTouchCardArea = (element: Element) => {
-      if (!touchCardBounds) return false;
-
-      const rect = element.getBoundingClientRect();
-      return (
-        rect.bottom >= touchCardBounds.top - 12 &&
-        rect.top <= touchCardBounds.bottom + 12
-      );
-    };
-    const howItWorksCardAreaText = touchCardBounds
-      ? Array.from(document.querySelectorAll("body *"))
-          .filter((element) => {
-            if (!isVisible(element) || !overlapsTouchCardArea(element)) {
-              return false;
-            }
-
-            return !Array.from(element.children).some(
-              (child) => isVisible(child) && overlapsTouchCardArea(child),
-            );
-          })
-          .map((element) => (element as HTMLElement).innerText ?? "")
-          .join(" ")
-          .replace(/\s+/g, " ")
-          .trim()
-      : "";
-
-    const overflowingTouchText = [...touchTitles, ...touchBodies].filter(
-      (element) =>
-        element.scrollWidth > element.clientWidth + 1 ||
-        element.scrollHeight > element.clientHeight + 1,
-    );
-
-    const previewEscapes = visiblePreviews.filter((preview) => {
-      const card = preview.closest("[data-exchangeup-easy-setup-card]");
-      const previewRect = preview.getBoundingClientRect();
-      const cardRect = card?.getBoundingClientRect();
-      if (!cardRect) return false;
-
-      return (
-        previewRect.left < cardRect.left - 2 ||
-        previewRect.right > cardRect.right + 2 ||
-        previewRect.top < cardRect.top - 2 ||
-        previewRect.bottom > cardRect.bottom + 2
-      );
-    });
-    const clippedPreviewGlass = Array.from(
-      document.querySelectorAll(
-        "[data-exchangeup-touch-card='true'] [data-preview-glass]",
-      ),
-    ).filter(
-      (glass) =>
-        isVisible(glass) && glass.scrollHeight > glass.clientHeight + 1,
+    const presentSectionIds = expectedIds.filter(
+      (id) => document.getElementById(id) !== null,
     );
 
     return {
       viewportWidth: window.innerWidth,
       documentWidth: document.documentElement.scrollWidth,
-      bodyText: visibleText(),
-      navText: visibleNav ? visibleText(visibleNav) : "",
-      navRect: rectFor(visibleNav),
-      heroCopyRect: rectFor(heroCopy),
-      heroRendersRect: rectFor(heroRenders),
-      heroNavGap:
-        visibleNav && heroCopy
-          ? Math.round(
-              heroCopy.getBoundingClientRect().top -
-                visibleNav.getBoundingClientRect().bottom,
-            )
-          : null,
-      heroCopyImageGap:
-        heroCopy && heroRenders
-          ? Math.round(
-              heroRenders.getBoundingClientRect().top -
-                heroCopy.getBoundingClientRect().bottom,
-            )
-          : null,
-      logoSliderRect: rectFor(logoSlider),
-      touchCardCount: touchCards.length,
-      touchTitleText: touchTitles.map((element) => element.textContent?.trim()),
-      touchCardsWithPreviewCount,
-      touchPreviewVariants,
-      howItWorksCardAreaText,
-      touchTitleFontFamily: touchTitles[0]
-        ? window.getComputedStyle(touchTitles[0]).fontFamily
-        : "",
-      overflowingTouchTextCount: overflowingTouchText.length,
-      previewEscapeCount: previewEscapes.length,
-      clippedPreviewGlassCount: clippedPreviewGlass.length,
-      visibleGroviaText:
-        /\bGrovia\b/.test(visibleText()) || /hello@grovia\.io/i.test(visibleText()),
+      hasLanding: landing !== null,
+      heroHeadline: norm(heroHeadline?.textContent),
+      navText: norm(nav?.textContent),
+      navRect: rectFor(nav),
+      howItWorksTitles,
+      presentSectionIds,
     };
-  });
+  }, EXPECTED_SECTION_IDS);
 }
 
-test.describe("landing page breakpoint regressions", () => {
+test.describe("native homepage breakpoint regressions", () => {
   for (const viewport of VIEWPORTS) {
     test(`${viewport.name} ${viewport.width}x${viewport.height}`, async ({
       page,
@@ -250,65 +97,42 @@ test.describe("landing page breakpoint regressions", () => {
         width: viewport.width,
         height: viewport.height,
       });
+      await page.goto("/", { waitUntil: "domcontentloaded" });
 
-      const frame = await openLandingFrame(page);
-      const snapshot = await getViewportSnapshot(frame);
-      const isTouchViewport = viewport.width <= TOUCH_BREAKPOINT_MAX;
+      // Native homepage — no iframe; everything renders under [data-landing].
+      await page.waitForSelector("[data-landing] h1", { timeout: 15_000 });
+      await page.waitForSelector('nav[aria-label="Main navigation"]', {
+        timeout: 15_000,
+      });
 
+      const snapshot = await getViewportSnapshot(page);
+
+      // The native rebuild mounted (not the deleted Framer iframe).
+      expect(snapshot.hasLanding).toBe(true);
+
+      // No horizontal overflow at any breakpoint.
       expect(snapshot.documentWidth).toBeLessThanOrEqual(
         snapshot.viewportWidth + 2,
       );
+
+      // The floating nav stays within the viewport and stays branded.
       expect(snapshot.navText).toContain("1031 Exchange Up");
       expect(snapshot.navRect).not.toBeNull();
       expect(snapshot.navRect!.left).toBeGreaterThanOrEqual(-2);
       expect(snapshot.navRect!.right).toBeLessThanOrEqual(
         snapshot.viewportWidth + 2,
       );
-      expect(snapshot.bodyText).toContain(
+
+      // Hero headline renders.
+      expect(snapshot.heroHeadline).toContain(
         "Find your client's next replacement property.",
       );
-      expect(snapshot.visibleGroviaText).toBe(false);
 
-      if (isTouchViewport) {
-        expect(snapshot.heroCopyRect).not.toBeNull();
-        expect(snapshot.heroRendersRect).not.toBeNull();
-        expect(snapshot.logoSliderRect).not.toBeNull();
-        expect(snapshot.heroRendersRect!.top).toBeGreaterThan(
-          snapshot.heroCopyRect!.bottom,
-        );
-        expect(snapshot.logoSliderRect!.top).toBeGreaterThan(
-          snapshot.heroRendersRect!.bottom,
-        );
-        if (viewport.width <= 480) {
-          expect(snapshot.heroNavGap).toBeGreaterThanOrEqual(40);
-          expect(snapshot.heroCopyImageGap).toBeGreaterThanOrEqual(44);
-          expect(snapshot.heroCopyImageGap).toBeLessThanOrEqual(90);
-        }
-        expect(snapshot.touchCardCount).toBe(3);
-        expect(snapshot.touchTitleText).toEqual(
-          expect.arrayContaining(APPROVED_HOW_IT_WORKS_TITLES),
-        );
-        expect(snapshot.howItWorksCardAreaText).toEqual(
-          expect.stringContaining(APPROVED_HOW_IT_WORKS_TITLES[0]),
-        );
-        expect(snapshot.howItWorksCardAreaText).toEqual(
-          expect.stringContaining(APPROVED_HOW_IT_WORKS_TITLES[1]),
-        );
-        expect(snapshot.howItWorksCardAreaText).toEqual(
-          expect.stringContaining(APPROVED_HOW_IT_WORKS_TITLES[2]),
-        );
-        for (const legacyText of LEGACY_HOW_IT_WORKS_TEXT) {
-          expect(snapshot.howItWorksCardAreaText).not.toContain(legacyText);
-        }
-        expect(snapshot.touchCardsWithPreviewCount).toBe(3);
-        expect(snapshot.touchPreviewVariants).toEqual(["1", "2", "3"]);
-        expect(snapshot.touchTitleFontFamily).toContain("Plus Jakarta Sans");
-        expect(snapshot.overflowingTouchTextCount).toBe(0);
-        expect(snapshot.previewEscapeCount).toBe(0);
-        expect(snapshot.clippedPreviewGlassCount).toBe(0);
-      } else {
-        expect(snapshot.touchCardCount).toBe(0);
-      }
+      // How It Works step titles match the approved copy, in order.
+      expect(snapshot.howItWorksTitles).toEqual(APPROVED_HOW_IT_WORKS_TITLES);
+
+      // Every anchored marketing section is present.
+      expect(snapshot.presentSectionIds).toEqual(EXPECTED_SECTION_IDS);
     });
   }
 });

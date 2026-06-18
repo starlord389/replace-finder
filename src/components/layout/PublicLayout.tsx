@@ -10,7 +10,9 @@ export default function PublicLayout() {
   // The native homepage now lives at "/" — it floats the nav over its hero
   // and uses the landing footer.
   const isHome = pathname === ROUTES.home;
-  const floatingNav = isHome;
+  // The landlord page is built in the same landing system — float the nav over
+  // its textured hero too.
+  const floatingNav = isHome || pathname === ROUTES.forLandlords;
   const isAuthBeigeShell =
     isHome ||
     pathname === ROUTES.signup ||
