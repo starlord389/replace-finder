@@ -1294,6 +1294,11 @@ const INTEG_STYLE = `
   @media (max-width: 480px) {
     [data-landing] .ig-tiles { grid-template-columns: repeat(2, 1fr); }
   }
+  /* Phones: keep the decorative plus row between the CTA and steps, like the
+     Grovia template (it's hidden in the 481–880px range). */
+  @media (max-width: 639.98px) {
+    [data-landing] .ig-plus { display: flex; width: 270px; margin: 28px 0; }
+  }
 `;
 
 const IG_TILES = [
