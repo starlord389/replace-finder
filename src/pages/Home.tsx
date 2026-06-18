@@ -424,12 +424,12 @@ const PAGE_STYLE = `
        one unit; .lp-hero-visual is just a fixed-height stage for them. */
     [data-landing] .lp-hero-grid { grid-template-columns: minmax(0, 1fr); }
     [data-landing] .lp-hero-visual {
-      width: 100%; max-width: 360px; height: 208px; padding-bottom: 0;
+      width: 100%; max-width: 380px; height: 220px; padding-bottom: 0;
       margin-left: auto; margin-right: auto;
     }
     [data-landing] .lp-hero-cards {
       position: absolute; top: 0; left: 50%; width: 530px;
-      transform: translateX(-50%) scale(0.57); transform-origin: top center;
+      transform: translateX(-50%) scale(0.61); transform-origin: top center;
     }
     /* desktop chart-card geometry (undo the ≤809.98px tablet tweak) */
     [data-landing] .lp-card-detail { right: -3%; bottom: -11%; width: 56%; transform: rotate(5deg); }
