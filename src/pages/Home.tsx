@@ -402,6 +402,21 @@ const PAGE_STYLE = `
     transition-delay: var(--reveal-delay, 0s);
   }
   [data-landing] [data-reveal].is-visible { opacity: 1; transform: translateY(0); }
+
+  /* ── Mobile-only hero polish (phones ≤640px) — must NOT affect ≥640px ── */
+  @media (max-width: 639.98px) {
+    /* Center the eyebrow, headline + subhead; keep the CTAs on one centered row */
+    [data-landing] .lp-hero-copy { text-align: center; }
+    [data-landing] .lp-hero-copy h1 { margin-left: auto; margin-right: auto; }
+    [data-landing] .lp-hero-copy .lp-sub { margin-left: auto; margin-right: auto; }
+    [data-landing] .lp-hero-cta { justify-content: center; flex-wrap: nowrap; }
+
+    /* Smaller hero cards, nearly the same size, tilted as a coordinated pair:
+       the matches card sits left, the chart card overlaps its lower-right. */
+    [data-landing] .lp-hero-visual { max-width: 304px; padding-bottom: 14%; }
+    [data-landing] .lp-card-main { width: 84%; margin-left: 0; margin-right: auto; transform: rotate(-4deg); }
+    [data-landing] .lp-card-detail { left: auto; right: 0; bottom: -1%; width: 76%; transform: rotate(5deg); }
+  }
 `;
 
 /* ───────────────────────── Primitives ───────────────────────── */
@@ -438,13 +453,13 @@ function Hero() {
   return (
     <section className="px-5 pb-10 pt-28 sm:px-8 sm:pt-[176px]">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <div className="lg:relative lg:left-10">
+        <div className="lp-hero-copy lg:relative lg:left-10">
           <p className="lp-eyebrow lp-in" style={inDelay(0)}>{HERO.eyebrow}</p>
           <h1 className="lp-in max-w-[440px]" style={inDelay(0.08)}>{HERO.headline}</h1>
           <p className="lp-sub lp-in mt-6 max-w-[27rem]" style={inDelay(0.16)}>
             {HERO.subheadline}
           </p>
-          <div className="lp-in mt-9 flex flex-wrap items-center gap-3" style={inDelay(0.24)}>
+          <div className="lp-hero-cta lp-in mt-9 flex flex-wrap items-center gap-3" style={inDelay(0.24)}>
             <PillLink to={ROUTES.signup} primary>Get Started</PillLink>
             <PillLink to={ROUTES.bookDemo}>Book a Demo</PillLink>
           </div>
