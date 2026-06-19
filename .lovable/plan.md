@@ -1,47 +1,45 @@
-# Wire the footer newsletter form
+# Full-sweep results: nothing left to wire
 
-## What's left
+I did a complete pass over every public-facing surface, every form, every CTA, and every "preventDefault" stub in `src/`. Here's the inventory and verdict:
 
-I swept all public pages, landing components, and footers. After wiring the pricing waitlists, there's **one** remaining unwired input:
+## Public forms / data-capture inputs (all wired)
 
-**`src/components/layout/LandingFooter.tsx`** — the "Sign up for our newsletter" form (lines 14–30). Its `onSubmit` is just `event.preventDefault()` — the email goes nowhere. Anyone subscribing from the homepage footer is silently dropped.
+| Surface | Persists to | Status |
+|---|---|---|
+| `BookDemo` page form | `demo_requests` | ✅ wired |
+| `ForLandlords` referral form | `referrals` | ✅ wired |
+| Home pricing **Team** waitlist modal | `team_waitlist_signups` | ✅ wired (this session) |
+| Home pricing **Brokerage** waitlist modal | `brokerage_waitlist_signups` | ✅ wired (this session) |
+| Landing footer newsletter | `newsletter_subscribers` | ✅ wired (this session) |
+| Footer "Contact Us" + giant `support@…` link | `mailto:` | ✅ intentional, no DB needed |
+| Auth pages (Login / Signup / ForgotPassword / ResetPassword / AcceptInvite) | Lovable Cloud auth | ✅ wired |
+| Agent Help / support ticket form | `support_tickets` | ✅ wired |
 
-Everything else checks out:
-- `BookDemo` → `demo_requests` ✅
-- `ForLandlords` referral form → `referrals` ✅
-- Pricing Team/Brokerage waitlists → `team_waitlist_signups` / `brokerage_waitlist_signups` ✅ (just shipped)
-- Footer "Contact Us" / large `support@…` link → `mailto:` (intentional, no DB needed)
-- Auth forms → Lovable Cloud auth ✅
-- Agent help/support → `support_tickets` ✅
+## Authenticated app surfaces (all wired)
 
-## Plan
+| Surface | Persists to |
+|---|---|
+| Agent NewExchange / EditExchange wizard | `exchanges`, `replacement_criteria`, `property_financials`, `property_images`, `pledged_properties` (via edge functions) |
+| Agent client profile editing | `agent_clients`, `profiles` |
+| Agent settings | `profiles`, `user_notification_preferences` |
+| Messaging / inbox | `messages`, `notifications` |
+| Pipeline + listings | `pledged_properties`, `exchange_connections`, `matches` |
+| Admin settings | `app_settings` |
+| Admin support inbox | `support_tickets` |
 
-### 1. Create `newsletter_subscribers` table (migration)
+## `preventDefault` stubs I checked
 
-Columns:
-- `email` (text, required, **unique**) — prevents duplicate signups
-- `source` (text, default `'landing_footer'`) — lets future entry points (e.g. blog, dashboard upsell) share the table without losing attribution
-- standard `id`, `created_at`, `updated_at`
+- `PropertyPhotoUploader` / `StepPhotos` — `onDragOver` drop-target behavior, not a data stub. ✅
+- `PipelineListingCard` — prevents click bubbling from the drag handle. ✅
+- Footer newsletter `preventDefault` — **was** a stub, now wired. ✅
 
-Access rules (plain English):
-- Anyone, including signed-out visitors, can subscribe.
-- Only admins can view, edit, or delete subscribers — uses the existing `has_role(auth.uid(), 'admin')` function.
-- Service role keeps full access for admin/export tooling.
+## CTAs that look interactive but don't need a DB
 
-Duplicate handling: insert uses an `ON CONFLICT (email) DO NOTHING` pattern (via an upsert with `ignoreDuplicates: true`) so resubscribing the same email shows the same success state instead of an error toast.
+- "Get Started" → routes to `/signup` (auth handles it)
+- "Book a Demo" / "Contact us" → routes to `/book-demo` (already wired)
+- "Get started free" pricing button (Solo plan) → routes to `/signup`
+- "Invite" badge in the marketing pipeline mockup → decorative, part of the product-screenshot illustration
 
-### 2. Wire `LandingFooter.tsx`
+## Conclusion
 
-- Convert the footer to a client component with `useState` for the email value and a `submitting` flag.
-- On submit:
-  - Trim the email, validate the same regex used elsewhere (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`), cap length at 255.
-  - Insert into `newsletter_subscribers` via the existing supabase client (`@/integrations/supabase/client`).
-  - On success: clear the input and swap the button label to a brief "Subscribed ✓" confirmation for ~2.5s, then reset. Uses the existing `toast` helper for the success/error message — matches the pattern used by `BookDemo` and `ForLandlords`.
-  - On error: destructive toast, keep the input value so the user can retry.
-- The button is disabled while submitting; label flips to "Subscribing…".
-
-### Technical notes
-
-- Same RLS pattern as the waitlist tables: `INSERT` open to `anon`/`authenticated`, `SELECT/UPDATE/DELETE` admin-only, `service_role` full access.
-- `email` column gets a unique index so duplicates are silently ignored without exposing whether an address is already in the list.
-- No visual or layout changes to the footer — same pill-shaped input, same Subscribe button, same dimensions.
+**Every UI element that should persist data is connected.** No further migrations or wiring needed unless you add new features. If you'd like, the next high-value follow-up would be to surface the new `team_waitlist_signups`, `brokerage_waitlist_signups`, and `newsletter_subscribers` tables inside the admin dashboard so you can review and export the leads — let me know if you want that.
