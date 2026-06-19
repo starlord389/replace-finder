@@ -1497,10 +1497,11 @@ const WL_STYLE = `
   [data-landing] .wl-done p { margin: 8px 0 20px; font-family: 'Geist', sans-serif; font-size: 14px; line-height: 1.5; color: rgba(86,82,75,0.82); }
 `;
 
-function WaitlistModal({ plan, onClose }: { plan: string; onClose: () => void }) {
+function WaitlistModal({ plan, planKey, onClose }: { plan: string; planKey: WaitlistPlanKey; onClose: () => void }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", company: "" });
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -1511,17 +1512,43 @@ function WaitlistModal({ plan, onClose }: { plan: string; onClose: () => void })
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const phone = form.phone.trim();
+    const company = form.company.trim();
     const errs: { name?: string; email?: string } = {};
-    if (!form.name.trim()) errs.name = "Please enter your name.";
-    if (!form.email.trim()) errs.email = "Please enter your email.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = "Please enter a valid email.";
+    if (!name) errs.name = "Please enter your name.";
+    if (!email) errs.email = "Please enter your email.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Please enter a valid email.";
     setErrors(errs);
-    if (Object.keys(errs).length === 0) {
-      // TODO: persist the lead (Supabase waitlist table or email/CRM) — not wired to a backend yet.
-      setDone(true);
+    if (Object.keys(errs).length > 0) return;
+
+    if (name.length > 120 || email.length > 255 || phone.length > 40 || company.length > 160) {
+      toast({ title: "One of your entries is too long.", variant: "destructive" });
+      return;
     }
+
+    setSubmitting(true);
+    const table = planKey === "team" ? "team_waitlist_signups" : "brokerage_waitlist_signups";
+    const { error } = await supabase.from(table).insert({
+      name,
+      email,
+      phone: phone || null,
+      company: company || null,
+    });
+    setSubmitting(false);
+
+    if (error) {
+      toast({
+        title: "We couldn't add you to the waitlist.",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setDone(true);
   };
 
   return (
@@ -1558,7 +1585,9 @@ function WaitlistModal({ plan, onClose }: { plan: string; onClose: () => void })
                 <span>Company <i>(optional)</i></span>
                 <input type="text" value={form.company} onChange={set("company")} placeholder="Your brokerage" />
               </label>
-              <button type="submit" className="wl-submit">Join the waitlist</button>
+              <button type="submit" className="wl-submit" disabled={submitting}>
+                {submitting ? "Joining…" : "Join the waitlist"}
+              </button>
             </form>
           </>
         )}
