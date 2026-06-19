@@ -1652,7 +1652,7 @@ function PricingSection() {
           </div>
         </div>
       </div>
-      {waitlistOpen ? <WaitlistModal plan={p.name} onClose={() => setWaitlistOpen(false)} /> : null}
+      {waitlistOpen && (p.key === "team" || p.key === "brokerage") ? <WaitlistModal plan={p.name} planKey={p.key} onClose={() => setWaitlistOpen(false)} /> : null}
     </section>
   );
 }
