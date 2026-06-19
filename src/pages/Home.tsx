@@ -8,6 +8,8 @@ import {
   ShieldCheck, Check, User, ArrowRight, X,
 } from "lucide-react";
 import { ROUTES } from "@/app/routes/routeManifest";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 /* ───────────────────────── Content ───────────────────────── */
 
