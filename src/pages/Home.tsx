@@ -8,6 +8,8 @@ import {
   ShieldCheck, Check, User, ArrowRight, X,
 } from "lucide-react";
 import { ROUTES } from "@/app/routes/routeManifest";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 /* ───────────────────────── Content ───────────────────────── */
 
@@ -1460,10 +1462,12 @@ const PRICE_STYLE = `
 `;
 
 const PLANS = [
-  { name: "Solo", tag: "For individual agents", Icon: User, desc: "Everything one agent needs to find off-market replacements for every client.", features: ["Unlimited off-market listings", "Match scoring for every client", "Precision filters & saved searches", "Direct counterparty messaging"] },
-  { name: "Team", tag: "For small teams", soon: true, Icon: Users, desc: "Shared inventory and one pipeline for teams running several exchanges at once.", features: ["Everything in Solo", "Shared client pipeline", "Up to 10 agent seats", "Team activity dashboard"] },
-  { name: "Brokerage", tag: "For brokerages", soon: true, Icon: Building2, desc: "Brokerage-wide access with the controls and support a larger shop needs.", features: ["Everything in Team", "Unlimited agent seats", "Brokerage-wide inventory", "Priority support"] },
+  { name: "Solo", key: "solo" as const, tag: "For individual agents", Icon: User, desc: "Everything one agent needs to find off-market replacements for every client.", features: ["Unlimited off-market listings", "Match scoring for every client", "Precision filters & saved searches", "Direct counterparty messaging"] },
+  { name: "Team", key: "team" as const, tag: "For small teams", soon: true, Icon: Users, desc: "Shared inventory and one pipeline for teams running several exchanges at once.", features: ["Everything in Solo", "Shared client pipeline", "Up to 10 agent seats", "Team activity dashboard"] },
+  { name: "Brokerage", key: "brokerage" as const, tag: "For brokerages", soon: true, Icon: Building2, desc: "Brokerage-wide access with the controls and support a larger shop needs.", features: ["Everything in Team", "Unlimited agent seats", "Brokerage-wide inventory", "Priority support"] },
 ];
+
+type WaitlistPlanKey = "team" | "brokerage";
 
 const WL_STYLE = `
   [data-landing] .wl-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(25,22,18,0.55); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); animation: wlFade 0.2s ease both; }
@@ -1493,10 +1497,11 @@ const WL_STYLE = `
   [data-landing] .wl-done p { margin: 8px 0 20px; font-family: 'Geist', sans-serif; font-size: 14px; line-height: 1.5; color: rgba(86,82,75,0.82); }
 `;
 
-function WaitlistModal({ plan, onClose }: { plan: string; onClose: () => void }) {
+function WaitlistModal({ plan, planKey, onClose }: { plan: string; planKey: WaitlistPlanKey; onClose: () => void }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", company: "" });
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -1507,17 +1512,43 @@ function WaitlistModal({ plan, onClose }: { plan: string; onClose: () => void })
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const phone = form.phone.trim();
+    const company = form.company.trim();
     const errs: { name?: string; email?: string } = {};
-    if (!form.name.trim()) errs.name = "Please enter your name.";
-    if (!form.email.trim()) errs.email = "Please enter your email.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = "Please enter a valid email.";
+    if (!name) errs.name = "Please enter your name.";
+    if (!email) errs.email = "Please enter your email.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Please enter a valid email.";
     setErrors(errs);
-    if (Object.keys(errs).length === 0) {
-      // TODO: persist the lead (Supabase waitlist table or email/CRM) — not wired to a backend yet.
-      setDone(true);
+    if (Object.keys(errs).length > 0) return;
+
+    if (name.length > 120 || email.length > 255 || phone.length > 40 || company.length > 160) {
+      toast({ title: "One of your entries is too long.", variant: "destructive" });
+      return;
     }
+
+    setSubmitting(true);
+    const table = planKey === "team" ? "team_waitlist_signups" : "brokerage_waitlist_signups";
+    const { error } = await supabase.from(table).insert({
+      name,
+      email,
+      phone: phone || null,
+      company: company || null,
+    });
+    setSubmitting(false);
+
+    if (error) {
+      toast({
+        title: "We couldn't add you to the waitlist.",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setDone(true);
   };
 
   return (
@@ -1554,7 +1585,9 @@ function WaitlistModal({ plan, onClose }: { plan: string; onClose: () => void })
                 <span>Company <i>(optional)</i></span>
                 <input type="text" value={form.company} onChange={set("company")} placeholder="Your brokerage" />
               </label>
-              <button type="submit" className="wl-submit">Join the waitlist</button>
+              <button type="submit" className="wl-submit" disabled={submitting}>
+                {submitting ? "Joining…" : "Join the waitlist"}
+              </button>
             </form>
           </>
         )}
@@ -1619,7 +1652,7 @@ function PricingSection() {
           </div>
         </div>
       </div>
-      {waitlistOpen ? <WaitlistModal plan={p.name} onClose={() => setWaitlistOpen(false)} /> : null}
+      {waitlistOpen && (p.key === "team" || p.key === "brokerage") ? <WaitlistModal plan={p.name} planKey={p.key} onClose={() => setWaitlistOpen(false)} /> : null}
     </section>
   );
 }
