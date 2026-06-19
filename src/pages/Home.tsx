@@ -1462,10 +1462,12 @@ const PRICE_STYLE = `
 `;
 
 const PLANS = [
-  { name: "Solo", tag: "For individual agents", Icon: User, desc: "Everything one agent needs to find off-market replacements for every client.", features: ["Unlimited off-market listings", "Match scoring for every client", "Precision filters & saved searches", "Direct counterparty messaging"] },
-  { name: "Team", tag: "For small teams", soon: true, Icon: Users, desc: "Shared inventory and one pipeline for teams running several exchanges at once.", features: ["Everything in Solo", "Shared client pipeline", "Up to 10 agent seats", "Team activity dashboard"] },
-  { name: "Brokerage", tag: "For brokerages", soon: true, Icon: Building2, desc: "Brokerage-wide access with the controls and support a larger shop needs.", features: ["Everything in Team", "Unlimited agent seats", "Brokerage-wide inventory", "Priority support"] },
+  { name: "Solo", key: "solo" as const, tag: "For individual agents", Icon: User, desc: "Everything one agent needs to find off-market replacements for every client.", features: ["Unlimited off-market listings", "Match scoring for every client", "Precision filters & saved searches", "Direct counterparty messaging"] },
+  { name: "Team", key: "team" as const, tag: "For small teams", soon: true, Icon: Users, desc: "Shared inventory and one pipeline for teams running several exchanges at once.", features: ["Everything in Solo", "Shared client pipeline", "Up to 10 agent seats", "Team activity dashboard"] },
+  { name: "Brokerage", key: "brokerage" as const, tag: "For brokerages", soon: true, Icon: Building2, desc: "Brokerage-wide access with the controls and support a larger shop needs.", features: ["Everything in Team", "Unlimited agent seats", "Brokerage-wide inventory", "Priority support"] },
 ];
+
+type WaitlistPlanKey = "team" | "brokerage";
 
 const WL_STYLE = `
   [data-landing] .wl-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(25,22,18,0.55); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); animation: wlFade 0.2s ease both; }
