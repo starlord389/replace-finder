@@ -905,7 +905,6 @@ export type Database = {
           cash_on_cash: number | null
           created_at: string
           effective_gross_income: number | null
-          gross_rent_roll: number | null
           gross_scheduled_income: number | null
           has_prepayment_penalty: boolean | null
           id: string
@@ -923,7 +922,6 @@ export type Database = {
           prepayment_penalty_details: string | null
           property_id: string
           real_estate_taxes: number | null
-          total_operating_expenses: number | null
           updated_at: string
           utilities: number | null
           vacancy_rate: number | null
@@ -940,7 +938,6 @@ export type Database = {
           cash_on_cash?: number | null
           created_at?: string
           effective_gross_income?: number | null
-          gross_rent_roll?: number | null
           gross_scheduled_income?: number | null
           has_prepayment_penalty?: boolean | null
           id?: string
@@ -958,7 +955,6 @@ export type Database = {
           prepayment_penalty_details?: string | null
           property_id: string
           real_estate_taxes?: number | null
-          total_operating_expenses?: number | null
           updated_at?: string
           utilities?: number | null
           vacancy_rate?: number | null
@@ -975,7 +971,6 @@ export type Database = {
           cash_on_cash?: number | null
           created_at?: string
           effective_gross_income?: number | null
-          gross_rent_roll?: number | null
           gross_scheduled_income?: number | null
           has_prepayment_penalty?: boolean | null
           id?: string
@@ -993,7 +988,6 @@ export type Database = {
           prepayment_penalty_details?: string | null
           property_id?: string
           real_estate_taxes?: number | null
-          total_operating_expenses?: number | null
           updated_at?: string
           utilities?: number | null
           vacancy_rate?: number | null
