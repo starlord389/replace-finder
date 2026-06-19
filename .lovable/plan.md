@@ -1,51 +1,47 @@
-# Wire pricing waitlists — separate Team and Brokerage tables
+# Wire the footer newsletter form
 
-## What's currently broken
+## What's left
 
-The `WaitlistModal` in `src/pages/Home.tsx` (lines 1496–1564) is used by **both** the Team plan and the Brokerage plan in the pricing section. When a visitor submits, it just flips to a success state — there's a `// TODO: persist the lead` comment and nothing is sent to the backend. Both audiences' leads are being dropped.
+I swept all public pages, landing components, and footers. After wiring the pricing waitlists, there's **one** remaining unwired input:
 
-Every other public form on the site is already wired (BookDemo → `demo_requests`, ForLandlords → `referrals`, auth → Lovable Cloud, help → `support_tickets`). This is the only gap.
+**`src/components/layout/LandingFooter.tsx`** — the "Sign up for our newsletter" form (lines 14–30). Its `onSubmit` is just `event.preventDefault()` — the email goes nowhere. Anyone subscribing from the homepage footer is silently dropped.
+
+Everything else checks out:
+- `BookDemo` → `demo_requests` ✅
+- `ForLandlords` referral form → `referrals` ✅
+- Pricing Team/Brokerage waitlists → `team_waitlist_signups` / `brokerage_waitlist_signups` ✅ (just shipped)
+- Footer "Contact Us" / large `support@…` link → `mailto:` (intentional, no DB needed)
+- Auth forms → Lovable Cloud auth ✅
+- Agent help/support → `support_tickets` ✅
 
 ## Plan
 
-### 1. Create two separate tables (one migration)
+### 1. Create `newsletter_subscribers` table (migration)
 
-**`team_waitlist_signups`** — leads from the Team plan CTA
-**`brokerage_waitlist_signups`** — leads from the Brokerage plan CTA
-
-Both tables have the same shape:
-- `name` (required)
-- `email` (required)
-- `phone` (optional)
-- `company` (optional)
+Columns:
+- `email` (text, required, **unique**) — prevents duplicate signups
+- `source` (text, default `'landing_footer'`) — lets future entry points (e.g. blog, dashboard upsell) share the table without losing attribution
 - standard `id`, `created_at`, `updated_at`
 
-Keeping them as two distinct tables (instead of one shared table with a `plan` column) makes it obvious at a glance who's interested in which product, makes exports/admin views per-audience trivial, and lets the schemas drift independently later (e.g. Brokerage may later need team-size or seat-count fields that don't apply to Team).
+Access rules (plain English):
+- Anyone, including signed-out visitors, can subscribe.
+- Only admins can view, edit, or delete subscribers — uses the existing `has_role(auth.uid(), 'admin')` function.
+- Service role keeps full access for admin/export tooling.
 
-**Access rules (in plain English), identical for both tables:**
-- Anyone, including signed-out visitors, can submit a waitlist signup (the pricing section is public).
-- Only admins can view, edit, or delete waitlist entries — uses the existing `has_role(auth.uid(), 'admin')` function.
-- Service role retains full access for future admin/export tooling.
+Duplicate handling: insert uses an `ON CONFLICT (email) DO NOTHING` pattern (via an upsert with `ignoreDuplicates: true`) so resubscribing the same email shows the same success state instead of an error toast.
 
-### 2. Wire the modal to the correct table
+### 2. Wire `LandingFooter.tsx`
 
-In `src/pages/Home.tsx`:
-
-- Pass a `planKey: "team" | "brokerage"` prop into `WaitlistModal` alongside the existing display `plan` name. The display name keeps the modal title/copy unchanged ("Join the Team waitlist", "Join the Brokerage waitlist"); the key decides which table to write to.
-- Derive `planKey` from the selected pricing plan in `PricingSection` (line 1566+) — the existing `PLANS` array already differentiates them by index/name, we just add a stable key.
-- Convert `submit` to async. On valid input:
-  - `planKey === "team"` → insert into `team_waitlist_signups`
-  - `planKey === "brokerage"` → insert into `brokerage_waitlist_signups`
-- Add a `submitting` state to disable the button (label flips to "Joining…") so visitors can't double-submit.
-- On error: show a destructive toast (`useToast`) and keep the form open for retry.
-- On success: keep the existing "You're on the list!" confirmation exactly as it is.
-- Remove the TODO comment.
-
-If the pricing section ever grows a third plan with a waitlist (e.g. Enterprise), the pattern is to add another table and another `planKey` branch — no shared bucket to untangle later.
+- Convert the footer to a client component with `useState` for the email value and a `submitting` flag.
+- On submit:
+  - Trim the email, validate the same regex used elsewhere (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`), cap length at 255.
+  - Insert into `newsletter_subscribers` via the existing supabase client (`@/integrations/supabase/client`).
+  - On success: clear the input and swap the button label to a brief "Subscribed ✓" confirmation for ~2.5s, then reset. Uses the existing `toast` helper for the success/error message — matches the pattern used by `BookDemo` and `ForLandlords`.
+  - On error: destructive toast, keep the input value so the user can retry.
+- The button is disabled while submitting; label flips to "Subscribing…".
 
 ### Technical notes
 
-- Public insert policy uses `WITH CHECK (true)` on both tables — same pattern already used by `demo_requests` and `referrals`. Reads stay locked to admins so lead lists aren't exposed via the Data API.
-- Grants per table: `INSERT` to `anon` and `authenticated`; `SELECT/UPDATE/DELETE` gated by admin policy; `ALL` to `service_role`. No `SELECT` grant to `anon`.
-- Each table gets the standard `updated_at` trigger using the existing `public.update_updated_at_column()` function.
-- No visual changes to the modal, the pricing cards, or any copy.
+- Same RLS pattern as the waitlist tables: `INSERT` open to `anon`/`authenticated`, `SELECT/UPDATE/DELETE` admin-only, `service_role` full access.
+- `email` column gets a unique index so duplicates are silently ignored without exposing whether an address is already in the list.
+- No visual or layout changes to the footer — same pill-shaped input, same Subscribe button, same dimensions.
