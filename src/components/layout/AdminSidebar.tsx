@@ -1,4 +1,4 @@
-import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users } from "lucide-react";
+import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users, Inbox, ThumbsUp } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +23,9 @@ const operationsItems = [
 
 const managementItems = [
   { title: "Users & Roles", url: "/admin/users", icon: Users },
+  { title: "Growth & Intake", url: "/admin/intake", icon: Inbox },
   { title: "Support", url: "/admin/support", icon: HelpCircle },
+  { title: "Help Feedback", url: "/admin/feedback", icon: ThumbsUp },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 

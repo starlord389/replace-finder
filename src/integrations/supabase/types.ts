@@ -1264,6 +1264,42 @@ export type Database = {
         }
         Relationships: []
       }
+      article_feedback: {
+        Row: {
+          article_id: string
+          article_title: string
+          article_type: string
+          comment: string | null
+          created_at: string
+          helpful: boolean
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          article_title: string
+          article_type: string
+          comment?: string | null
+          created_at?: string
+          helpful: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          article_title?: string
+          article_type?: string
+          comment?: string | null
+          created_at?: string
+          helpful?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           admin_notes: string | null

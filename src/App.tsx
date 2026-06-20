@@ -23,7 +23,9 @@ const AuthCallback = lazy(() => import("@/pages/auth/AuthCallback"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const SupportTickets = lazy(() => import("@/pages/admin/SupportTickets"));
 const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
+const AdminIntake = lazy(() => import("@/pages/admin/AdminIntake"));
 const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
+const ArticleFeedback = lazy(() => import("@/pages/admin/ArticleFeedback"));
 const AgentDashboard = lazy(() => import("@/pages/agent/AgentDashboard"));
 const AgentLaunchpad = lazy(() => import("@/pages/agent/AgentLaunchpad"));
 const AgentClients = lazy(() => import("@/pages/agent/AgentClients"));
@@ -135,7 +137,9 @@ const App = () => (
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/intake" element={<AdminIntake />} />
               <Route path="/admin/support" element={<SupportTickets />} />
+              <Route path="/admin/feedback" element={<ArticleFeedback />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 

@@ -19,6 +19,8 @@ import { AGENT_FAQS } from "@/content/helpFaqs";
 import { AGENT_DOCS, GLOSSARY } from "@/content/helpDocs";
 import { useSubmitTicket } from "@/features/support/hooks/useSubmitTicket";
 import { useMyTickets } from "@/features/support/hooks/useMyTickets";
+import { ArticleFeedback } from "@/features/feedback/components/ArticleFeedback";
+import { faqArticleId, docArticleId } from "@/features/feedback/types";
 import {
   TICKET_CATEGORIES, TICKET_STATUS_COLORS, TICKET_STATUS_LABELS,
   type TicketCategory, type TicketStatus,
@@ -191,6 +193,7 @@ export default function AgentHelp() {
                       <AccordionTrigger className="text-left text-sm font-medium">{doc.title}</AccordionTrigger>
                       <AccordionContent>
                         <RichText body={doc.body} />
+                        <ArticleFeedback articleId={docArticleId(doc.id)} articleType="doc" articleTitle={doc.title} />
                       </AccordionContent>
                     </AccordionItem>
                   ))}
@@ -382,6 +385,12 @@ function SearchResults({ query, onClear, onOpenSupport }: { query: string; onCle
                       <AccordionContent>
                         <RichText body={hit.body} />
                         <p className="mt-3 text-xs text-muted-foreground">In {hit.tag}</p>
+                        {hit.kind === "faq" && (
+                          <ArticleFeedback articleId={faqArticleId(hit.title)} articleType="faq" articleTitle={hit.title} />
+                        )}
+                        {hit.kind === "doc" && hit.docId && (
+                          <ArticleFeedback articleId={docArticleId(hit.docId)} articleType="doc" articleTitle={hit.title} />
+                        )}
                       </AccordionContent>
                     </AccordionItem>
                   );
@@ -414,7 +423,10 @@ function FaqsPanel() {
               {cat.items.map((it, i) => (
                 <AccordionItem key={i} value={`${cat.category}-${i}`}>
                   <AccordionTrigger className="text-left text-sm">{it.q}</AccordionTrigger>
-                  <AccordionContent className="text-sm leading-relaxed text-muted-foreground">{it.a}</AccordionContent>
+                  <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
+                    {it.a}
+                    <ArticleFeedback articleId={faqArticleId(it.q)} articleType="faq" articleTitle={it.q} />
+                  </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
