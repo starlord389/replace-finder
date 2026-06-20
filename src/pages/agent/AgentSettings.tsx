@@ -20,7 +20,6 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ASSET_TYPE_LABELS } from "@/lib/constants";
 import { useNotificationPrefs, type NotificationPrefs } from "@/features/notifications/hooks/useNotificationPrefs";
 import { Bell, Lock, User, Database, Download, Trash2, UploadCloud } from "lucide-react";
 
@@ -40,7 +39,6 @@ const profileSchema = z.object({
     .refine((v) => v === "" || (/^\d{1,2}$/.test(v) && Number(v) <= 99), "Enter a whole number between 0 and 99")
     .default(""),
   bio: z.string().trim().max(BIO_MAX, `Bio must be ${BIO_MAX} characters or less`).default(""),
-  specializations: z.array(z.string()).default([]),
 });
 type ProfileForm = z.infer<typeof profileSchema>;
 
@@ -74,7 +72,7 @@ export default function AgentSettings() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       fullName: "", phone: "", brokerageName: "", brokerageAddress: "",
-      licenseState: "", licenseNumber: "", yearsExperience: "", bio: "", specializations: [],
+      licenseState: "", licenseNumber: "", yearsExperience: "", bio: "",
     },
   });
 
@@ -88,7 +86,7 @@ export default function AgentSettings() {
     let active = true;
     supabase
       .from("profiles")
-      .select("full_name, email, phone, brokerage_name, brokerage_address, license_state, license_number, years_experience, bio, specializations, profile_photo_url")
+      .select("full_name, email, phone, brokerage_name, brokerage_address, license_state, license_number, years_experience, bio, profile_photo_url")
       .eq("id", user.id)
       .single()
       .then(({ data, error }) => {
@@ -110,7 +108,6 @@ export default function AgentSettings() {
             licenseNumber: data.license_number ?? "",
             yearsExperience: data.years_experience != null ? String(data.years_experience) : "",
             bio: data.bio ?? "",
-            specializations: data.specializations ?? [],
           });
         }
         setLoading(false);
@@ -120,14 +117,7 @@ export default function AgentSettings() {
     };
   }, [user, profileForm]);
 
-  const specializations = profileForm.watch("specializations");
   const bioValue = profileForm.watch("bio");
-
-  const toggleSpecialization = (value: string) => {
-    const current = profileForm.getValues("specializations");
-    const next = current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
-    profileForm.setValue("specializations", next, { shouldDirty: true });
-  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!user) return;
@@ -181,7 +171,6 @@ export default function AgentSettings() {
       license_number: values.licenseNumber.trim() || null,
       years_experience: yrs,
       bio: values.bio.trim() || null,
-      specializations: values.specializations.length ? values.specializations : null,
     }).eq("id", user.id);
     if (error) { toast.error("Failed to save"); return; }
     profileForm.reset(values); // mark form as pristine after a successful save
@@ -439,30 +428,6 @@ export default function AgentSettings() {
                       </FormItem>
                     )}
                   />
-
-                  <FormItem>
-                    <FormLabel>Specializations</FormLabel>
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(ASSET_TYPE_LABELS).map(([key, label]) => {
-                        const selected = specializations.includes(key);
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            aria-pressed={selected}
-                            onClick={() => toggleSpecialization(key)}
-                            className={`rounded-full border px-3 py-1 text-sm transition-colors ${
-                              selected
-                                ? "border-primary bg-primary/10 text-primary"
-                                : "border-border bg-background text-muted-foreground hover:bg-muted"
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </FormItem>
 
                   <Button type="submit" disabled={profileForm.formState.isSubmitting}>
                     {profileForm.formState.isSubmitting ? "Saving…" : "Save Changes"}
