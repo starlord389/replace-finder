@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,6 +49,7 @@ function StatusPill({ value }: { value: string }) {
 }
 
 export default function AdminDeals() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
@@ -145,7 +147,7 @@ export default function AdminDeals() {
               </TableHeader>
               <TableBody>
                 {fExchanges.map((e) => (
-                  <TableRow key={e.id}>
+                  <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/deals/exchanges/${e.id}`)}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(e.created_at)}</TableCell>
                     <TableCell className="text-sm">{agent(e.agent_id)}</TableCell>
                     <TableCell className="text-sm">{clientName.get(e.client_id) ?? "—"}</TableCell>
@@ -237,7 +239,7 @@ export default function AdminDeals() {
               </TableHeader>
               <TableBody>
                 {fConnections.map((c) => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/deals/connections/${c.id}`)}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(c.created_at)}</TableCell>
                     <TableCell className="text-sm">{agent(c.buyer_agent_id)}</TableCell>
                     <TableCell className="text-sm">{agent(c.seller_agent_id)}</TableCell>

@@ -24,6 +24,8 @@ const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const SupportTickets = lazy(() => import("@/pages/admin/SupportTickets"));
 const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminDeals = lazy(() => import("@/pages/admin/AdminDeals"));
+const AdminExchangeDetail = lazy(() => import("@/pages/admin/AdminExchangeDetail"));
+const AdminConnectionDetail = lazy(() => import("@/pages/admin/AdminConnectionDetail"));
 const AdminDemos = lazy(() => import("@/pages/admin/AdminDemos"));
 const AdminIntake = lazy(() => import("@/pages/admin/AdminIntake"));
 const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
@@ -140,6 +142,8 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/deals" element={<AdminDeals />} />
+              <Route path="/admin/deals/exchanges/:id" element={<AdminExchangeDetail />} />
+              <Route path="/admin/deals/connections/:id" element={<AdminConnectionDetail />} />
               <Route path="/admin/demos" element={<AdminDemos />} />
               <Route path="/admin/intake" element={<AdminIntake />} />
               <Route path="/admin/support" element={<SupportTickets />} />
