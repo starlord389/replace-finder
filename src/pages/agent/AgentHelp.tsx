@@ -38,6 +38,7 @@ type SearchHit = {
   title: string;
   body: string;
   tag: string;
+  docId?: string;
 };
 
 const HIT_META: Record<SearchHit["kind"], { label: string; icon: typeof FileText; className: string }> = {
@@ -50,8 +51,28 @@ export default function AgentHelp() {
   const initialTab = (typeof window !== "undefined" && window.location.hash.replace("#", "")) || "getting-started";
   const [tab, setTab] = useState(initialTab);
   const [query, setQuery] = useState("");
+  const [openDocs, setOpenDocs] = useState<string[]>([]);
+  const [ticketPrefill, setTicketPrefill] = useState("");
 
   const trimmed = query.trim();
+
+  const goToTab = (v: string) => {
+    setTab(v);
+    window.history.replaceState(null, "", `#${v}`);
+  };
+
+  /** Switch to the Support tab, optionally pre-filling the ticket subject. */
+  const openSupport = (prefill = "") => {
+    setQuery("");
+    setTicketPrefill(prefill);
+    goToTab("tickets");
+  };
+
+  /** Switch to the Guides tab and expand a specific guide. */
+  const openGuide = (docId: string) => {
+    setOpenDocs([docId]);
+    goToTab("docs");
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -70,6 +91,7 @@ export default function AgentHelp() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }}
             placeholder="Search the help center…"
             className="h-12 rounded-xl border-border bg-background pl-10 pr-10 text-base shadow-sm"
             aria-label="Search the help center"
@@ -88,15 +110,15 @@ export default function AgentHelp() {
       </div>
 
       {trimmed ? (
-        <SearchResults query={trimmed} onClear={() => setQuery("")} />
+        <SearchResults query={trimmed} onClear={() => setQuery("")} onOpenSupport={openSupport} />
       ) : (
-        <Tabs value={tab} onValueChange={(v) => { setTab(v); window.history.replaceState(null, "", `#${v}`); }}>
+        <Tabs value={tab} onValueChange={goToTab}>
           <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-5">
             <TabsTrigger value="getting-started" className="py-2"><Compass className="mr-2 h-4 w-4" />Get Started</TabsTrigger>
             <TabsTrigger value="faqs" className="py-2"><LifeBuoy className="mr-2 h-4 w-4" />FAQs</TabsTrigger>
             <TabsTrigger value="docs" className="py-2"><BookOpen className="mr-2 h-4 w-4" />Guides</TabsTrigger>
             <TabsTrigger value="glossary" className="py-2"><BookMarked className="mr-2 h-4 w-4" />Glossary</TabsTrigger>
-            <TabsTrigger value="tickets" className="py-2"><MessageSquare className="mr-2 h-4 w-4" />Support</TabsTrigger>
+            <TabsTrigger value="tickets" className="col-span-2 py-2 sm:col-span-1"><MessageSquare className="mr-2 h-4 w-4" />Support</TabsTrigger>
           </TabsList>
 
           <TabsContent value="getting-started" className="mt-6 space-y-6">
@@ -138,7 +160,7 @@ export default function AgentHelp() {
                     <button
                       key={doc.id}
                       type="button"
-                      onClick={() => { setTab("docs"); window.history.replaceState(null, "", "#docs"); }}
+                      onClick={() => openGuide(doc.id)}
                       className="group flex items-center justify-between gap-2 rounded-xl border border-border bg-card p-3.5 text-left transition-colors hover:border-primary/40 hover:bg-muted/50"
                     >
                       <span className="flex items-center gap-2.5 text-sm font-medium text-foreground">
@@ -163,7 +185,7 @@ export default function AgentHelp() {
                 <SectionHeader icon={BookOpen} title="Guides" description="Long-form walkthroughs for the most-used parts of the platform." />
               </CardHeader>
               <CardContent>
-                <Accordion type="multiple" className="w-full">
+                <Accordion type="multiple" value={openDocs} onValueChange={setOpenDocs} className="w-full">
                   {AGENT_DOCS.map((doc) => (
                     <AccordionItem key={doc.id} value={doc.id}>
                       <AccordionTrigger className="text-left text-sm font-medium">{doc.title}</AccordionTrigger>
@@ -182,21 +204,26 @@ export default function AgentHelp() {
           </TabsContent>
 
           <TabsContent value="tickets" className="mt-6 space-y-6">
-            <SubmitTicketForm />
+            <SubmitTicketForm key={ticketPrefill} initialSubject={ticketPrefill} />
             <MyTicketsList />
           </TabsContent>
         </Tabs>
       )}
 
       <Card>
-        <CardContent className="flex items-center gap-3 py-5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <Mail className="h-5 w-5 text-primary" />
+        <CardContent className="flex flex-col items-start gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <Mail className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">Still need help?</p>
+              <p className="text-xs text-muted-foreground">Email support@1031exchangeup.com — we typically reply within one business day.</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Still need help?</p>
-            <p className="text-xs text-muted-foreground">Email support@1031exchangeup.com — we typically reply within one business day.</p>
-          </div>
+          <Button variant="outline" size="sm" className="shrink-0" onClick={() => openSupport()}>
+            <MessageSquare className="mr-1.5 h-4 w-4" />Contact support
+          </Button>
         </CardContent>
       </Card>
     </div>
@@ -215,6 +242,29 @@ function SectionHeader({ icon: Icon, title, description }: { icon: typeof Compas
       </div>
     </div>
   );
+}
+
+/** Highlights every case-insensitive occurrence of `query` within `text`. */
+function Highlight({ text, query }: { text: string; query: string }) {
+  const q = query.trim();
+  if (!q) return <>{text}</>;
+  const lower = q.toLowerCase();
+  const parts: JSX.Element[] = [];
+  let rest = text;
+  let key = 0;
+  while (rest) {
+    const i = rest.toLowerCase().indexOf(lower);
+    if (i === -1) {
+      parts.push(<span key={key++}>{rest}</span>);
+      break;
+    }
+    if (i > 0) parts.push(<span key={key++}>{rest.slice(0, i)}</span>);
+    parts.push(
+      <mark key={key++} className="rounded bg-primary/15 px-0.5 text-foreground">{rest.slice(i, i + q.length)}</mark>,
+    );
+    rest = rest.slice(i + q.length);
+  }
+  return <>{parts}</>;
 }
 
 /** Renders the lightweight markdown used in help content: **bold** inline, paragraphs, and "- " bullet lists. */
@@ -262,7 +312,7 @@ function RichText({ body }: { body: string }) {
   );
 }
 
-function SearchResults({ query, onClear }: { query: string; onClear: () => void }) {
+function SearchResults({ query, onClear, onOpenSupport }: { query: string; onClear: () => void; onOpenSupport: (prefill?: string) => void }) {
   const hits = useMemo<SearchHit[]>(() => {
     const q = query.toLowerCase();
     const matches = (...fields: string[]) => fields.some((f) => f.toLowerCase().includes(q));
@@ -273,12 +323,13 @@ function SearchResults({ query, onClear }: { query: string; onClear: () => void 
       }),
     );
     AGENT_DOCS.forEach((doc) => {
-      if (matches(doc.title, doc.body)) res.push({ kind: "doc", title: doc.title, body: doc.body, tag: "Guide" });
+      if (matches(doc.title, doc.body)) res.push({ kind: "doc", title: doc.title, body: doc.body, tag: "Guide", docId: doc.id });
     });
     GLOSSARY.forEach((g) => {
       if (matches(g.term, g.definition)) res.push({ kind: "term", title: g.term, body: g.definition, tag: "Glossary" });
     });
-    return res;
+    // Rank title/term matches above body-only matches (stable within each group).
+    return res.sort((a, b) => Number(b.title.toLowerCase().includes(q)) - Number(a.title.toLowerCase().includes(q)));
   }, [query]);
 
   return (
@@ -300,38 +351,51 @@ function SearchResults({ query, onClear }: { query: string; onClear: () => void 
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
               <Search className="h-5 w-5 text-muted-foreground" />
             </div>
-            <p className="text-sm text-muted-foreground">
-              Nothing matched. Try a different term, or <span className="font-medium text-foreground">submit a ticket</span> and we'll help directly.
+            <p className="max-w-sm text-sm text-muted-foreground">
+              Nothing matched your search. Try a different term, or send us the question directly and we'll help.
             </p>
+            <Button size="sm" onClick={() => onOpenSupport(query)}>
+              <MessageSquare className="mr-1.5 h-4 w-4" />Submit a ticket
+            </Button>
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardContent className="p-2">
-            <Accordion type="single" collapsible className="w-full">
-              {hits.map((hit, i) => {
-                const meta = HIT_META[hit.kind];
-                const Icon = meta.icon;
-                return (
-                  <AccordionItem key={`${hit.kind}-${i}`} value={`${hit.kind}-${i}`} className="px-2">
-                    <AccordionTrigger className="gap-3 text-left text-sm hover:no-underline">
-                      <span className="flex flex-1 items-center gap-3">
-                        <Badge variant="outline" className={`shrink-0 gap-1 text-xs ${meta.className}`}>
-                          <Icon className="h-3 w-3" />{meta.label}
-                        </Badge>
-                        <span className="font-medium text-foreground">{hit.title}</span>
-                      </span>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <RichText body={hit.body} />
-                      <p className="mt-3 text-xs text-muted-foreground">In {hit.tag}</p>
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          </CardContent>
-        </Card>
+        <>
+          <Card>
+            <CardContent className="p-2">
+              <Accordion type="single" collapsible className="w-full">
+                {hits.map((hit, i) => {
+                  const meta = HIT_META[hit.kind];
+                  const Icon = meta.icon;
+                  return (
+                    <AccordionItem key={`${hit.kind}-${i}`} value={`${hit.kind}-${i}`} className="px-2">
+                      <AccordionTrigger className="gap-3 text-left text-sm hover:no-underline">
+                        <span className="flex flex-1 items-center gap-3">
+                          <Badge variant="outline" className={`shrink-0 gap-1 text-xs ${meta.className}`}>
+                            <Icon className="h-3 w-3" />{meta.label}
+                          </Badge>
+                          <span className="font-medium text-foreground">
+                            <Highlight text={hit.title} query={query} />
+                          </span>
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <RichText body={hit.body} />
+                        <p className="mt-3 text-xs text-muted-foreground">In {hit.tag}</p>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            </CardContent>
+          </Card>
+          <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground">
+            Can't find what you're looking for?
+            <Button variant="link" size="sm" className="h-auto p-0" onClick={() => onOpenSupport(query)}>
+              Submit a ticket
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );
@@ -392,7 +456,9 @@ function GlossaryPanel() {
           <dl className="grid gap-3 sm:grid-cols-2">
             {filtered.map((g) => (
               <div key={g.term} className="rounded-xl border border-border bg-card p-4">
-                <dt className="text-sm font-semibold text-foreground">{g.term}</dt>
+                <dt className="text-sm font-semibold text-foreground">
+                  <Highlight text={g.term} query={query} />
+                </dt>
                 <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">{g.definition}</dd>
               </div>
             ))}
@@ -403,9 +469,9 @@ function GlossaryPanel() {
   );
 }
 
-function SubmitTicketForm() {
+function SubmitTicketForm({ initialSubject = "" }: { initialSubject?: string }) {
   const [category, setCategory] = useState<TicketCategory>("general");
-  const [subject, setSubject] = useState("");
+  const [subject, setSubject] = useState(initialSubject);
   const [message, setMessage] = useState("");
   const submit = useSubmitTicket();
 
