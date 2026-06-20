@@ -197,8 +197,11 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          internal_notes: string | null
+          meeting_link: string | null
           phone: string | null
           role: string
+          scheduled_at: string | null
           status: string
           timeline: string | null
           use_case: string
@@ -209,8 +212,11 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          internal_notes?: string | null
+          meeting_link?: string | null
           phone?: string | null
           role: string
+          scheduled_at?: string | null
           status?: string
           timeline?: string | null
           use_case: string
@@ -221,8 +227,11 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          internal_notes?: string | null
+          meeting_link?: string | null
           phone?: string | null
           role?: string
+          scheduled_at?: string | null
           status?: string
           timeline?: string | null
           use_case?: string

@@ -1,4 +1,4 @@
-import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users, Inbox, ThumbsUp } from "lucide-react";
+import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users, Inbox, ThumbsUp, Briefcase, CalendarClock } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,10 +19,12 @@ import { Button } from "@/components/ui/button";
 
 const operationsItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
+  { title: "Deal Oversight", url: "/admin/deals", icon: Briefcase },
 ];
 
 const managementItems = [
   { title: "Users & Roles", url: "/admin/users", icon: Users },
+  { title: "Demos", url: "/admin/demos", icon: CalendarClock },
   { title: "Growth & Intake", url: "/admin/intake", icon: Inbox },
   { title: "Support", url: "/admin/support", icon: HelpCircle },
   { title: "Help Feedback", url: "/admin/feedback", icon: ThumbsUp },

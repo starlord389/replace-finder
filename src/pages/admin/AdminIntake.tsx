@@ -9,10 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { Loader2 } from "lucide-react";
 
-type StatusTable = "demo_requests" | "contact_submissions" | "referrals";
+type StatusTable = "contact_submissions" | "referrals";
 
 const STATUS_OPTIONS: Record<StatusTable, string[]> = {
-  demo_requests: ["new", "contacted", "qualified", "unqualified", "closed"],
   contact_submissions: ["new", "reviewed", "resolved", "spam"],
   referrals: ["pending", "assigned", "converted", "declined"],
 };
@@ -74,7 +73,6 @@ function StatusBadge({ value }: { value: string }) {
 
 export default function AdminIntake() {
   const [loading, setLoading] = useState(true);
-  const [demo, setDemo] = useState<Tables<"demo_requests">[]>([]);
   const [contact, setContact] = useState<Tables<"contact_submissions">[]>([]);
   const [referrals, setReferrals] = useState<Tables<"referrals">[]>([]);
   const [brokerage, setBrokerage] = useState<Tables<"brokerage_waitlist_signups">[]>([]);
@@ -85,15 +83,13 @@ export default function AdminIntake() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [d, c, r, b, t, n] = await Promise.all([
-        supabase.from("demo_requests").select("*").order("created_at", { ascending: false }),
+      const [c, r, b, t, n] = await Promise.all([
         supabase.from("contact_submissions").select("*").order("created_at", { ascending: false }),
         supabase.from("referrals").select("*").order("created_at", { ascending: false }),
         supabase.from("brokerage_waitlist_signups").select("*").order("created_at", { ascending: false }),
         supabase.from("team_waitlist_signups").select("*").order("created_at", { ascending: false }),
         supabase.from("newsletter_subscribers").select("*").order("created_at", { ascending: false }),
       ]);
-      setDemo(d.data ?? []);
       setContact(c.data ?? []);
       setReferrals(r.data ?? []);
       setBrokerage(b.data ?? []);
@@ -106,9 +102,7 @@ export default function AdminIntake() {
   async function setStatus(table: StatusTable, id: string, status: string) {
     setBusyId(id);
     const res =
-      table === "demo_requests"
-        ? await supabase.from("demo_requests").update({ status }).eq("id", id)
-        : table === "contact_submissions"
+      table === "contact_submissions"
         ? await supabase.from("contact_submissions").update({ status }).eq("id", id)
         : await supabase.from("referrals").update({ status }).eq("id", id);
     setBusyId(null);
@@ -119,8 +113,7 @@ export default function AdminIntake() {
     }
     const apply = <T extends { id: string }>(rows: T[]) =>
       rows.map((row) => (row.id === id ? { ...row, status } : row));
-    if (table === "demo_requests") setDemo(apply);
-    else if (table === "contact_submissions") setContact(apply);
+    if (table === "contact_submissions") setContact(apply);
     else setReferrals(apply);
     toast({ title: "Status updated." });
   }
@@ -133,7 +126,6 @@ export default function AdminIntake() {
     );
   }
 
-  const demoOpen = demo.filter((x) => OPEN_STATUSES.has(x.status)).length;
   const contactOpen = contact.filter((x) => OPEN_STATUSES.has(x.status)).length;
   const referralsOpen = referrals.filter((x) => OPEN_STATUSES.has(x.status)).length;
   const waitlistCount = brokerage.length + team.length;
@@ -150,54 +142,13 @@ export default function AdminIntake() {
         </p>
       </div>
 
-      <Tabs defaultValue="demo">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
-          <TabsTrigger value="demo">Demo{tabBadge(demoOpen)}</TabsTrigger>
+      <Tabs defaultValue="contact">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="contact">Contact{tabBadge(contactOpen)}</TabsTrigger>
           <TabsTrigger value="referrals">Referrals{tabBadge(referralsOpen)}</TabsTrigger>
           <TabsTrigger value="waitlists">Waitlists{tabBadge(waitlistCount)}</TabsTrigger>
           <TabsTrigger value="newsletter">Newsletter</TabsTrigger>
         </TabsList>
-
-        {/* Demo Requests */}
-        <TabsContent value="demo" className="mt-4">
-          <ListCard count={demo.length} noun="demo request">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[110px]">Date</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Use case</TableHead>
-                  <TableHead className="w-[170px]">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {demo.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="text-xs text-muted-foreground">{fmtDate(row.created_at)}</TableCell>
-                    <TableCell>
-                      <div className="text-sm font-medium">{row.full_name}</div>
-                      <div className="text-xs text-muted-foreground">{row.work_email}</div>
-                      {row.phone && <div className="text-xs text-muted-foreground">{row.phone}</div>}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      <div>{row.company}</div>
-                      <div className="text-xs text-muted-foreground capitalize">{row.role}{row.timeline ? ` · ${row.timeline}` : ""}</div>
-                    </TableCell>
-                    <TableCell className="max-w-[280px] text-sm">
-                      <p className="line-clamp-2 whitespace-pre-wrap" title={row.use_case}>{row.use_case}</p>
-                    </TableCell>
-                    <TableCell>
-                      <StatusSelect table="demo_requests" value={row.status} busy={busyId === row.id}
-                        onChange={(v) => setStatus("demo_requests", row.id, v)} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ListCard>
-        </TabsContent>
 
         {/* Contact */}
         <TabsContent value="contact" className="mt-4">
