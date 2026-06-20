@@ -22,6 +22,7 @@ const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
 const AuthCallback = lazy(() => import("@/pages/auth/AuthCallback"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const SupportTickets = lazy(() => import("@/pages/admin/SupportTickets"));
+const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
 const AgentDashboard = lazy(() => import("@/pages/agent/AgentDashboard"));
 const AgentLaunchpad = lazy(() => import("@/pages/agent/AgentLaunchpad"));
@@ -133,6 +134,7 @@ const App = () => (
             {/* Admin (admin role required) */}
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/support" element={<SupportTickets />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
