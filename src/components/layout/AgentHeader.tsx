@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck, ArrowLeftRight } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,23 @@ import { useNotifications } from "@/features/notifications/hooks/useNotification
 import { cn } from "@/lib/utils";
 
 export default function AgentHeader() {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const { data: notifications = [], unreadCount, markAllRead, markOneRead } = useNotifications();
+  const canSwitchToAdmin = hasRole("admin");
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[#e4dcd0] bg-white/80 px-4 backdrop-blur-md">
       <SidebarTrigger className="h-8 w-8" />
 
       <div className="flex items-center gap-3">
+        {canSwitchToAdmin && (
+          <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+            <Link to="/admin">
+              <ArrowLeftRight className="h-3.5 w-3.5" />
+              Switch to Admin view
+            </Link>
+          </Button>
+        )}
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="relative h-8 w-8">

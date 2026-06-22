@@ -4,7 +4,7 @@ import { getUnauthorizedRedirectPath } from "@/app/routes/routeGuards";
 import AgentTopNav from "./AgentTopNav";
 
 export default function AgentLayout() {
-  const { user, loading, profileRole } = useAuth();
+  const { user, loading, profileRole, hasRole } = useAuth();
 
   if (loading) {
     return (
@@ -18,7 +18,7 @@ export default function AgentLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  if (profileRole !== "agent") {
+  if (!hasRole("agent")) {
     return <Navigate to={getUnauthorizedRedirectPath(profileRole)} replace />;
   }
 
