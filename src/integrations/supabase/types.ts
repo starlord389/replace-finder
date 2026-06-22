@@ -197,11 +197,8 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
-          internal_notes: string | null
-          meeting_link: string | null
           phone: string | null
           role: string
-          scheduled_at: string | null
           status: string
           timeline: string | null
           use_case: string
@@ -212,11 +209,8 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
-          internal_notes?: string | null
-          meeting_link?: string | null
           phone?: string | null
           role: string
-          scheduled_at?: string | null
           status?: string
           timeline?: string | null
           use_case: string
@@ -227,11 +221,8 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
-          internal_notes?: string | null
-          meeting_link?: string | null
           phone?: string | null
           role?: string
-          scheduled_at?: string | null
           status?: string
           timeline?: string | null
           use_case?: string
@@ -1269,42 +1260,6 @@ export type Database = {
           request_id?: string
           sort_order?: number | null
           storage_path?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      article_feedback: {
-        Row: {
-          article_id: string
-          article_title: string
-          article_type: string
-          comment: string | null
-          created_at: string
-          helpful: boolean
-          id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          article_id: string
-          article_title: string
-          article_type: string
-          comment?: string | null
-          created_at?: string
-          helpful: boolean
-          id?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          article_id?: string
-          article_title?: string
-          article_type?: string
-          comment?: string | null
-          created_at?: string
-          helpful?: boolean
-          id?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: []
