@@ -17,7 +17,7 @@ const HERO = {
   eyebrow: "Built for real estate agents & brokers",
   headline: "Find your client's next replacement property.",
   subheadline:
-    "An off-market marketplace of verified 1031 exchange replacement properties — so your client can find the next one before the old one ever gets listed.",
+    "A network of 1031 exchange replacement properties — so your client can find the next one before the old one ever gets listed.",
 };
 
 const LOGO_BRANDS = [
@@ -610,7 +610,7 @@ const HIW_STEPS = [
   {
     num: "02",
     title: "Filter and find your match",
-    body: "Filter by ROI target, location, asset type, or cap rate. Every off-market property is auto-scored against your client's exchange.",
+    body: "Filter by ROI target, location, asset type, or cap rate. Every property in the network is auto-scored against your client's exchange.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
@@ -631,7 +631,7 @@ const HIW_STEPS = [
   {
     num: "03",
     title: "Connect and offer",
-    body: "Open a private line with the listing agent, submit an offer, and lock it in before the old property lists.",
+    body: "Open a direct line with the listing agent, submit an offer, and move to contract.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
@@ -1047,15 +1047,13 @@ function FsOffMarket() {
   return (
     <div className="fs-mock">
       <div className="fs-mock-head">
-        <span className="fs-mock-title">Off-market inventory</span>
+        <span className="fs-mock-title">Replacement inventory</span>
         <span className="fs-verified"><ShieldCheck />4 verified</span>
       </div>
       <div className="fs-inv-grid">
         {props.map((p, i) => (
           <div key={p.name} className="fs-anim" style={{ "--i": i } as CSSProperties}>
-            <div className="fs-inv-photo" style={{ backgroundImage: `url(${p.photo})` }}>
-              <span className="fs-inv-private">Private</span>
-            </div>
+            <div className="fs-inv-photo" style={{ backgroundImage: `url(${p.photo})` }} />
             <div className="fs-inv-name">{p.name}</div>
             <div className="fs-inv-meta">{p.meta}</div>
           </div>
@@ -1067,10 +1065,11 @@ function FsOffMarket() {
 
 function FsScoring() {
   const factors = [
-    { label: "Price", score: 94 }, { label: "Geography", score: 95 },
-    { label: "Asset type", score: 100 }, { label: "Strategy", score: 88 },
-    { label: "Financial", score: 90 }, { label: "Timing", score: 85 },
-    { label: "Debt fit", score: 92 }, { label: "Scale fit", score: 78 },
+    { label: "ROE uplift", score: 98 },
+    { label: "Geography", score: 95 },
+    { label: "Asset type", score: 100 },
+    { label: "Strategy", score: 88 },
+    { label: "Occupancy", score: 92 },
   ];
   return (
     <div className="fs-mock">
@@ -1093,7 +1092,7 @@ function FsScoring() {
       <div className="fs-score-tags">
         <span className="fs-pill">No boot</span><span className="fs-pill">Office</span><span className="fs-pill">Stabilized</span>
       </div>
-      <div className="fs-tip" style={{ top: "92px", left: "150px" }}>Strongest factor: Asset type</div>
+      <div className="fs-tip" style={{ top: "48px", left: "118px" }}>Biggest driver: ROE uplift</div>
     </div>
   );
 }
@@ -1165,9 +1164,9 @@ function FsUpside() {
 }
 
 const FEATURES = [
-  { id: "off-market", Icon: Building2, label: "Off-market marketplace", eyebrow: "Private inventory", title: "Inventory you won't find anywhere else.", desc: "Every listing in the network is off-market, posted by a verified 1031 agent. Your client finds replacements their competition will never see — before the seller ever needs to go public.", Visual: FsOffMarket },
-  { id: "scoring", Icon: Gauge, label: "Auto-scoring", eyebrow: "Match engine", title: "Every match, built for your client's exchange.", desc: "Every property is scored for your client's specific exchange across eight factors — holding, strategy, boot, debt, timing, price, geography, and scale. You see the full breakdown behind every score, and so does your client.", Visual: FsScoring },
-  { id: "filters", Icon: SlidersHorizontal, label: "Precision filters", eyebrow: "Custom search", title: "Dial in exactly what your client wants.", desc: "Filter every listing by ROI target, geography, asset type, price band, cap rate, or debt profile. Save your client's criteria once and apply it to every new listing that joins the network.", Visual: FsFilters },
+  { id: "off-market", Icon: Building2, label: "The network", eyebrow: "Live inventory", title: "Replacement properties, posted by other agents.", desc: "Every property is posted by a verified agent and matched to active 1031 exchanges, so your client gets early, direct access to replacements that fit — each one represented and ready to talk.", Visual: FsOffMarket },
+  { id: "scoring", Icon: Gauge, label: "Auto-scoring", eyebrow: "Match engine", title: "Every match, scored for your client's return.", desc: "Every property is scored by how much it would lift your client's return on equity, then weighted by fit on geography, asset type, and strategy. You see the full breakdown behind every score — and so does your client.", Visual: FsScoring },
+  { id: "filters", Icon: SlidersHorizontal, label: "Precision filters", eyebrow: "Custom search", title: "Dial in exactly what your client wants.", desc: "Filter every property by ROI target, geography, asset type, price band, cap rate, or debt profile. Save your client's criteria once and apply it to every new property that joins the network.", Visual: FsFilters },
   { id: "upside", Icon: TrendingUp, label: "Upside preview", eyebrow: "Projected return", title: "See exactly how much more your client could be earning.", desc: "Compare your client's current property against any candidate side-by-side — NOI, cap rate, projected 10-year return. Turn a “maybe someday” exchange into a clear yes.", Visual: FsUpside },
 ];
 
@@ -1179,8 +1178,8 @@ function FeaturesSection() {
     <section id="feature" className="px-5 py-16 sm:px-8 sm:py-24">
       <div className="fs">
         <div className="fs-head" data-reveal>
-          <h2>Every tool a 1031 agent actually needs.</h2>
-          <p className="fs-sub">One private workspace for the clients you represent, the matches you're watching, the connections you've opened, and the offers on the table.</p>
+          <h2>Every tool you need to close a 1031 exchange.</h2>
+          <p className="fs-sub">One workspace for the whole exchange — your clients, their matches, the connections you've opened, and the offers on the table.</p>
         </div>
         <div className="fs-tabs" data-reveal>
           {FEATURES.map((t, i) => (
@@ -1373,9 +1372,9 @@ const IG_TILES = [
 ];
 
 const IG_STEPS = [
-  "Browse verified off-market inventory",
+  "Browse verified replacement properties",
   "Filter to your client's exchange criteria",
-  "Connect directly with the property owner",
+  "Connect directly with the listing agent",
 ];
 
 function IntegrationsSection() {
@@ -1384,8 +1383,8 @@ function IntegrationsSection() {
       <div className="ig">
         <div className="ig-grid">
           <div className="ig-left" data-reveal>
-            <h2>Off-market inventory across every asset class</h2>
-            <p className="ig-sub">Find 1031 replacement property in every major commercial asset type — each listing verified and matched to your client's exchange and timeline.</p>
+            <h2>Replacement inventory across every asset class</h2>
+            <p className="ig-sub">Find 1031 replacement property in every major asset class — each one verified and matched to your client's exchange and timeline.</p>
             <div className="ig-cta"><PillLink to={ROUTES.signup} primary>Get started</PillLink></div>
             <div className="ig-plus" aria-hidden="true"><Plus /><Plus /><Plus /><Plus /></div>
             <ul className="ig-steps">
@@ -1462,7 +1461,7 @@ const PRICE_STYLE = `
 `;
 
 const PLANS = [
-  { name: "Solo", key: "solo" as const, tag: "For individual agents", Icon: User, desc: "Everything one agent needs to find off-market replacements for every client.", features: ["Unlimited off-market listings", "Match scoring for every client", "Precision filters & saved searches", "Direct counterparty messaging"] },
+  { name: "Solo", key: "solo" as const, tag: "For individual agents", Icon: User, desc: "Everything one agent needs to find replacement properties for every client.", features: ["Unlimited active listings", "Match scoring for every client", "Precision filters & saved searches", "Direct counterparty messaging"] },
   { name: "Team", key: "team" as const, tag: "For small teams", soon: true, Icon: Users, desc: "Shared inventory and one pipeline for teams running several exchanges at once.", features: ["Everything in Solo", "Shared client pipeline", "Up to 10 agent seats", "Team activity dashboard"] },
   { name: "Brokerage", key: "brokerage" as const, tag: "For brokerages", soon: true, Icon: Building2, desc: "Brokerage-wide access with the controls and support a larger shop needs.", features: ["Everything in Team", "Unlimited agent seats", "Brokerage-wide inventory", "Priority support"] },
 ];
@@ -1711,7 +1710,7 @@ const ROE_STYLE = `
 
 const ROE_STEPS = [
   "See your property's real return on equity",
-  "Compare it to the ~8% platform average",
+  "Compare it to a healthy ~8% target",
   "Reinvest tax-deferred into a stronger property",
 ];
 
@@ -1720,7 +1719,7 @@ function RoeCalculator() {
   const [loan, setLoan] = useState(750000);
   const [cashflow, setCashflow] = useState(82000);
 
-  const PLATFORM = 8; // average return on equity on the platform (%)
+  const PLATFORM = 8; // illustrative return-on-equity benchmark (%)
   const equity = Math.max(0, value - loan);
   const roe = equity > 0 ? (cashflow / equity) * 100 : 0;
   const potential = equity * (PLATFORM / 100);
@@ -1728,7 +1727,7 @@ function RoeCalculator() {
 
   const usd = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
   const tone = roe < 5 ? "low" : roe < 8 ? "mid" : "high";
-  const verdictText = roe < 5 ? "Equity underperforming" : roe < 8 ? "Below the ~8% average" : "Beating the average";
+  const verdictText = roe < 5 ? "Equity underperforming" : roe < 8 ? "Below the ~8% target" : "Beating the target";
   const numColor = tone === "low" ? "#b8543a" : tone === "mid" ? "#9a7b22" : "#4e8466";
   const verdictStyle =
     tone === "low" ? { background: "rgba(184,84,58,0.12)", color: "#a8482f" }
@@ -1747,8 +1746,8 @@ function RoeCalculator() {
         <div className="roe-grid">
           <div className="roe-left" data-reveal>
             <h2>Is your client's equity working hard enough?</h2>
-            <p className="roe-sub">Check a property's return on equity in seconds — and compare it to the ~8% the average property earns on 1031 Exchange Up.</p>
-            <div className="roe-cta"><PillLink to={ROUTES.signup} primary>See off-market exchanges</PillLink></div>
+            <p className="roe-sub">Check a property's return on equity in seconds — and see how it measures up against a healthy ~8% target.</p>
+            <div className="roe-cta"><PillLink to={ROUTES.signup} primary>Browse replacement properties</PillLink></div>
             <div className="roe-plus" aria-hidden="true"><Plus /><Plus /><Plus /><Plus /></div>
             <ul className="roe-steps">
               {ROE_STEPS.map((s, i) => (
@@ -1792,9 +1791,9 @@ function RoeCalculator() {
                 </div>
                 <div className="roe-compare">
                   {uplift > 0 ? (
-                    <p>Properties on 1031 Exchange Up average <b>~8% ROE</b>. Your {usd(equity)} of equity could earn about <b>{usd(potential)}/yr</b> there — roughly <b>{usd(uplift)} more</b> than today.</p>
+                    <p>At an <b>~8% return on equity</b>, your {usd(equity)} of equity would earn about <b>{usd(potential)}/yr</b> — roughly <b>{usd(uplift)} more</b> than today.</p>
                   ) : (
-                    <p>You're already at or above our <b>~8%</b> platform average — nicely done. Browse off-market exchanges to keep that equity working.</p>
+                    <p>You're already at or above an <b>~8%</b> return on equity — nicely done. Browse replacement properties to keep that equity working.</p>
                   )}
                 </div>
                 <p className="roe-fine">Estimate only — not tax or investment advice.</p>
@@ -1828,11 +1827,12 @@ const FAQ_STYLE = `
 `;
 
 const FAQS = [
-  { q: "What does off-market actually mean here?", a: "Every listing is shared privately by a verified 1031 agent — it never hits the public portals. Your client sees replacement options their competition won't, often before a seller is ready to list publicly." },
+  { q: "Do I use this for buyers, for my listings, or both?", a: "Both. Bring a client doing a 1031 exchange and find them a replacement, or post a property to reach agents whose clients are exchanging into something like it. Most agents do both." },
+  { q: "Is this a way to keep a property off the MLS?", a: "No — it's the opposite of a loophole. It's an agent-to-agent network for finding 1031 replacement properties and connecting with the agents who represent them. It doesn't replace the MLS, and every agent stays responsible for their own marketing and Clear Cooperation obligations." },
   { q: "How does the match scoring work?", a: "Each property is scored against your client's specific exchange across eight factors — holding strategy, boot, debt, timing, price, geography, asset type, and scale — and you can see the full breakdown behind every score." },
   { q: "Are the agents and properties verified?", a: "Yes. Every agent and broker is verified before they can post inventory or connect, so you're always dealing with real, represented properties." },
   { q: "Is it really free?", a: "Completely free during early access — no card, no commitment. We'll give you clear notice well before we ever introduce a paid plan." },
-  { q: "Can I manage more than one client at a time?", a: "That's exactly what it's built for. You keep each client's exchange criteria separate and apply them to every new listing that joins the network." },
+  { q: "Can I manage more than one client at a time?", a: "That's exactly what it's built for. You keep each client's exchange criteria separate and apply them to every new property that joins the network." },
 ];
 
 function FaqSection() {
@@ -1842,7 +1842,7 @@ function FaqSection() {
       <div className="fq">
         <div className="fq-left" data-reveal>
           <h2>Your questions, answered</h2>
-          <p>Quick answers about how the off-market network works. Still curious? Reach out any time.</p>
+          <p>Quick answers about how the network works. Still curious? Reach out any time.</p>
           <div className="fq-contact"><PillLink to={ROUTES.bookDemo}>Contact us</PillLink></div>
         </div>
         <div className="fq-list" data-reveal>
@@ -1882,7 +1882,7 @@ function FinalCta() {
       <div className="cta" data-reveal>
         <div className="cta-inner">
           <h2>Find your client's next replacement property</h2>
-          <p>Join the off-market network built for 1031 agents — free while we're in early access.</p>
+          <p>Join the network built for agents who work with 1031 investors — free while we're in early access.</p>
           <div className="cta-actions">
             <PillLink to={ROUTES.signup} primary>Get started free</PillLink>
             <PillLink to={ROUTES.bookDemo}>Book a demo</PillLink>
@@ -1900,7 +1900,7 @@ export default function Home() {
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
-    document.title = "1031 Exchange Up — Off-market 1031 replacement properties for agents";
+    document.title = "1031 Exchange Up — Find 1031 replacement properties for your clients";
   }, []);
 
   // Smooth scroll, matching the template feel.

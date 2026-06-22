@@ -89,6 +89,11 @@ export default function LandingFooter() {
               <p className="mt-3 text-[13px] tracking-[-0.02em] text-[#7d766e] sm:text-[14px]">
                 © {new Date().getFullYear()} 1031 Exchange Up. All rights reserved.
               </p>
+              <p className="mt-3 max-w-[540px] text-[12px] leading-[1.5] tracking-[-0.01em] text-[#9a948b]">
+                1031 Exchange Up is an agent-to-agent sourcing and referral network — not a
+                brokerage or an MLS, and not a substitute for either. Licensed agents remain
+                responsible for their own marketing and Clear Cooperation obligations.
+              </p>
             </div>
           </div>
 

@@ -13,23 +13,23 @@ import {
 
 const HERO = {
   eyebrow: "For property owners & landlords",
-  headline: "Sell your property without ever listing it.",
+  headline: "Sell to a buyer who's already on the clock.",
   subheadline:
-    "Our private network is full of 1031 exchange buyers who are legally required to buy a property like yours — soon. Tell us about your property and we'll connect you with a licensed agent who puts it in front of them, off-market.",
+    "The 1031 exchange buyers in our network are racing a strict IRS deadline to reinvest — and they need a property like yours. Tell us about it and we'll connect you with a licensed agent who can put it in front of them.",
 };
 
 const WHY_CARDS = [
   {
     icon: Timer,
     stat: "180 days",
-    title: "Our buyers are legally on the clock.",
+    title: "Our buyers are on the clock.",
     body: "Every buyer in the network is completing a 1031 exchange — the IRS gives them 45 days to identify a property and 180 to close. They aren't browsing. They have to buy.",
   },
   {
     icon: EyeOff,
-    stat: "Off-market",
-    title: "Sell without telling the world.",
-    body: "No listing photos circulating, no tire-kickers touring your building, no tenants or competitors wondering what's going on. Your property is shown only to buyers it actually fits.",
+    stat: "Discreet",
+    title: "Test the market, quietly.",
+    body: "No splashy public marketing, no tire-kickers touring your building, no tenants or competitors guessing what's going on. Your agent shows it only to vetted buyers it actually fits — and advises you on when and how to take it wider.",
   },
   {
     icon: TrendingUp,
@@ -53,7 +53,7 @@ const HOW_IT_WORKS = [
   {
     step: "03",
     title: "Your property meets motivated buyers",
-    body: "Your agent lists the property privately on the network, where it's automatically scored against every active buyer's requirements. You stay in control the whole way.",
+    body: "Your agent represents your property to matched 1031 buyers in the network, where it's automatically scored against every active buyer's requirements — and guides your marketing and listing decisions. You stay in control the whole way.",
   },
 ] as const;
 
@@ -384,8 +384,8 @@ function WhySection() {
       <div className="mx-auto max-w-6xl">
         <SectionHead
           eyebrow="Why owners choose this"
-          title="Better than putting up a sign."
-          sub="A public listing tells everyone your property is for sale. The network shows it only to buyers who are already committed to buying — quietly, and on a deadline."
+          title="Start in front of committed buyers."
+          sub="Before you cast a wide net, your property meets 1031 buyers who are already committed to buying — and on a deadline. Your agent guides when and how to take it wider from there."
           titleMaxWidth={560}
         />
         <div className="mt-12 grid gap-5 md:grid-cols-3">
