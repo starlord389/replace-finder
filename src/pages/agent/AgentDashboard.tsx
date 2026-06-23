@@ -835,8 +835,6 @@ export default function AgentDashboard() {
           <DeadlineRail exchanges={exchanges} />
         </aside>
       </div>
-
-      <SeedMockDataPanel />
     </div>
   );
 }
