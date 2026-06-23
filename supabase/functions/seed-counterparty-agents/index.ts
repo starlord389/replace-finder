@@ -882,16 +882,16 @@ async function seedAll(admin: Admin, userId: string) {
     {
       exchange_id: exWilson,
       property_id: crosspoint.propertyId,
-      rank: 1,
-      identified_at: isoDaysAgo(2),
-      notes: `${MOCK_TAG} Top candidate - assumable note aligns with debt replacement.`,
+      position: 1,
+      status: "identified",
+      added_at: isoDaysAgo(2),
     },
     {
       exchange_id: exWilson,
       property_id: lakeline.propertyId,
-      rank: 2,
-      identified_at: isoDaysAgo(1),
-      notes: `${MOCK_TAG} Backup - higher cap rate but value-add execution risk.`,
+      position: 2,
+      status: "identified",
+      added_at: isoDaysAgo(1),
     },
   ];
   const { error: idErr } = await admin.from("identification_list").insert(idListPayload);
