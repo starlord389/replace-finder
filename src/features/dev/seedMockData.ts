@@ -14,9 +14,9 @@ export async function seedAgentMockData(_userId: string) {
   );
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
-  if (data?.version !== 4 || !data?.seeded) {
+  if (data?.version !== 5 || !data?.seeded) {
     throw new Error(
-      "The seeding function on the server is outdated (expected v4). " +
+      "The seeding function on the server is outdated (expected v5). " +
       "Redeploy the seed-counterparty-agents edge function, then try again."
     );
   }

@@ -21,8 +21,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const SEED_VERSION = 4;
+const SEED_VERSION = 5;
 const MOCK_TAG = "__mock__";
+const OWNER_EMAIL = "starlord389@gmail.com";
+const MOCK_AGENT_EMAIL_PATTERN = "mock.agent.%@replacefinder.test";
 
 function daysFromNow(days: number): string {
   const d = new Date();
@@ -534,7 +536,15 @@ async function ensureCounterparties(admin: Admin) {
       } else {
         const { data: prop, error } = await admin
           .from("pledged_properties")
-          .insert({ agent_id: userId, ...p.details, source: "agent_pledge", status: "active", listed_at: new Date().toISOString() })
+          .insert({
+            agent_id: userId,
+            ...p.details,
+            source: "agent_pledge",
+            status: "active",
+            listed_at: new Date().toISOString(),
+            address_is_public: true,
+            owner_authorization_confirmed: true,
+          })
           .select("id")
           .single();
         if (error) throw error;
@@ -607,7 +617,17 @@ async function seedAll(admin: Admin, userId: string) {
   // Own listings
   const { data: properties, error: propErr } = await admin
     .from("pledged_properties")
-    .insert(OWN_PROPERTIES.map((p) => ({ ...p.details, agent_id: userId, source: "agent_pledge", status: "active", listed_at: new Date().toISOString() })))
+    .insert(OWN_PROPERTIES.map((p, i) => ({
+      ...p.details,
+      agent_id: userId,
+      source: "agent_pledge",
+      status: "active",
+      listed_at: new Date().toISOString(),
+      // Mix it up: most listings expose the address, one keeps it private to
+      // exercise the "address hidden" UI state for matched agents.
+      address_is_public: i !== 1,
+      owner_authorization_confirmed: true,
+    })))
     .select("id, property_name");
   if (propErr) throw propErr;
 
@@ -857,6 +877,50 @@ async function seedAll(admin: Admin, userId: string) {
     if (msgErr) throw msgErr;
   }
 
+  // Identified replacements for the in-identification exchange (Wilson)
+  const idListPayload = [
+    {
+      exchange_id: exWilson,
+      property_id: crosspoint.propertyId,
+      position: 1,
+      status: "identified",
+      added_at: isoDaysAgo(2),
+    },
+    {
+      exchange_id: exWilson,
+      property_id: lakeline.propertyId,
+      position: 2,
+      status: "identified",
+      added_at: isoDaysAgo(1),
+    },
+  ];
+  const { error: idErr } = await admin.from("identification_list").insert(idListPayload);
+  if (idErr) throw idErr;
+
+  // Exchange timeline events for each active/identification/closing/completed exchange
+  const timelinePayload = [
+    { exchange_id: exchanges![1].id, event_type: "created",          description: "Exchange created for Marcus Rodriguez LLC.",       actor_id: userId, created_at: isoDaysAgo(45) },
+    { exchange_id: exchanges![1].id, event_type: "property_pledged", description: "Heights Multifamily 24 pledged to the network.",    actor_id: userId, created_at: isoDaysAgo(40) },
+    { exchange_id: exchanges![1].id, event_type: "status_change",      description: "Relinquished property sold - 45/180 clock started.", actor_id: userId, created_at: isoDaysAgo(20) },
+    { exchange_id: exchanges![2].id, event_type: "created",          description: "Exchange created for the Patel Family Trust.",      actor_id: userId, created_at: isoDaysAgo(35) },
+    { exchange_id: exchanges![2].id, event_type: "property_pledged", description: "Coral Way Retail Center pledged to the network.",   actor_id: userId, created_at: isoDaysAgo(30) },
+    { exchange_id: exchanges![2].id, event_type: "status_change",      description: "Relinquished property sold - 45/180 clock started.", actor_id: userId, created_at: isoDaysAgo(10) },
+    { exchange_id: exWilson,         event_type: "created",          description: "Exchange created for James Wilson.",                 actor_id: userId, created_at: isoDaysAgo(60) },
+    { exchange_id: exWilson,         event_type: "property_pledged", description: "Desert Ridge Industrial pledged to the network.",    actor_id: userId, created_at: isoDaysAgo(55) },
+    { exchange_id: exWilson,         event_type: "status_change",      description: "Relinquished property sold - 45/180 clock started.", actor_id: userId, created_at: isoDaysAgo(36) },
+    { exchange_id: exWilson,         event_type: "identification_added", description: "Crosspoint Industrial identified as #1 candidate.", actor_id: userId, created_at: isoDaysAgo(2) },
+    { exchange_id: exWilson,         event_type: "identification_added", description: "Lakeline Flex Park identified as #2 candidate.",   actor_id: userId, created_at: isoDaysAgo(1) },
+    { exchange_id: exchanges![4].id, event_type: "created",          description: "Exchange created for Aurora Holdings.",              actor_id: userId, created_at: isoDaysAgo(90) },
+    { exchange_id: exchanges![4].id, event_type: "status_change",      description: "Triangle Office Park sold - 45/180 clock started.",  actor_id: userId, created_at: isoDaysAgo(60) },
+    { exchange_id: exchanges![4].id, event_type: "identification_added", description: "Replacement identified within 45-day window.",     actor_id: userId, created_at: isoDaysAgo(45) },
+    { exchange_id: exchanges![4].id, event_type: "under_contract",   description: "Replacement under contract; closing scheduled.",     actor_id: userId, created_at: isoDaysAgo(20) },
+    { exchange_id: exchanges![5].id, event_type: "created",          description: "Prior exchange for Sarah Chen.",                     actor_id: userId, created_at: isoDaysAgo(210) },
+    { exchange_id: exchanges![5].id, event_type: "status_change",      description: "Relinquished property sold.",                        actor_id: userId, created_at: isoDaysAgo(180) },
+    { exchange_id: exchanges![5].id, event_type: "closed",        description: "Replacement closed - exchange complete.",            actor_id: userId, created_at: isoDaysAgo(8) },
+  ];
+  const { error: tlErr } = await admin.from("exchange_timeline").insert(timelinePayload);
+  if (tlErr) throw tlErr;
+
   // Notifications
   const notifPayload = [
     { user_id: userId, type: "new_match",           title: "Strong new match - score 94",      message: "Sunrise Apartments (Phoenix, AZ) matched Marcus Rodriguez LLC's exchange.",         link_to: "/agent/matches",  read: false, metadata: { tag: MOCK_TAG } },
@@ -878,6 +942,87 @@ async function seedAll(admin: Admin, userId: string) {
   };
 }
 
+// Globally wipe ALL mock seed data + mock counterparty auth users.
+// Used once to reset every workspace; safe to re-run (idempotent).
+async function wipeAllMock(admin: Admin) {
+  // 1. Find mock counterparty user ids by email pattern.
+  const { data: mockUsers } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const mockUserIds: string[] = (mockUsers?.users ?? [])
+    .filter((u: { email?: string }) => u.email?.endsWith("@replacefinder.test") ?? false)
+    .map((u: { id: string }) => u.id);
+
+  // 2. Find mock pledged_properties (owned by mock agents OR description tagged).
+  const propertyIds = new Set<string>();
+  if (mockUserIds.length) {
+    const { data } = await admin.from("pledged_properties").select("id").in("agent_id", mockUserIds);
+    for (const r of data ?? []) propertyIds.add(r.id);
+  }
+  const { data: taggedProps } = await admin.from("pledged_properties").select("id").ilike("description", `%${MOCK_TAG}%`);
+  for (const r of taggedProps ?? []) propertyIds.add(r.id);
+
+  // 3. Find mock agent_clients (notes tagged) and mock exchanges (by mock client OR mock property).
+  const { data: mockClients } = await admin.from("agent_clients").select("id, agent_id").ilike("notes", `%${MOCK_TAG}%`);
+  const mockClientIds = (mockClients ?? []).map((c: { id: string }) => c.id);
+  const ownerAgentIds = Array.from(new Set((mockClients ?? []).map((c: { agent_id: string }) => c.agent_id)));
+
+  const exchangeIds = new Set<string>();
+  if (mockClientIds.length) {
+    const { data } = await admin.from("exchanges").select("id").in("client_id", mockClientIds);
+    for (const r of data ?? []) exchangeIds.add(r.id);
+  }
+  if (propertyIds.size) {
+    const { data } = await admin.from("exchanges").select("id").in("relinquished_property_id", Array.from(propertyIds));
+    for (const r of data ?? []) exchangeIds.add(r.id);
+  }
+  const exIds = Array.from(exchangeIds);
+  const propIds = Array.from(propertyIds);
+
+  // 4. Delete dependents in FK-safe order.
+  if (exIds.length) {
+    const { data: conns } = await admin.from("exchange_connections").select("id").in("buyer_exchange_id", exIds);
+    const connIds = (conns ?? []).map((c: { id: string }) => c.id);
+    if (connIds.length) {
+      await admin.from("messages").delete().in("connection_id", connIds);
+      await admin.from("exchange_connections").delete().in("id", connIds);
+    }
+    await admin.from("matches").delete().in("buyer_exchange_id", exIds);
+    await admin.from("identification_list").delete().in("exchange_id", exIds);
+    await admin.from("exchange_timeline").delete().in("exchange_id", exIds);
+    await admin.from("exchanges").update({ relinquished_property_id: null, criteria_id: null }).in("id", exIds);
+    await admin.from("replacement_criteria").delete().in("exchange_id", exIds);
+    await admin.from("exchanges").delete().in("id", exIds);
+  }
+  // Catch any orphan matches referencing mock properties.
+  if (propIds.length) {
+    await admin.from("matches").delete().in("seller_property_id", propIds);
+    await admin.from("property_financials").delete().in("property_id", propIds);
+    await admin.from("property_images").delete().in("property_id", propIds);
+    await admin.from("property_documents").delete().in("property_id", propIds);
+    await admin.from("pledged_properties").delete().in("id", propIds);
+  }
+  if (mockClientIds.length) {
+    await admin.from("agent_clients").delete().in("id", mockClientIds);
+  }
+  // Notifications tagged with the mock marker (any user).
+  await admin.from("notifications").delete().filter("metadata->>tag", "eq", MOCK_TAG);
+  // Notifications belonging to the agents who owned mock clients (catches title-only mock notifs).
+  if (ownerAgentIds.length) {
+    await admin.from("notifications").delete().in("user_id", ownerAgentIds);
+  }
+
+  // 5. Remove mock counterparty auth users (cascades profiles + user_roles).
+  for (const id of mockUserIds) {
+    try { await admin.auth.admin.deleteUser(id); } catch (e) { console.warn("deleteUser failed", id, e); }
+  }
+
+  return {
+    mock_users_deleted: mockUserIds.length,
+    properties_deleted: propIds.length,
+    exchanges_deleted: exIds.length,
+    clients_deleted: mockClientIds.length,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -888,57 +1033,52 @@ Deno.serve(async (req) => {
     );
 
     let action = "counterparties-only";
-    let targetUserId: string | null = null;
     try {
       const body = await req.json();
       if (body?.action) action = body.action;
-      if (body?.target_user_id) targetUserId = body.target_user_id;
     } catch {
       // empty body - default action
     }
 
-    if (action === "seed-all" || action === "clear-all") {
-      const jwt = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
-      let callerId: string | null = null;
-      // Decode JWT payload (no verification - gateway already verified)
-      let jwtRole: string | null = null;
-      try {
-        const payload = jwt.split(".")[1];
-        if (payload) {
-          const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-          jwtRole = decoded?.role ?? null;
-        }
-      } catch { /* not a JWT */ }
-      if (targetUserId && jwtRole === "service_role") {
-        callerId = targetUserId;
-      } else {
+    // Every action is now owner-gated. Decode JWT and check the caller's email.
+    const jwt = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
+    const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
+    const caller = userData?.user;
+    if (userErr || !caller) {
+      return new Response(JSON.stringify({ version: SEED_VERSION, error: "Not authenticated" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if ((caller.email ?? "").toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
+      return new Response(JSON.stringify({ version: SEED_VERSION, error: "Seed data is restricted to the platform owner." }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = caller.id;
 
-
-        const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
-        const caller = userData?.user;
-        if (userErr || !caller) {
-          return new Response(JSON.stringify({ version: SEED_VERSION, error: "Not authenticated" }), {
-            status: 401,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        callerId = caller.id;
-      }
-
-      if (action === "clear-all") {
-        await clearAll(admin, callerId!);
-        return new Response(JSON.stringify({ version: SEED_VERSION, cleared: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      await clearAll(admin, callerId!);
-      const counts = await seedAll(admin, callerId!);
-      return new Response(JSON.stringify({ version: SEED_VERSION, seeded: counts }), {
+    if (action === "wipe-all-mock") {
+      const result = await wipeAllMock(admin);
+      return new Response(JSON.stringify({ version: SEED_VERSION, wiped: result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    if (action === "clear-all") {
+      await clearAll(admin, callerId);
+      return new Response(JSON.stringify({ version: SEED_VERSION, cleared: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "seed-all") {
+      await clearAll(admin, callerId);
+      const counts = await seedAll(admin, callerId);
+      return new Response(JSON.stringify({ version: SEED_VERSION, seeded: counts }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { counterparties } = await ensureCounterparties(admin);
     return new Response(JSON.stringify({ version: SEED_VERSION, counterparties }), {
@@ -946,7 +1086,6 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("seed-counterparty-agents error", err);
-    // Postgres errors from supabase-js are plain objects - serialize fully
     const detail = err instanceof Error
       ? err.message
       : (() => { try { return JSON.stringify(err); } catch { return String(err); } })();

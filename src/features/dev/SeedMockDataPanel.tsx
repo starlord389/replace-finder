@@ -20,7 +20,10 @@ export default function SeedMockDataPanel() {
   const [seeding, setSeeding] = useState(false);
   const [clearing, setClearing] = useState(false);
 
-  if (!import.meta.env.DEV || !user?.id) return null;
+  // Seed/clear tooling is hard-gated to the platform owner's account.
+  const OWNER_EMAIL = "starlord389@gmail.com";
+  if (!user?.id) return null;
+  if ((user.email ?? "").toLowerCase() !== OWNER_EMAIL) return null;
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["agent-attention"] });
