@@ -7,6 +7,19 @@ import { supabase } from "@/integrations/supabase/client";
  * insert policies. The function clears existing data first, so seeding
  * is always a clean rebuild.
  */
+export type SeedValidationReport = {
+  ok: boolean;
+  total_issues: number;
+  tables: Array<{
+    table: string;
+    label: string;
+    total: number;
+    valid: number;
+    invalid: number;
+    issues: Array<{ record: string; missing: string[] }>;
+  }>;
+};
+
 export async function seedAgentMockData(_userId: string) {
   const { data, error } = await supabase.functions.invoke(
     "seed-counterparty-agents",
@@ -20,11 +33,24 @@ export async function seedAgentMockData(_userId: string) {
       "Redeploy the seed-counterparty-agents edge function, then try again."
     );
   }
-  return data.seeded as {
-    clients: number;
-    properties: number;
-    exchanges: number;
-    matches: number;
-    connections: number;
+  return {
+    counts: data.seeded as {
+      clients: number;
+      properties: number;
+      exchanges: number;
+      matches: number;
+      connections: number;
+    },
+    validation: (data.validation ?? null) as SeedValidationReport | null,
   };
+}
+
+export async function validateAgentMockData() {
+  const { data, error } = await supabase.functions.invoke(
+    "seed-counterparty-agents",
+    { body: { action: "validate" } }
+  );
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data.validation as SeedValidationReport;
 }
