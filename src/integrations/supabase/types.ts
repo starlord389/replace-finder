@@ -24,6 +24,7 @@ export type Database = {
           client_user_id: string | null
           created_at: string
           id: string
+          is_demo: boolean
           notes: string | null
           referral_id: string | null
           referred_by_platform: boolean
@@ -39,6 +40,7 @@ export type Database = {
           client_user_id?: string | null
           created_at?: string
           id?: string
+          is_demo?: boolean
           notes?: string | null
           referral_id?: string | null
           referred_by_platform?: boolean
@@ -54,6 +56,7 @@ export type Database = {
           client_user_id?: string | null
           created_at?: string
           id?: string
+          is_demo?: boolean
           notes?: string | null
           referral_id?: string | null
           referred_by_platform?: boolean
@@ -428,6 +431,7 @@ export type Database = {
           exchange_proceeds: number | null
           id: string
           identification_deadline: string | null
+          is_demo: boolean
           pipeline_stage_override: string | null
           relinquished_property_id: string | null
           sale_close_date: string | null
@@ -448,6 +452,7 @@ export type Database = {
           exchange_proceeds?: number | null
           id?: string
           identification_deadline?: string | null
+          is_demo?: boolean
           pipeline_stage_override?: string | null
           relinquished_property_id?: string | null
           sale_close_date?: string | null
@@ -468,6 +473,7 @@ export type Database = {
           exchange_proceeds?: number | null
           id?: string
           identification_deadline?: string | null
+          is_demo?: boolean
           pipeline_stage_override?: string | null
           relinquished_property_id?: string | null
           sale_close_date?: string | null
@@ -776,6 +782,7 @@ export type Database = {
           exchange_id: string | null
           hvac_type: string | null
           id: string
+          is_demo: boolean
           land_area_acres: number | null
           listed_at: string | null
           num_buildings: number | null
@@ -816,6 +823,7 @@ export type Database = {
           exchange_id?: string | null
           hvac_type?: string | null
           id?: string
+          is_demo?: boolean
           land_area_acres?: number | null
           listed_at?: string | null
           num_buildings?: number | null
@@ -856,6 +864,7 @@ export type Database = {
           exchange_id?: string | null
           hvac_type?: string | null
           id?: string
+          is_demo?: boolean
           land_area_acres?: number | null
           listed_at?: string | null
           num_buildings?: number | null
