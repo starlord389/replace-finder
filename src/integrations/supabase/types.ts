@@ -762,6 +762,7 @@ export type Database = {
       pledged_properties: {
         Row: {
           address: string | null
+          address_is_public: boolean
           agent_id: string
           amenities: string[] | null
           asset_subtype: string | null
@@ -779,6 +780,7 @@ export type Database = {
           listed_at: string | null
           num_buildings: number | null
           num_stories: number | null
+          owner_authorization_confirmed: boolean
           parking_spaces: number | null
           parking_type: string | null
           property_class: string | null
@@ -800,6 +802,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          address_is_public?: boolean
           agent_id: string
           amenities?: string[] | null
           asset_subtype?: string | null
@@ -817,6 +820,7 @@ export type Database = {
           listed_at?: string | null
           num_buildings?: number | null
           num_stories?: number | null
+          owner_authorization_confirmed?: boolean
           parking_spaces?: number | null
           parking_type?: string | null
           property_class?: string | null
@@ -838,6 +842,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          address_is_public?: boolean
           agent_id?: string
           amenities?: string[] | null
           asset_subtype?: string | null
@@ -855,6 +860,7 @@ export type Database = {
           listed_at?: string | null
           num_buildings?: number | null
           num_stories?: number | null
+          owner_authorization_confirmed?: boolean
           parking_spaces?: number | null
           parking_type?: string | null
           property_class?: string | null
