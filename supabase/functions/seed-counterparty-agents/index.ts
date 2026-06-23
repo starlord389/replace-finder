@@ -728,7 +728,7 @@ async function seedAll(admin: Admin, userId: string) {
       buyer_exchange_id: exMarcus, seller_property_id: sunrise.propertyId,
       total_score: 94, ...factors(94, { asset: 100, geo: 96, price: 95, debt: 88 }),
       boot_status: "no_boot",
-      buyer_current_roe: 5.2, candidate_roe: 9.1, roe_improvement_pp: 3.9, roe_improvement_rel: 75,
+      buyer_current_roe: 0.052, candidate_roe: 0.091, roe_improvement_pp: 3.9, roe_improvement_rel: 0.75,
       candidate_annual_debt_service: 199_512, buyer_agent_viewed: false, status: "active",
     },
     {
@@ -737,14 +737,14 @@ async function seedAll(admin: Admin, userId: string) {
       boot_status: "minor_boot",
       estimated_cash_boot: 0, estimated_mortgage_boot: 130_000,
       estimated_total_boot: 130_000, estimated_boot_tax: 32_500,
-      buyer_current_roe: 5.2, candidate_roe: 7.8, roe_improvement_pp: 2.6, roe_improvement_rel: 50,
+      buyer_current_roe: 0.052, candidate_roe: 0.078, roe_improvement_pp: 2.6, roe_improvement_rel: 0.50,
       candidate_annual_debt_service: 93_950, buyer_agent_viewed: true, buyer_agent_viewed_at: isoDaysAgo(3), status: "active",
     },
     {
       buyer_exchange_id: exMarcus, seller_property_id: bayshore.propertyId,
       total_score: 76, ...factors(76, { asset: 95, geo: 70, price: 72, financial: 64 }),
       boot_status: "no_boot",
-      buyer_current_roe: 5.2, candidate_roe: 7.1, roe_improvement_pp: 1.9, roe_improvement_rel: 37,
+      buyer_current_roe: 0.052, candidate_roe: 0.071, roe_improvement_pp: 1.9, roe_improvement_rel: 0.37,
       candidate_annual_debt_service: 181_018, buyer_agent_viewed: false, status: "active",
     },
     {
@@ -758,7 +758,7 @@ async function seedAll(admin: Admin, userId: string) {
       buyer_exchange_id: exPatel, seller_property_id: queenCity.propertyId,
       total_score: 91, ...factors(91, { asset: 98, geo: 95, strategy: 96, price: 86 }),
       boot_status: "no_boot",
-      buyer_current_roe: 5.8, candidate_roe: 8.6, roe_improvement_pp: 2.8, roe_improvement_rel: 48,
+      buyer_current_roe: 0.058, candidate_roe: 0.086, roe_improvement_pp: 2.8, roe_improvement_rel: 0.48,
       candidate_annual_debt_service: 157_570, buyer_agent_viewed: false, status: "active",
     },
     {
@@ -767,21 +767,21 @@ async function seedAll(admin: Admin, userId: string) {
       boot_status: "minor_boot",
       estimated_cash_boot: 95_000, estimated_mortgage_boot: 0,
       estimated_total_boot: 95_000, estimated_boot_tax: 23_750,
-      buyer_current_roe: 5.8, candidate_roe: 7.2, roe_improvement_pp: 1.4, roe_improvement_rel: 24,
+      buyer_current_roe: 0.058, candidate_roe: 0.072, roe_improvement_pp: 1.4, roe_improvement_rel: 0.24,
       candidate_annual_debt_service: 93_950, buyer_agent_viewed: false, status: "active",
     },
     {
       buyer_exchange_id: exPatel, seller_property_id: crosspoint.propertyId,
       total_score: 66, ...factors(66, { asset: 38, geo: 94, financial: 80, price: 70 }),
       boot_status: "no_boot",
-      buyer_current_roe: 5.8, candidate_roe: 7.9, roe_improvement_pp: 2.1, roe_improvement_rel: 36,
+      buyer_current_roe: 0.058, candidate_roe: 0.079, roe_improvement_pp: 2.1, roe_improvement_rel: 0.36,
       candidate_annual_debt_service: 119_369, buyer_agent_viewed: false, status: "active",
     },
     {
       buyer_exchange_id: exWilson, seller_property_id: crosspoint.propertyId,
       total_score: 88, ...factors(88, { asset: 100, geo: 84, timing: 95, price: 90 }),
       boot_status: "no_boot",
-      buyer_current_roe: 6.1, candidate_roe: 8.9, roe_improvement_pp: 2.8, roe_improvement_rel: 46,
+      buyer_current_roe: 0.061, candidate_roe: 0.089, roe_improvement_pp: 2.8, roe_improvement_rel: 0.46,
       candidate_annual_debt_service: 119_369, buyer_agent_viewed: true, buyer_agent_viewed_at: isoDaysAgo(1), status: "active",
     },
     {
@@ -790,7 +790,7 @@ async function seedAll(admin: Admin, userId: string) {
       boot_status: "minor_boot",
       estimated_cash_boot: 145_000, estimated_mortgage_boot: 0,
       estimated_total_boot: 145_000, estimated_boot_tax: 36_250,
-      buyer_current_roe: 6.1, candidate_roe: 9.4, roe_improvement_pp: 3.3, roe_improvement_rel: 54,
+      buyer_current_roe: 0.061, candidate_roe: 0.094, roe_improvement_pp: 3.3, roe_improvement_rel: 0.54,
       candidate_annual_debt_service: 116_793, buyer_agent_viewed: false, status: "active",
     },
     {

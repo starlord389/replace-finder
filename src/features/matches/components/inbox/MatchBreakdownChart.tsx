@@ -3,8 +3,9 @@ import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationsh
 import { matchBreakdown } from "./inboxHelpers";
 
 function barColor(score: number) {
-  if (score >= 85) return "bg-emerald-500";
-  if (score >= 70) return "bg-amber-500";
+  if (score >= 80) return "bg-emerald-500";
+  if (score >= 60) return "bg-amber-500";
+  if (score >= 45) return "bg-slate-300"; // neutral — e.g. a fit dimension with no client preference set
   return "bg-rose-500";
 }
 

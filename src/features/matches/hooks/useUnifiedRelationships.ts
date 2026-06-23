@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
+import { resolveListingName } from "@/lib/listingDisplay";
 
 export type RelationshipStage =
   | "new"          // match exists, no connection yet (buyer side)
@@ -33,6 +34,14 @@ export interface Relationship {
   candidateRoe: number | null;        // ratio
   roeImprovementPp: number | null;    // percentage points
   roeImprovementRel: number | null;   // ratio, e.g. 0.35 = +35%
+  // engine factor scores (0-100) — the real per-dimension breakdown
+  roeScore: number | null;            // ROE component (price_score, re-purposed)
+  geoScore: number | null;
+  assetScore: number | null;
+  strategyScore: number | null;
+  qualityScore: number | null;        // quality tiebreaker (financial_score, re-purposed)
+  candidateAnnualDebtService: number | null; // engine's amortized 75%-LTV payment
+  occupancy: number | null;           // candidate property occupancy %
 
 
   // counterparty (revealed only when connected)
@@ -145,11 +154,11 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
     ? await Promise.all([
         supabase
           .from("pledged_properties")
-          .select("id, property_name, city, state, address")
+          .select("id, property_name, city, state, address, address_is_public, asset_type")
           .in("id", allSellerPropIds),
         supabase
           .from("property_financials")
-          .select("property_id, asking_price, cap_rate")
+          .select("property_id, asking_price, cap_rate, occupancy_rate")
           .in("property_id", allSellerPropIds),
         supabase
           .from("property_images")
@@ -307,12 +316,21 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
       candidateRoe: match.candidate_roe != null ? Number(match.candidate_roe) : null,
       roeImprovementPp: match.roe_improvement_pp != null ? Number(match.roe_improvement_pp) : null,
       roeImprovementRel: match.roe_improvement_rel != null ? Number(match.roe_improvement_rel) : null,
+      roeScore: match.price_score != null ? Number(match.price_score) : null,
+      geoScore: match.geo_score != null ? Number(match.geo_score) : null,
+      assetScore: match.asset_score != null ? Number(match.asset_score) : null,
+      strategyScore: match.strategy_score != null ? Number(match.strategy_score) : null,
+      qualityScore: match.financial_score != null ? Number(match.financial_score) : null,
+      candidateAnnualDebtService: match.candidate_annual_debt_service != null ? Number(match.candidate_annual_debt_service) : null,
+      occupancy: fin?.occupancy_rate != null ? Number(fin.occupancy_rate) : null,
       counterpartyName: cprof?.full_name ?? null,
       counterpartyBrokerage: cprof?.brokerage_name ?? null,
       counterpartyAvatar: cprof?.profile_photo_url ?? null,
 
       propertyId: match.seller_property_id,
-      propertyName: prop?.property_name ?? "Property",
+      // Seller property: the viewer sees its exact address only when it's their
+      // own (mySide === "seller") or the owner published it.
+      propertyName: prop ? resolveListingName(prop, mySide === "seller") : "Property",
       propertyCity: prop?.city ?? null,
       propertyState: prop?.state ?? null,
       propertyImageUrl: img ? resolvePropertyImageUrl(img.storage_path) : null,

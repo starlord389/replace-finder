@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS } from "@/lib/constants";
+import { resolveListingName } from "@/lib/listingDisplay";
 import type { Enums } from "@/integrations/supabase/types";
 
 interface Props {
@@ -94,7 +95,8 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
       exchangeId: e.id,
       exchangeStatus: e.status as string,
       propertyId: e.relinquished_property_id,
-      propertyName: prop?.property_name ?? null,
+      // Agent's own client listing → they always see the exact address.
+      propertyName: prop ? resolveListingName(prop, true) : null,
       address: prop?.address ?? null,
       city: prop?.city ?? null,
       state: prop?.state ?? null,

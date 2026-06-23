@@ -18,6 +18,8 @@ export default function AgentLayout() {
     return <Navigate to="/login" replace />;
   }
 
+  // Anyone holding the agent role can use the agent area — including admins who
+  // also have an agent role, so they can switch back and forth between views.
   if (!hasRole("agent")) {
     return <Navigate to={getUnauthorizedRedirectPath(profileRole)} replace />;
   }

@@ -1,4 +1,4 @@
-import { DollarSign, TrendingUp, Receipt, Wallet, Info, Store } from "lucide-react";
+import { DollarSign, TrendingUp, Receipt, Wallet, Info } from "lucide-react";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { financialMetrics } from "../inboxHelpers";
 import { cn } from "@/lib/utils";
@@ -14,21 +14,6 @@ export function FinancialsTab({ rel }: { rel: Relationship }) {
     ? `$${Math.round(rel.askingPrice * (rel.capRate / 100) * 0.37).toLocaleString()}`
     : "—";
 
-  const expenseRows = [
-    { label: "Real Estate Taxes", amount: "$13,491" },
-    { label: "Insurance", amount: "$11,295" },
-    { label: "Utilities (Common Areas)", amount: "$8,400" },
-    { label: "Maintenance & Repairs", amount: "$15,200" },
-    { label: "Property Management", amount: "$13,148" },
-    { label: "Other", amount: "$10,126" },
-  ];
-
-  const rentRoll = [
-    { unit: "C1", tenant: "Hair Salon", monthly: "$1,600" },
-    { unit: "C2", tenant: "Barbershop", monthly: "$1,450" },
-    { unit: "C3", tenant: "Restaurant", monthly: "$2,100" },
-  ];
-
   return (
     <div className="space-y-8">
       {/* 4-up KPI hero */}
@@ -39,60 +24,34 @@ export function FinancialsTab({ rel }: { rel: Relationship }) {
         <KpiHero icon={TrendingUp} label="Cap Rate" value={cap} sub="current" tint="bg-emerald-50" valueTint="text-emerald-700" />
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        {/* Commercial units */}
-        <div className="rounded-2xl border bg-card p-6">
-          <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
-            <Store className="h-4 w-4 text-primary" />
-            Commercial Units
-          </h3>
-          <div className="mt-4 overflow-hidden rounded-xl border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-2.5">Unit</th>
-                  <th className="px-4 py-2.5">Tenant</th>
-                  <th className="px-4 py-2.5 text-right">Monthly</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {rentRoll.map((r) => (
-                  <tr key={r.unit} className="text-foreground">
-                    <td className="px-4 py-3 font-semibold">{r.unit}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{r.tenant}</td>
-                    <td className="px-4 py-3 text-right font-medium">{r.monthly}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {/* Income statement — estimated from cap rate when verified line items aren't provided */}
+      <section className="rounded-2xl border bg-card p-6">
+        <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
+          <Receipt className="h-4 w-4 text-primary" />
+          Income &amp; Expenses
+          <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">estimated</span>
+        </h3>
+        <div className="mt-4 overflow-hidden rounded-xl border border-border">
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-border">
+              <tr className="text-foreground">
+                <td className="px-4 py-3">Gross Operating Income</td>
+                <td className="px-4 py-3 text-right font-medium">{grossIncome}<span className="text-muted-foreground">/yr</span></td>
+              </tr>
+              <tr className="text-foreground">
+                <td className="px-4 py-3">Operating Expenses</td>
+                <td className="px-4 py-3 text-right font-medium">{expenses !== "—" ? `(${expenses})` : "—"}<span className="text-muted-foreground">/yr</span></td>
+              </tr>
+              <tr className="bg-muted/30 text-foreground">
+                <td className="px-4 py-3 font-semibold">Net Operating Income</td>
+                <td className="px-4 py-3 text-right font-bold">{noi}<span className="text-muted-foreground">/yr</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        {/* Operating expenses */}
-        <div className="rounded-2xl border bg-card p-6">
-          <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
-            <Receipt className="h-4 w-4 text-primary" />
-            Operating Expenses (Annual)
-          </h3>
-          <div className="mt-4 overflow-hidden rounded-xl border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-2.5">Category</th>
-                  <th className="px-4 py-2.5 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {expenseRows.map((r) => (
-                  <tr key={r.label} className="text-foreground">
-                    <td className="px-4 py-3">{r.label}</td>
-                    <td className="px-4 py-3 text-right font-medium">{r.amount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Figures are estimated from the property's asking price and cap rate. Request the offering memorandum and T-12 for verified, line-item financials.
+        </p>
       </section>
 
       {/* Full financial grid */}

@@ -7,13 +7,15 @@ import { Check } from "lucide-react";
 import { WizardState, initialWizardState } from "@/lib/exchangeWizardTypes";
 import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
-import StepCriteria from "@/components/exchange/StepCriteria";
 import StepReview from "@/components/exchange/StepReview";
 import { useCreateExchange } from "@/features/exchanges/hooks/useCreateExchange";
 import { trackEvent } from "@/lib/telemetry";
 
-const STEPS = ["Select Client", "Property & Financials", "Criteria", "Review"];
-const MOBILE_STEP_LABELS = ["Client", "Property", "Criteria", "Review"];
+// The Criteria step was removed — the platform now matches automatically on the
+// client's equity/ROE, so we no longer ask agents for replacement preferences.
+// An empty criteria record is still saved server-side so matching keeps working.
+const STEPS = ["Select Client", "Property & Financials", "Review"];
+const MOBILE_STEP_LABELS = ["Client", "Property", "Review"];
 
 export default function NewExchange() {
   const { user } = useAuth();
@@ -107,13 +109,9 @@ export default function NewExchange() {
         />
       )}
       {step === 3 && (
-        <StepCriteria data={data.criteria}
-          onChange={criteria => setData(d => ({ ...d, criteria }))}
-          onNext={() => setStep(4)} onBack={() => setStep(2)} />
-      )}
-      {step === 4 && (
         <StepReview data={data} clientName={clientName}
-          onBack={() => setStep(3)} onSubmit={handleSubmit} saving={saving} />
+          onBack={() => setStep(2)} onSubmit={handleSubmit} saving={saving}
+          onOwnerAuthorizationChange={v => setData(d => ({ ...d, property: { ...d.property, owner_authorization_confirmed: v } }))} />
       )}
     </div>
   );

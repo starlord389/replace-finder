@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { resolveListingName } from "@/lib/listingDisplay";
 import { Loader2, Search } from "lucide-react";
 
 type Exchange = Tables<"exchanges">;
@@ -92,7 +93,7 @@ export default function AdminDeals() {
     [exchanges, term, agent, clientName],
   );
   const fProperties = useMemo(
-    () => properties.filter((p) => !term || (p.property_name ?? "").toLowerCase().includes(term) || (p.city ?? "").toLowerCase().includes(term) || (p.state ?? "").toLowerCase().includes(term) || agent(p.agent_id).toLowerCase().includes(term)),
+    () => properties.filter((p) => !term || (p.property_name ?? "").toLowerCase().includes(term) || (p.address ?? "").toLowerCase().includes(term) || (p.city ?? "").toLowerCase().includes(term) || (p.state ?? "").toLowerCase().includes(term) || agent(p.agent_id).toLowerCase().includes(term)),
     [properties, term, agent],
   );
   const fConnections = useMemo(
@@ -180,7 +181,7 @@ export default function AdminDeals() {
                 {fProperties.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(p.created_at)}</TableCell>
-                    <TableCell className="text-sm font-medium">{p.property_name || "Untitled"}</TableCell>
+                    <TableCell className="text-sm font-medium">{resolveListingName(p, true)}</TableCell>
                     <TableCell className="text-sm">{[p.city, p.state].filter(Boolean).join(", ") || "—"}</TableCell>
                     <TableCell className="text-sm capitalize">{p.asset_type ? pretty(p.asset_type) : "—"}</TableCell>
                     <TableCell className="text-sm">{agent(p.agent_id)}</TableCell>

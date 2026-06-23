@@ -3,14 +3,17 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import {
   FinancialsData,
   PropertyData,
   UploadedPropertyImage,
   formatCurrency,
+  formatThousands,
   getDerivedFinancials,
   parseCurrency,
+  stripThousands,
 } from "@/lib/exchangeWizardTypes";
 import {
   ASSET_TYPE_LABELS,
@@ -40,7 +43,13 @@ function CurrencyField({ label, value, onChange, required, error, errorMessage, 
       <Label>{label}{required && " *"}</Label>
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-        <Input className={cn("pl-7", error && "border-destructive")} value={value} onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0" />
+        <Input
+          className={cn("pl-7", error && "border-destructive")}
+          inputMode="decimal"
+          value={formatThousands(value)}
+          onChange={e => onChange(stripThousands(e.target.value))}
+          placeholder="0"
+        />
       </div>
       {errorMessage && <p className="mt-1 text-xs text-destructive">{errorMessage}</p>}
       {!errorMessage && help && <p className="mt-1 text-xs text-muted-foreground">{help}</p>}
@@ -57,11 +66,11 @@ function DerivedFinancials({ financials }: { financials: FinancialsData }) {
     <div className="rounded-lg border bg-muted/40 p-4">
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Calculated</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        We compute these from your numbers — occupancy is assumed at 100%.
+        We annualize your monthly figures (×12) and assume 100% occupancy. The mortgage is excluded — NOI is before debt service.
       </p>
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
         <div>
-          <p className="text-xs text-muted-foreground">Net Operating Income (NOI)</p>
+          <p className="text-xs text-muted-foreground">Net Operating Income (annual)</p>
           <p className="text-lg font-semibold text-foreground">{noi != null ? formatCurrency(noi) : "—"}</p>
         </div>
         <div>
@@ -124,6 +133,13 @@ export default function StepPropertyAndFinancials({
     else if (loanBalance === null) next.loan_balance = "Must be a valid number";
     else if (loanBalance < 0) next.loan_balance = "Must be 0 or greater";
 
+    // Mortgage payment is optional, but if provided it must be a valid, non-negative number.
+    if (financials.monthly_mortgage_payment !== "") {
+      const mortgage = parseCurrency(financials.monthly_mortgage_payment);
+      if (mortgage === null) next.monthly_mortgage_payment = "Must be a valid number";
+      else if (mortgage < 0) next.monthly_mortgage_payment = "Must be 0 or greater";
+    }
+
     setErrors(next);
     return Object.values(next).every(v => !v);
   };
@@ -147,17 +163,32 @@ export default function StepPropertyAndFinancials({
 
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Location</h3>
-        <p className="text-xs text-muted-foreground">
-          We only show buyers the city and state — never the street address.
-        </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label>Property Name</Label>
+            <Label>Property Address</Label>
             <Input
-              placeholder="e.g., Riverside Apartments"
-              value={property.property_name}
-              onChange={e => setProperty("property_name", e.target.value)}
+              placeholder="e.g., 123 Main St"
+              value={property.address}
+              onChange={e => setProperty("address", e.target.value)}
             />
+            <div className="mt-2 flex items-start gap-3 rounded-md border bg-muted/30 p-3">
+              <Switch
+                id="address-public"
+                checked={property.address_is_public}
+                onCheckedChange={v => setProperty("address_is_public", v)}
+                className="mt-0.5"
+              />
+              <div className="space-y-0.5">
+                <Label htmlFor="address-public" className="cursor-pointer text-sm font-medium text-foreground">
+                  Show the exact address to other agents
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {property.address_is_public
+                    ? "Other agents will see the full street address."
+                    : "Other agents see only the city and state. You and admins always see the full address."}
+                </p>
+              </div>
+            </div>
           </div>
           <div>
             <Label>City *</Label>
@@ -228,17 +259,25 @@ export default function StepPropertyAndFinancials({
 
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Financials</h3>
+        <p className="text-xs text-muted-foreground">
+          Enter the recurring figures as <strong>monthly</strong> amounts. We total them up for the year automatically.
+        </p>
         <div className="grid gap-4 sm:grid-cols-2">
-          <CurrencyField label="Asking Price / Estimated Value" value={financials.asking_price} onChange={v => setFinancials("asking_price", v)} required error={!!errors.asking_price} errorMessage={errors.asking_price} />
-          <CurrencyField label="Gross Rent Roll" value={financials.gross_rent_roll} onChange={v => setFinancials("gross_rent_roll", v)}
+          <CurrencyField label="Asking Price / Estimated Value" value={financials.asking_price} onChange={v => setFinancials("asking_price", v)}
+            required error={!!errors.asking_price} errorMessage={errors.asking_price}
+            help="What the property would list or sell for today." />
+          <CurrencyField label="Monthly Gross Rent" value={financials.gross_rent_roll} onChange={v => setFinancials("gross_rent_roll", v)}
             required error={!!errors.gross_rent_roll} errorMessage={errors.gross_rent_roll}
-            help="Total annual rent at full (100%) occupancy." />
-          <CurrencyField label="Total Operating Expenses" value={financials.total_operating_expenses} onChange={v => setFinancials("total_operating_expenses", v)}
+            help="Total rent collected per month at full (100%) occupancy." />
+          <CurrencyField label="Monthly Operating Expenses" value={financials.total_operating_expenses} onChange={v => setFinancials("total_operating_expenses", v)}
             required error={!!errors.total_operating_expenses} errorMessage={errors.total_operating_expenses}
-            help="Annual operating expenses — taxes, insurance, management, maintenance, etc." />
+            help="What it costs to OPERATE the property each month — property taxes, insurance, management, repairs, maintenance, utilities, HOA. Do NOT include the mortgage." />
+          <CurrencyField label="Monthly Mortgage Payment" value={financials.monthly_mortgage_payment} onChange={v => setFinancials("monthly_mortgage_payment", v)}
+            error={!!errors.monthly_mortgage_payment} errorMessage={errors.monthly_mortgage_payment}
+            help="The current owner's monthly loan payment (principal + interest). This depends on the owner's financing, so we keep it separate from operating costs. Enter 0 if there's no mortgage." />
           <CurrencyField label="Current Loan Balance" value={financials.loan_balance} onChange={v => setFinancials("loan_balance", v)}
             required error={!!errors.loan_balance} errorMessage={errors.loan_balance}
-            help="Used to estimate equity and exchange proceeds. Enter 0 if the property is free and clear." />
+            help="Remaining balance owed on the loan. Used to estimate equity and exchange proceeds. Enter 0 if free and clear." />
         </div>
         <DerivedFinancials financials={financials} />
       </section>

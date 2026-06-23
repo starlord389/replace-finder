@@ -78,8 +78,10 @@ Deno.serve(async (req) => {
       const propertyInsert = {
         agent_id: user.id,
         property_name: stringOrNull(payload.property.property_name),
-        // Street address + ZIP are intentionally not stored — owners only
-        // expose city + state to the network.
+        // The full street address is stored, but only exposed to other agents
+        // when address_is_public is true (the listing agent + admins always see it).
+        address: stringOrNull(payload.property.address),
+        address_is_public: boolOrFalse(payload.property.address_is_public),
         city: stringOrNull(payload.property.city),
         state: stringOrNull(payload.property.state),
         asset_type: valueOrNull(payload.property.asset_type),
@@ -87,6 +89,8 @@ Deno.serve(async (req) => {
         units: numberOrNull(payload.property.units),
         building_square_footage: numberOrNull(payload.property.building_square_footage),
         description: stringOrNull(payload.property.description),
+        // Compliance: agent attests they have authorization to market the property.
+        owner_authorization_confirmed: boolOrFalse(payload.property.owner_authorization_confirmed),
         status: payload.activate ? "active" : "draft",
         source: "agent_pledge",
         listed_at: payload.activate ? new Date().toISOString() : null,
@@ -239,4 +243,8 @@ function arrayOrNull(value: unknown): string[] | null {
 
 function arrayOrDefault(value: unknown, fallback: string[]): string[] {
   return arrayOrNull(value) ?? fallback;
+}
+
+function boolOrFalse(value: unknown): boolean {
+  return value === true;
 }

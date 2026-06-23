@@ -58,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loading = authLoading || rolesLoading;
   const role = pickPrimaryRole(roles);
-  const isAgent = role === ("agent" as AppRole);
+  // A user counts as an agent if they hold the agent role at all — even if they
+  // also hold admin — so agent-view features keep working for dual-role accounts.
+  const isAgent = roles.includes("agent" as AppRole);
   const isSuspendedAgent = isAgent && agentVerificationStatus === "suspended";
   const isVerifiedAgent = isAgent && hasOperationalAgentAccess(agentVerificationStatus);
 

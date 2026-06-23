@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { cn } from "@/lib/utils";
+import { resolveListingName } from "@/lib/listingDisplay";
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
 import { useUnifiedRelationships, type Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { InboxList, type InboxClientGroup } from "@/features/matches/components/inbox/InboxList";
@@ -94,7 +95,7 @@ async function fetchWorkspace(exchangeId: string, agentId: string): Promise<Work
   const sibPropsRes = siblingPropIds.length
     ? await supabase
         .from("pledged_properties")
-        .select("id, property_name, city, state")
+        .select("id, property_name, address, city, state, asset_type")
         .in("id", siblingPropIds)
     : { data: [] as any[] };
   const sibPropMap = new Map((sibPropsRes.data ?? []).map((p: any) => [p.id, p]));
@@ -108,7 +109,8 @@ async function fetchWorkspace(exchangeId: string, agentId: string): Promise<Work
       const p = r.relinquished_property_id ? sibPropMap.get(r.relinquished_property_id) : null;
       return {
         id: r.id,
-        propertyName: (p as any)?.property_name ?? null,
+        // Agent's own sibling listing → they always see their own address.
+        propertyName: p ? resolveListingName(p as any, true) : null,
         city: (p as any)?.city ?? null,
         state: (p as any)?.state ?? null,
         status: r.status,
@@ -291,10 +293,9 @@ export default function AgentWorkspace() {
 
   const { exchange, client, property, financials } = data;
   const accent = getClientAccent(exchange.client_id);
-  const propertyTitle =
-    property?.property_name ||
-    property?.address ||
-    (exchange.status === "draft" ? "Draft — no property yet" : "Untitled property");
+  const propertyTitle = property
+    ? resolveListingName(property, true) // the agent's own listing — show the address
+    : (exchange.status === "draft" ? "Draft — no property yet" : "Untitled property");
   const location = [property?.city, property?.state].filter(Boolean).join(", ");
 
   return (

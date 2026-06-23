@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { resolveListingName } from "@/lib/listingDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -333,7 +334,7 @@ export default function AgentConnectionDetail() {
         <div className="rounded-xl border bg-card p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Buyer's Relinquished Property</h3>
           <div className="mt-3">
-            <p className="font-semibold text-foreground">{relinquishedProp?.property_name || relinquishedProp?.address || "—"}</p>
+            <p className="font-semibold text-foreground">{relinquishedProp ? resolveListingName(relinquishedProp, relinquishedProp.agent_id === user?.id) : "—"}</p>
             <p className="text-sm text-muted-foreground">{[relinquishedProp?.city, relinquishedProp?.state].filter(Boolean).join(", ") || "—"}</p>
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span>{fmt(relinquishedFin?.asking_price)}</span>
@@ -345,7 +346,7 @@ export default function AgentConnectionDetail() {
         <div className="rounded-xl border bg-card p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Replacement Property</h3>
           <div className="mt-3">
-            <p className="font-semibold text-foreground">{sellerProp?.property_name || sellerProp?.address || "—"}</p>
+            <p className="font-semibold text-foreground">{sellerProp ? resolveListingName(sellerProp, sellerProp.agent_id === user?.id) : "—"}</p>
             <p className="text-sm text-muted-foreground">{[sellerProp?.city, sellerProp?.state].filter(Boolean).join(", ") || "—"}</p>
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span>{fmt(sellerFin?.asking_price)}</span>

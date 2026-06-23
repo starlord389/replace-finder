@@ -762,8 +762,10 @@ export type Database = {
       pledged_properties: {
         Row: {
           address: string | null
+          address_is_public: boolean
           agent_id: string
           amenities: string[] | null
+          owner_authorization_confirmed: boolean
           asset_subtype: string | null
           asset_type: Database["public"]["Enums"]["asset_type"] | null
           building_square_footage: number | null
@@ -800,12 +802,14 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          address_is_public?: boolean
           agent_id: string
           amenities?: string[] | null
           asset_subtype?: string | null
           asset_type?: Database["public"]["Enums"]["asset_type"] | null
           building_square_footage?: number | null
           city?: string | null
+          owner_authorization_confirmed?: boolean
           construction_type?: string | null
           county?: string | null
           created_at?: string
@@ -838,12 +842,14 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          address_is_public?: boolean
           agent_id?: string
           amenities?: string[] | null
           asset_subtype?: string | null
           asset_type?: Database["public"]["Enums"]["asset_type"] | null
           building_square_footage?: number | null
           city?: string | null
+          owner_authorization_confirmed?: boolean
           construction_type?: string | null
           county?: string | null
           created_at?: string

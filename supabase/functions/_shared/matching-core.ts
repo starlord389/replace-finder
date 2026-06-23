@@ -241,14 +241,19 @@ function scorePair(
   criteria: any,
   settings: MatchSettings,
 ): RoePairScore | null {
-  // 1. Buyer baseline ROE — requires NOI, price, loan_balance on relinquished
+  // 1. Buyer baseline ROE — requires NOI, price, loan_balance on relinquished.
+  //    LEVERED return: subtract the client's existing annual debt service so the
+  //    current property is measured the same way as the candidate below (both
+  //    after financing). Debt service uses the mortgage the agent entered, or an
+  //    amortized estimate on the loan balance; free-and-clear means zero.
   const rNoi = numOrNull(relinquishedFin?.noi);
   const rPrice = numOrNull(relinquishedFin?.asking_price);
   const rLoan = numOrNull(relinquishedFin?.loan_balance);
   if (rNoi == null || rPrice == null || rLoan == null) return null;
   const buyerEquity = rPrice - rLoan;
   if (buyerEquity <= 0) return null;
-  const buyerCurrentROE = rNoi / buyerEquity; // ratio (e.g. 0.062 = 6.2%)
+  const buyerDebtService = relinquishedAnnualDebtService(relinquishedFin, settings);
+  const buyerCurrentROE = (rNoi - buyerDebtService) / buyerEquity; // levered cash-on-cash on equity
 
   // 2. Candidate ROE — requires candidate NOI + asking price
   const cNoi = numOrNull(candidateFin?.noi);
@@ -269,7 +274,9 @@ function scorePair(
 
   const candidateROE = (cNoi - annualPmt) / buyerEquity;
   const improvementPP = (candidateROE - buyerCurrentROE) * 100;
-  const improvementRel = buyerCurrentROE !== 0 ? candidateROE / buyerCurrentROE - 1 : null;
+  // Relative improvement only makes sense against a positive baseline (a negative
+  // or zero current return would make the ratio meaningless).
+  const improvementRel = buyerCurrentROE > 0 ? candidateROE / buyerCurrentROE - 1 : null;
 
   // 5. Eligibility gate
   if (improvementPP <= ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP) return null;
@@ -384,6 +391,21 @@ function amortizedAnnualPayment(principal: number, annualRatePct: number, years:
   if (r === 0) return principal / years;
   const monthly = (principal * r) / (1 - Math.pow(1 + r, -n));
   return monthly * 12;
+}
+
+/**
+ * The client's existing annual debt service on the relinquished property, used
+ * to compute their current (levered) ROE. Prefers the actual mortgage the agent
+ * entered (`annual_debt_service`); if that's missing but the property carries a
+ * loan, falls back to an amortized estimate on the balance at the admin's
+ * assumptions. Free-and-clear (no loan) means zero.
+ */
+function relinquishedAnnualDebtService(fin: any, settings: MatchSettings): number {
+  const loan = numOrNull(fin?.loan_balance) ?? 0;
+  if (loan <= 0) return 0;
+  const actual = numOrNull(fin?.annual_debt_service);
+  if (actual != null && actual >= 0) return actual;
+  return amortizedAnnualPayment(loan, settings.mortgage_interest_rate, settings.mortgage_amortization_years);
 }
 
 function numOrNull(v: any): number | null {

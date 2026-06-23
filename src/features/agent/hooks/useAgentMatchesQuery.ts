@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
+import { resolveListingName, sanitizeListingForViewer } from "@/lib/listingDisplay";
 
 export interface AgentMatchRow {
   id: string;
@@ -68,10 +69,11 @@ async function fetchAgentMatches(userId: string): Promise<AgentMatchesData> {
 
   const { data: props } = await supabase
     .from("pledged_properties")
-    .select("id, property_name")
+    .select("id, property_name, address, address_is_public, city, state, asset_type")
     .eq("agent_id", userId);
   const propertyIds = (props ?? []).map((p) => p.id);
-  const propNameMap = new Map((props ?? []).map((p) => [p.id, p.property_name || "Property"]));
+  // These are the agent's OWN properties → they always see their own address.
+  const propNameMap = new Map((props ?? []).map((p: any) => [p.id, resolveListingName(p, true)]));
 
   const clientIds = [...new Set((exchanges ?? []).map((e) => e.client_id))];
   const { data: clients } = clientIds.length > 0
@@ -122,7 +124,12 @@ async function fetchAgentMatches(userId: string): Promise<AgentMatchesData> {
     });
 
     buyerData.forEach((match) => {
-      match.property = pMap.get(match.seller_property_id);
+      const sellerProp: any = pMap.get(match.seller_property_id);
+      // The seller property belongs to another agent → hide its exact address
+      // unless that agent published it.
+      match.property = sellerProp
+        ? sanitizeListingForViewer(sellerProp, sellerProp.agent_id === userId)
+        : sellerProp;
       match.financials = fMap.get(match.seller_property_id);
       const firstImg = iMap.get(match.seller_property_id);
       match.coverUrl = firstImg ? resolvePropertyImageUrl(firstImg.storage_path) : null;

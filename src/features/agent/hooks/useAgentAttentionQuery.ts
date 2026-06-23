@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { differenceInDays, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveListingName } from "@/lib/listingDisplay";
 
 const URGENT_WINDOW_DAYS = 14;
 const LIST_LIMIT = 5;
@@ -143,10 +144,11 @@ async function fetchAgentAttention(userId: string): Promise<AgentAttentionData> 
       const propertyIds = [...new Set(matches.map((m) => m.seller_property_id))];
       const { data: props } = await supabase
         .from("pledged_properties")
-        .select("id, property_name")
+        .select("id, property_name, address, address_is_public, city, state, asset_type")
         .in("id", propertyIds);
+      // Counterparty (seller) properties → never reveal the street unless public.
       const propMap = new Map(
-        (props ?? []).map((p) => [p.id, p.property_name || "Property"]),
+        (props ?? []).map((p: any) => [p.id, resolveListingName(p, false)]),
       );
 
       unreviewedMatches = matches.map((m) => {
@@ -224,11 +226,11 @@ async function fetchAgentAttention(userId: string): Promise<AgentAttentionData> 
     const { data: props } = sellerPropertyIds.length > 0
       ? await supabase
           .from("pledged_properties")
-          .select("id, property_name")
+          .select("id, property_name, address, address_is_public, city, state, asset_type")
           .in("id", sellerPropertyIds)
       : { data: [] as Array<{ id: string; property_name: string | null }> };
     const propMap = new Map(
-      (props ?? []).map((p) => [p.id, p.property_name || "Property"]),
+      (props ?? []).map((p: any) => [p.id, resolveListingName(p, false)]),
     );
 
     pendingConnections = awaitingResponse.map((c) => {

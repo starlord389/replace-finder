@@ -35,6 +35,7 @@ function normalizeWizardData(data: WizardState) {
       asking_price: derived.askingPrice,
       gross_rent_roll: derived.grossRentRoll,
       total_operating_expenses: derived.totalOperatingExpenses,
+      annual_debt_service: derived.annualDebtService,
       loan_balance: derived.loanBalance,
       noi: derived.noi,
       cap_rate: derived.capRate,

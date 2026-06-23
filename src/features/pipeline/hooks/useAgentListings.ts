@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveListingName } from "@/lib/listingDisplay";
 
 export interface AgentListing {
   id: string;
@@ -113,7 +114,8 @@ async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
       propertyId: propId,
       clientId: r.client_id,
       clientName: r.agent_clients?.client_name ?? null,
-      propertyName: p?.property_name ?? null,
+      // Agent's own listing → always show the exact address (falls back to a label).
+      propertyName: p ? resolveListingName(p, true) : null,
       address: p?.address ?? null,
       city: p?.city ?? null,
       state: p?.state ?? null,

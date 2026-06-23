@@ -103,9 +103,10 @@ Deno.serve(async (req) => {
     if (payload.property && propertyId) {
       const propUpdate = {
         property_name: stringOrNull(payload.property.property_name),
-        // Scrub any previously-stored street address — owners only expose
-        // city + state now.
-        address: null,
+        // Full street address is stored; address_is_public controls whether other
+        // agents can see it. ZIP is still not collected.
+        address: stringOrNull(payload.property.address),
+        address_is_public: boolOrFalse(payload.property.address_is_public),
         city: stringOrNull(payload.property.city),
         state: stringOrNull(payload.property.state),
         zip: null,
@@ -114,6 +115,7 @@ Deno.serve(async (req) => {
         units: numberOrNull(payload.property.units),
         building_square_footage: numberOrNull(payload.property.building_square_footage),
         description: stringOrNull(payload.property.description),
+        owner_authorization_confirmed: boolOrFalse(payload.property.owner_authorization_confirmed),
       };
       const { error } = await db.from("pledged_properties").update(propUpdate).eq("id", propertyId);
       if (error) throw error;
@@ -287,3 +289,4 @@ function arrayOrNull(value: unknown): string[] | null {
 function arrayOrDefault(value: unknown, fallback: string[]): string[] {
   return arrayOrNull(value) ?? fallback;
 }
+function boolOrFalse(value: unknown): boolean { return value === true; }

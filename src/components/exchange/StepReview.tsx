@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   DEFAULT_SELLER_COST_ESTIMATE_RATE,
   WizardState,
@@ -21,6 +23,7 @@ interface Props {
   saving: boolean;
   mode?: ReviewMode;
   onCancel?: () => void;
+  onOwnerAuthorizationChange?: (value: boolean) => void;
 }
 
 function Field({ label, value, recommended }: { label: string; value?: string | null; recommended?: boolean }) {
@@ -34,11 +37,18 @@ function Field({ label, value, recommended }: { label: string; value?: string | 
   );
 }
 
-export default function StepReview({ data, clientName, onBack, onSubmit, saving, mode = "create", onCancel }: Props) {
-  const { property: p, financials: f, criteria: c } = data;
+export default function StepReview({ data, clientName, onBack, onSubmit, saving, mode = "create", onCancel, onOwnerAuthorizationChange }: Props) {
+  const { property: p, financials: f } = data;
   const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(f);
   const derived = getDerivedFinancials(f);
   const sellerCostRatePercent = Math.round(DEFAULT_SELLER_COST_ESTIMATE_RATE * 100);
+  const ownerAuthConfirmed = p.owner_authorization_confirmed;
+
+  // Recurring financials are stored/entered monthly — show them with a "/ mo" suffix.
+  const perMonth = (v: string) => {
+    const n = parseCurrency(v);
+    return n != null ? `${formatCurrency(n)} / mo` : undefined;
+  };
 
   // Button labels per mode
   const labels = mode === "edit-draft"
@@ -65,8 +75,13 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Pledged Property</CardTitle></CardHeader>
         <CardContent className="space-y-1">
-          {p.property_name && <p className="font-medium">{p.property_name}</p>}
+          {p.address && <p className="font-medium">{p.address}</p>}
           <p className="text-sm text-muted-foreground">{[p.city, p.state].filter(Boolean).join(", ")}</p>
+          <p className="text-xs text-muted-foreground">
+            {p.address_is_public
+              ? "Exact address is visible to other agents."
+              : "Exact address is hidden — other agents see only the city & state."}
+          </p>
           <div className="mt-3 grid grid-cols-2 gap-x-8">
             <Field label="Asset Type" value={p.asset_type ? ASSET_TYPE_LABELS[p.asset_type as keyof typeof ASSET_TYPE_LABELS] : undefined} />
             <Field label="Year Built" value={p.year_built} />
@@ -102,10 +117,11 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Financials</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 gap-x-8">
           <Field label="Asking Price" value={formatCurrency(parseCurrency(f.asking_price))} />
-          <Field label="Gross Rent Roll" value={formatCurrency(parseCurrency(f.gross_rent_roll))} />
-          <Field label="Total Operating Expenses" value={formatCurrency(parseCurrency(f.total_operating_expenses))} />
+          <Field label="Monthly Gross Rent" value={perMonth(f.gross_rent_roll)} />
+          <Field label="Monthly Operating Expenses" value={perMonth(f.total_operating_expenses)} />
+          <Field label="Monthly Mortgage Payment" value={perMonth(f.monthly_mortgage_payment)} />
           <Field label="Loan Balance" value={formatCurrency(parseCurrency(f.loan_balance))} />
-          <Field label="NOI (calculated)" value={derived.noi != null ? formatCurrency(derived.noi) : undefined} />
+          <Field label="NOI (annual, calculated)" value={derived.noi != null ? formatCurrency(derived.noi) : undefined} />
           <Field label="Cap Rate (calculated)" value={derived.capRate != null ? `${derived.capRate.toFixed(2)}%` : undefined} />
         </CardContent>
       </Card>
@@ -124,32 +140,49 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
         </CardContent>
       </Card>
 
-      {/* Criteria */}
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Replacement Criteria</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div>
-            <span className="text-sm text-muted-foreground">Asset Types: </span>
-            {c.target_asset_types.map(t => <Badge key={t} variant="secondary" className="mr-1">{ASSET_TYPE_LABELS[t]}</Badge>)}
+      {/* Compliance attestation — required before a property can go into the network */}
+      <div className="rounded-lg border border-amber-300 bg-amber-50/60 p-4">
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="owner-auth"
+            checked={ownerAuthConfirmed}
+            onCheckedChange={(v) => onOwnerAuthorizationChange?.(v === true)}
+            className="mt-0.5"
+          />
+          <div className="space-y-1">
+            <Label htmlFor="owner-auth" className="cursor-pointer text-sm font-medium text-foreground">
+              I have authorization to market this property
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              I confirm I have a current listing/representation agreement or written authorization from the
+              property owner to market and share this property on 1031 Exchange Up, and that the information
+              above is accurate to the best of my knowledge.
+            </p>
           </div>
-          <div>
-            <span className="text-sm text-muted-foreground">States: </span>
-            {c.target_states.map(s => <Badge key={s} variant="outline" className="mr-1 text-xs">{s}</Badge>)}
-          </div>
-          <Field label="Price Range" value={`${formatCurrency(parseCurrency(c.target_price_min))} – ${formatCurrency(parseCurrency(c.target_price_max))}`} />
-          {c.target_metros.length > 0 && <Field label="Target Metros" value={c.target_metros.join(", ")} />}
-          {c.target_year_built_min && <Field label="Min Year Built" value={c.target_year_built_min} />}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-between">
         <div className="flex gap-2">
           <Button variant="outline" onClick={onBack} disabled={saving}>Back</Button>
           {onCancel && <Button variant="ghost" onClick={onCancel} disabled={saving}>Cancel</Button>}
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => onSubmit(false)} disabled={saving}>{labels.secondary}</Button>
-          <Button size="lg" onClick={() => onSubmit(true)} disabled={saving} className="font-semibold">{labels.primary}</Button>
+        <div className="flex flex-col items-stretch gap-1 sm:items-end">
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => onSubmit(false)} disabled={saving}>{labels.secondary}</Button>
+            <Button
+              size="lg"
+              onClick={() => onSubmit(true)}
+              disabled={saving || !ownerAuthConfirmed}
+              className="font-semibold"
+              title={!ownerAuthConfirmed ? "Confirm owner authorization to continue" : undefined}
+            >
+              {labels.primary}
+            </Button>
+          </div>
+          {!ownerAuthConfirmed && (
+            <p className="text-xs text-muted-foreground">Check the authorization box above to continue.</p>
+          )}
         </div>
       </div>
     </div>

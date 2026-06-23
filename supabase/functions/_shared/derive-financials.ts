@@ -23,8 +23,13 @@ function toNumber(value: unknown): number | null {
 
 export function deriveFinancialColumns(financials: Record<string, unknown>) {
   const askingPrice = toNumber(financials.asking_price);
+  // gross_rent_roll and total_operating_expenses arrive already annualized by the
+  // client (the agent enters monthly figures; the client multiplies by 12).
   const grossRentRoll = toNumber(financials.gross_rent_roll);
   const totalOperatingExpenses = toNumber(financials.total_operating_expenses);
+  // annual_debt_service = the owner's mortgage payment, annualized. Stored for
+  // reference/display only — it is NOT part of NOI (NOI is before debt service).
+  const annualDebtService = toNumber(financials.annual_debt_service);
   const loanBalance = toNumber(financials.loan_balance);
 
   const noi =
@@ -40,6 +45,7 @@ export function deriveFinancialColumns(financials: Record<string, unknown>) {
     asking_price: askingPrice,
     gross_rent_roll: grossRentRoll,
     total_operating_expenses: totalOperatingExpenses,
+    annual_debt_service: annualDebtService,
     noi,
     cap_rate: capRate,
     occupancy_rate: ASSUMED_OCCUPANCY_RATE,

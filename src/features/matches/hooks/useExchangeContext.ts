@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveListingName } from "@/lib/listingDisplay";
 
 export interface ExchangeContext {
   id: string;
@@ -31,7 +32,7 @@ async function fetchExchangeContext(exchangeId: string): Promise<ExchangeContext
     ex.relinquished_property_id
       ? supabase
           .from("pledged_properties")
-          .select("property_name, address, city, state")
+          .select("property_name, address, address_is_public, city, state, asset_type")
           .eq("id", ex.relinquished_property_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
@@ -49,7 +50,7 @@ async function fetchExchangeContext(exchangeId: string): Promise<ExchangeContext
   return {
     id: ex.id,
     clientName: (ex as any).agent_clients?.client_name ?? null,
-    relinquishedName: prop?.property_name ?? null,
+    relinquishedName: prop ? resolveListingName(prop, true) : null,
     relinquishedAddress: prop?.address ?? null,
     relinquishedCity: prop?.city ?? null,
     relinquishedState: prop?.state ?? null,

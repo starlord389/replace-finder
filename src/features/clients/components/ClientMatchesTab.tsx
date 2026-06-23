@@ -4,6 +4,7 @@ import { Building2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { resolveListingName } from "@/lib/listingDisplay";
 
 interface Props {
   clientId: string;
@@ -38,7 +39,7 @@ async function fetchMatches(clientId: string): Promise<MatchRow[]> {
   const propIds = Array.from(new Set(matches.map((m) => m.seller_property_id).filter(Boolean)));
   const { data: props } = await supabase
     .from("pledged_properties")
-    .select("id, property_name, city, state")
+    .select("id, property_name, address, address_is_public, city, state, asset_type")
     .in("id", propIds);
   const propMap = new Map((props ?? []).map((p: any) => [p.id, p]));
 
@@ -49,7 +50,8 @@ async function fetchMatches(clientId: string): Promise<MatchRow[]> {
       status: m.status,
       score: Number(m.total_score ?? 0),
       exchangeId: m.buyer_exchange_id,
-      propertyName: p?.property_name ?? null,
+      // Counterparty (matched seller) property → street stays hidden unless public.
+      propertyName: p ? resolveListingName(p, false) : null,
       city: p?.city ?? null,
       state: p?.state ?? null,
     };

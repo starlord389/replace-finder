@@ -212,7 +212,8 @@ export default function AdminExchangeDetail() {
           <CardContent>
             {property ? (
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <dt className="text-muted-foreground">Name</dt><dd>{property.property_name || "—"}</dd>
+                <dt className="text-muted-foreground">Address</dt><dd>{property.address || property.property_name || "—"}</dd>
+                <dt className="text-muted-foreground">Address visibility</dt><dd>{property.address_is_public ? "Shown to agents" : "Hidden from agents"}</dd>
                 <dt className="text-muted-foreground">Location</dt><dd>{[property.city, property.state].filter(Boolean).join(", ") || "—"}</dd>
                 <dt className="text-muted-foreground">Asset type</dt><dd className="capitalize">{property.asset_type ? pretty(property.asset_type) : "—"}</dd>
                 <dt className="text-muted-foreground">Status</dt><dd className="capitalize">{pretty(property.status)}</dd>

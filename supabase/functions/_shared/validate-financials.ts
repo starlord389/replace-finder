@@ -84,5 +84,15 @@ export function validateFinancials(
     }
   }
 
+  // Optional: annual debt service (the owner's mortgage), if provided, must be valid.
+  if (isPresent(financials.annual_debt_service)) {
+    const debt = toNumber(financials.annual_debt_service);
+    if (debt === null) {
+      errors.push({ field: "annual_debt_service", message: "annual_debt_service must be a valid number" });
+    } else if (debt < 0) {
+      errors.push({ field: "annual_debt_service", message: "annual_debt_service must be 0 or greater" });
+    }
+  }
+
   return errors;
 }

@@ -158,22 +158,18 @@ export function whyThisMatched(rel: Relationship): string[] {
   return out;
 }
 
-/** Match score by category — uses match dims where available, mocks otherwise */
+/** Match score by dimension — uses the engine's REAL persisted factor scores.
+ *  Fit dimensions sit at 50 (neutral) when the client expressed no preference,
+ *  which is the honest picture now that matching is ROE-driven. */
 export interface BreakdownDim { label: string; score: number; }
 export function matchBreakdown(rel: Relationship): BreakdownDim[] {
-  // Deterministic pseudo-variance around the overall score so demo data feels real
-  const s = rel.score;
-  const seed = rel.matchId.charCodeAt(0) + rel.matchId.charCodeAt(rel.matchId.length - 1);
-  const wob = (i: number) => ((seed + i * 7) % 13) - 6; // -6..+6
-  const clamp = (v: number) => Math.max(40, Math.min(99, Math.round(v)));
+  const dim = (v: number | null) => Math.max(0, Math.min(100, Math.round(v ?? 50)));
   return [
-    { label: "Location Fit", score: clamp(s + wob(1)) },
-    { label: "Price Fit", score: clamp(s + wob(2)) },
-    { label: "Equity Fit", score: clamp(s + wob(3)) },
-    { label: "Debt Replacement Fit", score: clamp(s + wob(4)) },
-    { label: "Timeline Fit", score: clamp(s + wob(5)) },
-    { label: "Asset Type Fit", score: clamp(s + wob(6)) },
-    { label: "Return Profile Fit", score: clamp(s + wob(7)) },
+    { label: "Return (ROE)", score: dim(rel.roeScore) },
+    { label: "Location Fit", score: dim(rel.geoScore) },
+    { label: "Asset Type Fit", score: dim(rel.assetScore) },
+    { label: "Strategy Fit", score: dim(rel.strategyScore) },
+    { label: "Property Quality", score: dim(rel.qualityScore) },
   ];
 }
 
@@ -188,24 +184,42 @@ export function financialMetrics(rel: Relationship): FinancialMetric[] {
   const price = rel.askingPrice ?? 0;
   const cap = rel.capRate ?? 0;
   const noi = price && cap ? price * (cap / 100) : null;
-  const equityPct = 0.35; // assumed 65% LTV
-  const equity = price ? price * equityPct : null;
-  const loan = price ? price * (1 - equityPct) : null;
-  const annualCashFlow = noi && loan ? noi - loan * 0.065 : null; // 6.5% debt service approx
-  const coc = annualCashFlow && equity ? (annualCashFlow / equity) * 100 : null;
-  const dscr = noi && loan ? noi / (loan * 0.065) : null;
+  const LTV = 0.75; // matches the engine's MAX_COMMERCIAL_LTV
+  const equity = price ? price * (1 - LTV) : null; // 25% down
+  const loan = price ? price * LTV : null;         // 75% loan
+  // Prefer the engine's amortized debt service; otherwise estimate at the same assumptions.
+  const debtService = rel.candidateAnnualDebtService ?? (loan ? estimateAnnualDebtService(loan) : null);
+  const annualCashFlow = noi != null && debtService != null ? noi - debtService : null;
+  // Prefer the engine's projected return on the client's equity; else cash-on-cash on 25% down.
+  const projectedRoe = rel.candidateRoe != null
+    ? rel.candidateRoe * 100
+    : (annualCashFlow != null && equity ? (annualCashFlow / equity) * 100 : null);
+  const dscr = noi != null && debtService ? noi / debtService : null;
+  const fromEngine = rel.candidateAnnualDebtService != null;
 
   return [
     { key: "price", label: "Price", value: price ? formatMoney(price) : "—" },
-    { key: "noi", label: "NOI", value: noi ? formatMoney(noi) : "—", estimated: !!noi },
+    { key: "noi", label: "NOI", value: noi ? formatMoney(noi) : "—" },
     { key: "cap", label: "Cap Rate", value: cap ? `${cap.toFixed(2)}%` : "—" },
-    { key: "coc", label: "Cash-on-Cash", value: coc ? `${coc.toFixed(1)}%` : "—", estimated: true },
-    { key: "dscr", label: "DSCR", value: dscr ? dscr.toFixed(2) : "—", estimated: true },
-    { key: "occupancy", label: "Occupancy", value: "94%", estimated: true },
-    { key: "equity", label: "Required Equity", value: equity ? formatMoney(equity) : "—", estimated: true },
-    { key: "loan", label: "Est. Loan Amount", value: loan ? formatMoney(loan) : "—", estimated: true },
-    { key: "cashflow", label: "Projected Cash Flow", value: annualCashFlow ? `${formatMoney(annualCashFlow)}/yr` : "—", estimated: true },
+    { key: "coc", label: "Projected ROE", value: projectedRoe != null ? `${projectedRoe.toFixed(1)}%` : "—", estimated: !fromEngine },
+    { key: "dscr", label: "DSCR", value: dscr ? dscr.toFixed(2) : "—", estimated: !fromEngine },
+    { key: "occupancy", label: "Occupancy", value: rel.occupancy != null ? `${Math.round(rel.occupancy)}%` : "—" },
+    { key: "equity", label: "Est. Down (25%)", value: equity ? formatMoney(equity) : "—", estimated: true },
+    { key: "loan", label: "Est. Loan (75%)", value: loan ? formatMoney(loan) : "—", estimated: true },
+    { key: "cashflow", label: "Projected Cash Flow", value: annualCashFlow != null ? `${formatMoney(annualCashFlow)}/yr` : "—", estimated: !fromEngine },
   ];
+}
+
+// Amortized annual payment at the platform's default financing assumptions —
+// mirrors the match engine's FALLBACK_MORTGAGE_RATE / FALLBACK_AMORTIZATION_YEARS
+// so display estimates line up with the engine when its value isn't persisted.
+function estimateAnnualDebtService(principal: number, annualRatePct = 7.0, years = 25): number {
+  if (principal <= 0 || years <= 0) return 0;
+  const r = annualRatePct / 100 / 12;
+  const n = years * 12;
+  if (r === 0) return principal / years;
+  const monthly = (principal * r) / (1 - Math.pow(1 + r, -n));
+  return monthly * 12;
 }
 
 function formatMoney(v: number): string {
@@ -250,11 +264,13 @@ function noiOf(r: Relationship): number {
   return r.askingPrice && r.capRate ? r.askingPrice * (r.capRate / 100) : 0;
 }
 function cocOf(r: Relationship): number {
+  // Prefer the engine's projected ROE; otherwise estimate at 75% LTV.
+  if (r.candidateRoe != null) return r.candidateRoe * 100;
   if (!r.askingPrice || !r.capRate) return 0;
   const noi = noiOf(r);
-  const loan = r.askingPrice * 0.65;
-  const equity = r.askingPrice * 0.35;
-  const cf = noi - loan * 0.065;
+  const loan = r.askingPrice * 0.75;
+  const equity = r.askingPrice * 0.25;
+  const cf = noi - estimateAnnualDebtService(loan);
   return equity > 0 ? (cf / equity) * 100 : 0;
 }
 function timelineFitOf(r: Relationship): number {

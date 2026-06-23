@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, CheckCheck, HelpCircle, LogOut, Menu, Settings, X } from "lucide-react";
+import { ArrowLeftRight, Bell, CheckCheck, HelpCircle, LogOut, Menu, Settings, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -129,7 +129,7 @@ function NotificationsBell() {
 }
 
 export default function AgentTopNav() {
-  const { user, signOut, profileName } = useAuth();
+  const { user, signOut, profileName, hasRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const initial = (profileName ?? user?.email ?? "U").charAt(0).toUpperCase();
@@ -203,6 +203,17 @@ export default function AgentTopNav() {
                     Help
                   </Link>
                 </DropdownMenuItem>
+                {hasRole("admin") && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">
+                        <ArrowLeftRight className="mr-2 h-4 w-4" />
+                        Switch to Admin View
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => signOut()}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -260,6 +271,14 @@ export default function AgentTopNav() {
                     >
                       <HelpCircle className="mr-2 h-4 w-4" /> Help
                     </Link>
+                    {hasRole("admin") && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                      >
+                        <ArrowLeftRight className="mr-2 h-4 w-4" /> Switch to Admin View
+                      </Link>
+                    )}
                   </nav>
                   <div className="border-t p-3">
                     <Button

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { resolveListingName } from "@/lib/listingDisplay";
 
 export interface Conversation {
   connectionId: string;
@@ -53,7 +54,7 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
   const propertyIds = Array.from(new Set((matchesRes.data ?? []).map((m) => m.seller_property_id)));
   const { data: properties } = await supabase
     .from("pledged_properties")
-    .select("id, property_name, city, state")
+    .select("id, property_name, address, address_is_public, city, state, asset_type, agent_id")
     .in("id", propertyIds);
 
   const profilesMap = new Map((profilesRes.data ?? []).map((p) => [p.id, p]));
@@ -86,7 +87,9 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
         counterpartyName: profile?.full_name ?? "Unknown agent",
         counterpartyEmail: profile?.email ?? null,
         counterpartyAvatar: profile?.profile_photo_url ?? null,
-        propertyName: prop?.property_name ?? "Property",
+        // Viewer sees the exact address only if they own this property or the
+        // owner published it; otherwise a privacy-safe label.
+        propertyName: prop ? resolveListingName(prop, (prop as any).agent_id === userId) : "Property",
         propertyAddress: prop ? [prop.city, prop.state].filter(Boolean).join(", ") : null,
         lastMessage: lastMsg?.content ?? null,
         lastMessageAt: lastMsg?.created_at ?? null,

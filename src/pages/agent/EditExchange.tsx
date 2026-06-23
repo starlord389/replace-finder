@@ -4,15 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
-import { WizardState, initialWizardState, parseCurrency } from "@/lib/exchangeWizardTypes";
+import { WizardState, initialWizardState, parseCurrency, annualToMonthlyString } from "@/lib/exchangeWizardTypes";
 import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
-import StepCriteria from "@/components/exchange/StepCriteria";
 import StepReview from "@/components/exchange/StepReview";
 import { useUpdateExchange } from "@/features/exchanges/hooks/useUpdateExchange";
 
-const STEPS = ["Client", "Property & Financials", "Criteria", "Review"];
-const MOBILE_STEP_LABELS = ["Client", "Property", "Criteria", "Review"];
+// Criteria step removed — see NewExchange.tsx. Existing criteria records are
+// still loaded and re-saved untouched so we never wipe legacy preferences.
+const STEPS = ["Client", "Property & Financials", "Review"];
+const MOBILE_STEP_LABELS = ["Client", "Property", "Review"];
 
 export default function EditExchange() {
   const { id } = useParams<{ id: string }>();
@@ -80,6 +81,8 @@ export default function EditExchange() {
         selectedClientId: ex.client_id,
         property: {
           property_name: p?.property_name ?? "",
+          address: p?.address ?? "",
+          address_is_public: p?.address_is_public ?? false,
           city: p?.city ?? "",
           state: p?.state ?? "",
           asset_type: p?.asset_type ?? "",
@@ -87,11 +90,14 @@ export default function EditExchange() {
           units: p?.units?.toString() ?? "",
           building_square_footage: p?.building_square_footage?.toString() ?? "",
           description: p?.description ?? "",
+          owner_authorization_confirmed: p?.owner_authorization_confirmed ?? false,
         },
         financials: {
           asking_price: f?.asking_price?.toString() ?? "",
-          gross_rent_roll: f?.gross_rent_roll?.toString() ?? "",
-          total_operating_expenses: f?.total_operating_expenses?.toString() ?? "",
+          // Stored annual → shown monthly (÷12); mortgage lives in annual_debt_service.
+          gross_rent_roll: annualToMonthlyString(f?.gross_rent_roll),
+          total_operating_expenses: annualToMonthlyString(f?.total_operating_expenses),
+          monthly_mortgage_payment: annualToMonthlyString(f?.annual_debt_service),
           loan_balance: f?.loan_balance?.toString() ?? "",
         },
         criteria: {
@@ -144,6 +150,10 @@ export default function EditExchange() {
     const loanBalance = parseCurrency(f.loan_balance);
     if (f.loan_balance === "" || loanBalance === null || loanBalance < 0) {
       return { valid: false, firstInvalidStep: 2, message: "Loan balance is required before publishing (enter 0 if free and clear)." };
+    }
+
+    if (!d.property.owner_authorization_confirmed) {
+      return { valid: false, firstInvalidStep: 3, message: "Confirm you have authorization to market this property before publishing." };
     }
 
     return { valid: true, firstInvalidStep: 1, message: "" };
@@ -254,22 +264,15 @@ export default function EditExchange() {
         />
       )}
       {step === 3 && (
-        <StepCriteria
-          data={data.criteria}
-          onChange={criteria => setData(d => ({ ...d, criteria }))}
-          onNext={() => setStep(4)}
-          onBack={() => setStep(2)}
-        />
-      )}
-      {step === 4 && (
         <StepReview
           data={data}
           clientName={clientName}
-          onBack={() => setStep(3)}
+          onBack={() => setStep(2)}
           onSubmit={handleSubmit}
           saving={saving}
           mode={reviewMode}
           onCancel={() => navigate("/agent/listings")}
+          onOwnerAuthorizationChange={v => setData(d => ({ ...d, property: { ...d.property, owner_authorization_confirmed: v } }))}
         />
       )}
     </div>
