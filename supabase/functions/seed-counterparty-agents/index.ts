@@ -1023,6 +1023,233 @@ async function wipeAllMock(admin: Admin) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Post-seed validation: walks every seeded record for the caller and flags
+// missing or defaulted values for fields we consider required for a
+// realistic demo. Returns a per-table report plus a flat list of issues.
+// ---------------------------------------------------------------------------
+
+type FieldRule = {
+  field: string;
+  // Considered missing when null/undefined/"" OR equal to one of these defaults.
+  defaults?: Array<string | number | boolean | null>;
+  // Optional custom check; return true when the value is acceptable.
+  ok?: (value: unknown, row: Record<string, unknown>) => boolean;
+};
+
+type TableSpec = {
+  table: string;
+  label: string;
+  // Builds the query that returns the mock rows for this caller.
+  fetch: (admin: Admin, userId: string) => Promise<Record<string, unknown>[]>;
+  identifier: (row: Record<string, unknown>) => string;
+  required: FieldRule[];
+};
+
+function isMissing(value: unknown, rule: FieldRule, row: Record<string, unknown>): boolean {
+  if (rule.ok) return !rule.ok(value, row);
+  if (value === null || value === undefined) return true;
+  if (typeof value === "string" && value.trim() === "") return true;
+  if (Array.isArray(value) && value.length === 0) return true;
+  if (rule.defaults && rule.defaults.some((d) => d === value)) return true;
+  return false;
+}
+
+async function validateSeed(admin: Admin, userId: string) {
+  const specs: TableSpec[] = [
+    {
+      table: "agent_clients",
+      label: "Clients",
+      fetch: async (a, uid) => {
+        const { data } = await a.from("agent_clients").select("*").eq("agent_id", uid).ilike("notes", `%${MOCK_TAG}%`);
+        return data ?? [];
+      },
+      identifier: (r) => String(r.client_name ?? r.id),
+      required: [
+        { field: "client_name" },
+        { field: "client_email" },
+        { field: "client_phone" },
+        { field: "status" },
+        { field: "notes" },
+      ],
+    },
+    {
+      table: "pledged_properties",
+      label: "Listings",
+      fetch: async (a, uid) => {
+        const { data } = await a.from("pledged_properties").select("*").eq("agent_id", uid).ilike("description", `%${MOCK_TAG}%`);
+        return data ?? [];
+      },
+      identifier: (r) => String(r.property_name ?? r.id),
+      required: [
+        { field: "property_name" },
+        { field: "asset_type" },
+        { field: "city" },
+        { field: "state" },
+        { field: "asking_price", defaults: [0] },
+        { field: "status" },
+        { field: "description" },
+        { field: "owner_authorization_confirmed", ok: (v) => v === true },
+        { field: "address_is_public", ok: (v) => typeof v === "boolean" },
+      ],
+    },
+    {
+      table: "property_financials",
+      label: "Property financials",
+      fetch: async (a, uid) => {
+        const { data: props } = await a.from("pledged_properties").select("id").eq("agent_id", uid).ilike("description", `%${MOCK_TAG}%`);
+        const ids = (props ?? []).map((p: { id: string }) => p.id);
+        if (!ids.length) return [];
+        const { data } = await a.from("property_financials").select("*").in("property_id", ids);
+        return data ?? [];
+      },
+      identifier: (r) => `financials for ${String(r.property_id).slice(0, 8)}`,
+      required: [
+        { field: "noi_t12", defaults: [0] },
+        { field: "cap_rate", defaults: [0] },
+        { field: "occupancy_pct", defaults: [0] },
+      ],
+    },
+    {
+      table: "exchanges",
+      label: "Exchanges",
+      fetch: async (a, uid) => {
+        const { data: clients } = await a.from("agent_clients").select("id").eq("agent_id", uid).ilike("notes", `%${MOCK_TAG}%`);
+        const ids = (clients ?? []).map((c: { id: string }) => c.id);
+        if (!ids.length) return [];
+        const { data } = await a.from("exchanges").select("*").eq("agent_id", uid).in("client_id", ids);
+        return data ?? [];
+      },
+      identifier: (r) => `${r.status} exchange ${String(r.id).slice(0, 8)}`,
+      required: [
+        { field: "status" },
+        { field: "client_id" },
+        {
+          field: "exchange_proceeds",
+          ok: (v, row) => row.status === "draft" || (typeof v === "number" && v > 0),
+        },
+        {
+          field: "sale_close_date",
+          ok: (v, row) => row.status === "draft" || (typeof v === "string" && v.length >= 10),
+        },
+        {
+          field: "identification_deadline",
+          ok: (v, row) => row.status === "draft" || (typeof v === "string" && v.length >= 10),
+        },
+        {
+          field: "closing_deadline",
+          ok: (v, row) => row.status === "draft" || (typeof v === "string" && v.length >= 10),
+        },
+        {
+          field: "relinquished_property_id",
+          ok: (v, row) => row.status === "draft" || (typeof v === "string" && v.length > 0),
+        },
+        {
+          field: "actual_close_date",
+          ok: (v, row) => row.status !== "completed" || (typeof v === "string" && v.length >= 10),
+        },
+      ],
+    },
+    {
+      table: "replacement_criteria",
+      label: "Replacement criteria",
+      fetch: async (a, uid) => {
+        const { data: exs } = await a.from("exchanges").select("id").eq("agent_id", uid);
+        const ids = (exs ?? []).map((e: { id: string }) => e.id);
+        if (!ids.length) return [];
+        const { data } = await a.from("replacement_criteria").select("*").in("exchange_id", ids);
+        return data ?? [];
+      },
+      identifier: (r) => `criteria for ${String(r.exchange_id).slice(0, 8)}`,
+      required: [
+        { field: "exchange_id" },
+        { field: "asset_types", ok: (v) => Array.isArray(v) && v.length > 0 },
+        { field: "target_states", ok: (v) => Array.isArray(v) && v.length > 0 },
+        { field: "min_price", defaults: [0] },
+        { field: "max_price", defaults: [0] },
+      ],
+    },
+    {
+      table: "matches",
+      label: "Matches",
+      fetch: async (a, uid) => {
+        const { data: exs } = await a.from("exchanges").select("id").eq("agent_id", uid);
+        const ids = (exs ?? []).map((e: { id: string }) => e.id);
+        if (!ids.length) return [];
+        const { data } = await a.from("matches").select("*").in("exchange_id", ids);
+        return data ?? [];
+      },
+      identifier: (r) => `match ${String(r.id).slice(0, 8)}`,
+      required: [
+        { field: "exchange_id" },
+        { field: "property_id" },
+        { field: "total_score", defaults: [0] },
+        { field: "price_score" },
+        { field: "geo_score" },
+        { field: "asset_score" },
+        { field: "strategy_score" },
+        { field: "financial_score" },
+        { field: "timing_score" },
+        { field: "status" },
+      ],
+    },
+    {
+      table: "exchange_connections",
+      label: "Connections",
+      fetch: async (a, uid) => {
+        const { data } = await a.from("exchange_connections").select("*").or(`buyer_agent_id.eq.${uid},seller_agent_id.eq.${uid}`);
+        return data ?? [];
+      },
+      identifier: (r) => `connection ${String(r.id).slice(0, 8)} (${r.status})`,
+      required: [
+        { field: "buyer_agent_id" },
+        { field: "seller_agent_id" },
+        { field: "property_id" },
+        { field: "status" },
+      ],
+    },
+  ];
+
+  const report: Array<{
+    table: string;
+    label: string;
+    total: number;
+    valid: number;
+    invalid: number;
+    issues: Array<{ record: string; missing: string[] }>;
+  }> = [];
+
+  let totalIssues = 0;
+
+  for (const spec of specs) {
+    const rows = await spec.fetch(admin, userId);
+    const issues: Array<{ record: string; missing: string[] }> = [];
+    for (const row of rows) {
+      const missing = spec.required
+        .filter((rule) => isMissing(row[rule.field], rule, row))
+        .map((rule) => rule.field);
+      if (missing.length) {
+        issues.push({ record: spec.identifier(row), missing });
+        totalIssues += missing.length;
+      }
+    }
+    report.push({
+      table: spec.table,
+      label: spec.label,
+      total: rows.length,
+      valid: rows.length - issues.length,
+      invalid: issues.length,
+      issues,
+    });
+  }
+
+  return {
+    ok: totalIssues === 0,
+    total_issues: totalIssues,
+    tables: report,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
