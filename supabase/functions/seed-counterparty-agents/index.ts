@@ -21,8 +21,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const SEED_VERSION = 4;
+const SEED_VERSION = 5;
 const MOCK_TAG = "__mock__";
+const OWNER_EMAIL = "starlord389@gmail.com";
+const MOCK_AGENT_EMAIL_PATTERN = "mock.agent.%@replacefinder.test";
 
 function daysFromNow(days: number): string {
   const d = new Date();
