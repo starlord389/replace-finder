@@ -116,52 +116,108 @@ export default function SeedMockDataPanel() {
           Seed your dashboard with realistic sample data, or clear it. Only visible in dev builds.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-wrap gap-2">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button size="sm" disabled={seeding || clearing}>
-              {seeding && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
-              Seed mock data
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Seed mock data?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This inserts 5 clients, 4 listings, 6 exchanges, matches, connections, messages, and notifications scoped to your account. All rows are tagged so you can clear them later.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onSeed}>Seed</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" disabled={seeding || clearing || validating}>
+                {seeding && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+                Seed mock data
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Seed mock data?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This inserts 5 clients, 4 listings, 6 exchanges, matches, connections, messages, and notifications scoped to your account. All rows are tagged so you can clear them later. A validation report runs automatically after seeding.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onSeed}>Seed</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button size="sm" variant="outline" disabled={seeding || clearing}>
-              {clearing ? (
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+          <Button size="sm" variant="secondary" onClick={onValidate} disabled={seeding || clearing || validating}>
+            {validating ? (
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+            ) : (
+              <ShieldCheck className="mr-1.5 h-4 w-4" />
+            )}
+            Validate seed data
+          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="outline" disabled={seeding || clearing || validating}>
+                {clearing ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="mr-1.5 h-4 w-4" />
+                )}
+                Clear mock data
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear all mock data?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Removes only rows tagged as mock data. Your real data is untouched.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onClear}>Clear</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+
+        {report && (
+          <div className="rounded-md border bg-background p-3 text-sm">
+            <div className="mb-2 flex items-center gap-2 font-medium">
+              {report.ok ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  Validation passed — all required fields populated.
+                </>
               ) : (
-                <Trash2 className="mr-1.5 h-4 w-4" />
+                <>
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  {report.total_issues} missing/defaulted field
+                  {report.total_issues === 1 ? "" : "s"} across seeded records.
+                </>
               )}
-              Clear mock data
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Clear all mock data?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Removes only rows tagged as mock data. Your real data is untouched.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onClear}>Clear</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+            </div>
+            <div className="space-y-3">
+              {report.tables.map((t) => (
+                <div key={t.table} className="rounded border bg-muted/30 p-2">
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium">{t.label}</div>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="secondary">{t.valid}/{t.total} ok</Badge>
+                      {t.invalid > 0 && (
+                        <Badge variant="destructive">{t.invalid} flagged</Badge>
+                      )}
+                    </div>
+                  </div>
+                  {t.issues.length > 0 && (
+                    <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                      {t.issues.map((i, idx) => (
+                        <li key={idx}>
+                          <span className="text-foreground">{i.record}</span>
+                          {" — missing: "}
+                          <span className="font-mono">{i.missing.join(", ")}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
