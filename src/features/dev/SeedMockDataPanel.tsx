@@ -20,6 +20,8 @@ export default function SeedMockDataPanel() {
   const queryClient = useQueryClient();
   const [seeding, setSeeding] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [report, setReport] = useState<SeedValidationReport | null>(null);
 
   // Seed/clear tooling is hard-gated to the platform owner's account.
   const OWNER_EMAIL = "starlord389@gmail.com";
@@ -38,10 +40,19 @@ export default function SeedMockDataPanel() {
     setSeeding(true);
     try {
       const result = await seedAgentMockData(user.id);
+      setReport(result.validation);
+      const c = result.counts;
       toast({
         title: "Mock data seeded",
-        description: `${result.clients} clients · ${result.exchanges} exchanges · ${result.matches} matches`,
+        description: `${c.clients} clients · ${c.exchanges} exchanges · ${c.matches} matches`,
       });
+      if (result.validation && !result.validation.ok) {
+        toast({
+          title: "Validation flagged issues",
+          description: `${result.validation.total_issues} missing/defaulted fields across seeded records.`,
+          variant: "destructive",
+        });
+      }
       refresh();
     } catch (err) {
       toast({
@@ -54,10 +65,34 @@ export default function SeedMockDataPanel() {
     }
   };
 
+  const onValidate = async () => {
+    setValidating(true);
+    try {
+      const v = await validateAgentMockData();
+      setReport(v);
+      toast({
+        title: v.ok ? "Seed data looks complete" : "Validation flagged issues",
+        description: v.ok
+          ? "Every required field is populated."
+          : `${v.total_issues} missing/defaulted fields across seeded records.`,
+        variant: v.ok ? "default" : "destructive",
+      });
+    } catch (err) {
+      toast({
+        title: "Validation failed",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setValidating(false);
+    }
+  };
+
   const onClear = async () => {
     setClearing(true);
     try {
       await clearAgentMockData(user.id);
+      setReport(null);
       toast({ title: "Mock data cleared" });
       refresh();
     } catch (err) {
