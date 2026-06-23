@@ -536,7 +536,15 @@ async function ensureCounterparties(admin: Admin) {
       } else {
         const { data: prop, error } = await admin
           .from("pledged_properties")
-          .insert({ agent_id: userId, ...p.details, source: "agent_pledge", status: "active", listed_at: new Date().toISOString() })
+          .insert({
+            agent_id: userId,
+            ...p.details,
+            source: "agent_pledge",
+            status: "active",
+            listed_at: new Date().toISOString(),
+            address_is_public: true,
+            owner_authorization_confirmed: true,
+          })
           .select("id")
           .single();
         if (error) throw error;
