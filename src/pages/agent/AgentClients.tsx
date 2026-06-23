@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Plus, Search, Users, Mail, Phone, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ interface Client {
 
 export default function AgentClients() {
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -32,6 +34,7 @@ export default function AgentClients() {
         .from("agent_clients")
         .select("id, client_name, client_email, client_phone, client_company, status, referred_by_platform")
         .eq("agent_id", user.id)
+        .eq("is_demo", isDemo)
         .order("created_at", { ascending: false });
 
       if (!data) { setLoading(false); return; }
@@ -40,7 +43,8 @@ export default function AgentClients() {
       const { data: exchanges } = await supabase
         .from("exchanges")
         .select("client_id")
-        .eq("agent_id", user.id);
+        .eq("agent_id", user.id)
+        .eq("is_demo", isDemo);
 
       const countMap: Record<string, number> = {};
       exchanges?.forEach((e) => { countMap[e.client_id] = (countMap[e.client_id] || 0) + 1; });
@@ -49,7 +53,7 @@ export default function AgentClients() {
       setLoading(false);
     };
     fetch();
-  }, [user]);
+  }, [user, isDemo]);
 
   const filtered = clients.filter((c) => {
     const q = search.toLowerCase();

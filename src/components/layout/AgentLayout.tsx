@@ -1,10 +1,12 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { getUnauthorizedRedirectPath } from "@/app/routes/routeGuards";
 import AgentTopNav from "./AgentTopNav";
 
 export default function AgentLayout() {
   const { user, loading, profileRole, hasRole } = useAuth();
+  const { isDemo } = useWorkspaceMode();
 
   if (loading) {
     return (
@@ -27,6 +29,11 @@ export default function AgentLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-[#F4F2EE]">
       <AgentTopNav />
+      {isDemo && (
+        <div className="bg-amber-500 px-4 py-1.5 text-center text-xs font-semibold text-white">
+          Demo workspace — sample data, kept completely separate from your live account.
+        </div>
+      )}
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
         <Outlet />
       </main>

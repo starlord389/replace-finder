@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Send, UserMinus, Copy, Check as CheckIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export default function AgentClientDetail() {
   const isNew = !id;
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -157,6 +159,7 @@ export default function AgentClientDetail() {
         client_phone: phone.trim() || null,
         client_company: company.trim() || null,
         notes: notes.trim() || null,
+        is_demo: isDemo,
       });
       setSaving(false);
       if (error) { toast.error("Failed to add client"); return; }

@@ -76,6 +76,10 @@ export async function computeMatchesForExchange(
 
   const exchange = exchangeRes.data;
   const property = propertyRes.data;
+  // Workspace isolation: a listing only ever matches candidates in the same
+  // workspace (demo↔demo, live↔live). This keeps demo sandbox data out of every
+  // real agent's matches, and vice versa.
+  const isDemo = Boolean(property?.is_demo);
 
   const [criteriaRes, propertyFinRes, relinquishedFinRes] = await Promise.all([
     exchange.criteria_id
@@ -98,6 +102,7 @@ export async function computeMatchesForExchange(
       .from("pledged_properties")
       .select("*")
       .eq("status", "active")
+      .eq("is_demo", isDemo)
       .neq("agent_id", userId);
 
     if (activeProperties?.length) {
@@ -130,6 +135,7 @@ export async function computeMatchesForExchange(
     .from("exchanges")
     .select("*, replacement_criteria(*)")
     .in("status", ["active", "in_identification", "in_closing"])
+    .eq("is_demo", isDemo)
     .neq("agent_id", userId);
 
   if (otherExchanges?.length) {

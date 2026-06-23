@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 import { resolveListingName } from "@/lib/listingDisplay";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 
 export type RelationshipStage =
   | "new"          // match exists, no connection yet (buyer side)
@@ -89,12 +90,13 @@ export interface Relationship {
   sellerAgentId: string | null;
 }
 
-async function fetchRelationships(userId: string): Promise<Relationship[]> {
-  // 1. My exchanges (for buyer-side matches)
+async function fetchRelationships(userId: string, isDemo: boolean): Promise<Relationship[]> {
+  // 1. My exchanges (for buyer-side matches) — scoped to the active workspace
   const { data: exchanges } = await supabase
     .from("exchanges")
     .select("id, client_id, relinquished_property_id")
-    .eq("agent_id", userId);
+    .eq("agent_id", userId)
+    .eq("is_demo", isDemo);
   const myExchangeIds = (exchanges ?? []).map((e) => e.id);
   const relinquishedIds = (exchanges ?? [])
     .map((e: any) => e.relinquished_property_id)
@@ -104,11 +106,12 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
     if (e.relinquished_property_id) exRelMap.set(e.id, e.relinquished_property_id);
   });
 
-  // 2. My pledged properties (for seller-side matches)
+  // 2. My pledged properties (for seller-side matches) — scoped to the workspace
   const { data: myProps } = await supabase
     .from("pledged_properties")
     .select("id, property_name")
-    .eq("agent_id", userId);
+    .eq("agent_id", userId)
+    .eq("is_demo", isDemo);
   const myPropertyIds = (myProps ?? []).map((p) => p.id);
 
 
@@ -373,11 +376,12 @@ async function fetchRelationships(userId: string): Promise<Relationship[]> {
 
 export function useUnifiedRelationships() {
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   const qc = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["unified-relationships", user?.id],
-    queryFn: () => fetchRelationships(user!.id),
+    queryKey: ["unified-relationships", user?.id, isDemo],
+    queryFn: () => fetchRelationships(user!.id, isDemo),
     enabled: !!user?.id,
   });
 

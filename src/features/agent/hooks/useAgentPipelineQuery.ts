@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 
 const CLOSED_WINDOW_DAYS = 30;
 
@@ -38,12 +39,14 @@ function bucketFrom(rows: ExchangeRow[]): PipelineBucket {
 
 async function fetchAgentPipeline(
   userId: string,
+  isDemo: boolean,
 ): Promise<AgentPipelineData> {
   const [exchangesRes, profileRes] = await Promise.all([
     supabase
       .from("exchanges")
       .select("id, status, exchange_proceeds, actual_close_date")
-      .eq("agent_id", userId),
+      .eq("agent_id", userId)
+      .eq("is_demo", isDemo),
     supabase
       .from("profiles")
       .select("brokerage_name")
@@ -87,9 +90,10 @@ async function fetchAgentPipeline(
 }
 
 export function useAgentPipelineQuery(userId?: string) {
+  const { isDemo } = useWorkspaceMode();
   return useQuery({
-    queryKey: ["agent-pipeline", userId],
-    queryFn: () => fetchAgentPipeline(userId!),
+    queryKey: ["agent-pipeline", userId, isDemo],
+    queryFn: () => fetchAgentPipeline(userId!, isDemo),
     enabled: Boolean(userId),
   });
 }

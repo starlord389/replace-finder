@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveListingName } from "@/lib/listingDisplay";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 
 export interface AgentListing {
   id: string;
@@ -21,13 +22,14 @@ export interface AgentListing {
   pipelineStageOverride: string | null;
 }
 
-async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
+async function fetchAgentListings(userId: string, isDemo: boolean): Promise<AgentListing[]> {
   const { data, error } = await supabase
     .from("exchanges")
     .select(
       "id, status, created_at, relinquished_property_id, client_id, identification_deadline, closing_deadline, pipeline_stage_override, agent_clients(client_name)"
     )
     .eq("agent_id", userId)
+    .eq("is_demo", isDemo)
     .order("created_at", { ascending: false });
   if (error) throw error;
 
@@ -130,9 +132,10 @@ async function fetchAgentListings(userId: string): Promise<AgentListing[]> {
 }
 
 export function useAgentListings(userId?: string) {
+  const { isDemo } = useWorkspaceMode();
   return useQuery({
-    queryKey: ["agent-listings", userId],
-    queryFn: () => fetchAgentListings(userId!),
+    queryKey: ["agent-listings", userId, isDemo],
+    queryFn: () => fetchAgentListings(userId!, isDemo),
     enabled: !!userId,
     staleTime: 30_000,
   });

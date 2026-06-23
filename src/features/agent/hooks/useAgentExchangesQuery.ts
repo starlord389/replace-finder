@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 
 export interface AgentExchangeRow {
   id: string;
@@ -14,7 +15,7 @@ export interface AgentExchangeRow {
   pledged_properties: { address: string | null; city: string | null; state: string | null } | null;
 }
 
-async function fetchAgentExchanges(userId: string): Promise<AgentExchangeRow[]> {
+async function fetchAgentExchanges(userId: string, isDemo: boolean): Promise<AgentExchangeRow[]> {
   // NOTE: pledged_properties is NOT embedded here because `exchanges` and
   // `pledged_properties` share two foreign keys (exchanges.relinquished_property_id
   // and pledged_properties.exchange_id), which makes PostgREST embeds ambiguous
@@ -26,6 +27,7 @@ async function fetchAgentExchanges(userId: string): Promise<AgentExchangeRow[]> 
       "id, status, exchange_proceeds, identification_deadline, closing_deadline, created_at, relinquished_property_id, client_id, agent_clients(client_name)"
     )
     .eq("agent_id", userId)
+    .eq("is_demo", isDemo)
     .order("created_at", { ascending: false });
 
 
@@ -73,9 +75,10 @@ async function fetchAgentExchanges(userId: string): Promise<AgentExchangeRow[]> 
 }
 
 export function useAgentExchangesQuery(userId?: string) {
+  const { isDemo } = useWorkspaceMode();
   return useQuery({
-    queryKey: ["agent-exchanges", userId],
-    queryFn: () => fetchAgentExchanges(userId!),
+    queryKey: ["agent-exchanges", userId, isDemo],
+    queryFn: () => fetchAgentExchanges(userId!, isDemo),
     enabled: Boolean(userId),
   });
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowLeftRight, Bell, CheckCheck, HelpCircle, LogOut, Menu, Settings, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
 import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
 
@@ -128,6 +129,26 @@ function NotificationsBell() {
   );
 }
 
+/** Live / Demo workspace switch (admin-only). Switching resets to the dashboard
+ *  so you never linger on a record that doesn't exist in the other workspace. */
+function WorkspaceToggle({ full = false }: { full?: boolean }) {
+  const { isDemo, setMode } = useWorkspaceMode();
+  const navigate = useNavigate();
+  const go = (m: "live" | "demo") => { setMode(m); navigate("/agent/dashboard"); };
+  return (
+    <div className={cn("flex items-center rounded-full border border-border bg-muted/40 p-0.5 text-xs font-semibold", full && "w-full")}>
+      <button type="button" onClick={() => go("live")}
+        className={cn("flex-1 rounded-full px-3 py-1 transition-colors", !isDemo ? "bg-emerald-600 text-white" : "text-muted-foreground hover:text-foreground")}>
+        Live
+      </button>
+      <button type="button" onClick={() => go("demo")}
+        className={cn("flex-1 rounded-full px-3 py-1 transition-colors", isDemo ? "bg-amber-500 text-white" : "text-muted-foreground hover:text-foreground")}>
+        Demo
+      </button>
+    </div>
+  );
+}
+
 export default function AgentTopNav() {
   const { user, signOut, profileName, hasRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -175,6 +196,7 @@ export default function AgentTopNav() {
         <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
           {/* Desktop right cluster */}
           <div className="hidden items-center gap-2 md:flex">
+            {hasRole("admin") && <WorkspaceToggle />}
             <NotificationsBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -240,6 +262,11 @@ export default function AgentTopNav() {
                       {profileName || user?.email}
                     </p>
                   </div>
+                  {hasRole("admin") && (
+                    <div className="border-b px-3 py-3">
+                      <WorkspaceToggle full />
+                    </div>
+                  )}
                   <nav className="flex-1 space-y-1 overflow-y-auto p-3">
                     {PRIMARY_NAV.map((item) => {
                       const forcedActive = item.activeMatch?.test(location.pathname);

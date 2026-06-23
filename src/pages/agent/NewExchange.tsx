@@ -9,6 +9,7 @@ import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
 import StepReview from "@/components/exchange/StepReview";
 import { useCreateExchange } from "@/features/exchanges/hooks/useCreateExchange";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { trackEvent } from "@/lib/telemetry";
 
 // The Criteria step was removed — the platform now matches automatically on the
@@ -19,6 +20,7 @@ const MOBILE_STEP_LABELS = ["Client", "Property", "Review"];
 
 export default function NewExchange() {
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   const navigate = useNavigate();
   const createExchange = useCreateExchange();
   const [searchParams] = useSearchParams();
@@ -43,7 +45,7 @@ export default function NewExchange() {
     if (!user) return;
     setSaving(true);
     try {
-      const result = await createExchange.mutateAsync({ data, activate, clientName });
+      const result = await createExchange.mutateAsync({ data, activate, clientName, isDemo });
       if (activate) {
         toast.success("Exchange activated and matching queued.");
         trackEvent("matching_invoked", { exchangeId: result.exchange_id, source: "create-exchange" });

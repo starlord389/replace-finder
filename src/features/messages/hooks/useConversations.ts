@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { resolveListingName } from "@/lib/listingDisplay";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 
 export interface Conversation {
   connectionId: string;
@@ -22,7 +23,7 @@ export interface Conversation {
   unreadCount: number;
 }
 
-async function fetchConversations(userId: string): Promise<Conversation[]> {
+async function fetchConversations(userId: string, isDemo: boolean): Promise<Conversation[]> {
   const { data: connections, error } = await supabase
     .from("exchange_connections")
     .select("*")
@@ -54,7 +55,7 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
   const propertyIds = Array.from(new Set((matchesRes.data ?? []).map((m) => m.seller_property_id)));
   const { data: properties } = await supabase
     .from("pledged_properties")
-    .select("id, property_name, address, address_is_public, city, state, asset_type, agent_id")
+    .select("id, property_name, address, address_is_public, city, state, asset_type, agent_id, is_demo")
     .in("id", propertyIds);
 
   const profilesMap = new Map((profilesRes.data ?? []).map((p) => [p.id, p]));
@@ -71,6 +72,13 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
   }
 
   return connections
+    // Scope to the active workspace: a conversation belongs to demo or live
+    // based on the property it's about (mock counterparty properties are demo).
+    .filter((c) => {
+      const match = matchesMap.get(c.match_id);
+      const prop = match ? propsMap.get(match.seller_property_id) : null;
+      return prop ? Boolean((prop as any).is_demo) === isDemo : !isDemo;
+    })
     .map((c): Conversation => {
       const counterpartyId = c.buyer_agent_id === userId ? c.seller_agent_id : c.buyer_agent_id;
       const profile = profilesMap.get(counterpartyId);
@@ -106,9 +114,10 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
 
 export function useConversations() {
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   const query = useQuery({
-    queryKey: ["conversations", user?.id],
-    queryFn: () => fetchConversations(user!.id),
+    queryKey: ["conversations", user?.id, isDemo],
+    queryFn: () => fetchConversations(user!.id, isDemo),
     enabled: !!user?.id,
   });
 

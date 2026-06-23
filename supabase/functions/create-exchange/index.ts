@@ -14,6 +14,7 @@ type NumericLike = number | null;
 interface CreateExchangePayload {
   clientId: string;
   activate: boolean;
+  isDemo?: boolean;
   property: Record<string, unknown>;
   financials: Record<string, NumericLike | string | boolean | null>;
   criteria: Record<string, NumericLike | string | string[] | boolean | null>;
@@ -91,6 +92,8 @@ Deno.serve(async (req) => {
         description: stringOrNull(payload.property.description),
         // Compliance: agent attests they have authorization to market the property.
         owner_authorization_confirmed: boolOrFalse(payload.property.owner_authorization_confirmed),
+        // Workspace stamp: demo sandbox vs live.
+        is_demo: payload.isDemo === true,
         status: payload.activate ? "active" : "draft",
         source: "agent_pledge",
         listed_at: payload.activate ? new Date().toISOString() : null,
@@ -131,6 +134,7 @@ Deno.serve(async (req) => {
           relinquished_property_id: propertyId,
           exchange_proceeds: numberOrNull(payload.financials.exchange_proceeds),
           estimated_equity: numberOrNull(payload.financials.estimated_equity),
+          is_demo: payload.isDemo === true,
           status: "draft",
         })
         .select("id")

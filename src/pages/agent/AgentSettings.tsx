@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,7 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 
 export default function AgentSettings() {
   const { user, profileName, signOut } = useAuth();
+  const { isDemo } = useWorkspaceMode();
 
   const [email, setEmail] = useState("");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -200,9 +202,9 @@ export default function AgentSettings() {
     try {
       const [profile, clients, exchanges, properties, connections] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).single(),
-        supabase.from("agent_clients").select("*").eq("agent_id", user.id),
-        supabase.from("exchanges").select("*").eq("agent_id", user.id),
-        supabase.from("pledged_properties").select("*").eq("agent_id", user.id),
+        supabase.from("agent_clients").select("*").eq("agent_id", user.id).eq("is_demo", isDemo),
+        supabase.from("exchanges").select("*").eq("agent_id", user.id).eq("is_demo", isDemo),
+        supabase.from("pledged_properties").select("*").eq("agent_id", user.id).eq("is_demo", isDemo),
         supabase.from("exchange_connections").select("*").or(`buyer_agent_id.eq.${user.id},seller_agent_id.eq.${user.id}`),
       ]);
       const payload = {

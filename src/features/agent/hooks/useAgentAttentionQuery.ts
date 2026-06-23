@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { differenceInDays, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveListingName } from "@/lib/listingDisplay";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 
 const URGENT_WINDOW_DAYS = 14;
 const LIST_LIMIT = 5;
@@ -41,14 +42,15 @@ export interface AgentAttentionData {
   isEmpty: boolean;
 }
 
-async function fetchAgentAttention(userId: string): Promise<AgentAttentionData> {
+async function fetchAgentAttention(userId: string, isDemo: boolean): Promise<AgentAttentionData> {
   const [exchangesRes, connectionsRes] = await Promise.all([
     supabase
       .from("exchanges")
       .select(
         "id, client_id, status, identification_deadline, closing_deadline, agent_clients(client_name)",
       )
-      .eq("agent_id", userId),
+      .eq("agent_id", userId)
+      .eq("is_demo", isDemo),
     supabase
       .from("exchange_connections")
       .select(
@@ -263,9 +265,10 @@ async function fetchAgentAttention(userId: string): Promise<AgentAttentionData> 
 }
 
 export function useAgentAttentionQuery(userId?: string) {
+  const { isDemo } = useWorkspaceMode();
   return useQuery({
-    queryKey: ["agent-attention", userId],
-    queryFn: () => fetchAgentAttention(userId!),
+    queryKey: ["agent-attention", userId, isDemo],
+    queryFn: () => fetchAgentAttention(userId!, isDemo),
     enabled: Boolean(userId),
   });
 }

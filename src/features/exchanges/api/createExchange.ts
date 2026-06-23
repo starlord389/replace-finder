@@ -6,6 +6,8 @@ export interface CreateExchangeRequest {
   data: WizardState;
   activate: boolean;
   clientName?: string;
+  /** Stamp the new listing for the active workspace (demo sandbox vs live). */
+  isDemo?: boolean;
 }
 
 export interface CreateExchangeResponse {
@@ -64,6 +66,7 @@ export async function createExchange(request: CreateExchangeRequest): Promise<Cr
       clientId: request.data.selectedClientId,
       activate: request.activate,
       clientName: request.clientName,
+      isDemo: request.isDemo ?? false,
       ...normalized,
     },
   });
