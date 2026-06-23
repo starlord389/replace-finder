@@ -617,7 +617,17 @@ async function seedAll(admin: Admin, userId: string) {
   // Own listings
   const { data: properties, error: propErr } = await admin
     .from("pledged_properties")
-    .insert(OWN_PROPERTIES.map((p) => ({ ...p.details, agent_id: userId, source: "agent_pledge", status: "active", listed_at: new Date().toISOString() })))
+    .insert(OWN_PROPERTIES.map((p, i) => ({
+      ...p.details,
+      agent_id: userId,
+      source: "agent_pledge",
+      status: "active",
+      listed_at: new Date().toISOString(),
+      // Mix it up: most listings expose the address, one keeps it private to
+      // exercise the "address hidden" UI state for matched agents.
+      address_is_public: i !== 1,
+      owner_authorization_confirmed: true,
+    })))
     .select("id, property_name");
   if (propErr) throw propErr;
 
