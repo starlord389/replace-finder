@@ -942,6 +942,87 @@ async function seedAll(admin: Admin, userId: string) {
   };
 }
 
+// Globally wipe ALL mock seed data + mock counterparty auth users.
+// Used once to reset every workspace; safe to re-run (idempotent).
+async function wipeAllMock(admin: Admin) {
+  // 1. Find mock counterparty user ids by email pattern.
+  const { data: mockUsers } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const mockUserIds: string[] = (mockUsers?.users ?? [])
+    .filter((u: { email?: string }) => u.email?.endsWith("@replacefinder.test") ?? false)
+    .map((u: { id: string }) => u.id);
+
+  // 2. Find mock pledged_properties (owned by mock agents OR description tagged).
+  const propertyIds = new Set<string>();
+  if (mockUserIds.length) {
+    const { data } = await admin.from("pledged_properties").select("id").in("agent_id", mockUserIds);
+    for (const r of data ?? []) propertyIds.add(r.id);
+  }
+  const { data: taggedProps } = await admin.from("pledged_properties").select("id").ilike("description", `%${MOCK_TAG}%`);
+  for (const r of taggedProps ?? []) propertyIds.add(r.id);
+
+  // 3. Find mock agent_clients (notes tagged) and mock exchanges (by mock client OR mock property).
+  const { data: mockClients } = await admin.from("agent_clients").select("id, agent_id").ilike("notes", `%${MOCK_TAG}%`);
+  const mockClientIds = (mockClients ?? []).map((c: { id: string }) => c.id);
+  const ownerAgentIds = Array.from(new Set((mockClients ?? []).map((c: { agent_id: string }) => c.agent_id)));
+
+  const exchangeIds = new Set<string>();
+  if (mockClientIds.length) {
+    const { data } = await admin.from("exchanges").select("id").in("client_id", mockClientIds);
+    for (const r of data ?? []) exchangeIds.add(r.id);
+  }
+  if (propertyIds.size) {
+    const { data } = await admin.from("exchanges").select("id").in("relinquished_property_id", Array.from(propertyIds));
+    for (const r of data ?? []) exchangeIds.add(r.id);
+  }
+  const exIds = Array.from(exchangeIds);
+  const propIds = Array.from(propertyIds);
+
+  // 4. Delete dependents in FK-safe order.
+  if (exIds.length) {
+    const { data: conns } = await admin.from("exchange_connections").select("id").in("buyer_exchange_id", exIds);
+    const connIds = (conns ?? []).map((c: { id: string }) => c.id);
+    if (connIds.length) {
+      await admin.from("messages").delete().in("connection_id", connIds);
+      await admin.from("exchange_connections").delete().in("id", connIds);
+    }
+    await admin.from("matches").delete().in("buyer_exchange_id", exIds);
+    await admin.from("identification_list").delete().in("exchange_id", exIds);
+    await admin.from("exchange_timeline").delete().in("exchange_id", exIds);
+    await admin.from("exchanges").update({ relinquished_property_id: null, criteria_id: null }).in("id", exIds);
+    await admin.from("replacement_criteria").delete().in("exchange_id", exIds);
+    await admin.from("exchanges").delete().in("id", exIds);
+  }
+  // Catch any orphan matches referencing mock properties.
+  if (propIds.length) {
+    await admin.from("matches").delete().in("seller_property_id", propIds);
+    await admin.from("property_financials").delete().in("property_id", propIds);
+    await admin.from("property_images").delete().in("property_id", propIds);
+    await admin.from("property_documents").delete().in("property_id", propIds);
+    await admin.from("pledged_properties").delete().in("id", propIds);
+  }
+  if (mockClientIds.length) {
+    await admin.from("agent_clients").delete().in("id", mockClientIds);
+  }
+  // Notifications tagged with the mock marker (any user).
+  await admin.from("notifications").delete().filter("metadata->>tag", "eq", MOCK_TAG);
+  // Notifications belonging to the agents who owned mock clients (catches title-only mock notifs).
+  if (ownerAgentIds.length) {
+    await admin.from("notifications").delete().in("user_id", ownerAgentIds);
+  }
+
+  // 5. Remove mock counterparty auth users (cascades profiles + user_roles).
+  for (const id of mockUserIds) {
+    try { await admin.auth.admin.deleteUser(id); } catch (e) { console.warn("deleteUser failed", id, e); }
+  }
+
+  return {
+    mock_users_deleted: mockUserIds.length,
+    properties_deleted: propIds.length,
+    exchanges_deleted: exIds.length,
+    clients_deleted: mockClientIds.length,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -952,57 +1033,52 @@ Deno.serve(async (req) => {
     );
 
     let action = "counterparties-only";
-    let targetUserId: string | null = null;
     try {
       const body = await req.json();
       if (body?.action) action = body.action;
-      if (body?.target_user_id) targetUserId = body.target_user_id;
     } catch {
       // empty body - default action
     }
 
-    if (action === "seed-all" || action === "clear-all") {
-      const jwt = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
-      let callerId: string | null = null;
-      // Decode JWT payload (no verification - gateway already verified)
-      let jwtRole: string | null = null;
-      try {
-        const payload = jwt.split(".")[1];
-        if (payload) {
-          const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-          jwtRole = decoded?.role ?? null;
-        }
-      } catch { /* not a JWT */ }
-      if (targetUserId && jwtRole === "service_role") {
-        callerId = targetUserId;
-      } else {
+    // Every action is now owner-gated. Decode JWT and check the caller's email.
+    const jwt = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
+    const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
+    const caller = userData?.user;
+    if (userErr || !caller) {
+      return new Response(JSON.stringify({ version: SEED_VERSION, error: "Not authenticated" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if ((caller.email ?? "").toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
+      return new Response(JSON.stringify({ version: SEED_VERSION, error: "Seed data is restricted to the platform owner." }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = caller.id;
 
-
-        const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
-        const caller = userData?.user;
-        if (userErr || !caller) {
-          return new Response(JSON.stringify({ version: SEED_VERSION, error: "Not authenticated" }), {
-            status: 401,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        callerId = caller.id;
-      }
-
-      if (action === "clear-all") {
-        await clearAll(admin, callerId!);
-        return new Response(JSON.stringify({ version: SEED_VERSION, cleared: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      await clearAll(admin, callerId!);
-      const counts = await seedAll(admin, callerId!);
-      return new Response(JSON.stringify({ version: SEED_VERSION, seeded: counts }), {
+    if (action === "wipe-all-mock") {
+      const result = await wipeAllMock(admin);
+      return new Response(JSON.stringify({ version: SEED_VERSION, wiped: result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    if (action === "clear-all") {
+      await clearAll(admin, callerId);
+      return new Response(JSON.stringify({ version: SEED_VERSION, cleared: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "seed-all") {
+      await clearAll(admin, callerId);
+      const counts = await seedAll(admin, callerId);
+      return new Response(JSON.stringify({ version: SEED_VERSION, seeded: counts }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { counterparties } = await ensureCounterparties(admin);
     return new Response(JSON.stringify({ version: SEED_VERSION, counterparties }), {
@@ -1010,7 +1086,6 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("seed-counterparty-agents error", err);
-    // Postgres errors from supabase-js are plain objects - serialize fully
     const detail = err instanceof Error
       ? err.message
       : (() => { try { return JSON.stringify(err); } catch { return String(err); } })();
