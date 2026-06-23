@@ -24,7 +24,7 @@ import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunch
 import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRelationships";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { getAgentVerificationUiState } from "@/lib/agentVerification";
-import SeedMockDataPanel from "@/features/dev/SeedMockDataPanel";
+
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
 import { cn } from "@/lib/utils";
 
@@ -835,8 +835,6 @@ export default function AgentDashboard() {
           <DeadlineRail exchanges={exchanges} />
         </aside>
       </div>
-
-      <SeedMockDataPanel />
     </div>
   );
 }
