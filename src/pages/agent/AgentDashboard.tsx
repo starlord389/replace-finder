@@ -836,7 +836,7 @@ export default function AgentDashboard() {
         </aside>
       </div>
 
-      {import.meta.env.DEV && <SeedMockDataPanel />}
+      <SeedMockDataPanel />
     </div>
   );
 }
