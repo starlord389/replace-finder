@@ -1302,7 +1302,15 @@ Deno.serve(async (req) => {
     if (action === "seed-all") {
       await clearAll(admin, callerId);
       const counts = await seedAll(admin, callerId);
-      return new Response(JSON.stringify({ version: SEED_VERSION, seeded: counts }), {
+      const validation = await validateSeed(admin, callerId);
+      return new Response(JSON.stringify({ version: SEED_VERSION, seeded: counts, validation }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "validate") {
+      const validation = await validateSeed(admin, callerId);
+      return new Response(JSON.stringify({ version: SEED_VERSION, validation }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
