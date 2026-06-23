@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Database, Loader2, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Database, Loader2, ShieldCheck, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { seedAgentMockData } from "./seedMockData";
+import { seedAgentMockData, validateAgentMockData, type SeedValidationReport } from "./seedMockData";
 import { clearAgentMockData } from "./clearMockData";
 
 export default function SeedMockDataPanel() {
