@@ -877,6 +877,50 @@ async function seedAll(admin: Admin, userId: string) {
     if (msgErr) throw msgErr;
   }
 
+  // Identified replacements for the in-identification exchange (Wilson)
+  const idListPayload = [
+    {
+      exchange_id: exWilson,
+      property_id: crosspoint.propertyId,
+      rank: 1,
+      identified_at: isoDaysAgo(2),
+      notes: `${MOCK_TAG} Top candidate - assumable note aligns with debt replacement.`,
+    },
+    {
+      exchange_id: exWilson,
+      property_id: lakeline.propertyId,
+      rank: 2,
+      identified_at: isoDaysAgo(1),
+      notes: `${MOCK_TAG} Backup - higher cap rate but value-add execution risk.`,
+    },
+  ];
+  const { error: idErr } = await admin.from("identification_list").insert(idListPayload);
+  if (idErr) throw idErr;
+
+  // Exchange timeline events for each active/identification/closing/completed exchange
+  const timelinePayload = [
+    { exchange_id: exchanges![1].id, event_type: "created",          description: "Exchange created for Marcus Rodriguez LLC.",       actor_id: userId, created_at: isoDaysAgo(45) },
+    { exchange_id: exchanges![1].id, event_type: "property_pledged", description: "Heights Multifamily 24 pledged to the network.",    actor_id: userId, created_at: isoDaysAgo(40) },
+    { exchange_id: exchanges![1].id, event_type: "sale_closed",      description: "Relinquished property sold - 45/180 clock started.", actor_id: userId, created_at: isoDaysAgo(20) },
+    { exchange_id: exchanges![2].id, event_type: "created",          description: "Exchange created for the Patel Family Trust.",      actor_id: userId, created_at: isoDaysAgo(35) },
+    { exchange_id: exchanges![2].id, event_type: "property_pledged", description: "Coral Way Retail Center pledged to the network.",   actor_id: userId, created_at: isoDaysAgo(30) },
+    { exchange_id: exchanges![2].id, event_type: "sale_closed",      description: "Relinquished property sold - 45/180 clock started.", actor_id: userId, created_at: isoDaysAgo(10) },
+    { exchange_id: exWilson,         event_type: "created",          description: "Exchange created for James Wilson.",                 actor_id: userId, created_at: isoDaysAgo(60) },
+    { exchange_id: exWilson,         event_type: "property_pledged", description: "Desert Ridge Industrial pledged to the network.",    actor_id: userId, created_at: isoDaysAgo(55) },
+    { exchange_id: exWilson,         event_type: "sale_closed",      description: "Relinquished property sold - 45/180 clock started.", actor_id: userId, created_at: isoDaysAgo(36) },
+    { exchange_id: exWilson,         event_type: "property_identified", description: "Crosspoint Industrial identified as #1 candidate.", actor_id: userId, created_at: isoDaysAgo(2) },
+    { exchange_id: exWilson,         event_type: "property_identified", description: "Lakeline Flex Park identified as #2 candidate.",   actor_id: userId, created_at: isoDaysAgo(1) },
+    { exchange_id: exchanges![4].id, event_type: "created",          description: "Exchange created for Aurora Holdings.",              actor_id: userId, created_at: isoDaysAgo(90) },
+    { exchange_id: exchanges![4].id, event_type: "sale_closed",      description: "Triangle Office Park sold - 45/180 clock started.",  actor_id: userId, created_at: isoDaysAgo(60) },
+    { exchange_id: exchanges![4].id, event_type: "property_identified", description: "Replacement identified within 45-day window.",     actor_id: userId, created_at: isoDaysAgo(45) },
+    { exchange_id: exchanges![4].id, event_type: "under_contract",   description: "Replacement under contract; closing scheduled.",     actor_id: userId, created_at: isoDaysAgo(20) },
+    { exchange_id: exchanges![5].id, event_type: "created",          description: "Prior exchange for Sarah Chen.",                     actor_id: userId, created_at: isoDaysAgo(210) },
+    { exchange_id: exchanges![5].id, event_type: "sale_closed",      description: "Relinquished property sold.",                        actor_id: userId, created_at: isoDaysAgo(180) },
+    { exchange_id: exchanges![5].id, event_type: "completed",        description: "Replacement closed - exchange complete.",            actor_id: userId, created_at: isoDaysAgo(8) },
+  ];
+  const { error: tlErr } = await admin.from("exchange_timeline").insert(timelinePayload);
+  if (tlErr) throw tlErr;
+
   // Notifications
   const notifPayload = [
     { user_id: userId, type: "new_match",           title: "Strong new match - score 94",      message: "Sunrise Apartments (Phoenix, AZ) matched Marcus Rodriguez LLC's exchange.",         link_to: "/agent/matches",  read: false, metadata: { tag: MOCK_TAG } },
