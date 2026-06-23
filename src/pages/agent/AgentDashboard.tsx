@@ -22,6 +22,7 @@ import { useAgentExchangesQuery } from "@/features/agent/hooks/useAgentExchanges
 import { useAgentClientsCount } from "@/features/agent/hooks/useAgentClientsCount";
 import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
 import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRelationships";
+import { DemoDataControls } from "@/features/workspace/components/DemoDataControls";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { getAgentVerificationUiState } from "@/lib/agentVerification";
 
@@ -440,6 +441,7 @@ export default function AgentDashboard() {
 
   return (
     <div className="space-y-6">
+      <DemoDataControls />
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
