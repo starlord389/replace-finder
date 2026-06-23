@@ -230,8 +230,8 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     for (const p of cp.properties) {
       const { data: prop } = await db.from("pledged_properties").insert({ agent_id: cpId, ...p.details, is_demo: true, source: "agent_pledge", status: "active", listed_at: new Date().toISOString() }).select("id").single();
       propByName[p.details.property_name] = prop.id;
-      await db.from("property_financials").insert({ property_id: prop.id, ...p.financials });
-      await db.from("property_images").insert({ property_id: prop.id, storage_path: p.image, file_name: "cover.jpg", sort_order: 0 });
+      await mustInsert(db, "property_financials", { property_id: prop.id, ...p.financials });
+      await mustInsert(db, "property_images", { property_id: prop.id, storage_path: p.image, file_name: "cover.jpg", sort_order: 0 });
     }
   }
 
@@ -240,8 +240,8 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   for (const o of OWN) {
     const { data: client } = await db.from("agent_clients").insert({ agent_id: ownerId, ...o.client, is_demo: true, status: "active" }).select("id").single();
     const { data: prop } = await db.from("pledged_properties").insert({ agent_id: ownerId, ...o.property.details, is_demo: true, source: "agent_pledge", status: "active", listed_at: new Date().toISOString() }).select("id").single();
-    await db.from("property_financials").insert({ property_id: prop.id, ...o.property.financials });
-    await db.from("property_images").insert({ property_id: prop.id, storage_path: o.property.image, file_name: "cover.jpg", sort_order: 0 });
+    await mustInsert(db, "property_financials", { property_id: prop.id, ...o.property.financials });
+    await mustInsert(db, "property_images", { property_id: prop.id, storage_path: o.property.image, file_name: "cover.jpg", sort_order: 0 });
 
     // Exchange first, then criteria referencing it, then link them (matches the
     // order create-exchange uses, so replacement_criteria.exchange_id is never null).
@@ -262,14 +262,15 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     { buyer_exchange_id: patel, seller_property_id: propByName["Crosspoint Industrial"], total_score: 88, ...factors(88), boot_status: "no_boot", buyer_current_roe: 0.058, candidate_roe: 0.089, roe_improvement_pp: 3.1, roe_improvement_rel: 0.53, candidate_annual_debt_service: 119_369 },
     { buyer_exchange_id: patel, seller_property_id: propByName["Sunrise Apartments"], total_score: 73, ...factors(73), boot_status: "no_boot", buyer_current_roe: 0.058, candidate_roe: 0.076, roe_improvement_pp: 1.8, roe_improvement_rel: 0.31, candidate_annual_debt_service: 199_512 },
   ].map((m) => ({ ...m, buyer_agent_viewed: false, status: "active" }));
-  const { data: matches } = await db.from("matches").insert(matchRows).select("id, seller_property_id");
+  const { data: matches, error: matchErr } = await db.from("matches").insert(matchRows).select("id, seller_property_id");
+  if (matchErr) throw new Error(`matches insert failed: ${matchErr.message}`);
 
   // One accepted connection + a short message thread, on the Crosspoint match.
   const crosspointMatch = (matches ?? []).find((m: any) => m.seller_property_id === propByName["Crosspoint Industrial"]);
   if (crosspointMatch) {
     const sellerAgentId = (await db.from("pledged_properties").select("agent_id").eq("id", propByName["Crosspoint Industrial"]).single()).data.agent_id;
     const { data: conn } = await db.from("exchange_connections").insert({ match_id: crosspointMatch.id, buyer_agent_id: ownerId, seller_agent_id: sellerAgentId, buyer_exchange_id: patel, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: new Date().toISOString(), facilitation_fee_agreed: true, facilitation_fee_status: "pending" }).select("id").single();
-    await db.from("messages").insert([
+    await mustInsert(db, "messages", [
       { connection_id: conn.id, sender_id: sellerAgentId, content: "Thanks for connecting — Crosspoint is a great industrial 1031 fit. Happy to send the OM." },
       { connection_id: conn.id, sender_id: ownerId, content: "Appreciate it. My client is on a tight ID clock — can you send the T-12 and rent roll?" },
       { connection_id: conn.id, sender_id: sellerAgentId, content: "Sending now. Loan is assumable at 5.4% if that helps the debt replacement." },
@@ -281,5 +282,10 @@ async function buildOwnerDemo(db: any, ownerId: string) {
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}
+// Insert that surfaces failures instead of silently swallowing them.
+async function mustInsert(db: any, table: string, rows: any) {
+  const { error } = await db.from(table).insert(rows);
+  if (error) throw new Error(`${table} insert failed: ${error.message}`);
 }
 function daysFromNow(d: number) { const x = new Date(); x.setDate(x.getDate() + d); return x.toISOString().slice(0, 10); }
