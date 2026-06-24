@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Building2, MapPin, Plus } from "lucide-react";
@@ -7,15 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS } from "@/lib/constants";
 import { resolveListingName } from "@/lib/listingDisplay";
+import { ListingPreviewDialog } from "@/features/workspace/components/ListingPreviewDialog";
+import type { AgentListing } from "@/features/pipeline/hooks/useAgentListings";
 import type { Enums } from "@/integrations/supabase/types";
 
 interface Props {
   clientId: string;
+  clientName: string | null;
 }
 
 interface ListingRow {
   exchangeId: string;
   exchangeStatus: string;
+  createdAt: string;
   propertyId: string | null;
   propertyName: string | null;
   address: string | null;
@@ -46,6 +51,7 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
     return exchanges.map((e) => ({
       exchangeId: e.id,
       exchangeStatus: e.status as string,
+      createdAt: e.created_at,
       propertyId: null,
       propertyName: null,
       address: null,
@@ -94,6 +100,7 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
     return {
       exchangeId: e.id,
       exchangeStatus: e.status as string,
+      createdAt: e.created_at,
       propertyId: e.relinquished_property_id,
       // Agent's own client listing → they always see the exact address.
       propertyName: prop ? resolveListingName(prop, true) : null,
@@ -117,7 +124,29 @@ function fmtPrice(v: number | null) {
   return `$${v.toLocaleString()}`;
 }
 
-export function ClientPropertyCards({ clientId }: Props) {
+// Shape a client listing into the AgentListing the preview dialog expects, so
+// clicking a card opens the SAME investor-preview popup as the Listings tab.
+function toAgentListing(l: ListingRow, clientId: string, clientName: string | null): AgentListing {
+  return {
+    id: l.exchangeId,
+    status: l.exchangeStatus,
+    createdAt: l.createdAt,
+    clientId,
+    clientName,
+    propertyId: l.propertyId,
+    propertyName: l.propertyName,
+    address: l.address,
+    city: l.city,
+    state: l.state,
+    assetType: l.assetType,
+    strategyType: null,
+    askingPrice: l.askingPrice,
+    pipelineStageOverride: null,
+  };
+}
+
+export function ClientPropertyCards({ clientId, clientName }: Props) {
+  const [previewListing, setPreviewListing] = useState<AgentListing | null>(null);
   const { data: listings = [], isLoading } = useQuery({
     queryKey: ["client-listings", clientId],
     queryFn: () => fetchListings(clientId),
@@ -152,11 +181,17 @@ export function ClientPropertyCards({ clientId }: Props) {
   }
 
   return (
+    <>
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {listings.map((l) => {
         const loc = [l.city, l.state].filter(Boolean).join(", ");
         return (
-          <Link key={l.exchangeId} to={`/agent/workspace/${l.exchangeId}`}>
+          <button
+            key={l.exchangeId}
+            type="button"
+            onClick={() => setPreviewListing(toAgentListing(l, clientId, clientName))}
+            className="block w-full text-left"
+          >
             <Card className="overflow-hidden transition-all hover:shadow-md">
               <div className="relative aspect-[16/10] bg-muted">
                 {l.coverUrl ? (
@@ -209,9 +244,16 @@ export function ClientPropertyCards({ clientId }: Props) {
                 )}
               </CardContent>
             </Card>
-          </Link>
+          </button>
         );
       })}
     </div>
+
+    <ListingPreviewDialog
+      listing={previewListing}
+      open={previewListing !== null}
+      onOpenChange={(o) => !o && setPreviewListing(null)}
+    />
+    </>
   );
 }

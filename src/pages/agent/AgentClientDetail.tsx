@@ -44,7 +44,6 @@ export default function AgentClientDetail() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [company, setCompany] = useState("");
   const [notes, setNotes] = useState("");
   const [clientUserId, setClientUserId] = useState<string | null>(null);
   const [status, setStatus] = useState("active");
@@ -75,7 +74,6 @@ export default function AgentClientDetail() {
       setName(data.client_name);
       setEmail(data.client_email ?? "");
       setPhone(data.client_phone ?? "");
-      setCompany(data.client_company ?? "");
       setNotes(data.notes ?? "");
       setClientUserId(data.client_user_id);
       setStatus(data.status);
@@ -157,7 +155,6 @@ export default function AgentClientDetail() {
         client_name: name.trim(),
         client_email: email.trim() || null,
         client_phone: phone.trim() || null,
-        client_company: company.trim() || null,
         notes: notes.trim() || null,
         is_demo: isDemo,
       });
@@ -170,7 +167,6 @@ export default function AgentClientDetail() {
         client_name: name.trim(),
         client_email: email.trim() || null,
         client_phone: phone.trim() || null,
-        client_company: company.trim() || null,
         notes: notes.trim() || null,
       }).eq("id", id);
       setSaving(false);
@@ -217,10 +213,6 @@ export default function AgentClientDetail() {
             <div className="space-y-2">
               <Label htmlFor="phone">Phone *</Label>
               <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
-              <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>

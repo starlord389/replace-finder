@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, Users, Mail, Phone, Building2 } from "lucide-react";
+import { Plus, Search, Users, Mail, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
@@ -14,7 +14,6 @@ interface Client {
   client_name: string;
   client_email: string | null;
   client_phone: string | null;
-  client_company: string | null;
   status: string;
   referred_by_platform: boolean;
   exchangeCount?: number;
@@ -32,7 +31,7 @@ export default function AgentClients() {
     const fetch = async () => {
       const { data } = await supabase
         .from("agent_clients")
-        .select("id, client_name, client_email, client_phone, client_company, status, referred_by_platform")
+        .select("id, client_name, client_email, client_phone, status, referred_by_platform")
         .eq("agent_id", user.id)
         .eq("is_demo", isDemo)
         .order("created_at", { ascending: false });
@@ -59,8 +58,7 @@ export default function AgentClients() {
     const q = search.toLowerCase();
     return (
       c.client_name.toLowerCase().includes(q) ||
-      (c.client_email?.toLowerCase().includes(q) ?? false) ||
-      (c.client_company?.toLowerCase().includes(q) ?? false)
+      (c.client_email?.toLowerCase().includes(q) ?? false)
     );
   });
 
@@ -104,7 +102,7 @@ export default function AgentClients() {
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by name, email, or company..."
+              placeholder="Search by name or email..."
               className="pl-9"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -132,9 +130,6 @@ export default function AgentClients() {
                         )}
                         {c.client_phone && (
                           <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {c.client_phone}</span>
-                        )}
-                        {c.client_company && (
-                          <span className="inline-flex items-center gap-1"><Building2 className="h-3 w-3" /> {c.client_company}</span>
                         )}
                       </div>
                     </div>

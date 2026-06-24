@@ -21,7 +21,6 @@ interface Client {
   client_name: string;
   client_email: string | null;
   client_phone: string | null;
-  client_company: string | null;
   status: string;
 }
 
@@ -56,7 +55,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showNew, setShowNew] = useState(false);
-  const [newClient, setNewClient] = useState({ name: "", email: "", phone: "", company: "" });
+  const [newClient, setNewClient] = useState({ name: "", email: "", phone: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -68,7 +67,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
       setLoading(true);
       const { data, error } = await supabase
         .from("agent_clients")
-        .select("id, client_name, client_email, client_phone, client_company, status")
+        .select("id, client_name, client_email, client_phone, status")
         .eq("agent_id", user.id)
         .order("client_name", { ascending: true });
 
@@ -97,7 +96,6 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
     return base.filter(c =>
       c.client_name.toLowerCase().includes(q) ||
       (c.client_email?.toLowerCase().includes(q) ?? false) ||
-      (c.client_company?.toLowerCase().includes(q) ?? false) ||
       (c.client_phone?.toLowerCase().includes(q) ?? false)
     );
   }, [activeClients, inactiveClients, search]);
@@ -110,8 +108,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
       client_name: newClient.name.trim(),
       client_email: newClient.email.trim() || null,
       client_phone: newClient.phone.trim() || null,
-      client_company: newClient.company.trim() || null,
-    }).select("id, client_name, client_email, client_phone, client_company, status").single();
+    }).select("id, client_name, client_email, client_phone, status").single();
     setSaving(false);
     if (error || !data) {
       console.error("Failed to add client:", error);
@@ -121,7 +118,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
     setClients(prev => [...prev, data]);
     onChange(data.id);
     setShowNew(false);
-    setNewClient({ name: "", email: "", phone: "", company: "" });
+    setNewClient({ name: "", email: "", phone: "" });
     toast.success("Client added");
   };
 
@@ -150,7 +147,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name, email, company, or phone..."
+            placeholder="Search by name, email, or phone..."
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -182,9 +179,6 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
                       {[c.client_email, c.client_phone].filter(Boolean).join(" · ") || "No contact info"}
                     </p>
                   </div>
-                  {c.client_company && (
-                    <span className="text-xs text-muted-foreground hidden sm:inline">{c.client_company}</span>
-                  )}
                 </CardContent>
               </Card>
             );
@@ -227,10 +221,6 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
               <div>
                 <Label>Phone</Label>
                 <Input type="tel" value={newClient.phone} onChange={e => setNewClient(p => ({ ...p, phone: e.target.value }))} />
-              </div>
-              <div>
-                <Label>Company</Label>
-                <Input value={newClient.company} onChange={e => setNewClient(p => ({ ...p, company: e.target.value }))} />
               </div>
             </div>
             <div className="flex gap-2">

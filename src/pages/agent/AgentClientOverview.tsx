@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Building2, Mail, Phone, Plus, User, List, Sparkles, Activity, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Plus, User, List, Sparkles, Activity, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ interface ClientRow {
   client_name: string;
   client_email: string | null;
   client_phone: string | null;
-  client_company: string | null;
   status: string;
 }
 
@@ -37,7 +36,7 @@ export default function AgentClientOverview() {
     (async () => {
       const { data, error } = await supabase
         .from("agent_clients")
-        .select("id, client_name, client_email, client_phone, client_company, status")
+        .select("id, client_name, client_email, client_phone, status")
         .eq("id", clientId)
         .eq("agent_id", user.id)
         .single();
@@ -90,9 +89,6 @@ export default function AgentClientOverview() {
               {client.client_phone && (
                 <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {client.client_phone}</span>
               )}
-              {client.client_company && (
-                <span className="inline-flex items-center gap-1"><Building2 className="h-3 w-3" /> {client.client_company}</span>
-              )}
             </div>
           </div>
           <Button size="sm" asChild>
@@ -117,7 +113,7 @@ export default function AgentClientOverview() {
         </TabsContent>
 
         <TabsContent value="listings" className="mt-4">
-          <ClientPropertyCards clientId={clientId} />
+          <ClientPropertyCards clientId={clientId} clientName={client.client_name} />
         </TabsContent>
 
         <TabsContent value="matches" className="mt-4">

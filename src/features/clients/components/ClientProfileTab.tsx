@@ -15,7 +15,6 @@ export function ClientProfileTab({ clientId }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [company, setCompany] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);
   const [savingInfo, setSavingInfo] = useState(false);
@@ -26,7 +25,7 @@ export function ClientProfileTab({ clientId }: Props) {
     (async () => {
       const { data } = await supabase
         .from("agent_clients")
-        .select("client_name, client_email, client_phone, client_company, notes")
+        .select("client_name, client_email, client_phone, notes")
         .eq("id", clientId)
         .single();
       if (cancelled) return;
@@ -34,7 +33,6 @@ export function ClientProfileTab({ clientId }: Props) {
         setName(data.client_name ?? "");
         setEmail(data.client_email ?? "");
         setPhone(data.client_phone ?? "");
-        setCompany(data.client_company ?? "");
         setNotes(data.notes ?? "");
       }
       setLoading(false);
@@ -49,7 +47,6 @@ export function ClientProfileTab({ clientId }: Props) {
       client_name: name.trim(),
       client_email: email.trim() || null,
       client_phone: phone.trim() || null,
-      client_company: company.trim() || null,
     }).eq("id", clientId);
     setSavingInfo(false);
     if (error) { toast.error("Failed to save"); return; }
@@ -95,10 +92,6 @@ export function ClientProfileTab({ clientId }: Props) {
               <div className="space-y-2">
                 <Label>Phone</Label>
                 <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>Company</Label>
-                <Input value={company} onChange={(e) => setCompany(e.target.value)} />
               </div>
             </div>
             <Button type="submit" disabled={savingInfo || !name.trim()}>
