@@ -78,7 +78,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
         )}
 
         {/* Hero with gallery */}
-        <ListingHero rel={rel} totalPhotos={40} />
+        <ListingHero rel={rel} />
 
         {/* Facts bar */}
         <ListingFactsBar rel={rel} />
@@ -122,7 +122,13 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
                   </div>
                 </TabsContent>
               )}
-              <TabsContent value="docs" className="mt-0"><DocsTab rel={rel} /></TabsContent>
+              <TabsContent value="docs" className="mt-0">
+                <DocsTab
+                  rel={rel}
+                  conversationAvailable={conversationAvailable}
+                  onOpenConversation={() => setTab("conversation")}
+                />
+              </TabsContent>
             </Tabs>
           </div>
 

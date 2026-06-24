@@ -1,4 +1,4 @@
-import { Link as LinkIcon, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -14,30 +14,21 @@ interface Props {
 }
 
 /**
- * Confirmation dialog for sharing a matched property with the client.
- * Also hosts the lightweight share utilities (copy link, one-pager) so
- * they live where the agent is already thinking about sharing.
+ * Confirmation dialog for marking a matched property as shared with the client.
+ * Sharing happens out-of-band (the agent sends the one-pager however they like);
+ * this records it and advances the match to "Sent to Client" in the pipeline.
  */
 export function SendToClientDialog({ rel, open, onOpenChange }: Props) {
   const { toast } = useToast();
   const { update } = useMatchLocalState(rel.matchId);
 
-  const shareUrl = `${window.location.origin}/share/match/${rel.matchId}`;
-
   function confirmSend() {
     update({ sentToClientAt: new Date().toISOString() });
     onOpenChange(false);
     toast({
-      title: "Sent to client",
-      description: rel.clientName ? `Notified ${rel.clientName}.` : undefined,
+      title: "Marked as sent to client",
+      description: "Moved to “Sent to Client” in your pipeline.",
     });
-  }
-
-  function copyLink() {
-    navigator.clipboard.writeText(shareUrl).then(
-      () => toast({ title: "Link copied" }),
-      () => toast({ title: "Copy failed", variant: "destructive" }),
-    );
   }
 
   function downloadOnePager() {
@@ -65,17 +56,14 @@ export function SendToClientDialog({ rel, open, onOpenChange }: Props) {
           <DialogTitle>Send to client?</DialogTitle>
           <DialogDescription>
             {rel.clientName ? (
-              <>We'll share <strong>{rel.propertyName}</strong> with <strong>{rel.clientName}</strong> and notify them by email.</>
+              <>This marks <strong>{rel.propertyName}</strong> as shared with <strong>{rel.clientName}</strong> and moves it to <strong>Sent to Client</strong> in your pipeline. Download the one-pager below to send them directly.</>
             ) : (
-              <>We'll share <strong>{rel.propertyName}</strong> with your client and notify them by email.</>
+              <>This marks <strong>{rel.propertyName}</strong> as shared with your client and moves it to <strong>Sent to Client</strong> in your pipeline. Download the one-pager below to send them directly.</>
             )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={copyLink}>
-            <LinkIcon className="mr-1.5 h-3.5 w-3.5" /> Copy share link
-          </Button>
           <Button variant="outline" size="sm" onClick={downloadOnePager}>
             <Download className="mr-1.5 h-3.5 w-3.5" /> Download one-pager
           </Button>
@@ -83,7 +71,7 @@ export function SendToClientDialog({ rel, open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={confirmSend}>Send</Button>
+          <Button onClick={confirmSend}>Mark as sent</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

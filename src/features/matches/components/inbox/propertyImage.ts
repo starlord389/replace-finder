@@ -10,22 +10,12 @@ const PLACEHOLDERS = [
   "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1600&q=70&auto=format&fit=crop", // interior
 ];
 
+// Single decorative thumbnail fallback for list/card rows when a property has
+// no uploaded photo. NOT used for the listing hero gallery, which shows only
+// real uploaded photos (see ListingHero).
 export function propertyImage(url: string | null | undefined, key: string): string {
   if (url) return url;
   let h = 0;
   for (let i = 0; i < key.length; i++) h = (h + key.charCodeAt(i)) | 0;
   return PLACEHOLDERS[Math.abs(h) % PLACEHOLDERS.length];
-}
-
-/** Deterministic gallery of N images for a property. First entry is the hero. */
-export function propertyImages(url: string | null | undefined, key: string, count = 8): string[] {
-  let h = 0;
-  for (let i = 0; i < key.length; i++) h = (h + key.charCodeAt(i)) | 0;
-  const start = Math.abs(h) % PLACEHOLDERS.length;
-  const gallery: string[] = [];
-  for (let i = 0; i < count; i++) {
-    gallery.push(PLACEHOLDERS[(start + i) % PLACEHOLDERS.length]);
-  }
-  if (url) gallery[0] = url;
-  return gallery;
 }

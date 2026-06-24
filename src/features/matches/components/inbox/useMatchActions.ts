@@ -83,9 +83,11 @@ export function useMatchActions(rel: Relationship, cb: Callbacks = {}) {
           update({ clientInterestedAt: new Date().toISOString() });
           toast({ title: "Marked Client Interested" });
           return;
-        case "follow_up_client":
-          toast({ title: "Follow-up reminder set", description: "You'll be nudged in 2 days." });
+        case "follow_up_client": {
+          const who = rel.clientName ? rel.clientName.split(" ")[0] : "your client";
+          toast({ title: `Check in with ${who}`, description: "Reach out to keep this match moving." });
           return;
+        }
         case "schedule_call":
           await startConversation();
           toast({ title: "Propose times in the conversation." });

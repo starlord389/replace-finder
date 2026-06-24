@@ -47,6 +47,7 @@ function buildPreviewRel(listing: AgentListing): Relationship {
     propertyCity: listing.city,
     propertyState: listing.state,
     propertyImageUrl: null,
+    propertyImageUrls: [],
     askingPrice: listing.askingPrice,
     capRate: null,
     clientId: listing.clientId,

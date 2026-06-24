@@ -56,6 +56,7 @@ export interface Relationship {
   propertyCity: string | null;
   propertyState: string | null;
   propertyImageUrl: string | null;
+  propertyImageUrls: string[];
   askingPrice: number | null;
   capRate: number | null;
 
@@ -173,9 +174,13 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
 
   const propMap = new Map((propsRes.data ?? []).map((p: any) => [p.id, p]));
   const finMap = new Map((finsRes.data ?? []).map((f: any) => [f.property_id, f]));
-  const imgMap = new Map<string, any>();
+  // Collect ALL uploaded photos per property (ordered by sort_order above),
+  // resolved to display URLs — no fabricated/placeholder entries.
+  const imgMap = new Map<string, string[]>();
   (imgsRes.data ?? []).forEach((img: any) => {
-    if (!imgMap.has(img.property_id)) imgMap.set(img.property_id, img);
+    const arr = imgMap.get(img.property_id) ?? [];
+    arr.push(resolvePropertyImageUrl(img.storage_path));
+    imgMap.set(img.property_id, arr);
   });
 
   // 7. Client names + relinquished snapshot for my exchanges
@@ -279,7 +284,7 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     const conn = connByMatch.get(match.id) ?? null;
     const prop = propMap.get(match.seller_property_id);
     const fin = finMap.get(match.seller_property_id);
-    const img = imgMap.get(match.seller_property_id);
+    const imgs = imgMap.get(match.seller_property_id) ?? [];
 
     const counterpartyId = conn
       ? (conn.buyer_agent_id === userId ? conn.seller_agent_id : conn.buyer_agent_id)
@@ -336,7 +341,8 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       propertyName: prop ? resolveListingName(prop, mySide === "seller") : "Property",
       propertyCity: prop?.city ?? null,
       propertyState: prop?.state ?? null,
-      propertyImageUrl: img ? resolvePropertyImageUrl(img.storage_path) : null,
+      propertyImageUrl: imgs[0] ?? null,
+      propertyImageUrls: imgs,
       askingPrice: fin?.asking_price ? Number(fin.asking_price) : null,
       capRate: fin?.cap_rate ? Number(fin.cap_rate) : null,
       clientId: exClientIdMap.get(match.buyer_exchange_id) ?? null,
