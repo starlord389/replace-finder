@@ -46,6 +46,8 @@ function buildPreviewRel(listing: AgentListing): Relationship {
       listing.propertyName || listing.address || "Untitled listing",
     propertyCity: listing.city,
     propertyState: listing.state,
+    propertyAddress: listing.address ?? null,
+    propertyZip: null,
     propertyImageUrl: null,
     propertyImageUrls: [],
     askingPrice: listing.askingPrice,

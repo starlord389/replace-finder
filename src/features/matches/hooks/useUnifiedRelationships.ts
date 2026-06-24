@@ -55,6 +55,9 @@ export interface Relationship {
   propertyName: string;
   propertyCity: string | null;
   propertyState: string | null;
+  /** Exact street address — populated only when the viewer may see it (own listing, or owner published it). */
+  propertyAddress: string | null;
+  propertyZip: string | null;
   propertyImageUrl: string | null;
   propertyImageUrls: string[];
   askingPrice: number | null;
@@ -158,7 +161,7 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     ? await Promise.all([
         supabase
           .from("pledged_properties")
-          .select("id, property_name, city, state, address, address_is_public, asset_type")
+          .select("id, property_name, city, state, address, address_is_public, zip, asset_type")
           .in("id", allSellerPropIds),
         supabase
           .from("property_financials")
@@ -341,6 +344,9 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       propertyName: prop ? resolveListingName(prop, mySide === "seller") : "Property",
       propertyCity: prop?.city ?? null,
       propertyState: prop?.state ?? null,
+      // Reveal the exact street only when it's the viewer's own listing or the owner published it.
+      propertyAddress: (mySide === "seller" || prop?.address_is_public) ? (prop?.address ?? null) : null,
+      propertyZip: prop?.zip ?? null,
       propertyImageUrl: imgs[0] ?? null,
       propertyImageUrls: imgs,
       askingPrice: fin?.asking_price ? Number(fin.asking_price) : null,
