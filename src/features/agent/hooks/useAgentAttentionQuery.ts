@@ -179,75 +179,49 @@ async function fetchAgentAttention(userId: string, isDemo: boolean): Promise<Age
     seller_agent_id: string;
   }>;
 
-  const awaitingResponse = connections.filter((c) => {
-    const youArebuyer = c.buyer_agent_id === userId;
-    const initiatedByOtherSide = youArebuyer
-      ? c.initiated_by === "seller_agent"
-      : c.initiated_by === "buyer_agent";
-    return initiatedByOtherSide;
-  }).slice(0, LIST_LIMIT);
+  const awaiting = connections.filter((c) => {
+    const youAreBuyer = c.buyer_agent_id === userId;
+    return youAreBuyer ? c.initiated_by === "seller_agent" : c.initiated_by === "buyer_agent";
+  });
 
   let pendingConnections: PendingConnectionRow[] = [];
-  if (awaitingResponse.length > 0) {
-    const otherAgentIds = [
-      ...new Set(
-        awaitingResponse.map((c) =>
-          c.buyer_agent_id === userId ? c.seller_agent_id : c.buyer_agent_id,
-        ),
-      ),
-    ];
-    const matchIds = [...new Set(awaitingResponse.map((c) => c.match_id))];
-
-    const [profilesRes, matchesRes] = await Promise.all([
-      otherAgentIds.length > 0
-        ? supabase
-            .from("profiles")
-            .select("id, full_name, brokerage_name")
-            .in("id", otherAgentIds)
-        : Promise.resolve({ data: [] as Array<{ id: string; full_name: string | null; brokerage_name: string | null }> }),
-      matchIds.length > 0
-        ? supabase
-            .from("matches")
-            .select("id, seller_property_id")
-            .in("id", matchIds)
-        : Promise.resolve({ data: [] as Array<{ id: string; seller_property_id: string }> }),
-    ]);
-
-    const profileMap = new Map(
-      (profilesRes.data ?? []).map((p) => [p.id, p]),
-    );
-    const matchMap = new Map(
-      (matchesRes.data ?? []).map((m) => [m.id, m]),
-    );
-
-    const sellerPropertyIds = [
-      ...new Set(
-        (matchesRes.data ?? []).map((m) => m.seller_property_id),
-      ),
-    ];
+  if (awaiting.length > 0) {
+    // Connections carry no demo stamp, so scope them by the property the match
+    // is about (counterparty demo properties are is_demo; the owner's own listing
+    // carries its own flag). Filter BEFORE limiting so the workspace is respected.
+    const matchIds = [...new Set(awaiting.map((c) => c.match_id))];
+    const { data: matchesData } = matchIds.length > 0
+      ? await supabase.from("matches").select("id, seller_property_id").in("id", matchIds)
+      : { data: [] as Array<{ id: string; seller_property_id: string }> };
+    const matchMap = new Map((matchesData ?? []).map((m) => [m.id, m]));
+    const sellerPropertyIds = [...new Set((matchesData ?? []).map((m) => m.seller_property_id))];
     const { data: props } = sellerPropertyIds.length > 0
-      ? await supabase
-          .from("pledged_properties")
-          .select("id, property_name, address, address_is_public, city, state, asset_type")
-          .in("id", sellerPropertyIds)
-      : { data: [] as Array<{ id: string; property_name: string | null }> };
-    const propMap = new Map(
-      (props ?? []).map((p: any) => [p.id, resolveListingName(p, false)]),
-    );
+      ? await supabase.from("pledged_properties").select("id, property_name, address, address_is_public, city, state, asset_type, is_demo").in("id", sellerPropertyIds)
+      : { data: [] as Array<any> };
+    const propMap = new Map((props ?? []).map((p: any) => [p.id, p]));
 
-    pendingConnections = awaitingResponse.map((c) => {
-      const otherId =
-        c.buyer_agent_id === userId ? c.seller_agent_id : c.buyer_agent_id;
+    const scoped = awaiting.filter((c) => {
+      const m = matchMap.get(c.match_id);
+      const p = m ? propMap.get(m.seller_property_id) : null;
+      return p ? Boolean(p.is_demo) === isDemo : !isDemo;
+    }).slice(0, LIST_LIMIT);
+
+    const otherAgentIds = [...new Set(scoped.map((c) => c.buyer_agent_id === userId ? c.seller_agent_id : c.buyer_agent_id))];
+    const { data: profilesData } = otherAgentIds.length > 0
+      ? await supabase.from("profiles").select("id, full_name, brokerage_name").in("id", otherAgentIds)
+      : { data: [] as Array<{ id: string; full_name: string | null; brokerage_name: string | null }> };
+    const profileMap = new Map((profilesData ?? []).map((p) => [p.id, p]));
+
+    pendingConnections = scoped.map((c) => {
+      const otherId = c.buyer_agent_id === userId ? c.seller_agent_id : c.buyer_agent_id;
       const otherProfile = profileMap.get(otherId);
-      const match = matchMap.get(c.match_id);
+      const m = matchMap.get(c.match_id);
       return {
         connectionId: c.id,
         matchId: c.match_id,
         otherAgentName: otherProfile?.full_name ?? "Another agent",
         otherAgentBrokerage: otherProfile?.brokerage_name ?? null,
-        propertyName: match
-          ? propMap.get(match.seller_property_id) ?? null
-          : null,
+        propertyName: m ? resolveListingName(propMap.get(m.seller_property_id), false) : null,
         initiatedAt: c.initiated_at,
       };
     });

@@ -2,28 +2,32 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type NotificationRow = Tables<"notifications">;
 
-async function fetchNotifications(userId: string): Promise<NotificationRow[]> {
+async function fetchNotifications(userId: string, isDemo: boolean): Promise<NotificationRow[]> {
   const { data, error } = await supabase
     .from("notifications")
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
-    .limit(30);
+    .limit(50);
   if (error) throw error;
-  return data ?? [];
+  // Notifications have no demo column, so scope by the demo flag we set in
+  // metadata — demo notifications only show in Demo, real ones only in Live.
+  return (data ?? []).filter((n) => Boolean((n.metadata as any)?.demo) === isDemo);
 }
 
 export function useNotifications() {
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   const qc = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["notifications", user?.id],
-    queryFn: () => fetchNotifications(user!.id),
+    queryKey: ["notifications", user?.id, isDemo],
+    queryFn: () => fetchNotifications(user!.id, isDemo),
     enabled: !!user?.id,
   });
 
