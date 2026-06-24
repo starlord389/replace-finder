@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -226,8 +226,8 @@ export default function AdminDemos() {
                     const isExpanded = expandedId === d.id;
                     const draft = drafts[d.id];
                     return (
-                      <>
-                        <TableRow key={d.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openRow(d)}>
+                      <Fragment key={d.id}>
+                        <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => openRow(d)}>
                           <TableCell className="text-xs text-muted-foreground">{new Date(d.created_at).toLocaleDateString()}</TableCell>
                           <TableCell>
                             <div className="text-sm font-medium">{d.full_name}</div>
@@ -301,7 +301,7 @@ export default function AdminDemos() {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })}
                 </TableBody>

@@ -14,6 +14,9 @@ export function useCreateExchange() {
       queryClient.invalidateQueries({ queryKey: ["agent-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["agent-exchanges"] });
       queryClient.invalidateQueries({ queryKey: ["agent-matches"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-listings"] });
+      queryClient.invalidateQueries({ queryKey: ["client-listings"] });
+      queryClient.invalidateQueries({ queryKey: ["client-activity"] });
     },
   });
 }

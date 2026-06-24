@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
   }
 
   const { user, loading: authLoading } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -108,6 +110,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
       client_name: newClient.name.trim(),
       client_email: newClient.email.trim() || null,
       client_phone: newClient.phone.trim() || null,
+      is_demo: isDemo,
     }).select("id, client_name, client_email, client_phone, status").single();
     setSaving(false);
     if (error || !data) {

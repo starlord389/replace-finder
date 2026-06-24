@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import type { StageKey } from "@/features/pipeline/lib/pipelineStages";
 import type { AgentListing } from "@/features/pipeline/hooks/useAgentListings";
 
@@ -11,6 +12,7 @@ export interface SetStageInput {
 
 export function useUpdatePipelineStage() {
   const qc = useQueryClient();
+  const { isDemo } = useWorkspaceMode();
 
   return useMutation({
     mutationFn: async ({ exchangeId, stage }: SetStageInput) => {
@@ -21,7 +23,7 @@ export function useUpdatePipelineStage() {
       if (error) throw error;
     },
     onMutate: async ({ exchangeId, stage, userId }) => {
-      const key = ["agent-listings", userId];
+      const key = ["agent-listings", userId, isDemo];
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<AgentListing[]>(key);
       if (prev) {

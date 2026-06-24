@@ -49,11 +49,12 @@ export function useNotifications() {
   const markAllRead = useMutation({
     mutationFn: async () => {
       if (!user?.id) return;
-      await supabase
-        .from("notifications")
-        .update({ read: true })
-        .eq("user_id", user.id)
-        .eq("read", false);
+      // Only mark the CURRENT workspace's unread (notifications carry no demo
+      // column, so target the already demo-scoped rows by id) — otherwise this
+      // would also clear the other workspace's unread.
+      const ids = (query.data ?? []).filter((n) => !n.read).map((n) => n.id);
+      if (ids.length === 0) return;
+      await supabase.from("notifications").update({ read: true }).in("id", ids);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications", user?.id] }),
   });

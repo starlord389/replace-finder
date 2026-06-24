@@ -58,6 +58,14 @@ export interface Relationship {
   /** Exact street address — populated only when the viewer may see it (own listing, or owner published it). */
   propertyAddress: string | null;
   propertyZip: string | null;
+  // Real property facts (null when the listing agent hasn't entered them — never fabricated).
+  propertyAssetType: string | null;
+  propertyUnits: number | null;
+  propertyYearBuilt: number | null;
+  propertyBuildingSqft: number | null;
+  propertyLotAcres: number | null;
+  propertyDescription: string | null;
+  propertyRenovations: string | null;
   propertyImageUrl: string | null;
   propertyImageUrls: string[];
   askingPrice: number | null;
@@ -161,7 +169,7 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     ? await Promise.all([
         supabase
           .from("pledged_properties")
-          .select("id, property_name, city, state, address, address_is_public, zip, asset_type")
+          .select("id, property_name, city, state, address, address_is_public, zip, asset_type, units, year_built, building_square_footage, land_area_acres, description, recent_renovations")
           .in("id", allSellerPropIds),
         supabase
           .from("property_financials")
@@ -268,7 +276,10 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     if (!conn) return mySide === "buyer" ? "new" : "incoming";
     switch (conn.status) {
       case "pending":
-        return conn.initiated_by === mySide ? "pending_out" : "pending_in";
+        // initiated_by is "buyer_agent"/"seller_agent"; mySide is "buyer"/"seller".
+        return conn.initiated_by === (mySide === "buyer" ? "buyer_agent" : "seller_agent")
+          ? "pending_out"
+          : "pending_in";
       case "accepted":
       case "in_progress":
         return hasMessages ? "conversing" : "connected";
@@ -347,6 +358,13 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       // Reveal the exact street only when it's the viewer's own listing or the owner published it.
       propertyAddress: (mySide === "seller" || prop?.address_is_public) ? (prop?.address ?? null) : null,
       propertyZip: prop?.zip ?? null,
+      propertyAssetType: prop?.asset_type ?? null,
+      propertyUnits: prop?.units ?? null,
+      propertyYearBuilt: prop?.year_built ?? null,
+      propertyBuildingSqft: prop?.building_square_footage ?? null,
+      propertyLotAcres: prop?.land_area_acres != null ? Number(prop.land_area_acres) : null,
+      propertyDescription: prop?.description ?? null,
+      propertyRenovations: prop?.recent_renovations ?? null,
       propertyImageUrl: imgs[0] ?? null,
       propertyImageUrls: imgs,
       askingPrice: fin?.asking_price ? Number(fin.asking_price) : null,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -225,9 +225,8 @@ export default function AdminUsers() {
                   const isAdmin = u.roles.includes("admin");
                   const isAgent = u.roles.includes("agent");
                   return (
-                    <>
+                    <Fragment key={u.id}>
                       <TableRow
-                        key={u.id}
                         className="cursor-pointer hover:bg-muted/50"
                         onClick={() => setExpandedId(isExpanded ? null : u.id)}
                       >
@@ -322,7 +321,7 @@ export default function AdminUsers() {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </TableBody>

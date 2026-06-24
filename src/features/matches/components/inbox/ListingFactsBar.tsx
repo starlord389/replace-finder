@@ -1,4 +1,5 @@
-import { Ruler, MapPin, Calendar, Building, Home, Store } from "lucide-react";
+import { Ruler, MapPin, Calendar, Building, Layers } from "lucide-react";
+import { ASSET_TYPE_LABELS } from "@/lib/constants";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 
 interface Fact {
@@ -8,23 +9,33 @@ interface Fact {
 }
 
 export function ListingFactsBar({ rel }: { rel: Relationship }) {
-  // Deterministic derived values for demo data when underlying fields are absent.
-  const seed = rel.matchId.charCodeAt(0) || 7;
-  const totalUnits = ((seed % 12) + 4); // 4..15
-  const residential = Math.max(1, Math.round(totalUnits * 0.7));
-  const commercial = Math.max(0, totalUnits - residential);
-  const yearBuilt = 1900 + (seed % 120);
-  const buildingSize = `${(2 + (seed % 9)).toFixed(0)},${(seed * 73) % 900 + 100} sq.ft.`;
-  const lotSize = `${(0.05 + (seed % 30) / 100).toFixed(2)} acres`;
+  // Only real, agent-entered facts — nothing fabricated. Absent fields are omitted.
+  const facts: Fact[] = [];
 
-  const facts: Fact[] = [
-    { icon: Ruler, label: "Building Size", value: buildingSize },
-    { icon: MapPin, label: "Lot Size", value: lotSize },
-    { icon: Calendar, label: "Year Built", value: String(yearBuilt) },
-    { icon: Building, label: "Total Units", value: String(totalUnits) },
-    { icon: Home, label: "Residential", value: `${residential} units` },
-    { icon: Store, label: "Commercial", value: `${commercial} units` },
-  ];
+  if (rel.propertyAssetType) {
+    facts.push({
+      icon: Building,
+      label: "Type",
+      value:
+        (ASSET_TYPE_LABELS as Record<string, string>)[rel.propertyAssetType] ??
+        rel.propertyAssetType,
+    });
+  }
+  if (rel.propertyBuildingSqft) {
+    facts.push({ icon: Ruler, label: "Building", value: `${rel.propertyBuildingSqft.toLocaleString()} sq.ft.` });
+  }
+  if (rel.propertyLotAcres) {
+    facts.push({ icon: MapPin, label: "Lot", value: `${rel.propertyLotAcres} acres` });
+  }
+  if (rel.propertyYearBuilt) {
+    facts.push({ icon: Calendar, label: "Year Built", value: String(rel.propertyYearBuilt) });
+  }
+  if (rel.propertyUnits) {
+    facts.push({ icon: Layers, label: "Units", value: String(rel.propertyUnits) });
+  }
+
+  // Nothing real to show → render nothing rather than fabricate.
+  if (facts.length === 0) return null;
 
   return (
     <div className="border-y border-border bg-muted/40">
