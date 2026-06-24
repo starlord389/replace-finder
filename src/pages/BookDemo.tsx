@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const introPoints = [
   "See how agents can manage active 1031 clients, replacement criteria, and deal activity without juggling spreadsheets or inbox threads.",
-  "Walk through how off-market replacement properties, match scoring, client requirements, and deadlines stay organized in one shared workspace.",
+  "Walk through how replacement-property matches, match scoring, and client requirements stay organized in one shared workspace.",
 ] as const;
 
 const highlightCards = [

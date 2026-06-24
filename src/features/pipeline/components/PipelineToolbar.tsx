@@ -28,7 +28,6 @@ interface PipelineToolbarProps {
 
 const SORT_LABEL: Record<SortKey, string> = {
   activity: "Recent activity",
-  deadline: "Nearest deadline",
   value: "Deal value",
   score: "Best score",
 };
@@ -45,7 +44,6 @@ export function PipelineToolbar({
     filters.search.trim() !== "" ||
     filters.clientIds.length > 0 ||
     filters.assetTypes.length > 0 ||
-    filters.riskOnly ||
     filters.sort !== "activity";
 
   const toggleClient = (id: string) => {
@@ -169,7 +167,6 @@ export function PipelineToolbar({
               clientIds: [],
               assetTypes: [],
               sort: "activity",
-              riskOnly: false,
             })
           }
         >

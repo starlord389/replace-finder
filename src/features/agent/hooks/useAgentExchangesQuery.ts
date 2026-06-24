@@ -6,8 +6,6 @@ export interface AgentExchangeRow {
   id: string;
   status: string;
   exchange_proceeds: number | null;
-  identification_deadline: string | null;
-  closing_deadline: string | null;
   created_at: string;
   relinquished_property_id: string | null;
   client_id: string | null;
@@ -24,7 +22,7 @@ async function fetchAgentExchanges(userId: string, isDemo: boolean): Promise<Age
   const { data, error } = await supabase
     .from("exchanges")
     .select(
-      "id, status, exchange_proceeds, identification_deadline, closing_deadline, created_at, relinquished_property_id, client_id, agent_clients(client_name)"
+      "id, status, exchange_proceeds, created_at, relinquished_property_id, client_id, agent_clients(client_name)"
     )
     .eq("agent_id", userId)
     .eq("is_demo", isDemo)

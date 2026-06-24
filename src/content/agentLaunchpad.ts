@@ -98,7 +98,7 @@ export const AGENT_LAUNCHPAD_STEPS: AgentLaunchpadStepContent[] = [
     id: "pipeline",
     title: "Move deals forward in Pipeline",
     description: "Track every approved match through conversation, LOI, under contract, and close from a single pipeline view.",
-    tip: "Tip: Use Pipeline daily to keep the 45-day ID and 180-day close windows on track.",
+    tip: "Tip: Use Pipeline daily to keep every client's matches and conversations moving.",
     actionLabel: "Open Pipeline",
     icon: KanbanSquare,
     href: "/agent/pipeline",

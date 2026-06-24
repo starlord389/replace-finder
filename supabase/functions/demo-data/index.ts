@@ -321,8 +321,6 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     { user_id: ownerId, type: "new_match", title: "New match — score 91", message: "Sunrise Apartments (Phoenix, AZ) matched Marcus Rodriguez's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
     { user_id: ownerId, type: "connection_request", title: "Connection request", message: "Jordan Alvarez wants to connect on Sunrise Apartments.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
     { user_id: ownerId, type: "connection_accepted", title: "Connection accepted", message: "Priya Mehta accepted your connection on Crosspoint Industrial.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
-    { user_id: ownerId, type: "deadline_critical", title: "Identification deadline — 9 days", message: "James Wilson's 45-day identification window closes soon.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "deadline_warning", title: "Closing deadline — 12 days", message: "Aurora Holdings' exchange must close within 12 days.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
   ]);
 
   return { clients: OWN.length + 1, listings: OWN.length, counterpartyProperties: Object.keys(prop).length - OWN.length, matches: matchRows.length + 1 };

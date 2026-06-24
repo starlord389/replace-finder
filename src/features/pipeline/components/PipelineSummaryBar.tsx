@@ -1,4 +1,4 @@
-import { Briefcase, AlertTriangle, Sparkles, Handshake } from "lucide-react";
+import { Briefcase, Sparkles, Handshake } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function fmtMoney(v: number | null): string {
@@ -12,11 +12,8 @@ function fmtMoney(v: number | null): string {
 interface PipelineSummaryBarProps {
   totalListings: number;
   totalValue: number;
-  atRiskCount: number;
   bestScore: number | null;
   activeMatches: number;
-  riskOnly: boolean;
-  onToggleRisk: (next: boolean) => void;
 }
 
 interface PillProps {
@@ -85,28 +82,16 @@ function Pill({
 export function PipelineSummaryBar({
   totalListings,
   totalValue,
-  atRiskCount,
   bestScore,
   activeMatches,
-  riskOnly,
-  onToggleRisk,
 }: PipelineSummaryBarProps) {
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="grid grid-cols-3 gap-2">
       <Pill
         icon={Briefcase}
         label="Listings"
         value={`${totalListings}`}
         sublabel={totalValue > 0 ? `${fmtMoney(totalValue)} total` : "No value set"}
-      />
-      <Pill
-        icon={AlertTriangle}
-        label="At-risk"
-        value={`${atRiskCount}`}
-        sublabel="Deadline ≤ 14d"
-        tone="warning"
-        active={riskOnly}
-        onClick={() => onToggleRisk(!riskOnly)}
       />
       <Pill
         icon={Handshake}

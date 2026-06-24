@@ -47,9 +47,9 @@ export const AGENT_FAQS: FaqCategory[] = [
     ],
   },
   {
-    category: "1031 Rules & Deadlines",
+    category: "1031 Rules",
     items: [
-      { q: "What are the 45 and 180-day rules?", a: "After your relinquished sale closes, you have 45 days to identify replacement properties in writing and 180 days to close on at least one. The platform tracks both deadlines automatically once you set the sale close date." },
+      { q: "What are the 45 and 180-day rules?", a: "After your relinquished sale closes, you have 45 days to identify replacement properties in writing and 180 days to close on at least one. 1031 Exchange Up helps your client find that replacement early — well before those clocks ever become a concern. The platform does not track or manage your IRS deadlines; that stays with you and your qualified intermediary." },
       { q: "What are the identification rules?", a: "Three options: identify up to 3 properties (any value), identify any number whose total value ≤ 200% of the relinquished property, or identify any number provided you acquire ≥ 95% of total identified value." },
       { q: "What counts as 'like-kind'?", a: "All US real estate held for investment or business use is considered like-kind to other US real estate held for the same purpose. Personal-use property and inventory don't qualify." },
       { q: "Do I need a Qualified Intermediary?", a: "Yes — the IRS requires a QI to hold proceeds between sale and purchase. The taxpayer can never directly receive the funds. Add your QI in the exchange detail page." },

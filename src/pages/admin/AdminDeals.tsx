@@ -141,8 +141,6 @@ export default function AdminDeals() {
                   <TableHead>Agent</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead className="w-[150px]">Status</TableHead>
-                  <TableHead className="w-[110px]">45-day</TableHead>
-                  <TableHead className="w-[110px]">180-day</TableHead>
                   <TableHead className="w-[120px]">Proceeds</TableHead>
                 </TableRow>
               </TableHeader>
@@ -153,8 +151,6 @@ export default function AdminDeals() {
                     <TableCell className="text-sm">{agent(e.agent_id)}</TableCell>
                     <TableCell className="text-sm">{clientName.get(e.client_id) ?? "—"}</TableCell>
                     <TableCell><StatusPill value={e.status} /></TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{fmtDate(e.identification_deadline)}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{fmtDate(e.closing_deadline)}</TableCell>
                     <TableCell className="text-sm">{money(e.exchange_proceeds)}</TableCell>
                   </TableRow>
                 ))}

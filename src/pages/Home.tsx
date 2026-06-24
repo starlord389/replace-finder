@@ -847,8 +847,8 @@ function PipelineBoard() {
         </nav>
         <div className="pb-widget">
           <span className="pb-widget-bulb"><Lightbulb /></span>
-          <div className="pb-widget-title">Deadline radar</div>
-          <div className="pb-widget-text">3 exchanges have ID deadlines within 30 days.</div>
+          <div className="pb-widget-title">Match radar</div>
+          <div className="pb-widget-text">3 new replacement-property matches surfaced this week.</div>
         </div>
       </aside>
       <div className="pb-main">

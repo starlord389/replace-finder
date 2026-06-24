@@ -14,7 +14,7 @@ export const AGENT_DOCS: DocSection[] = [
 
 **Active** — The exchange is queued for matching. Within minutes, the platform scores it against every pledged property in the network and surfaces the best fits. You and your client can review matches and start connections.
 
-**In Identification** — The relinquished sale has closed. The 45-day identification window has started and is tracked automatically on the exchange detail page. Use the Identification List to formally identify up to 3 properties (or use the 200% / 95% rules).
+**In Identification** — The relinquished sale has closed and your client is choosing which matched replacement properties to pursue. Use the Identification List to note the properties they're moving forward on.
 
 **In Closing** — At least one identified property is under contract. Track inspection, financing, and closing milestones from the connection detail page.
 

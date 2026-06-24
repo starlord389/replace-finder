@@ -23,7 +23,7 @@ export default function ClientHeader() {
             <div className="space-y-2">
               <h4 className="text-sm font-semibold">Notifications</h4>
               <p className="text-xs text-muted-foreground">
-                No notifications yet. You'll be notified when new matches are available or deadlines are approaching.
+                No notifications yet. You'll be notified when new matches are available.
               </p>
             </div>
           </PopoverContent>

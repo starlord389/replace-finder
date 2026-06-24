@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ChevronDown, MapPin, Calendar, Target, User, Building2 } from "lucide-react";
+import { ChevronDown, MapPin, Target, User, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -28,12 +28,6 @@ function currency(v: number | null | undefined): string {
   if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`;
   if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K`;
   return `$${Math.round(v).toLocaleString()}`;
-}
-
-function daysFromNow(date: string | null | undefined): number | null {
-  if (!date) return null;
-  const ms = new Date(date).getTime() - Date.now();
-  return Math.ceil(ms / (1000 * 60 * 60 * 24));
 }
 
 function relinquishedShort(ex: AgentExchangeRow): string {
@@ -109,7 +103,6 @@ export function ExchangeContextBar({
     return "All clients";
   }, [exchanges, selectedExchangeId, selectedClientId, clientGroups]);
 
-  const idDays = daysFromNow(ctx?.identificationDeadline);
   const selectedExchangeAccent = useMemo(() => {
     if (selectedExchangeId === "all") return null;
     const ex = exchanges.find((e) => e.id === selectedExchangeId);
@@ -195,7 +188,6 @@ export function ExchangeContextBar({
                           {grp.exchanges.map((ex) => {
                             const active = ex.id === selectedExchangeId;
                             const stat = statsByExchange.get(ex.id);
-                            const dl = daysFromNow(ex.identification_deadline);
                             return (
                               <button
                                 key={ex.id}
@@ -215,11 +207,6 @@ export function ExchangeContextBar({
                                   )}
                                   {stat && stat.best > 0 && (
                                     <span>Best <span className="font-semibold text-foreground">{Math.round(stat.best)}</span></span>
-                                  )}
-                                  {dl != null && (
-                                    <span className={cn(dl < 0 ? "text-destructive" : dl <= 14 ? "text-amber-600" : undefined)}>
-                                      {dl < 0 ? `${Math.abs(dl)}d overdue` : `${dl}d to ID`}
-                                    </span>
                                   )}
                                 </div>
                               </button>
@@ -271,22 +258,6 @@ export function ExchangeContextBar({
                   {currency(ctx.exchangeProceeds)}
                 </span>
               </ContextItem>
-              {idDays != null && (
-                <ContextItem icon={Calendar} label="ID deadline">
-                  <span
-                    className={cn(
-                      "font-semibold",
-                      idDays < 0
-                        ? "text-destructive"
-                        : idDays <= 14
-                        ? "text-amber-600"
-                        : "text-foreground",
-                    )}
-                  >
-                    {idDays < 0 ? `${Math.abs(idDays)}d overdue` : `${idDays}d left`}
-                  </span>
-                </ContextItem>
-              )}
               {(ctx.targetStates?.length || ctx.targetPriceMin || ctx.targetPriceMax) && (
                 <ContextItem icon={Target} label="Target">
                   <span className="truncate">

@@ -10,8 +10,6 @@ export interface ExchangeContext {
   relinquishedState: string | null;
   relinquishedName: string | null;
   exchangeProceeds: number | null;
-  identificationDeadline: string | null;
-  closingDeadline: string | null;
   targetStates: string[] | null;
   targetPriceMin: number | null;
   targetPriceMax: number | null;
@@ -22,7 +20,7 @@ async function fetchExchangeContext(exchangeId: string): Promise<ExchangeContext
   const { data: ex } = await supabase
     .from("exchanges")
     .select(
-      "id, exchange_proceeds, identification_deadline, closing_deadline, relinquished_property_id, criteria_id, agent_clients(client_name)",
+      "id, exchange_proceeds, relinquished_property_id, criteria_id, agent_clients(client_name)",
     )
     .eq("id", exchangeId)
     .maybeSingle();
@@ -55,8 +53,6 @@ async function fetchExchangeContext(exchangeId: string): Promise<ExchangeContext
     relinquishedCity: prop?.city ?? null,
     relinquishedState: prop?.state ?? null,
     exchangeProceeds: ex.exchange_proceeds != null ? Number(ex.exchange_proceeds) : null,
-    identificationDeadline: ex.identification_deadline ?? null,
-    closingDeadline: ex.closing_deadline ?? null,
     targetStates: crit?.target_states ?? null,
     targetPriceMin: crit?.target_price_min != null ? Number(crit.target_price_min) : null,
     targetPriceMax: crit?.target_price_max != null ? Number(crit.target_price_max) : null,

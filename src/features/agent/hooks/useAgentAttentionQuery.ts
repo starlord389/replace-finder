@@ -1,19 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { differenceInDays, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveListingName } from "@/lib/listingDisplay";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 
-const URGENT_WINDOW_DAYS = 14;
 const LIST_LIMIT = 5;
-
-export interface UrgentDeadlineRow {
-  exchangeId: string;
-  clientName: string;
-  deadlineType: "identification" | "closing";
-  deadline: string;
-  daysRemaining: number;
-}
 
 export interface UnreviewedMatchRow {
   matchId: string;
@@ -36,7 +26,6 @@ export interface PendingConnectionRow {
 }
 
 export interface AgentAttentionData {
-  urgentDeadlines: UrgentDeadlineRow[];
   unreviewedMatches: UnreviewedMatchRow[];
   pendingConnections: PendingConnectionRow[];
   isEmpty: boolean;
@@ -46,9 +35,7 @@ async function fetchAgentAttention(userId: string, isDemo: boolean): Promise<Age
   const [exchangesRes, connectionsRes] = await Promise.all([
     supabase
       .from("exchanges")
-      .select(
-        "id, client_id, status, identification_deadline, closing_deadline, agent_clients(client_name)",
-      )
+      .select("id, client_id, agent_clients(client_name)")
       .eq("agent_id", userId)
       .eq("is_demo", isDemo),
     supabase
@@ -62,53 +49,6 @@ async function fetchAgentAttention(userId: string, isDemo: boolean): Promise<Age
   ]);
 
   const exchanges = exchangesRes.data ?? [];
-  const today = new Date();
-
-  const deadlines: UrgentDeadlineRow[] = [];
-  for (const exchange of exchanges as Array<{
-    id: string;
-    status: string;
-    identification_deadline: string | null;
-    closing_deadline: string | null;
-    agent_clients: { client_name?: string } | null;
-  }>) {
-    if (
-      exchange.status !== "in_identification" &&
-      exchange.status !== "in_closing"
-    ) {
-      continue;
-    }
-    const clientName = exchange.agent_clients?.client_name ?? "Unknown Client";
-    if (exchange.identification_deadline) {
-      const days = differenceInDays(
-        parseISO(exchange.identification_deadline),
-        today,
-      );
-      if (days >= 0 && days <= URGENT_WINDOW_DAYS) {
-        deadlines.push({
-          exchangeId: exchange.id,
-          clientName,
-          deadlineType: "identification",
-          deadline: exchange.identification_deadline,
-          daysRemaining: days,
-        });
-      }
-    }
-    if (exchange.closing_deadline) {
-      const days = differenceInDays(parseISO(exchange.closing_deadline), today);
-      if (days >= 0 && days <= URGENT_WINDOW_DAYS) {
-        deadlines.push({
-          exchangeId: exchange.id,
-          clientName,
-          deadlineType: "closing",
-          deadline: exchange.closing_deadline,
-          daysRemaining: days,
-        });
-      }
-    }
-  }
-  deadlines.sort((a, b) => a.daysRemaining - b.daysRemaining);
-  const urgentDeadlines = deadlines.slice(0, LIST_LIMIT);
 
   const exchangeIds = exchanges.map((e) => e.id);
   const clientInfoByExchange = new Map<string, { id: string | null; name: string }>(
@@ -228,11 +168,9 @@ async function fetchAgentAttention(userId: string, isDemo: boolean): Promise<Age
   }
 
   return {
-    urgentDeadlines,
     unreviewedMatches,
     pendingConnections,
     isEmpty:
-      urgentDeadlines.length === 0 &&
       unreviewedMatches.length === 0 &&
       pendingConnections.length === 0,
   };

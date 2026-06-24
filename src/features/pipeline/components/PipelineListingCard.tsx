@@ -18,14 +18,6 @@ function fmtPrice(v: number | null | undefined) {
   return `$${v.toLocaleString()}`;
 }
 
-function deadlineChipClass(days: number | null): string {
-  if (days === null) return "bg-muted text-muted-foreground";
-  if (days <= 7) return "bg-red-100 text-red-800 ring-1 ring-inset ring-red-200";
-  if (days <= 14) return "bg-red-50 text-red-700 ring-1 ring-inset ring-red-200";
-  if (days <= 30) return "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200";
-  return "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200";
-}
-
 interface PipelineListingCardProps {
   meta: ListingMeta;
   isDragOverlay?: boolean;
@@ -121,27 +113,14 @@ export function PipelineListingCard({
         )}
       </div>
 
-      {/* Score + deadline chips */}
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        {bestScore !== null && (
+      {/* Score */}
+      {bestScore !== null && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
             {Math.round(bestScore)} score
           </span>
-        )}
-        {meta.nearestDeadlineDays !== null && (
-          <span
-            className={cn(
-              "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-              deadlineChipClass(meta.nearestDeadlineDays),
-            )}
-          >
-            {meta.nearestDeadlineType === "identification" ? "ID" : "Close"} ·{" "}
-            {meta.nearestDeadlineDays === 0
-              ? "today"
-              : `${meta.nearestDeadlineDays}d`}
-          </span>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Stage progress dots */}
       <div className="mt-2.5 flex items-center gap-1" aria-label="Stage progress">

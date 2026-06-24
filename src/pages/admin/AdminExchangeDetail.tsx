@@ -188,13 +188,11 @@ export default function AdminExchangeDetail() {
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Financials & deadlines */}
+        {/* Financials */}
         <Card>
           <CardHeader><CardTitle className="text-base">Exchange details</CardTitle></CardHeader>
           <CardContent>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-muted-foreground">45-day deadline</dt><dd>{fmtDate(exchange.identification_deadline)}</dd>
-              <dt className="text-muted-foreground">180-day deadline</dt><dd>{fmtDate(exchange.closing_deadline)}</dd>
               <dt className="text-muted-foreground">Sale close</dt><dd>{fmtDate(exchange.sale_close_date)}</dd>
               <dt className="text-muted-foreground">Actual close</dt><dd>{fmtDate(exchange.actual_close_date)}</dd>
               <dt className="text-muted-foreground">Proceeds</dt><dd>{money(exchange.exchange_proceeds)}</dd>

@@ -118,7 +118,7 @@ export function ClientProfileTab({ clientId }: Props) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={5}
-            placeholder="e.g. Targeting $5M multifamily in Texas. 45-day deadline approaching in October."
+            placeholder="e.g. Targeting $5M stabilized multifamily in Texas. Prefers assumable debt."
           />
           <Button onClick={saveNotes} disabled={savingNotes}>
             {savingNotes ? "Saving…" : "Save Notes"}

@@ -17,7 +17,7 @@ import {
   type SortKey,
 } from "@/features/pipeline/lib/pipelineFilters";
 
-const SORT_KEYS: SortKey[] = ["activity", "deadline", "value", "score"];
+const SORT_KEYS: SortKey[] = ["activity", "value", "score"];
 
 function parseFiltersFromParams(sp: URLSearchParams): PipelineFilters {
   const sortParam = sp.get("sort");
@@ -30,7 +30,6 @@ function parseFiltersFromParams(sp: URLSearchParams): PipelineFilters {
     clientIds: sp.get("clients")?.split(",").filter(Boolean) ?? [],
     assetTypes: sp.get("assets")?.split(",").filter(Boolean) ?? [],
     sort,
-    riskOnly: sp.get("risk") === "1",
   };
 }
 
@@ -47,7 +46,6 @@ function writeFiltersToParams(
     ? next.set("assets", filters.assetTypes.join(","))
     : next.delete("assets");
   filters.sort !== "activity" ? next.set("sort", filters.sort) : next.delete("sort");
-  filters.riskOnly ? next.set("risk", "1") : next.delete("risk");
   return next;
 }
 
@@ -85,9 +83,6 @@ export default function AgentPipeline() {
   const summary = useMemo(() => {
     const totalListings = allMeta.length;
     const totalValue = allMeta.reduce((s, m) => s + (m.listing.askingPrice ?? 0), 0);
-    const atRiskCount = allMeta.filter(
-      (m) => m.nearestDeadlineDays !== null && m.nearestDeadlineDays <= 14,
-    ).length;
     let bestScore: number | null = null;
     let activeMatches = 0;
     for (const m of allMeta) {
@@ -96,7 +91,7 @@ export default function AgentPipeline() {
         bestScore = m.bestScore;
       }
     }
-    return { totalListings, totalValue, atRiskCount, bestScore, activeMatches };
+    return { totalListings, totalValue, bestScore, activeMatches };
   }, [allMeta]);
 
   const filtered = useMemo(() => applyFilters(allMeta, filters), [allMeta, filters]);
@@ -126,8 +121,7 @@ export default function AgentPipeline() {
   const hasFilters =
     filters.search.trim() !== "" ||
     filters.clientIds.length > 0 ||
-    filters.assetTypes.length > 0 ||
-    filters.riskOnly;
+    filters.assetTypes.length > 0;
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-4">
@@ -168,11 +162,8 @@ export default function AgentPipeline() {
           <PipelineSummaryBar
             totalListings={summary.totalListings}
             totalValue={summary.totalValue}
-            atRiskCount={summary.atRiskCount}
             bestScore={summary.bestScore}
             activeMatches={summary.activeMatches}
-            riskOnly={filters.riskOnly}
-            onToggleRisk={(next) => setFilters({ ...filters, riskOnly: next })}
           />
           <PipelineToolbar
             filters={filters}

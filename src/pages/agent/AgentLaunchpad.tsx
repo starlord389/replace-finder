@@ -244,7 +244,7 @@ function MatchingExplainer() {
         </div>
       </div>
       <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-        45-day identification and 180-day close windows shape urgency on every exchange — Pipeline keeps both clocks visible.
+        Pipeline gives you one board to move every client's matches from new to closed — so the next property is lined up early.
       </div>
     </div>
   );

@@ -3,16 +3,14 @@ import {
   AlertTriangle,
   ArrowRight,
   Building2,
-  CalendarClock,
   CheckCircle2,
-  Clock3,
   Compass,
   Handshake,
   Plus,
   Sparkles,
   Users,
 } from "lucide-react";
-import { differenceInDays, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,15 +41,6 @@ function fmtPrice(v: number | null | undefined) {
   if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
   if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K`;
   return `$${v.toLocaleString()}`;
-}
-
-function daysUntil(iso: string | null): number | null {
-  if (!iso) return null;
-  try {
-    return differenceInDays(parseISO(iso), new Date());
-  } catch {
-    return null;
-  }
 }
 
 function KpiCard({
@@ -93,21 +82,6 @@ interface TodayItem {
 function buildTodayItems(attention: AgentAttentionData | undefined): TodayItem[] {
   if (!attention) return [];
   const items: TodayItem[] = [];
-
-  const d = attention.urgentDeadlines[0];
-  if (d) {
-    items.push({
-      key: `deadline-${d.exchangeId}-${d.deadlineType}`,
-      tone: "red",
-      title: `${d.clientName} · ${d.deadlineType} deadline`,
-      subtitle:
-        d.daysRemaining <= 0
-          ? "Due today"
-          : `${d.daysRemaining} day${d.daysRemaining === 1 ? "" : "s"} left`,
-      href: `/agent/workspace/${d.exchangeId}`,
-      cta: "Open",
-    });
-  }
 
   const topMatch = [...attention.unreviewedMatches].sort(
     (a, b) => b.totalScore - a.totalScore,
@@ -278,102 +252,6 @@ function PipelineFunnel({ relationships }: { relationships: Relationship[] }) {
   );
 }
 
-function DeadlineRail({
-  exchanges,
-}: {
-  exchanges: ReturnType<typeof useAgentExchangesQuery>["data"];
-}) {
-  type Row = {
-    key: string;
-    exchangeId: string;
-    clientName: string;
-    type: "identification" | "closing";
-    days: number;
-  };
-  const rows: Row[] = [];
-  for (const e of exchanges ?? []) {
-    const dId = daysUntil(e.identification_deadline);
-    const dCl = daysUntil(e.closing_deadline);
-    const clientName = e.agent_clients?.client_name ?? "Client";
-    if (dId !== null && dId >= 0 && dId <= 30) {
-      rows.push({
-        key: `${e.id}-id`,
-        exchangeId: e.id,
-        clientName,
-        type: "identification",
-        days: dId,
-      });
-    }
-    if (dCl !== null && dCl >= 0 && dCl <= 30) {
-      rows.push({
-        key: `${e.id}-cl`,
-        exchangeId: e.id,
-        clientName,
-        type: "closing",
-        days: dCl,
-      });
-    }
-  }
-  rows.sort((a, b) => a.days - b.days);
-  const top = rows.slice(0, 5);
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Clock3 className="h-4 w-4 text-muted-foreground" />
-          Deadlines · 30d
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {top.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            No deadlines within the next 30 days.
-          </p>
-        ) : (
-          <ul className="divide-y rounded-lg border">
-            {top.map((r) => (
-              <li
-                key={r.key}
-                className="flex items-center justify-between gap-2 px-3 py-2"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold text-foreground">
-                    {r.clientName}
-                  </p>
-                  <p className="truncate text-[11px] capitalize text-muted-foreground">
-                    {r.type}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                      r.days <= 7
-                        ? "bg-red-50 text-red-700 ring-1 ring-inset ring-red-200"
-                        : r.days <= 14
-                          ? "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200"
-                          : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {r.days === 0 ? "today" : `${r.days}d`}
-                  </span>
-                  <Link
-                    to={`/agent/workspace/${r.exchangeId}`}
-                    className="text-xs font-medium text-primary hover:underline"
-                  >
-                    Open
-                  </Link>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function AgentDashboard() {
   const {
     user,
@@ -416,16 +294,6 @@ export default function AgentDashboard() {
     const t = r.lastActivityAt ? parseISO(r.lastActivityAt).getTime() : NaN;
     return Number.isFinite(t) && t >= oneWeekAgo;
   }).length;
-
-  let idCount = 0;
-  let clCount = 0;
-  for (const e of exchanges) {
-    const dId = daysUntil(e.identification_deadline);
-    const dCl = daysUntil(e.closing_deadline);
-    if (dId !== null && dId >= 0 && dId <= 30) idCount += 1;
-    if (dCl !== null && dCl >= 0 && dCl <= 30) clCount += 1;
-  }
-  const upcomingDeadlines = idCount + clCount;
 
   // Top matches across all clients
   const topMatches = [...relationships]
@@ -522,48 +390,12 @@ export default function AgentDashboard() {
                   <div>
                     <p className="font-medium">You&apos;re all caught up.</p>
                     <p className="text-green-700">
-                      No urgent deadlines, unreviewed matches, or pending connection requests. Nice.
+                      No unreviewed matches or pending connection requests. Nice.
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {attention && attention.urgentDeadlines.length > 0 && (
-                    <div>
-                      <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                        <Clock3 className="h-4 w-4 text-red-500" />
-                        Urgent deadlines ({attention.urgentDeadlines.length})
-                      </h3>
-                      <ul className="divide-y rounded-lg border">
-                        {attention.urgentDeadlines.map((d) => (
-                          <li
-                            key={`${d.exchangeId}-${d.deadlineType}`}
-                            className="flex items-center justify-between gap-3 px-4 py-3"
-                          >
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-foreground">
-                                {d.clientName}
-                              </p>
-                              <p className="text-xs capitalize text-muted-foreground">
-                                {d.deadlineType} deadline
-                              </p>
-                            </div>
-                            <div className="flex shrink-0 items-center gap-3">
-                              <span className="rounded-full border bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800 border-amber-200">
-                                {d.daysRemaining === 0 ? "today" : `${d.daysRemaining}d left`}
-                              </span>
-                              <Button variant="ghost" size="sm" asChild>
-                                <Link to={`/agent/workspace/${d.exchangeId}`}>
-                                  Open <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                                </Link>
-                              </Button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
                   {attention && attention.unreviewedMatches.length > 0 && (
                     <div>
                       <div className="mb-2 flex items-center justify-between">
@@ -779,7 +611,7 @@ export default function AgentDashboard() {
                 <CardTitle className="text-lg">Start your first 1031 exchange</CardTitle>
                 <CardDescription>
                   Add a client, pledge their property to the network, and the dashboard will start
-                  filling up with matches and deadlines you can act on.
+                  filling up with replacement-property matches you can act on.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
@@ -825,16 +657,9 @@ export default function AgentDashboard() {
               }
               icon={Handshake}
             />
-            <KpiCard
-              label="Deadlines · 30d"
-              value={upcomingDeadlines}
-              sublabel={`${idCount} ID · ${clCount} closing`}
-              icon={CalendarClock}
-            />
           </div>
 
           <PipelineFunnel relationships={relationships} />
-          <DeadlineRail exchanges={exchanges} />
         </aside>
       </div>
     </div>

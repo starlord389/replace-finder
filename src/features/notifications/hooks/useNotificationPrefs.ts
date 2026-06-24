@@ -11,7 +11,6 @@ const DEFAULTS = {
   notify_connection_request: true,
   notify_connection_accepted: true,
   notify_new_message: true,
-  notify_deadline_reminder: true,
 };
 
 export function useNotificationPrefs() {
