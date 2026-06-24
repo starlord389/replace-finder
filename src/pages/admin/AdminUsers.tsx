@@ -13,7 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Enums } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, ChevronDown, ChevronUp, Search, ShieldCheck, ShieldOff, UserCog } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, Search, ShieldCheck, ShieldOff, UserCog, Ban, CircleCheck } from "lucide-react";
 
 type AppRole = Enums<"app_role">;
 
@@ -42,9 +42,11 @@ const roleBadgeClass: Record<string, string> = {
 
 const verificationBadgeClass: Record<string, string> = {
   verified: "bg-green-100 text-green-800 border-green-200",
+  active: "bg-green-100 text-green-800 border-green-200",
   pending: "bg-amber-100 text-amber-800 border-amber-200",
   unverified: "bg-muted text-muted-foreground",
   rejected: "bg-red-100 text-red-800 border-red-200",
+  suspended: "bg-red-100 text-red-800 border-red-200",
 };
 
 export default function AdminUsers() {
@@ -114,6 +116,18 @@ export default function AdminUsers() {
       ),
     );
     toast({ title: `${role.charAt(0).toUpperCase() + role.slice(1)} role ${grant ? "granted" : "revoked"}.` });
+  }
+
+  async function setVerification(userId: string, status: string) {
+    setBusy((b) => ({ ...b, [`v-${userId}`]: true }));
+    const { error } = await supabase.from("profiles").update({ verification_status: status }).eq("id", userId);
+    setBusy((b) => ({ ...b, [`v-${userId}`]: false }));
+    if (error) {
+      toast({ title: "Failed to update account.", description: error.message, variant: "destructive" });
+      return;
+    }
+    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, verification_status: status } : u)));
+    toast({ title: status === "suspended" ? "Account suspended." : "Account reactivated." });
   }
 
   const verificationValues = useMemo(
@@ -291,6 +305,18 @@ export default function AdminUsers() {
                                   )}
                                   {isAgent ? "Revoke Agent role" : "Grant Agent role"}
                                 </Button>
+
+                                <h4 className="flex items-center gap-1.5 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  <Ban className="h-3.5 w-3.5" /> Account
+                                </h4>
+                                <AccountAction
+                                  isSuspended={u.verification_status === "suspended"}
+                                  isSelf={isSelf}
+                                  busy={!!busy[`v-${u.id}`]}
+                                  userLabel={u.full_name || u.email || "this user"}
+                                  onSuspend={() => setVerification(u.id, "suspended")}
+                                  onReactivate={() => setVerification(u.id, "active")}
+                                />
                               </div>
                             </div>
                           </TableCell>
@@ -360,6 +386,59 @@ function AdminRoleAction({
             className={isAdmin ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
           >
             {isAdmin ? "Revoke access" : "Grant access"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+function AccountAction({
+  isSuspended, isSelf, busy, userLabel, onSuspend, onReactivate,
+}: {
+  isSuspended: boolean;
+  isSelf: boolean;
+  busy: boolean;
+  userLabel: string;
+  onSuspend: () => void;
+  onReactivate: () => void;
+}) {
+  // Reactivate is low-risk — a direct button. Suspend restricts access, so confirm it.
+  if (isSuspended) {
+    return (
+      <Button variant="outline" size="sm" className="w-full justify-start" disabled={busy} onClick={onReactivate}>
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CircleCheck className="h-3.5 w-3.5" />}
+        Reactivate account
+      </Button>
+    );
+  }
+  if (isSelf) {
+    return (
+      <Button variant="outline" size="sm" className="w-full justify-start" disabled>
+        <CircleCheck className="h-3.5 w-3.5" /> Active (you)
+      </Button>
+    );
+  }
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" size="sm" className="w-full justify-start text-destructive hover:text-destructive" disabled={busy}>
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Ban className="h-3.5 w-3.5" />}
+          Suspend account
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Suspend this account?</AlertDialogTitle>
+          <AlertDialogDescription>
+            {userLabel} will be locked out of their agent workspace until reactivated. They'll see a
+            suspension notice prompting them to contact support.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onSuspend} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Suspend account
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

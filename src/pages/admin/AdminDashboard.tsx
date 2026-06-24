@@ -4,12 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  ShieldCheck,
-  Handshake,
-  LifeBuoy,
-  ArrowLeftRight,
-  Activity,
-  ArrowRight,
+  ShieldCheck, Handshake, LifeBuoy, ArrowLeftRight, Activity, ArrowRight,
+  Users, Building2, Inbox, CalendarClock, TrendingUp, Briefcase,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -19,7 +15,8 @@ const STATUS_LABELS: Record<string, string> = {
   in_identification: "In Identification",
   in_closing: "In Closing",
   completed: "Completed",
-  canceled: "Canceled",
+  failed: "Failed",
+  cancelled: "Cancelled",
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -28,14 +25,14 @@ const STATUS_COLORS: Record<string, string> = {
   in_identification: "bg-amber-100 text-amber-800",
   in_closing: "bg-purple-100 text-purple-800",
   completed: "bg-green-100 text-green-800",
-  canceled: "bg-muted text-muted-foreground",
+  failed: "bg-red-100 text-red-800",
+  cancelled: "bg-muted text-muted-foreground",
 };
 
 function relativeTime(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
-  const diff = now - then;
-  const mins = Math.floor(diff / 60000);
+  const mins = Math.floor((now - then) / 60000);
   if (mins < 1) return "Just now";
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
@@ -45,42 +42,35 @@ function relativeTime(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-interface KPI {
-  label: string;
-  value: number | null;
-  icon: React.ElementType;
-  color: string;
-}
-
-interface ActivityItem {
-  id: string;
-  text: string;
-  timestamp: string;
-  linkTo?: string;
-}
+interface KPI { label: string; value: number | null; icon: React.ElementType; color: string; }
+interface ActivityItem { id: string; text: string; timestamp: string; linkTo?: string; }
 
 export default function AdminDashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-monitoring-dashboard"],
     queryFn: async () => {
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const head = { count: "exact" as const, head: true };
       const [
-        activeExchanges,
-        activeMatches,
-        openConnections,
-        openTickets,
-        allExchanges,
-        timelineEvents,
+        activeExchanges, activeMatches, openConnections, openTickets,
+        totalUsers, totalAgents, totalProperties, newDemos, newContact,
+        newUsersWeek, newExchangesWeek, newDemosWeek,
+        allExchanges, timelineEvents,
       ] = await Promise.all([
-        supabase.from("exchanges").select("id", { count: "exact", head: true }).in("status", ["active", "in_identification", "in_closing"]),
-        supabase.from("matches").select("id", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("exchange_connections").select("id", { count: "exact", head: true }).in("status", ["pending", "accepted", "under_contract"]),
-        supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
+        supabase.from("exchanges").select("id", head).in("status", ["active", "in_identification", "in_closing"]),
+        supabase.from("matches").select("id", head).eq("status", "active"),
+        supabase.from("exchange_connections").select("id", head).in("status", ["pending", "accepted"]),
+        supabase.from("support_tickets").select("id", head).eq("status", "open"),
+        supabase.from("profiles").select("id", head),
+        supabase.from("user_roles").select("user_id", head).eq("role", "agent"),
+        supabase.from("pledged_properties").select("id", head),
+        supabase.from("demo_requests").select("id", head).eq("status", "new"),
+        supabase.from("contact_submissions").select("id", head).eq("status", "new"),
+        supabase.from("profiles").select("id", head).gte("created_at", weekAgo),
+        supabase.from("exchanges").select("id", head).gte("created_at", weekAgo),
+        supabase.from("demo_requests").select("id", head).gte("created_at", weekAgo),
         supabase.from("exchanges").select("status"),
-        supabase
-          .from("exchange_timeline")
-          .select("id, exchange_id, event_type, description, created_at")
-          .order("created_at", { ascending: false })
-          .limit(10),
+        supabase.from("exchange_timeline").select("id, exchange_id, event_type, description, created_at").order("created_at", { ascending: false }).limit(10),
       ]);
 
       return {
@@ -88,28 +78,30 @@ export default function AdminDashboard() {
           { label: "Active Exchanges", value: activeExchanges.count, icon: ArrowLeftRight, color: "bg-primary/10 text-primary" },
           { label: "Active Matches", value: activeMatches.count, icon: Handshake, color: "bg-green-50 text-green-600" },
           { label: "Open Connections", value: openConnections.count, icon: Activity, color: "bg-amber-50 text-amber-600" },
-          { label: "Open Support Tickets", value: openTickets.count, icon: LifeBuoy, color: "bg-purple-50 text-purple-600" },
+          { label: "Properties", value: totalProperties.count, icon: Building2, color: "bg-blue-50 text-blue-600" },
+          { label: "Total Users", value: totalUsers.count, icon: Users, color: "bg-indigo-50 text-indigo-600" },
+          { label: "Agents", value: totalAgents.count, icon: ShieldCheck, color: "bg-teal-50 text-teal-600" },
+          { label: "New Leads", value: (newDemos.count ?? 0) + (newContact.count ?? 0), icon: Inbox, color: "bg-rose-50 text-rose-600" },
+          { label: "Open Tickets", value: openTickets.count, icon: LifeBuoy, color: "bg-purple-50 text-purple-600" },
         ] satisfies KPI[],
+        growth: [
+          { label: "New users", value: newUsersWeek.count ?? 0, icon: Users },
+          { label: "New exchanges", value: newExchangesWeek.count ?? 0, icon: ArrowLeftRight },
+          { label: "New demo requests", value: newDemosWeek.count ?? 0, icon: CalendarClock },
+        ],
         allExchanges: allExchanges.data ?? [],
         activity: (timelineEvents.data ?? []).map((event) => ({
           id: event.id,
           text: event.description,
           timestamp: event.created_at,
-          linkTo: `/agent/workspace/${event.exchange_id}`,
+          linkTo: `/admin/deals/exchanges/${event.exchange_id}`,
         })) satisfies ActivityItem[],
       };
     },
   });
 
   const pipeline = useMemo(() => {
-    const counts: Record<string, number> = {
-      draft: 0,
-      active: 0,
-      in_identification: 0,
-      in_closing: 0,
-      completed: 0,
-      canceled: 0,
-    };
+    const counts: Record<string, number> = { draft: 0, active: 0, in_identification: 0, in_closing: 0, completed: 0, failed: 0, cancelled: 0 };
     data?.allExchanges.forEach((exchange: { status: string }) => {
       if (exchange.status in counts) counts[exchange.status]++;
     });
@@ -126,14 +118,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Monitoring overview for platform health and automation signals.</p>
+        <p className="text-muted-foreground">Platform health, growth, and activity at a glance.</p>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {data?.kpis.map((kpi) => (
           <Card key={kpi.label}>
             <CardContent className="p-4">
@@ -147,27 +138,47 @@ export default function AdminDashboard() {
         ))}
       </div>
 
+      {/* Growth this week */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <TrendingUp className="h-4 w-4 text-primary" /> Last 7 days
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            {data?.growth.map((g) => (
+              <div key={g.label} className="flex items-center gap-3 rounded-lg border px-4 py-3">
+                <g.icon className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xl font-bold leading-none">{g.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{g.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">
         <Button variant="outline" size="sm" asChild>
-          <Link to="/admin/support">
-            <LifeBuoy className="mr-1.5 h-3.5 w-3.5" />
-            Review Support
-          </Link>
+          <Link to="/admin/deals"><Briefcase className="mr-1.5 h-3.5 w-3.5" />Deal Oversight</Link>
         </Button>
         <Button variant="outline" size="sm" asChild>
-          <Link to="/agent">
-            <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
-            View Agent Workspace
-          </Link>
+          <Link to="/admin/users"><Users className="mr-1.5 h-3.5 w-3.5" />Manage Users</Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/admin/demos"><CalendarClock className="mr-1.5 h-3.5 w-3.5" />Demos</Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/admin/support"><LifeBuoy className="mr-1.5 h-3.5 w-3.5" />Support</Link>
         </Button>
       </div>
 
       {/* Pipeline Summary */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Request Pipeline</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Exchange Pipeline</CardTitle></CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
             {Object.entries(STATUS_LABELS).map(([status, label]) => (
@@ -184,9 +195,7 @@ export default function AdminDashboard() {
 
       {/* Recent Activity */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Recent Activity</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Recent Activity</CardTitle></CardHeader>
         <CardContent>
           {(data?.activity.length ?? 0) === 0 ? (
             <p className="text-sm text-muted-foreground">No recent activity.</p>
@@ -195,14 +204,10 @@ export default function AdminDashboard() {
               {data?.activity.map((item) => (
                 <div key={item.id} className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 rounded-full bg-muted p-1.5">
-                      <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                    </div>
+                    <div className="mt-0.5 rounded-full bg-muted p-1.5"><ArrowRight className="h-3 w-3 text-muted-foreground" /></div>
                     <div>
                       {item.linkTo ? (
-                        <Link to={item.linkTo} className="text-sm hover:text-primary transition-colors">
-                          {item.text}
-                        </Link>
+                        <Link to={item.linkTo} className="text-sm transition-colors hover:text-primary">{item.text}</Link>
                       ) : (
                         <p className="text-sm">{item.text}</p>
                       )}
