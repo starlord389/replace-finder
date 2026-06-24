@@ -90,7 +90,7 @@ export default function AgentMatches() {
   const scopedRels = useMemo(() => {
     let rels = buyerRels;
     if (scopeClientId) rels = rels.filter((r) => r.clientId === scopeClientId);
-    if (listingFilterId) rels = rels.filter((r) => r.propertyId === listingFilterId);
+    if (listingFilterId) rels = rels.filter((r) => r.buyerExchangeId === listingFilterId);
     return rels;
   }, [buyerRels, scopeClientId, listingFilterId]);
 
