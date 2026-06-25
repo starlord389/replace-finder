@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Send, Sparkles, Handshake, FileCheck, FileSignature, Home, CheckCircle2,
   XCircle, Archive, StickyNote, Banknote, type LucideIcon,
@@ -32,6 +32,13 @@ export function MatchHistorySheet({ rel, open, onOpenChange }: Props) {
   const { toast } = useToast();
   const { state, update } = useMatchLocalState(rel.matchId);
   const [note, setNote] = useState(state.agentNote);
+
+  // useMatchLocalState hydrates the saved note in an effect (the initializer
+  // sees the empty default), and the sheet stays mounted across matches — so
+  // sync the textarea from the persisted note as it loads / when the match changes.
+  useEffect(() => {
+    setNote(state.agentNote);
+  }, [state.agentNote, rel.matchId]);
 
   const events: HistoryEvent[] = [];
   const push = (ts: string | null | undefined, label: string, icon: LucideIcon) => {
