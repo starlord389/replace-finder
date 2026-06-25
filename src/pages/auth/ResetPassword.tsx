@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,14 +6,41 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, TriangleAlert } from "lucide-react";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  // A valid reset link establishes a recovery session. Without one, the link is
+  // missing/expired/already used — show a clear message instead of a raw error.
+  const [linkState, setLinkState] = useState<"checking" | "valid" | "invalid">("checking");
   const { toast } = useToast();
+
+  useEffect(() => {
+    let settled = false;
+    const markValid = () => {
+      settled = true;
+      setLinkState("valid");
+    };
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) markValid();
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) markValid();
+    });
+    // Give the recovery token a moment to be processed before giving up.
+    const timer = setTimeout(() => {
+      if (!settled) setLinkState("invalid");
+    }, 2500);
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
+    };
+  }, []);
 
   const valid = password.length >= 8 && password === confirm;
 
@@ -39,7 +66,27 @@ export default function ResetPassword() {
         <div className="w-full max-w-sm">
           <Card className="border-[#d7c9b1] bg-white/90 shadow-sm">
             <CardContent className="p-6 sm:p-8">
-              {done ? (
+              {linkState === "checking" ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#39484d] border-t-transparent" />
+                  <p className="mt-4 text-sm text-muted-foreground">Verifying your reset link…</p>
+                </div>
+              ) : linkState === "invalid" ? (
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                    <TriangleAlert className="h-6 w-6 text-red-600" />
+                  </div>
+                  <h1 className="text-2xl font-bold text-foreground">Link expired or invalid</h1>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    This password reset link is no longer valid. Request a new one and we'll email it to you.
+                  </p>
+                  <Link to="/forgot-password">
+                    <Button className="mt-6 w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]">
+                      Request a new link
+                    </Button>
+                  </Link>
+                </div>
+              ) : done ? (
                 <div className="text-center">
                   <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FADC6A]/25">
                     <CheckCircle2 className="h-6 w-6 text-[#1d1d1d]" />

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
@@ -24,6 +24,9 @@ export function useNotifications() {
   const { user } = useAuth();
   const { isDemo } = useWorkspaceMode();
   const qc = useQueryClient();
+  // Unique per hook instance so multiple consumers (bell, mobile bell, page)
+  // don't share/clobber the same realtime channel.
+  const channelId = useId();
 
   const query = useQuery({
     queryKey: ["notifications", user?.id, isDemo],
@@ -34,7 +37,7 @@ export function useNotifications() {
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
-      .channel(`notifications-${user.id}`)
+      .channel(`notifications-${user.id}-${channelId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
@@ -44,7 +47,7 @@ export function useNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, qc]);
+  }, [user?.id, qc, channelId]);
 
   const markAllRead = useMutation({
     mutationFn: async () => {

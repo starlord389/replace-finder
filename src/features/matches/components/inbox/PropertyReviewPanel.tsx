@@ -144,7 +144,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
                 rel={rel}
                 onOpenHistory={() => setHistoryOpen(true)}
                 onJumpToMatch={() => setTab("match")}
-                onOpenConversation={() => setTab(conversationAvailable ? "conversation" : "overview")}
+                onOpenConversation={() => setTab("conversation")}
                 onSendToClient={() => setSendOpen(true)}
               />
             </div>

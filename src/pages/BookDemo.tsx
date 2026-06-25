@@ -73,6 +73,8 @@ export default function BookDemo() {
   const [submitted, setSubmitted] = useState(false);
 
   function updateField(field: keyof DemoFormState, value: string) {
+    // Editing after a successful submit means a new request — clear the banner.
+    setSubmitted(false);
     setFormState((current) => ({
       ...current,
       [field]: value,

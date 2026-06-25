@@ -245,7 +245,6 @@ export type SortKey =
   | "highest_cap"
   | "highest_coc"
   | "lowest_price"
-  | "best_timeline"
   | "newest"
   | "status";
 
@@ -255,7 +254,6 @@ export const SORT_OPTIONS: Array<{ key: SortKey; label: string }> = [
   { key: "highest_cap", label: "Highest Cap Rate" },
   { key: "highest_coc", label: "Highest Cash-on-Cash" },
   { key: "lowest_price", label: "Lowest Price" },
-  { key: "best_timeline", label: "Best Timeline Fit" },
   { key: "newest", label: "Newest" },
   { key: "status", label: "Status" },
 ];
@@ -273,10 +271,6 @@ function cocOf(r: Relationship): number {
   const cf = noi - estimateAnnualDebtService(loan);
   return equity > 0 ? (cf / equity) * 100 : 0;
 }
-function timelineFitOf(r: Relationship): number {
-  return matchBreakdown(r).find((d) => d.label === "Timeline Fit")?.score ?? 0;
-}
-
 export function sortRelationships<T extends Relationship>(
   rels: T[],
   key: SortKey,
@@ -288,7 +282,6 @@ export function sortRelationships<T extends Relationship>(
       case "highest_cap": return (b.capRate ?? 0) - (a.capRate ?? 0);
       case "highest_coc": return cocOf(b) - cocOf(a);
       case "lowest_price": return (a.askingPrice ?? Infinity) - (b.askingPrice ?? Infinity);
-      case "best_timeline": return timelineFitOf(b) - timelineFitOf(a);
       case "newest": return b.lastActivityAt.localeCompare(a.lastActivityAt);
       case "status": return a.stage.localeCompare(b.stage);
       case "best_match":
