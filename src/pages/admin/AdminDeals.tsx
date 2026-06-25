@@ -114,6 +114,10 @@ export default function AdminDeals() {
     () => connections.filter((c) => !term || agent(c.buyer_agent_id).toLowerCase().includes(term) || agent(c.seller_agent_id).toLowerCase().includes(term) || c.status.toLowerCase().includes(term)),
     [connections, term, agent],
   );
+  const fMatches = useMemo(
+    () => matches.filter((m) => !term || (m.status ?? "").toLowerCase().includes(term) || (m.boot_status ?? "").toLowerCase().includes(term)),
+    [matches, term],
+  );
 
   if (loading) {
     return (
@@ -139,10 +143,10 @@ export default function AdminDeals() {
 
       <Tabs defaultValue="exchanges">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-          <TabsTrigger value="exchanges">Exchanges ({exchanges.length})</TabsTrigger>
-          <TabsTrigger value="properties">Properties ({properties.length})</TabsTrigger>
-          <TabsTrigger value="matches">Matches ({matches.length})</TabsTrigger>
-          <TabsTrigger value="connections">Connections ({connections.length})</TabsTrigger>
+          <TabsTrigger value="exchanges">Exchanges ({fExchanges.length}/{exchanges.length})</TabsTrigger>
+          <TabsTrigger value="properties">Properties ({fProperties.length}/{properties.length})</TabsTrigger>
+          <TabsTrigger value="matches">Matches ({fMatches.length}/{matches.length})</TabsTrigger>
+          <TabsTrigger value="connections">Connections ({fConnections.length}/{connections.length})</TabsTrigger>
         </TabsList>
 
         {/* Exchanges */}
@@ -205,7 +209,7 @@ export default function AdminDeals() {
 
         {/* Matches */}
         <TabsContent value="matches" className="mt-4">
-          <TableCard empty={matches.length === 0} emptyLabel="No matches found.">
+          <TableCard empty={fMatches.length === 0} emptyLabel="No matches found.">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -217,7 +221,7 @@ export default function AdminDeals() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {matches.map((m) => (
+                {fMatches.map((m) => (
                   <TableRow key={m.id}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(m.created_at)}</TableCell>
                     <TableCell>

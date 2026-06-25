@@ -135,6 +135,15 @@ export default function AdminUsers() {
     [users],
   );
 
+  // If the selected verification filter is no longer present (e.g. the last
+  // suspended user was reactivated), fall back to "all" instead of showing an
+  // unexplained empty list.
+  useEffect(() => {
+    if (verificationFilter !== "all" && !verificationValues.includes(verificationFilter)) {
+      setVerificationFilter("all");
+    }
+  }, [verificationValues, verificationFilter]);
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return users.filter((u) => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -137,9 +137,8 @@ export default function ArticleFeedback() {
                   const isExpanded = expandedId === s.article_id;
                   const scoreColor = s.percent >= 75 ? "text-green-700" : s.percent >= 50 ? "text-amber-700" : "text-red-700";
                   return (
-                    <>
+                    <Fragment key={s.article_id}>
                       <TableRow
-                        key={s.article_id}
                         className={`cursor-pointer hover:bg-muted/50 ${s.comments.length ? "" : "cursor-default"}`}
                         onClick={() => s.comments.length && setExpandedId(isExpanded ? null : s.article_id)}
                       >
@@ -192,7 +191,7 @@ export default function ArticleFeedback() {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </TableBody>

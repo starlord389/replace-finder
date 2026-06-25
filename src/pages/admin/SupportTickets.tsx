@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -172,9 +172,8 @@ export default function SupportTickets() {
                 {filtered.map((ticket) => {
                   const isExpanded = expandedId === ticket.id;
                   return (
-                    <>
+                    <Fragment key={ticket.id}>
                       <TableRow
-                        key={ticket.id}
                         className="cursor-pointer hover:bg-muted/50"
                         onClick={() => {
                           setExpandedId(isExpanded ? null : ticket.id);
@@ -261,7 +260,7 @@ export default function SupportTickets() {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </TableBody>
