@@ -20,6 +20,8 @@ import { useAgentExchangesQuery } from "@/features/agent/hooks/useAgentExchanges
 import { useAgentClientsCount } from "@/features/agent/hooks/useAgentClientsCount";
 import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
 import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRelationships";
+import { deriveUiStatus } from "@/features/matches/components/inbox/inboxHelpers";
+import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/matches/components/inbox/useMatchLocalState";
 import { DemoDataControls } from "@/features/workspace/components/DemoDataControls";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { getAgentVerificationUiState } from "@/lib/agentVerification";
@@ -184,30 +186,31 @@ function TodayPanel({ attention }: { attention: AgentAttentionData | undefined }
 }
 
 function PipelineFunnel({ relationships }: { relationships: Relationship[] }) {
-  const counts = {
-    new: 0,
-    conversing: 0,
-    loi: 0,
-    uc: 0,
-    closed: 0,
-  };
+  // Re-render when a match's local lifecycle status changes.
+  useMatchLocalStateVersion();
+  const counts = { new: 0, conversing: 0, loi: 0, uc: 0, closed: 0 };
   for (const r of relationships) {
-    switch (r.stage) {
+    // Bucket by the UI lifecycle status — loi / under_contract live there, not in r.stage.
+    switch (deriveUiStatus(r, readMatchLocalState(r.matchId))) {
       case "new":
-      case "incoming":
+      case "sent_to_client":
         counts.new += 1;
         break;
-      case "pending_in":
-      case "pending_out":
-      case "connected":
-      case "conversing":
+      case "client_interested":
+      case "in_conversation":
         counts.conversing += 1;
         break;
-      case "closed_won":
+      case "loi":
+        counts.loi += 1;
+        break;
+      case "under_contract":
+        counts.uc += 1;
+        break;
+      case "closed":
         counts.closed += 1;
         break;
       default:
-        break;
+        break; // archived → not counted
     }
   }
   const stages: Array<{ key: keyof typeof counts; label: string }> = [
@@ -283,7 +286,8 @@ export default function AgentDashboard() {
 
   // KPI derivations
   const activeListings = exchanges.filter((e) => e.status === "active").length;
-  const draftListings = exchanges.length - activeListings;
+  // Only true drafts — not completed/failed/cancelled/in-progress (those aren't "drafts").
+  const draftListings = exchanges.filter((e) => e.status === "draft").length;
   const clientsWithActiveListing = new Set(
     exchanges.filter((e) => e.status === "active" && e.client_id).map((e) => e.client_id),
   ).size;
