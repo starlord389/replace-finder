@@ -298,7 +298,7 @@ export default function AgentMatches() {
               activeExchangeId={undefined}
               allClientsActive={!activeClient}
               allPropertiesActive={!!activeClient}
-              onSelectExchange={(id) => navigate(`/agent/workspace/${id}`)}
+              onSelectExchange={(id) => navigate(`/agent/matches?listing=${id}`)}
               onSelectAllClients={() => setScopeClient(null)}
               onSelectAllPropertiesForClient={(clientId) => setScopeClient(clientId)}
             />

@@ -377,13 +377,13 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     // A route the current agent can actually load.
     const openHref =
       mySide === "buyer"
-        ? `/agent/workspace/${match.buyer_exchange_id}?match=${match.id}`
+        ? `/agent/matches?listing=${match.buyer_exchange_id}&match=${match.id}`
         : conn
           ? // Incoming match with a live connection → the shared connection detail.
             `/agent/connections/${conn.id}`
           : myExchangeId
-            ? // No connection yet → the agent's own listing workspace.
-              `/agent/workspace/${myExchangeId}?match=${match.id}`
+            ? // No connection yet → the unified matches inbox, scoped to the listing.
+              `/agent/matches?listing=${myExchangeId}&match=${match.id}`
             : `/agent/matches`;
 
     return {

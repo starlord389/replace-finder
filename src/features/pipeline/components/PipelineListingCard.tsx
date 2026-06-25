@@ -87,7 +87,7 @@ export function PipelineListingCard({
       {/* Title + price */}
       <div className="mt-1 flex items-start justify-between gap-2">
         <Link
-          to={`/agent/workspace/${listing.id}`}
+          to={`/agent/matches?listing=${listing.id}`}
           className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground hover:text-primary"
         >
           {title}
@@ -149,7 +149,7 @@ export function PipelineListingCard({
             <span>{formatDistanceToNow(new Date(lastActivityAt), { addSuffix: true })}</span>
           )}
           <Link
-            to={`/agent/workspace/${listing.id}`}
+            to={`/agent/matches?listing=${listing.id}`}
             className="invisible inline-flex items-center font-medium text-primary group-hover:visible"
           >
             Open <ArrowRight className="ml-0.5 h-3 w-3" />

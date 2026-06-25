@@ -3,8 +3,8 @@ import { Navigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Resolves legacy /agent/matches/:id deep links into the new
- * /agent/workspace/:exchangeId?match=:matchId URL.
+ * Resolves legacy /agent/matches/:id deep links into the unified Matches inbox
+ * URL: /agent/matches?listing=:exchangeId&match=:matchId.
  *
  * The :id param could be either a match id or a connection id (the unified
  * relationships use connection.id when present, else match.id).
@@ -26,7 +26,7 @@ export default function MatchRedirect() {
         .maybeSingle();
       if (m?.buyer_exchange_id) {
         if (!cancelled) {
-          setTarget(`/agent/workspace/${m.buyer_exchange_id}?match=${m.id}`);
+          setTarget(`/agent/matches?listing=${m.buyer_exchange_id}&match=${m.id}`);
           setDone(true);
         }
         return;
@@ -44,7 +44,7 @@ export default function MatchRedirect() {
           .eq("id", c.match_id)
           .maybeSingle();
         if (m2?.buyer_exchange_id && !cancelled) {
-          setTarget(`/agent/workspace/${m2.buyer_exchange_id}?match=${m2.id}`);
+          setTarget(`/agent/matches?listing=${m2.buyer_exchange_id}&match=${m2.id}`);
           setDone(true);
           return;
         }

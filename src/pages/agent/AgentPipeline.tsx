@@ -67,7 +67,7 @@ export default function AgentPipeline() {
       (r) => r.id === legacyId || r.matchId === legacyId || r.connectionId === legacyId,
     );
     if (found)
-      navigate(`/agent/workspace/${found.buyerExchangeId}?match=${found.matchId}`, {
+      navigate(`/agent/matches?listing=${found.buyerExchangeId}&match=${found.matchId}`, {
         replace: true,
       });
   }, [searchParams, rels, navigate]);

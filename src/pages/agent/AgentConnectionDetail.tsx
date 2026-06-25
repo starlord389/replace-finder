@@ -471,7 +471,7 @@ export default function AgentConnectionDetail() {
               </p>
             </div>
             <Button asChild>
-              <Link to={`/agent/workspace/${conn.buyer_exchange_id}?match=${conn.match_id}&view=conversation`}>
+              <Link to={`/agent/matches?listing=${conn.buyer_exchange_id}&match=${conn.match_id}&view=conversation`}>
                 <MessageSquare className="mr-1.5 h-4 w-4" /> Open conversation
               </Link>
             </Button>

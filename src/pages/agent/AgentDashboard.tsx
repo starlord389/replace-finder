@@ -94,7 +94,7 @@ function buildTodayItems(attention: AgentAttentionData | undefined): TodayItem[]
       tone: "amber",
       title: `${topMatch.clientName} · new match`,
       subtitle: `${topMatch.propertyName} · score ${Math.round(topMatch.totalScore)}`,
-      href: `/agent/workspace/${topMatch.buyerExchangeId}?match=${topMatch.matchId}`,
+      href: `/agent/matches?listing=${topMatch.buyerExchangeId}&match=${topMatch.matchId}`,
       cta: "Review",
     });
   }
@@ -417,7 +417,7 @@ export default function AgentDashboard() {
                       <ul className="divide-y overflow-hidden rounded-lg border">
                         {attention.unreviewedMatches.map((m) => {
                           const accent = getClientAccent(m.clientId ?? m.clientName);
-                          const target = `/agent/workspace/${m.buyerExchangeId}?match=${m.matchId}`;
+                          const target = `/agent/matches?listing=${m.buyerExchangeId}&match=${m.matchId}`;
                           return (
                             <li
                               key={m.matchId}
@@ -572,7 +572,7 @@ export default function AgentDashboard() {
                     const state = e.pledged_properties?.state ?? null;
                     const location = [city, state].filter(Boolean).join(", ");
                     const price = fmtPrice(e.exchange_proceeds);
-                    const target = `/agent/workspace/${e.id}`;
+                    const target = `/agent/matches?listing=${e.id}`;
                     return (
                       <li
                         key={e.id}
