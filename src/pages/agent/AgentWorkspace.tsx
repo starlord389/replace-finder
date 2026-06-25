@@ -17,6 +17,7 @@ import { useAgentListings } from "@/features/pipeline/hooks/useAgentListings";
 
 import {
   deriveUiStatus,
+  formatCapRate,
   sortRelationships,
   type SortKey,
   type UiStatus,
@@ -173,8 +174,13 @@ export default function AgentWorkspace() {
     if (exchangeId && user?.id) setLastListing(user.id, exchangeId);
   }, [exchangeId, user?.id]);
 
+  // Surface every relationship the agent owns for THIS exchange. Buyer-side rels
+  // match on `buyerExchangeId` (the agent's exchange); seller-side incoming
+  // matches against this listing carry the agent's listing exchange in
+  // `myExchangeId` (their `buyerExchangeId` is the counterparty's). Filtering on
+  // `myExchangeId` covers both so a seller-side ?match= deep-link resolves here.
   const exchangeRels = useMemo(
-    () => allRels.filter((r) => r.buyerExchangeId === exchangeId),
+    () => allRels.filter((r) => r.myExchangeId === exchangeId),
     [allRels, exchangeId],
   );
 
@@ -350,7 +356,7 @@ export default function AgentWorkspace() {
               </span>
             )}
             {financials?.cap_rate != null && (
-              <span>{Number(financials.cap_rate).toFixed(1)}% cap</span>
+              <span>{formatCapRate(Number(financials.cap_rate))} cap</span>
             )}
           </div>
         </div>

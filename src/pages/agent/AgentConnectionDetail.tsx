@@ -20,6 +20,7 @@ import {
 import { BOOT_STATUS_LABELS, BOOT_STATUS_COLORS } from "@/lib/constants";
 import { format } from "date-fns";
 import { AgentProfileCard } from "@/components/profile/AgentProfileCard";
+import { formatCapRate } from "@/features/matches/components/inbox/inboxHelpers";
 
 const fmt = (v: number | null | undefined) =>
   v != null && v !== 0 ? `$${Math.round(Number(v)).toLocaleString()}` : "—";
@@ -368,7 +369,7 @@ export default function AgentConnectionDetail() {
             <p className="text-sm text-muted-foreground">{[relinquishedProp?.city, relinquishedProp?.state].filter(Boolean).join(", ") || "—"}</p>
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span>{fmt(relinquishedFin?.asking_price)}</span>
-              {relinquishedFin?.cap_rate && <span>{Number(relinquishedFin.cap_rate).toFixed(1)}% cap</span>}
+              {relinquishedFin?.cap_rate && <span>{formatCapRate(Number(relinquishedFin.cap_rate))} cap</span>}
               {relinquishedProp?.units && <span>{relinquishedProp.units} units</span>}
             </div>
           </div>
@@ -380,7 +381,7 @@ export default function AgentConnectionDetail() {
             <p className="text-sm text-muted-foreground">{[sellerProp?.city, sellerProp?.state].filter(Boolean).join(", ") || "—"}</p>
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span>{fmt(sellerFin?.asking_price)}</span>
-              {sellerFin?.cap_rate && <span>{Number(sellerFin.cap_rate).toFixed(1)}% cap</span>}
+              {sellerFin?.cap_rate && <span>{formatCapRate(Number(sellerFin.cap_rate))} cap</span>}
               {sellerProp?.units && <span>{sellerProp.units} units</span>}
             </div>
           </div>

@@ -79,6 +79,13 @@ export interface Relationship {
   clientId: string | null;
   clientName: string | null;
   buyerExchangeId: string;
+  /**
+   * The exchange the CURRENT agent owns for this relationship — buyer-side it is
+   * `buyerExchangeId`; seller-side it is the agent's own listing's exchange. This
+   * is the exchange whose workspace the agent can actually open, so AgentWorkspace
+   * filters on it (not `buyerExchangeId`, which is the counterparty's on seller-side).
+   */
+  myExchangeId: string | null;
   /** Short label for the buyer's relinquished property (city + state, or asset). */
   relinquishedLabel: string | null;
   /**
@@ -429,6 +436,7 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       clientId,
       clientName,
       buyerExchangeId: match.buyer_exchange_id,
+      myExchangeId,
       relinquishedLabel,
       openHref,
 

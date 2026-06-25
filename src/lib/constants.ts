@@ -125,14 +125,6 @@ export const EXCHANGE_STATUS_COLORS: Record<string, string> = {
   expired: "bg-red-100 text-red-800",
 };
 
-export const SCORE_DIMENSIONS = [
-  { key: "price_score", label: "Price", weight: "30%" },
-  { key: "geo_score", label: "Geography", weight: "20%" },
-  { key: "asset_score", label: "Asset Type", weight: "20%" },
-  { key: "strategy_score", label: "Strategy", weight: "15%" },
-  { key: "financial_score", label: "Property Quality", weight: "15%" },
-] as const;
-
 export const BOOT_STATUS_LABELS: Record<string, string> = {
   no_boot: "No Boot",
   minor_boot: "Minor Boot",

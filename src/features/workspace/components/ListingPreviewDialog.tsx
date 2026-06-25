@@ -65,6 +65,7 @@ function buildPreviewRel(listing: AgentListing): Relationship {
     clientId: listing.clientId,
     clientName: listing.clientName,
     buyerExchangeId: "",
+    myExchangeId: listing.id,
     relinquishedLabel: null,
     openHref: `/agent/exchanges/${listing.id}/edit`,
     lastActivityAt: listing.createdAt,

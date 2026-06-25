@@ -62,12 +62,14 @@ Deno.serve(async (req) => {
     const propertyId = exchange.relinquished_property_id;
     const criteriaId = exchange.criteria_id;
 
-    // Storage IDOR guard: every client-supplied image path must live under the
-    // caller's own folder (`${user.id}/`). Otherwise an attacker could insert a
-    // victim's path into this listing, or — via the reconcile delete below —
-    // remove a victim's files from the public bucket.
+    // Storage IDOR guard: every client-supplied image path must either be an
+    // external http(s):// URL (demo/legacy references — harmless) or live under
+    // the caller's own folder (`${user.id}/`). A relative path under another
+    // user's folder is rejected: an attacker could otherwise insert a victim's
+    // path into this listing, or — via the reconcile delete below — remove a
+    // victim's files from the public bucket.
     if (Array.isArray(payload.images)) {
-      const foreign = payload.images.find((img) => !isOwnedPath(img?.storage_path, user.id));
+      const foreign = payload.images.find((img) => !isAllowedImagePath(img?.storage_path, user.id));
       if (foreign) {
         return response({ error: "Image storage_path must belong to the current user" }, 400);
       }
@@ -192,10 +194,12 @@ Deno.serve(async (req) => {
 
       // Server-authoritative equity/proceeds from the (merged) asking price and
       // loan balance, rather than trusting client-sent values.
-      // estimated_equity = raw equity (asking − loan).
+      // estimated_equity = RAW equity (asking − loan), NOT clamped — the wizard
+      // displays raw (negative-capable) equity, so the stored value must match.
+      // (exchange_proceeds stays clamped >= 0 below.)
       const estimatedEquity =
         derived.asking_price != null && derived.loan_balance != null
-          ? Math.max(0, derived.asking_price - derived.loan_balance)
+          ? derived.asking_price - derived.loan_balance
           : null;
       // exchange_proceeds = equity NET of estimated seller closing costs (~5% of
       // asking price), mirroring the wizard. Prefer a valid client-sent value.
@@ -278,7 +282,31 @@ Deno.serve(async (req) => {
         const publishError = await assertPublishable(db, propertyId);
         if (publishError) return publishError;
       }
-      await handleStatusChange(db, exchange, propertyId, payload.intent, user.id, /* fromWizard */ true);
+      // handleStatusChange's move_to_draft branch re-runs the defensive guard and
+      // can return a 400 Response; capture and return it so a tripped guard
+      // surfaces a clean error instead of being swallowed into a false 200.
+      const statusResponse = await handleStatusChange(
+        db, exchange, propertyId, payload.intent, user.id, /* fromWizard */ true,
+      );
+      if (statusResponse) return statusResponse;
+    } else if (payload.intent === "save_active") {
+      // Editing an already-active listing must keep it publishable. The UI
+      // enforces this, but a direct API call could otherwise null required
+      // fields (city/state/asset_type/owner-auth/asking_price) on a live
+      // listing. The wizard data has just been persisted above, so validate
+      // against the now-current DB state — mirroring the publish path.
+      const publishError = await assertPublishable(db, propertyId);
+      if (publishError) return publishError;
+
+      await db.from("exchange_timeline").insert({
+        exchange_id: exchange.id,
+        event_type: "exchange_updated",
+        description: "Exchange details updated",
+        actor_id: user.id,
+      });
+      if (exchange.status !== "draft" && (payload.criteria || payload.financials) && propertyId) {
+        await runMatchingSafe(db, user.id, exchange.id, propertyId, !!exchange.is_demo, "update:rescore");
+      }
     } else {
       // Plain save — timeline event
       await db.from("exchange_timeline").insert({
@@ -364,10 +392,12 @@ async function handleStatusChange(
 }
 
 // Guard move_to_draft against an in-flight deal. Returns a 400 Response when the
-// exchange (as buyer) has an accepted, in-progress, or completed connection — unpublishing
-// would orphan a live deal — or null when it is safe to move to draft. Returning
-// a Response (rather than throwing) lets the handler fail fast with a clean 400
-// before any data/storage is mutated, instead of a post-mutation 500.
+// exchange has an accepted, in-progress, or completed connection on EITHER side
+// — as the buyer (buyer_exchange_id) OR the seller listing (seller_exchange_id)
+// — since unpublishing either side would orphan a live deal — or null when it is
+// safe to move to draft. Returning a Response (rather than throwing) lets the
+// handler fail fast with a clean 400 before any data/storage is mutated, instead
+// of a post-mutation 500.
 async function assertNoAcceptedConnections(
   db: ReturnType<typeof createClient>,
   exchangeId: string,
@@ -375,7 +405,9 @@ async function assertNoAcceptedConnections(
   const { count, error } = await db
     .from("exchange_connections")
     .select("id", { count: "exact", head: true })
-    .eq("buyer_exchange_id", exchangeId)
+    // The exchange can be on either side of the connection; block if it is the
+    // buyer OR the seller listing on an in-flight deal.
+    .or(`buyer_exchange_id.eq.${exchangeId},seller_exchange_id.eq.${exchangeId}`)
     // 'in_progress' (under contract) is a live deal too — migration
     // 20260625140000 added it between accepted and completed, and the app treats
     // ['accepted','in_progress','completed'] as active everywhere.
@@ -513,11 +545,28 @@ function arrayOrDefault(value: unknown, fallback: string[]): string[] {
 }
 function boolOrFalse(value: unknown): boolean { return value === true; }
 
-// Every storage path must live under the caller's own folder. The uploader
-// writes to `${user.id}/<uuid>.<ext>`, so a legitimate path always starts with
-// `${userId}/`. Reject anything else (or a non-string) to prevent IDOR.
+// Whether a storage path targets the caller's own bucket folder. The uploader
+// writes to `${user.id}/<uuid>.<ext>`, so a freshly-uploaded path always starts
+// with `${userId}/`. Used to scope the reconcile storage.remove so it only ever
+// deletes the caller's own files.
 function isOwnedPath(path: unknown, userId: string): boolean {
   return typeof path === "string" && path.startsWith(`${userId}/`);
+}
+
+// Absolute http(s):// URLs (e.g. demo/legacy Unsplash listings store the full
+// image URL as storage_path) are external references, not bucket folder paths —
+// they cannot target another user's storage, so they are exempt from the IDOR
+// guard. The reconcile storage.remove already filters to owned `${userId}/`
+// paths, so an external URL is never passed to storage.remove either.
+function isHttpUrl(path: unknown): boolean {
+  return typeof path === "string" && /^https?:\/\//i.test(path);
+}
+
+// The IDOR guard rejects ONLY a path that is neither an external http(s) URL nor
+// under the caller's own folder — i.e. a relative bucket path pointing at someone
+// else's folder.
+function isAllowedImagePath(path: unknown, userId: string): boolean {
+  return isHttpUrl(path) || isOwnedPath(path, userId);
 }
 
 // Must match calculateEstimatedExchangeProceeds in src/lib/exchangeWizardTypes.ts:

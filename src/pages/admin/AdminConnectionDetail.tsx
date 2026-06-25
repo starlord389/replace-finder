@@ -7,12 +7,17 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { Loader2, ArrowLeft } from "lucide-react";
 
-const CONNECTION_STATUSES = ["pending", "accepted", "declined", "cancelled", "completed"];
+const CONNECTION_STATUSES = ["pending", "accepted", "in_progress", "declined", "cancelled", "completed"];
+
+const CONNECTION_STATUS_LABELS: Record<string, string> = {
+  in_progress: "Under Contract",
+};
 
 const statusColor: Record<string, string> = {
   accepted: "bg-green-100 text-green-800 border-green-200",
   completed: "bg-green-100 text-green-800 border-green-200",
   pending: "bg-amber-100 text-amber-800 border-amber-200",
+  in_progress: "bg-amber-100 text-amber-800 border-amber-200",
   declined: "bg-red-100 text-red-800 border-red-200",
   cancelled: "bg-red-100 text-red-800 border-red-200",
 };
@@ -123,7 +128,7 @@ export default function AdminConnectionDetail() {
               <Select value={conn.status} onValueChange={changeStatus}>
                 <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {CONNECTION_STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{pretty(s)}</SelectItem>)}
+                  {CONNECTION_STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{CONNECTION_STATUS_LABELS[s] ?? pretty(s)}</SelectItem>)}
                 </SelectContent>
               </Select>
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}

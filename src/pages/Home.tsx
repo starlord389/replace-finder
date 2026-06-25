@@ -1220,6 +1220,7 @@ function FeaturesSection() {
           role="tabpanel"
           id={`fs-panel-${f.id}`}
           aria-labelledby={`fs-tab-${f.id}`}
+          tabIndex={0}
         >
           <div className="fs-left" key={`v-${f.id}`}><Visual /></div>
           <div className="fs-right" key={`c-${f.id}`}>

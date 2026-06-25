@@ -441,6 +441,10 @@ async function insertProperty(db: any, agentId: string, p: any, isDemo: boolean,
     asset_type: p.asset_type, strategy_type: p.strategy_type, units: p.units, year_built: p.year_built,
     building_square_footage: p.sf, description: p.description, is_demo: isDemo,
     source: "agent_pledge", status, listed_at: status === "active" ? new Date().toISOString() : null,
+    // Published (active) listings must carry the compliance attestation, otherwise
+    // editing a seeded active listing is blocked (Save disabled) until the box is
+    // re-checked. Drafts stay unconfirmed so the wizard prompts for it on publish.
+    owner_authorization_confirmed: status === "active",
   };
 
   let propId: string;

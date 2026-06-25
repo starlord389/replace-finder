@@ -55,6 +55,24 @@ export function ClientDangerZoneTab({ clientId, clientName, status, onStatusChan
       return;
     }
     setWorking(true);
+    // Re-check on the server right before the (cascading) delete: the on-mount
+    // exchangeCount can be stale if a listing was created in another tab/session,
+    // and deleting would silently CASCADE away those exchanges. Abort if any exist.
+    const { count, error: countError } = await supabase
+      .from("exchanges")
+      .select("id", { count: "exact", head: true })
+      .eq("client_id", clientId);
+    if (countError) {
+      setWorking(false);
+      toast.error("Couldn't verify the client's listings: " + countError.message);
+      return;
+    }
+    if ((count ?? 0) > 0) {
+      setWorking(false);
+      setExchangeCount(count ?? 0);
+      toast.error(`This client now has ${count} listing${count === 1 ? "" : "s"}. Remove them first, or deactivate instead.`);
+      return;
+    }
     const { error } = await supabase.from("agent_clients").delete().eq("id", clientId);
     setWorking(false);
     if (error) { toast.error("Failed to delete: " + error.message); return; }

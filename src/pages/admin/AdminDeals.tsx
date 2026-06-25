@@ -32,6 +32,7 @@ const statusColor: Record<string, string> = {
   closed: "bg-green-100 text-green-800 border-green-200",
   draft: "bg-muted text-muted-foreground",
   pending: "bg-amber-100 text-amber-800 border-amber-200",
+  in_progress: "bg-amber-100 text-amber-800 border-amber-200",
   in_identification: "bg-amber-100 text-amber-800 border-amber-200",
   in_closing: "bg-blue-100 text-blue-800 border-blue-200",
   under_contract: "bg-blue-100 text-blue-800 border-blue-200",

@@ -97,11 +97,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Storage IDOR guard: every client-supplied image path must live under the
-    // caller's own folder (`${user.id}/`). Otherwise an attacker could insert a
-    // victim's path — or force a rollback — to delete the victim's files.
+    // Storage IDOR guard: every client-supplied image path must either be an
+    // external http(s):// URL (demo/legacy references — harmless) or live under
+    // the caller's own folder (`${user.id}/`). A relative path under another
+    // user's folder is rejected: an attacker could otherwise insert a victim's
+    // path — or force a rollback — to delete the victim's files.
     if (Array.isArray(payload.images)) {
-      const foreign = payload.images.find((img) => !isOwnedPath(img?.storage_path, user.id));
+      const foreign = payload.images.find((img) => !isAllowedImagePath(img?.storage_path, user.id));
       if (foreign) {
         return response({ error: "Image storage_path must belong to the current user" }, 400);
       }
@@ -157,10 +159,12 @@ Deno.serve(async (req) => {
       const derived = deriveFinancialColumns(payload.financials);
       // Server-authoritative equity/proceeds: derive from the validated asking
       // price and loan balance rather than trusting client-sent values.
-      // estimated_equity = raw equity (asking − loan).
+      // estimated_equity = RAW equity (asking − loan), NOT clamped — the wizard
+      // displays raw (negative-capable) equity, so the stored value must match.
+      // (exchange_proceeds stays clamped >= 0 below.)
       const estimatedEquity =
         derived.asking_price != null && derived.loan_balance != null
-          ? Math.max(0, derived.asking_price - derived.loan_balance)
+          ? derived.asking_price - derived.loan_balance
           : null;
       // exchange_proceeds = equity NET of estimated seller closing costs (~5% of
       // asking price). This mirrors the figure the wizard shows/sends. Prefer a
@@ -317,11 +321,28 @@ function boolOrFalse(value: unknown): boolean {
   return value === true;
 }
 
-// Every storage path must live under the caller's own folder. The uploader
-// writes to `${user.id}/<uuid>.<ext>`, so a legitimate path always starts with
-// `${userId}/`. Reject anything else (or a non-string) to prevent IDOR.
+// Whether a storage path targets the caller's own bucket folder. The uploader
+// writes to `${user.id}/<uuid>.<ext>`, so a freshly-uploaded path always starts
+// with `${userId}/`. Used to scope the reconcile storage.remove so it only ever
+// deletes the caller's own files.
 function isOwnedPath(path: unknown, userId: string): boolean {
   return typeof path === "string" && path.startsWith(`${userId}/`);
+}
+
+// Absolute http(s):// URLs (e.g. demo/legacy Unsplash listings store the full
+// image URL as storage_path) are external references, not bucket folder paths —
+// they cannot target another user's storage, so they are exempt from the IDOR
+// guard. The reconcile storage.remove already filters to owned `${userId}/`
+// paths, so an external URL is never passed to storage.remove either.
+function isHttpUrl(path: unknown): boolean {
+  return typeof path === "string" && /^https?:\/\//i.test(path);
+}
+
+// The IDOR guard rejects ONLY a path that is neither an external http(s) URL nor
+// under the caller's own folder — i.e. a relative bucket path pointing at someone
+// else's folder.
+function isAllowedImagePath(path: unknown, userId: string): boolean {
+  return isHttpUrl(path) || isOwnedPath(path, userId);
 }
 
 // Must match calculateEstimatedExchangeProceeds in src/lib/exchangeWizardTypes.ts:
