@@ -1636,6 +1636,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_client_invite: { Args: { p_token: string }; Returns: string }
       get_invite_by_token: {
         Args: { _token: string }
         Returns: {
@@ -1662,6 +1663,7 @@ export type Database = {
         Args: { _exchange_id: string; _user_id: string }
         Returns: boolean
       }
+      mark_match_viewed: { Args: { p_match_id: string }; Returns: undefined }
       users_share_active_connection: {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean
