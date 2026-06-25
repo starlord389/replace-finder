@@ -67,11 +67,16 @@ export default function AdminDashboard() {
         ? liveExchangeIds
         : ["00000000-0000-0000-0000-000000000000"];
 
+      // Demo counterparty agents are real auth users seeded with @replacefinder.test
+      // emails (no is_demo column on profiles/user_roles), so subtract them from the
+      // user/agent counts. All demo profiles are given the agent role.
+      const DEMO_EMAIL = "%@replacefinder.test";
+
       const [
         activeExchanges, activeMatches, openConnections, openTickets,
         totalUsers, totalAgents, totalProperties, newDemos, newContact,
         newUsersWeek, newExchangesWeek, newDemosWeek,
-        allExchanges, timelineEvents,
+        allExchanges, timelineEvents, demoUsers, demoUsersWeek,
       ] = await Promise.all([
         supabase.from("exchanges").select("id", head).eq("is_demo", false).in("status", ["active", "in_identification", "in_closing"]),
         supabase.from("matches").select("id", head).eq("status", "active").in("buyer_exchange_id", scopeIds),
@@ -87,7 +92,11 @@ export default function AdminDashboard() {
         supabase.from("demo_requests").select("id", head).gte("created_at", weekAgo),
         supabase.from("exchanges").select("status").eq("is_demo", false),
         supabase.from("exchange_timeline").select("id, exchange_id, event_type, description, created_at").in("exchange_id", scopeIds).order("created_at", { ascending: false }).limit(10),
+        supabase.from("profiles").select("id", head).ilike("email", DEMO_EMAIL),
+        supabase.from("profiles").select("id", head).ilike("email", DEMO_EMAIL).gte("created_at", weekAgo),
       ]);
+
+      const demoUserCount = demoUsers.count ?? 0;
 
       return {
         kpis: [
@@ -95,13 +104,13 @@ export default function AdminDashboard() {
           { label: "Active Matches", value: activeMatches.count, icon: Handshake, color: "bg-green-50 text-green-600" },
           { label: "Open Connections", value: openConnections.count, icon: Activity, color: "bg-amber-50 text-amber-600" },
           { label: "Properties", value: totalProperties.count, icon: Building2, color: "bg-blue-50 text-blue-600" },
-          { label: "Total Users", value: totalUsers.count, icon: Users, color: "bg-indigo-50 text-indigo-600" },
-          { label: "Agents", value: totalAgents.count, icon: ShieldCheck, color: "bg-teal-50 text-teal-600" },
+          { label: "Total Users", value: Math.max(0, (totalUsers.count ?? 0) - demoUserCount), icon: Users, color: "bg-indigo-50 text-indigo-600" },
+          { label: "Agents", value: Math.max(0, (totalAgents.count ?? 0) - demoUserCount), icon: ShieldCheck, color: "bg-teal-50 text-teal-600" },
           { label: "New Leads", value: (newDemos.count ?? 0) + (newContact.count ?? 0), icon: Inbox, color: "bg-rose-50 text-rose-600" },
           { label: "Open Tickets", value: openTickets.count, icon: LifeBuoy, color: "bg-purple-50 text-purple-600" },
         ] satisfies KPI[],
         growth: [
-          { label: "New users", value: newUsersWeek.count ?? 0, icon: Users },
+          { label: "New users", value: Math.max(0, (newUsersWeek.count ?? 0) - (demoUsersWeek.count ?? 0)), icon: Users },
           { label: "New exchanges", value: newExchangesWeek.count ?? 0, icon: ArrowLeftRight },
           { label: "New demo requests", value: newDemosWeek.count ?? 0, icon: CalendarClock },
         ],
