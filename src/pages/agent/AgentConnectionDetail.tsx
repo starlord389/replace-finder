@@ -89,7 +89,8 @@ export default function AgentConnectionDetail() {
 
     if (matchRes.data) {
       const [sellerPropRes, sellerFinRes] = await Promise.all([
-        supabase.from("pledged_properties").select("*").eq("id", matchRes.data.seller_property_id).single(),
+        // Counterparty's listing when we're the buyer-side agent → masked view.
+        supabase.from("pledged_properties_secure").select("*").eq("id", matchRes.data.seller_property_id).single(),
         supabase.from("property_financials").select("*").eq("property_id", matchRes.data.seller_property_id).maybeSingle(),
       ]);
       setSellerProp(sellerPropRes.data);
@@ -100,7 +101,8 @@ export default function AgentConnectionDetail() {
     const { data: exchange } = await supabase.from("exchanges").select("*").eq("id", connData.buyer_exchange_id).single();
     if (exchange) {
       const [relPropRes, relFinRes, clientRes] = await Promise.all([
-        exchange.relinquished_property_id ? supabase.from("pledged_properties").select("*").eq("id", exchange.relinquished_property_id).single() : Promise.resolve({ data: null }),
+        // Buyer's relinquished property — counterparty-owned when we're the seller-side agent → masked view.
+        exchange.relinquished_property_id ? supabase.from("pledged_properties_secure").select("*").eq("id", exchange.relinquished_property_id).single() : Promise.resolve({ data: null }),
         exchange.relinquished_property_id ? supabase.from("property_financials").select("*").eq("property_id", exchange.relinquished_property_id).maybeSingle() : Promise.resolve({ data: null }),
         supabase.from("agent_clients").select("client_name").eq("id", exchange.client_id).single(),
       ]);

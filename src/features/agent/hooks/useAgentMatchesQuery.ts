@@ -111,7 +111,9 @@ async function fetchAgentMatches(userId: string): Promise<AgentMatchesData> {
   if (buyerData.length > 0) {
     const sellerPropIds = [...new Set(buyerData.map((m) => m.seller_property_id))];
     const [propsRes, finsRes, imgsRes] = await Promise.all([
-      supabase.from("pledged_properties").select("*").in("id", sellerPropIds),
+      // Buyer-side matches: these seller properties belong to other agents →
+      // masked view so the raw street never comes down unless owner-published.
+      supabase.from("pledged_properties_secure").select("*").in("id", sellerPropIds),
       supabase.from("property_financials").select("*").in("property_id", sellerPropIds),
       supabase.from("property_images").select("*").in("property_id", sellerPropIds).order("sort_order"),
     ]);

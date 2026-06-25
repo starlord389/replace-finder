@@ -1458,7 +1458,54 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      // Address-masked, read-only mirror of pledged_properties used for
+      // cross-agent reads. `address` is NULL unless the viewer owns the listing,
+      // is an admin, or the owner published it (address_is_public). Same Row shape
+      // as the base table so repointed reads need no other type changes.
+      pledged_properties_secure: {
+        Row: {
+          address: string | null
+          address_is_public: boolean
+          agent_id: string
+          amenities: string[] | null
+          asset_subtype: string | null
+          asset_type: Database["public"]["Enums"]["asset_type"] | null
+          building_square_footage: number | null
+          city: string | null
+          construction_type: string | null
+          county: string | null
+          created_at: string
+          description: string | null
+          exchange_id: string | null
+          hvac_type: string | null
+          id: string
+          is_demo: boolean
+          land_area_acres: number | null
+          listed_at: string | null
+          num_buildings: number | null
+          num_stories: number | null
+          owner_authorization_confirmed: boolean
+          parking_spaces: number | null
+          parking_type: string | null
+          property_class: string | null
+          property_condition: string | null
+          property_name: string | null
+          recent_renovations: string | null
+          roof_type: string | null
+          source: Database["public"]["Enums"]["property_source"]
+          state: string | null
+          status: Database["public"]["Enums"]["pledged_property_status"]
+          strategy_type: Database["public"]["Enums"]["strategy_type"] | null
+          unit_suite: string | null
+          units: number | null
+          updated_at: string
+          withdrawn_at: string | null
+          year_built: number | null
+          zip: string | null
+          zoning: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_invite_by_token: {
