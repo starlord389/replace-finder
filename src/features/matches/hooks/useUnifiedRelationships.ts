@@ -81,6 +81,14 @@ export interface Relationship {
   buyerExchangeId: string;
   /** Short label for the buyer's relinquished property (city + state, or asset). */
   relinquishedLabel: string | null;
+  /**
+   * Route the current agent can actually open for this relationship.
+   * Buyer-side → the agent's own buyer workspace (?match=…). Seller-side
+   * (incoming) → the connection detail when a connection exists, else the
+   * agent's own listing workspace; never the counterparty's exchange (which
+   * the agent can't load and which bounces).
+   */
+  openHref: string;
 
 
   // activity
@@ -122,13 +130,21 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     if (e.relinquished_property_id) exRelMap.set(e.id, e.relinquished_property_id);
   });
 
-  // 2. My pledged properties (for seller-side matches) — scoped to the workspace
+  // 2. My pledged properties (for seller-side matches) — scoped to the workspace.
+  //    Keep each listing's own exchange so seller-side rows can route to a page
+  //    the agent can actually open (their own listing workspace), not the
+  //    counterparty's exchange.
   const { data: myProps } = await supabase
     .from("pledged_properties")
-    .select("id, property_name")
+    .select("id, property_name, exchange_id")
     .eq("agent_id", userId)
     .eq("is_demo", isDemo);
   const myPropertyIds = (myProps ?? []).map((p) => p.id);
+  // My listing → my own exchange id (for seller-side open targets + client lookup).
+  const myPropExchangeMap = new Map<string, string>();
+  (myProps ?? []).forEach((p: any) => {
+    if (p.exchange_id) myPropExchangeMap.set(p.id, p.exchange_id);
+  });
 
 
   // 3. Buyer-side matches
@@ -332,6 +348,37 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       ? !match.buyer_agent_viewed
       : !match.seller_agent_viewed;
 
+    // Client / label / open target are perspective-dependent:
+    //  • Buyer-side: the agent owns `buyer_exchange_id`, so the client, the
+    //    relinquished label, and the open target all come from that exchange.
+    //  • Seller-side (incoming): `buyer_exchange_id` belongs to the OTHER agent,
+    //    so it yields a generic "Client" and a workspace route that bounces.
+    //    Derive everything from the agent's OWN side instead — the listing's
+    //    exchange (for the client/label) and a route the agent can open.
+    const myExchangeId =
+      mySide === "buyer"
+        ? match.buyer_exchange_id
+        : myPropExchangeMap.get(match.seller_property_id) ?? null;
+    const clientId = myExchangeId ? exClientIdMap.get(myExchangeId) ?? null : null;
+    const clientName =
+      mySide === "buyer"
+        ? exClientNameMap.get(match.buyer_exchange_id) ?? null
+        : // Seller-side: name the agent's own listing/exchange, not the buyer's.
+          (myExchangeId ? exClientNameMap.get(myExchangeId) : null) ??
+            (prop ? resolveListingName(prop, true) : null);
+    const relinquishedLabel = myExchangeId ? relinquishedLabelFor(myExchangeId) : null;
+    // A route the current agent can actually load.
+    const openHref =
+      mySide === "buyer"
+        ? `/agent/workspace/${match.buyer_exchange_id}?match=${match.id}`
+        : conn
+          ? // Incoming match with a live connection → the shared connection detail.
+            `/agent/connections/${conn.id}`
+          : myExchangeId
+            ? // No connection yet → the agent's own listing workspace.
+              `/agent/workspace/${myExchangeId}?match=${match.id}`
+            : `/agent/matches`;
+
     return {
       id: conn?.id ?? match.id,
       matchId: match.id,
@@ -379,10 +426,11 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       grossRentRoll: fin?.gross_rent_roll != null ? Number(fin.gross_rent_roll) : null,
       totalOperatingExpenses: fin?.total_operating_expenses != null ? Number(fin.total_operating_expenses) : null,
       noi: fin?.noi != null ? Number(fin.noi) : null,
-      clientId: exClientIdMap.get(match.buyer_exchange_id) ?? null,
-      clientName: exClientNameMap.get(match.buyer_exchange_id) ?? null,
+      clientId,
+      clientName,
       buyerExchangeId: match.buyer_exchange_id,
-      relinquishedLabel: relinquishedLabelFor(match.buyer_exchange_id),
+      relinquishedLabel,
+      openHref,
 
       lastActivityAt,
       lastMessagePreview: lastMsg?.content ?? null,

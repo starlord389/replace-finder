@@ -7,8 +7,13 @@
 // connections at different lifecycle stages, message threads, notifications, an
 // identification list, and urgent/overdue deadlines. EVERYTHING is is_demo=true.
 //
-// SAFETY: every delete is filtered to is_demo = true (and agent_id = caller for
-// the caller's own rows). It can never touch real/live data.
+// SAFETY: a reset wipes ONLY the caller's own demo rows (agent_id = caller) plus
+// the matches/connections/messages/inbound-counterparty exchange that exist solely
+// to link the caller to the shared counterparty network. The shared counterparty
+// agents' own listings/financials/images/profiles/roles are LEFT INTACT (they are
+// re-seeded idempotently and are referenced by other admins' demo workspaces), so
+// one admin's reset can never destroy another admin's demo data. It can never touch
+// real/live data — everything here is is_demo = true.
 //
 // Actions: "reset" (default) = wipe caller's demo data then rebuild; "clear" = wipe.
 // Admin-only. Runs with the service role.
@@ -184,38 +189,88 @@ Deno.serve(async (req) => {
   }
 });
 
-// ── Clear (scoped to the caller + the shared seeded counterparty agents) ─────
-// Deletes are scoped to ownerId plus the @replacefinder.test counterparty agents
-// (not a blanket is_demo=true), so one owner's reset can't wipe another owner's
-// demo workspace. Live data is never touched (everything here is is_demo=true).
+// ── Clear (strictly scoped to the CALLER's own demo footprint) ───────────────
+// Deletes only the caller's own demo rows (agent_id = caller) plus the link rows
+// that exist solely to connect the caller to the shared counterparty network:
+// the connections/messages where the caller is a party, the matches feeding off
+// the caller's exchanges, and the single inbound counterparty exchange (+ its
+// relinquished property and buyer client) created per-build for the seller-side
+// scenario. The shared counterparty agents' own listings, financials, images,
+// profiles, roles and clients are deliberately LEFT INTACT — they are re-seeded
+// idempotently and are shared across every admin's demo workspace, so this reset
+// can never destroy another admin's data. Live data is never touched (is_demo=true).
 async function clearOwnerDemo(db: any, ownerId: string) {
-  const { data: cpAgents } = await db.from("profiles").select("id").ilike("email", "%@replacefinder.test");
-  const cpAgentIds = (cpAgents ?? []).map((a: any) => a.id);
-  const scopedAgentIds = [ownerId, ...cpAgentIds];
+  // 1) Connections where the caller is buyer OR seller. These reach both the
+  //    caller's own exchanges and the per-build inbound counterparty exchange.
+  const { data: connRows } = await db
+    .from("exchange_connections")
+    .select("id, buyer_exchange_id, seller_exchange_id")
+    .or(`buyer_agent_id.eq.${ownerId},seller_agent_id.eq.${ownerId}`);
 
-  const { data: exchanges } = await db.from("exchanges").select("id, criteria_id").eq("agent_id", ownerId).eq("is_demo", true);
-  const exIds = (exchanges ?? []).map((e: any) => e.id);
+  // 2) The caller's own demo exchanges.
+  const { data: ownEx } = await db.from("exchanges").select("id, criteria_id, relinquished_property_id, client_id").eq("agent_id", ownerId).eq("is_demo", true);
+  const ownExIds = (ownEx ?? []).map((e: any) => e.id);
 
-  // Counterparty demo exchanges (for the inbound/seller-side match scenario).
-  const { data: cpEx } = await db.from("exchanges").select("id, criteria_id").eq("is_demo", true).in("agent_id", cpAgentIds);
-  const allExIds = [...exIds, ...(cpEx ?? []).map((e: any) => e.id)];
+  // 3) Inbound counterparty exchanges reachable through the caller's connections
+  //    that are NOT the caller's own (the seller-side scenario). These are created
+  //    fresh per build (not idempotently re-seeded), so the caller must clean them
+  //    up — but we resolve them only via the caller's connections, never by a blanket
+  //    counterparty-agent scope, so other admins' inbound exchanges are untouched.
+  const linkedExIds = new Set<string>();
+  for (const c of connRows ?? []) {
+    if (c.buyer_exchange_id) linkedExIds.add(c.buyer_exchange_id);
+    if (c.seller_exchange_id) linkedExIds.add(c.seller_exchange_id);
+  }
+  const inboundExIds = [...linkedExIds].filter((id) => !ownExIds.includes(id));
+
+  // Pull the inbound exchanges' own rows so we can remove the per-build
+  // counterparty client + relinquished property they introduced.
+  let inboundEx: any[] = [];
+  if (inboundExIds.length) {
+    const { data } = await db.from("exchanges").select("id, criteria_id, relinquished_property_id, client_id").eq("is_demo", true).in("id", inboundExIds);
+    inboundEx = data ?? [];
+  }
+
+  const allExIds = [...ownExIds, ...inboundEx.map((e: any) => e.id)];
+  const allExSet = new Set<string>(allExIds);
+
+  // DEMO connections only. exchange_connections + messages have NO is_demo
+  // column, and a single account can also hold REAL live connections, so we must
+  // NOT delete by agent_id alone (that would wipe live conversations). Keep only
+  // connections that touch one of the caller's demo exchanges (own or inbound).
+  const demoConnIds = (connRows ?? [])
+    .filter(
+      (c: any) =>
+        allExSet.has(c.buyer_exchange_id) ||
+        (c.seller_exchange_id && allExSet.has(c.seller_exchange_id)),
+    )
+    .map((c: any) => c.id);
+
+  // Tear down conversations first (messages -> connections), demo-scoped.
+  if (demoConnIds.length) {
+    await db.from("messages").delete().in("connection_id", demoConnIds);
+    await db.from("exchange_connections").delete().in("id", demoConnIds);
+  }
 
   if (allExIds.length) {
-    const { data: conns } = await db.from("exchange_connections").select("id").in("buyer_exchange_id", allExIds);
-    const connIds = (conns ?? []).map((c: any) => c.id);
-    if (connIds.length) { await db.from("messages").delete().in("connection_id", connIds); await db.from("exchange_connections").delete().in("id", connIds); }
     await db.from("identification_list").delete().in("exchange_id", allExIds);
+    // Buyer-side matches off these exchanges (incl. the inbound match onto the
+    // caller's own listing). Shared counterparty listings stay; only the
+    // caller-scoped match rows referencing them are removed.
     await db.from("matches").delete().in("buyer_exchange_id", allExIds);
     await db.from("exchange_timeline").delete().in("exchange_id", allExIds);
     await db.from("exchanges").update({ criteria_id: null, relinquished_property_id: null }).in("id", allExIds);
-    const critIds = [...(exchanges ?? []), ...(cpEx ?? [])].map((e: any) => e.criteria_id).filter(Boolean);
+    const critIds = [...(ownEx ?? []), ...inboundEx].map((e: any) => e.criteria_id).filter(Boolean);
     if (critIds.length) await db.from("replacement_criteria").delete().in("id", critIds);
     await db.from("exchanges").delete().in("id", allExIds);
   }
 
-  // Demo properties owned by the caller or the seeded counterparty agents.
-  const { data: props } = await db.from("pledged_properties").select("id").eq("is_demo", true).in("agent_id", scopedAgentIds);
-  const propIds = (props ?? []).map((p: any) => p.id);
+  // Caller's own demo properties (+ financials/images) and the inbound
+  // counterparty relinquished property created per-build. NOT the shared
+  // counterparty listings.
+  const { data: ownProps } = await db.from("pledged_properties").select("id").eq("is_demo", true).eq("agent_id", ownerId);
+  const inboundPropIds = inboundEx.map((e: any) => e.relinquished_property_id).filter(Boolean);
+  const propIds = [...new Set([...(ownProps ?? []).map((p: any) => p.id), ...inboundPropIds])];
   if (propIds.length) {
     await db.from("matches").delete().in("seller_property_id", propIds);
     await db.from("property_financials").delete().in("property_id", propIds);
@@ -223,7 +278,12 @@ async function clearOwnerDemo(db: any, ownerId: string) {
     await db.from("pledged_properties").delete().in("id", propIds);
   }
 
-  await db.from("agent_clients").delete().eq("is_demo", true).in("agent_id", scopedAgentIds);
+  // Caller's own demo clients, plus the per-build inbound counterparty buyer
+  // client. Shared counterparty agents have no shared clients to preserve.
+  await db.from("agent_clients").delete().eq("is_demo", true).eq("agent_id", ownerId);
+  const inboundClientIds = inboundEx.map((e: any) => e.client_id).filter(Boolean);
+  if (inboundClientIds.length) await db.from("agent_clients").delete().eq("is_demo", true).in("id", inboundClientIds);
+
   await db.from("notifications").delete().eq("user_id", ownerId).contains("metadata", { demo: true });
 }
 
@@ -233,20 +293,14 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   const cpAgent: Record<string, string> = {};       // agent full_name -> id
 
   // Counterparty agents + their active demo properties.
-  const { data: userList } = await db.auth.admin.listUsers();
   for (const cp of COUNTERPARTIES) {
-    let id = userList?.users.find((u: any) => u.email === cp.email)?.id ?? null;
-    if (!id) {
-      const { data: created, error } = await db.auth.admin.createUser({ email: cp.email, password: crypto.randomUUID(), email_confirm: true, user_metadata: { full_name: cp.full_name } });
-      if (error) throw error;
-      id = created.user!.id;
-    }
+    const id = await resolveAuthUser(db, cp.email, cp.full_name);
     cpAgent[cp.full_name] = id;
     await db.from("profiles").upsert({ id, email: cp.email, full_name: cp.full_name, brokerage_name: cp.brokerage_name, verification_status: "verified" });
     const { data: hasRole } = await db.from("user_roles").select("user_id").eq("user_id", id).eq("role", "agent").maybeSingle();
     if (!hasRole) await mustInsert(db, "user_roles", { user_id: id, role: "agent" });
     for (const p of cp.properties) {
-      prop[p.name] = await insertProperty(db, id, p, true);
+      prop[p.name] = await insertProperty(db, id, p, true, "active", true); // shared → idempotent
     }
   }
 
@@ -334,16 +388,82 @@ async function buildOwnerDemo(db: any, ownerId: string) {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-async function insertProperty(db: any, agentId: string, p: any, isDemo: boolean, status = "active"): Promise<string> {
-  const row = await insertOne(db, "pledged_properties", {
+
+// Resolve a counterparty auth user idempotently, regardless of how many total
+// users exist. We never rely on the default (unpaginated, 50-row, created_at DESC)
+// listUsers page — past ~50 users the seeded agents fall off page 1, createUser
+// then errors with "already registered", and the seed would abort. Instead:
+//   1) look the user up across ALL pages,
+//   2) if missing, create it,
+//   3) if creation races/“already registered”, re-resolve across all pages.
+async function resolveAuthUser(db: any, email: string, fullName: string): Promise<string> {
+  const existing = await findAuthUserByEmail(db, email);
+  if (existing) return existing;
+
+  const { data: created, error } = await db.auth.admin.createUser({
+    email, password: crypto.randomUUID(), email_confirm: true, user_metadata: { full_name: fullName },
+  });
+  if (!error) return created.user!.id;
+
+  // Already exists (created concurrently or present beyond page 1) — treat as
+  // idempotent and re-resolve rather than aborting the seed.
+  const msg = (error.message ?? "").toLowerCase();
+  if (msg.includes("already") || (error as any).status === 422 || (error as any).code === "email_exists") {
+    const found = await findAuthUserByEmail(db, email);
+    if (found) return found;
+  }
+  throw error;
+}
+
+// Page fully through auth users to find one by exact email (case-insensitive).
+async function findAuthUserByEmail(db: any, email: string): Promise<string | null> {
+  const target = email.toLowerCase();
+  const perPage = 1000;
+  for (let page = 1; page <= 1000; page++) {
+    const { data, error } = await db.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+    const users = data?.users ?? [];
+    const hit = users.find((u: any) => (u.email ?? "").toLowerCase() === target);
+    if (hit) return hit.id;
+    if (users.length === 0) break; // exhausted — terminate on an empty page, not on a server-capped short page
+  }
+  return null;
+}
+
+// `idempotent` (used for the SHARED counterparty listings, which clearOwnerDemo no
+// longer deletes) reuses an existing demo row for this agent+name instead of
+// inserting a duplicate on every rebuild, refreshing its financials/image so the
+// shared data stays coherent. The caller's own + per-build inbound properties are
+// deleted on each reset, so they use a plain insert.
+async function insertProperty(db: any, agentId: string, p: any, isDemo: boolean, status = "active", idempotent = false): Promise<string> {
+  const fields = {
     agent_id: agentId, property_name: p.name, address: p.address, city: p.city, state: p.state,
     asset_type: p.asset_type, strategy_type: p.strategy_type, units: p.units, year_built: p.year_built,
     building_square_footage: p.sf, description: p.description, is_demo: isDemo,
     source: "agent_pledge", status, listed_at: status === "active" ? new Date().toISOString() : null,
-  }, "id");
-  await mustInsert(db, "property_financials", { property_id: row.id, ...p.f });
-  await mustInsert(db, "property_images", { property_id: row.id, storage_path: p.img, file_name: "cover.jpg", sort_order: 0 });
-  return row.id;
+  };
+
+  let propId: string;
+  if (idempotent) {
+    const { data: existing } = await db.from("pledged_properties")
+      .select("id").eq("agent_id", agentId).eq("property_name", p.name).eq("is_demo", true).maybeSingle();
+    if (existing) {
+      propId = existing.id;
+      const { error: upErr } = await db.from("pledged_properties").update(fields).eq("id", propId);
+      if (upErr) throw new Error(`pledged_properties update failed: ${upErr.message}`);
+    } else {
+      propId = (await insertOne(db, "pledged_properties", fields, "id")).id;
+    }
+    // Refresh dependent rows idempotently (avoid duplicate financials/images).
+    await db.from("property_financials").delete().eq("property_id", propId);
+    await db.from("property_images").delete().eq("property_id", propId);
+  } else {
+    propId = (await insertOne(db, "pledged_properties", fields, "id")).id;
+  }
+
+  await mustInsert(db, "property_financials", { property_id: propId, ...p.f });
+  await mustInsert(db, "property_images", { property_id: propId, storage_path: p.img, file_name: "cover.jpg", sort_order: 0 });
+  return propId;
 }
 
 async function insertOne(db: any, table: string, row: any, select: string) {

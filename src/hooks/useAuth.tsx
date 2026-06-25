@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Enums } from "@/integrations/supabase/types";
@@ -56,6 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileName, setProfileName] = useState<string | null>(null);
   const [agentVerificationStatus, setAgentVerificationStatus] = useState<string | null>(null);
 
+  // The user id we've already requested role/profile data for (claimed synchronously at
+  // the decision site). Used to skip redundant re-fetches on non-identity auth events
+  // (TOKEN_REFRESHED, re-emitted SIGNED_IN on tab refocus, USER_UPDATED) and to de-dupe the
+  // mount-time getSession()/INITIAL_SESSION double fetch, so layouts don't remount.
+  const claimedUserIdRef = useRef<string | null>(null);
+  // Whether role/profile data has actually finished loading for the claimed user. Lets a
+  // failed fetch keep prior roles (and not flash the spinner) on a re-fetch of a known uid.
+  const loadedUserIdRef = useRef<string | null>(null);
+
   const loading = authLoading || rolesLoading;
   const role = pickPrimaryRole(roles);
   // A user counts as an agent if they hold the agent role at all — even if they
@@ -65,24 +74,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isVerifiedAgent = isAgent && hasOperationalAgentAccess(agentVerificationStatus);
 
   const fetchUserData = async (userId: string) => {
-    setRolesLoading(true);
+    // Only show the spinner for a fresh identity. If data for this uid is already loaded
+    // (e.g. a background refresh), keep the prior roles visible so layouts — which gate on
+    // rolesLoading — don't flash a remount.
+    const hasLoadedData = loadedUserIdRef.current === userId;
+    if (!hasLoadedData) setRolesLoading(true);
     try {
       const [rolesResult, profileResult] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", userId),
         supabase.from("profiles").select("full_name, verification_status").eq("id", userId).maybeSingle(),
       ]);
 
+      // Surface query errors instead of silently treating {data:null,error} as "no roles":
+      // blanking roles would demote a valid agent/admin to roleless for the session.
+      if (rolesResult.error) {
+        throw rolesResult.error;
+      }
       setRoles(rolesResult.data?.map((r) => r.role) ?? []);
-      setProfileName(profileResult.data?.full_name ?? null);
-      setAgentVerificationStatus(profileResult.data?.verification_status ?? null);
+      // A profile error should not wipe a known agent status; only overwrite profile
+      // fields when the query succeeded (a missing row legitimately resolves to null).
+      if (!profileResult.error) {
+        setProfileName(profileResult.data?.full_name ?? null);
+        setAgentVerificationStatus(profileResult.data?.verification_status ?? null);
+      } else {
+        console.error("[useAuth] profile fetch failed", profileResult.error);
+      }
+      loadedUserIdRef.current = userId;
     } catch (err) {
       console.error("[useAuth] fetchUserData failed", err);
-      setRoles([]);
-      setProfileName(null);
-      setAgentVerificationStatus(null);
+      // Do NOT blank already-loaded roles on failure — keep the user authorized with their
+      // prior roles and let a later event retry. Only clear when we never had data, and
+      // release the claim so the next auth event can retry the fetch.
+      if (!hasLoadedData) {
+        setRoles([]);
+        setProfileName(null);
+        setAgentVerificationStatus(null);
+        if (claimedUserIdRef.current === userId) claimedUserIdRef.current = null;
+      }
     } finally {
-      setRolesLoading(false);
+      if (!hasLoadedData) setRolesLoading(false);
     }
+  };
+
+  // Synchronously claim a uid and schedule its data fetch. Returns false (and does nothing)
+  // if this uid was already claimed, which is how we skip non-identity re-emits and de-dupe
+  // the mount-time double fetch. Deferring the actual call avoids the onAuthStateChange
+  // deadlock (awaiting Supabase inside the callback hangs the client).
+  const requestUserData = (userId: string, defer: boolean) => {
+    if (claimedUserIdRef.current === userId) return false;
+    claimedUserIdRef.current = userId;
+    if (defer) {
+      setTimeout(() => { fetchUserData(userId); }, 0);
+    } else {
+      fetchUserData(userId);
+    }
+    return true;
   };
 
   useEffect(() => {
@@ -92,11 +138,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         setAuthLoading(false);
         if (session?.user) {
-          // Defer Supabase calls — awaiting inside onAuthStateChange deadlocks the client
-          // and leaves rolesLoading stuck at true (blank-spinner-forever on /auth/callback).
-          const uid = session.user.id;
-          setTimeout(() => { fetchUserData(uid); }, 0);
+          // Only re-fetch role/profile on a genuine identity change. TOKEN_REFRESHED
+          // (hourly), re-emitted SIGNED_IN (tab refocus) and USER_UPDATED all arrive with
+          // the same user.id; requestUserData skips them (uid already claimed) so we don't
+          // set rolesLoading=true and remount the authenticated page (losing dialogs/scroll).
+          requestUserData(session.user.id, true);
         } else {
+          claimedUserIdRef.current = null;
+          loadedUserIdRef.current = null;
           setRoles([]);
           setProfileName(null);
           setAgentVerificationStatus(null);
@@ -110,8 +159,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setAuthLoading(false);
       if (session?.user) {
-        fetchUserData(session.user.id);
-      } else {
+        // De-dupe mount-time double fetch: the INITIAL_SESSION event also fires for this
+        // session. requestUserData no-ops if that handler already claimed this uid.
+        requestUserData(session.user.id, false);
+      } else if (claimedUserIdRef.current === null) {
         setRolesLoading(false);
       }
     });

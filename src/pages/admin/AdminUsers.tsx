@@ -1,6 +1,5 @@
-import { useState, useEffect, useMemo, Fragment } from "react";
+import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -58,6 +57,9 @@ export default function AdminUsers() {
   const [verificationFilter, setVerificationFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
+  // Remember the status a user had before suspension so reactivation restores it
+  // (instead of force-verifying a previously-pending/unverified account).
+  const prevStatusRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
     loadUsers();
@@ -68,7 +70,13 @@ export default function AdminUsers() {
     const [{ data: profiles, error }, { data: roleRows }] = await Promise.all([
       supabase
         .from("profiles")
+        // Seeded demo counterparty agents are real auth users with @replacefinder.test
+        // emails (no is_demo column on profiles), so exclude them here to mirror the
+        // AdminDashboard counts and keep them out of the live list/role management.
+        // email is nullable, so keep null-email profiles (real users) and only drop
+        // rows whose email matches the demo domain.
         .select("id, full_name, email, phone, company, brokerage_name, license_number, license_state, mls_number, years_experience, verification_status, created_at")
+        .or("email.is.null,email.not.ilike.%@replacefinder.test")
         .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id, role"),
     ]);
@@ -124,10 +132,28 @@ export default function AdminUsers() {
     setBusy((b) => ({ ...b, [`v-${userId}`]: false }));
     if (error) {
       toast({ title: "Failed to update account.", description: error.message, variant: "destructive" });
-      return;
+      return false;
     }
     setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, verification_status: status } : u)));
     toast({ title: status === "suspended" ? "Account suspended." : "Account reactivated." });
+    return true;
+  }
+
+  async function suspendAccount(userId: string) {
+    // Remember where the account stood so reactivation can put it back rather than
+    // promoting a pending/unverified account straight to verified.
+    const current = users.find((u) => u.id === userId)?.verification_status;
+    if (current && current !== "suspended") prevStatusRef.current[userId] = current;
+    await setVerification(userId, "suspended");
+  }
+
+  async function reactivateAccount(userId: string) {
+    // Restore the pre-suspension status. If we never recorded one (e.g. suspended
+    // in a prior session), fall back to "pending" so the account is re-reviewed
+    // instead of being auto-verified.
+    const restore = prevStatusRef.current[userId] ?? "pending";
+    const ok = await setVerification(userId, restore);
+    if (ok) delete prevStatusRef.current[userId];
   }
 
   const verificationValues = useMemo(
@@ -320,10 +346,11 @@ export default function AdminUsers() {
                                 <AccountAction
                                   isSuspended={u.verification_status === "suspended"}
                                   isSelf={isSelf}
+                                  isAgent={isAgent}
                                   busy={!!busy[`v-${u.id}`]}
                                   userLabel={u.full_name || u.email || "this user"}
-                                  onSuspend={() => setVerification(u.id, "suspended")}
-                                  onReactivate={() => setVerification(u.id, "verified")}
+                                  onSuspend={() => suspendAccount(u.id)}
+                                  onReactivate={() => reactivateAccount(u.id)}
                                 />
                               </div>
                             </div>
@@ -402,10 +429,11 @@ function AdminRoleAction({
 }
 
 function AccountAction({
-  isSuspended, isSelf, busy, userLabel, onSuspend, onReactivate,
+  isSuspended, isSelf, isAgent, busy, userLabel, onSuspend, onReactivate,
 }: {
   isSuspended: boolean;
   isSelf: boolean;
+  isAgent: boolean;
   busy: boolean;
   userLabel: string;
   onSuspend: () => void;
@@ -425,6 +453,15 @@ function AccountAction({
       <Button variant="outline" size="sm" className="w-full justify-start" disabled>
         <CircleCheck className="h-3.5 w-3.5" /> Active (you)
       </Button>
+    );
+  }
+  // Suspension is only enforced for agents (it locks the agent workspace). For a
+  // non-agent the flag has no effect, so don't offer a control that does nothing.
+  if (!isAgent) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        Suspension applies to agent accounts. This user has no agent workspace to lock.
+      </p>
     );
   }
   return (

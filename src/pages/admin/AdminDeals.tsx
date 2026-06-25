@@ -228,7 +228,10 @@ export default function AdminDeals() {
                       <span className="text-sm font-semibold">{Math.round(m.total_score)}</span>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      asset {Math.round(m.asset_score)} · fin {Math.round(m.financial_score)} · geo {Math.round(m.geo_score)} · price {Math.round(m.price_score)} · time {Math.round(m.timing_score)}
+                      {/* Only the dimensions the live matching engine actually writes.
+                          timing/scale_fit/debt_fit are reserved columns it never
+                          populates, so showing them here would read a misleading 0. */}
+                      asset {Math.round(m.asset_score)} · fin {Math.round(m.financial_score)} · geo {Math.round(m.geo_score)} · price {Math.round(m.price_score)} · strategy {Math.round(m.strategy_score)}
                     </TableCell>
                     <TableCell className="text-xs capitalize">{pretty(m.boot_status)}</TableCell>
                     <TableCell><StatusPill value={m.status} /></TableCell>

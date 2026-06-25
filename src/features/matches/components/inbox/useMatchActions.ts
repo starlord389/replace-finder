@@ -125,15 +125,53 @@ export function useMatchActions(rel: Relationship, cb: Callbacks = {}) {
           update({ archivedAt: new Date().toISOString() });
           toast({ title: "Match archived" });
           return;
-        case "reactivate":
+        case "reactivate": {
+          // Clearing the local archive flags always reactivates a locally-set-aside
+          // match. But when the connection itself was ended at the DB level
+          // (counterparty declined/cancelled → stage "closed_lost"), the row stays
+          // "archived" no matter what we clear locally. Re-send it as a fresh
+          // connection request so the counterparty can accept again — anything else
+          // would be a false success.
+          const counterpartyEnded =
+            rel.stage === "closed_lost" &&
+            !!rel.connectionId &&
+            !!rel.connectionStatus &&
+            ["declined", "cancelled"].includes(rel.connectionStatus);
+          if (counterpartyEnded) {
+            const { error } = await supabase
+              .from("exchange_connections")
+              .update({
+                status: "pending",
+                initiated_by: rel.mySide === "buyer" ? "buyer_agent" : "seller_agent",
+                declined_at: null,
+                closed_at: null,
+                decline_reason: null,
+              })
+              .eq("id", rel.connectionId!);
+            if (error) {
+              toast({
+                title: "Couldn't reactivate",
+                description: error.message,
+                variant: "destructive",
+              });
+              return;
+            }
+            await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
+          }
           update({
             archivedAt: null,
             notFitAt: null,
             clientPassedAt: null,
             sellerUnavailableAt: null,
           });
-          toast({ title: "Match reactivated" });
+          toast({
+            title: "Match reactivated",
+            description: counterpartyEnded
+              ? "Sent a fresh request — the other agent needs to accept before the conversation reopens."
+              : undefined,
+          });
           return;
+        }
         case "not_a_fit":
           update({ notFitAt: new Date().toISOString() });
           toast({ title: "Marked Not a Fit" });

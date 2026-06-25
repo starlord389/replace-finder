@@ -57,6 +57,7 @@ export default function SupportTickets() {
       .order("created_at", { ascending: false });
 
     if (error || !ticketData) {
+      toast({ title: "Failed to load tickets.", description: error?.message, variant: "destructive" });
       setTickets([]);
       setLoading(false);
       return;

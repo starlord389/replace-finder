@@ -9,6 +9,7 @@ import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
 import StepReview from "@/components/exchange/StepReview";
 import { useUpdateExchange } from "@/features/exchanges/hooks/useUpdateExchange";
+import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 
 // Criteria step removed — see NewExchange.tsx. Existing criteria records are
 // still loaded and re-saved untouched so we never wipe legacy preferences.
@@ -108,15 +109,15 @@ export default function EditExchange() {
           target_metros: cr?.target_metros ?? [],
           target_year_built_min: cr?.target_year_built_min?.toString() ?? "",
         },
-        images: imgs.map((im, i) => {
-          const { data: urlData } = supabase.storage.from("property-images").getPublicUrl(im.storage_path);
-          return {
-            storage_path: im.storage_path,
-            file_name: im.file_name ?? "",
-            sort_order: im.sort_order ?? i,
-            url: urlData.publicUrl,
-          };
-        }),
+        images: imgs.map((im, i) => ({
+          storage_path: im.storage_path,
+          file_name: im.file_name ?? "",
+          sort_order: im.sort_order ?? i,
+          // Demo seed rows store a full Unsplash URL in storage_path; this
+          // helper returns those as-is and only calls getPublicUrl for real
+          // uploaded storage keys.
+          url: resolvePropertyImageUrl(im.storage_path),
+        })),
       };
 
       setData(hydrated);

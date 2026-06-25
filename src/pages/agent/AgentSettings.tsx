@@ -272,7 +272,6 @@ export default function AgentSettings() {
     { key: "notify_new_match", label: "New matches", description: "When the system finds a new property match for one of your exchanges." },
     { key: "notify_connection_request", label: "Incoming connection requests", description: "When another agent requests a connection on one of your listings." },
     { key: "notify_connection_accepted", label: "Connection accepted", description: "When an agent accepts your connection request." },
-    { key: "notify_new_message", label: "New messages", description: "When someone sends you a message in an active connection." },
   ];
 
   return (

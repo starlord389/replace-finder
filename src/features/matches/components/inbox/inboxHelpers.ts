@@ -58,10 +58,12 @@ export const STATUS_HINTS: Record<UiStatus, string> = {
 export const SIDE_EXIT_STATUSES: UiStatus[] = ["archived"];
 
 export function deriveUiStatus(rel: Relationship, local: MatchLocalState): UiStatus {
+  // A real completed deal (DB) wins over local archive/not-a-fit flags so a
+  // closed-won match never shows as "Archived" just because it was set aside locally.
+  if (rel.stage === "closed_won" || local.closedAt) return "closed";
   if (local.archivedAt || local.notFitAt || local.clientPassedAt || local.sellerUnavailableAt) {
     return "archived";
   }
-  if (rel.stage === "closed_won" || local.closedAt) return "closed";
   if (rel.stage === "closed_lost") return "archived";
   if (rel.underContractAt || local.underContractAt) return "under_contract";
   if (local.loiSentAt) return "loi";
@@ -142,6 +144,36 @@ export function nextActionsFor(status: UiStatus): {
   }
 }
 
+// Shared display precision for cap rate so cards and the financials tab agree.
+const CAP_RATE_DECIMALS = 2;
+export function formatCapRate(cap: number): string {
+  return `${cap.toFixed(CAP_RATE_DECIMALS)}%`;
+}
+
+const LTV = 0.75; // matches the engine's MAX_COMMERCIAL_LTV
+
+/**
+ * One projected-ROE basis shared by the financials card and the cash-on-cash
+ * sort, so the displayed return and the ranking can never disagree.
+ *  • Prefer the engine's candidate_roe (computed on the buyer's relinquished
+ *    equity) when present — `fromEngine` is true.
+ *  • Otherwise estimate cash-on-cash on a 25%-down basis, using the engine's
+ *    amortized debt service if it persisted it, else the fallback amortization.
+ * Returns null when there isn't enough data to compute anything.
+ */
+export function projectedRoe(rel: Relationship): { pct: number | null; fromEngine: boolean } {
+  if (rel.candidateRoe != null) return { pct: rel.candidateRoe * 100, fromEngine: true };
+  const price = rel.askingPrice ?? 0;
+  const cap = rel.capRate ?? 0;
+  if (!price || !cap) return { pct: null, fromEngine: false };
+  const noi = price * (cap / 100);
+  const loan = price * LTV;
+  const equity = price * (1 - LTV); // 25% down
+  const debtService = rel.candidateAnnualDebtService ?? estimateAnnualDebtService(loan);
+  if (equity <= 0) return { pct: null, fromEngine: false };
+  return { pct: ((noi - debtService) / equity) * 100, fromEngine: false };
+}
+
 /** Bullets explaining why this property matched — derived heuristically */
 export function whyThisMatched(rel: Relationship): string[] {
   const out: string[] = [];
@@ -158,7 +190,7 @@ export function whyThisMatched(rel: Relationship): string[] {
   }
   if (rel.bootStatus === "no_boot") out.push("No boot exposure — full equity replacement looks achievable.");
   else if (rel.bootStatus === "minor_boot") out.push("Minor boot expected — manageable equity gap.");
-  if (rel.capRate) out.push(`Projected cap rate of ${rel.capRate.toFixed(1)}%.`);
+  if (rel.capRate) out.push(`Projected cap rate of ${formatCapRate(rel.capRate)}.`);
   if (rel.askingPrice) out.push(`Asking price ${formatMoney(rel.askingPrice)}.`);
   return out;
 }
@@ -189,24 +221,21 @@ export function financialMetrics(rel: Relationship): FinancialMetric[] {
   const price = rel.askingPrice ?? 0;
   const cap = rel.capRate ?? 0;
   const noi = price && cap ? price * (cap / 100) : null;
-  const LTV = 0.75; // matches the engine's MAX_COMMERCIAL_LTV
   const equity = price ? price * (1 - LTV) : null; // 25% down
   const loan = price ? price * LTV : null;         // 75% loan
   // Prefer the engine's amortized debt service; otherwise estimate at the same assumptions.
   const debtService = rel.candidateAnnualDebtService ?? (loan ? estimateAnnualDebtService(loan) : null);
   const annualCashFlow = noi != null && debtService != null ? noi - debtService : null;
-  // Prefer the engine's projected return on the client's equity; else cash-on-cash on 25% down.
-  const projectedRoe = rel.candidateRoe != null
-    ? rel.candidateRoe * 100
-    : (annualCashFlow != null && equity ? (annualCashFlow / equity) * 100 : null);
+  // Single shared ROE basis (engine candidate_roe when present, else 25%-down cash-on-cash).
+  const roe = projectedRoe(rel);
   const dscr = noi != null && debtService ? noi / debtService : null;
   const fromEngine = rel.candidateAnnualDebtService != null;
 
   return [
     { key: "price", label: "Price", value: price ? formatMoney(price) : "—" },
     { key: "noi", label: "NOI", value: noi ? formatMoney(noi) : "—" },
-    { key: "cap", label: "Cap Rate", value: cap ? `${cap.toFixed(2)}%` : "—" },
-    { key: "coc", label: "Projected ROE", value: projectedRoe != null ? `${projectedRoe.toFixed(1)}%` : "—", estimated: rel.candidateRoe == null },
+    { key: "cap", label: "Cap Rate", value: cap ? formatCapRate(cap) : "—" },
+    { key: "coc", label: "Projected ROE", value: roe.pct != null ? `${roe.pct.toFixed(1)}%` : "—", estimated: !roe.fromEngine },
     { key: "dscr", label: "DSCR", value: dscr ? dscr.toFixed(2) : "—", estimated: !fromEngine },
     { key: "occupancy", label: "Occupancy", value: rel.occupancy != null ? `${Math.round(rel.occupancy)}%` : "—" },
     { key: "equity", label: "Est. Down (25%)", value: equity ? formatMoney(equity) : "—", estimated: true },
@@ -267,14 +296,9 @@ function noiOf(r: Relationship): number {
   return r.askingPrice && r.capRate ? r.askingPrice * (r.capRate / 100) : 0;
 }
 function cocOf(r: Relationship): number {
-  // Prefer the engine's projected ROE; otherwise estimate at 75% LTV.
-  if (r.candidateRoe != null) return r.candidateRoe * 100;
-  if (!r.askingPrice || !r.capRate) return 0;
-  const noi = noiOf(r);
-  const loan = r.askingPrice * 0.75;
-  const equity = r.askingPrice * 0.25;
-  const cf = noi - estimateAnnualDebtService(loan);
-  return equity > 0 ? (cf / equity) * 100 : 0;
+  // Same basis the financials card displays, so the "Highest Cash-on-Cash"
+  // ranking always matches the Projected ROE shown on each row.
+  return projectedRoe(r).pct ?? 0;
 }
 export function sortRelationships<T extends Relationship>(
   rels: T[],

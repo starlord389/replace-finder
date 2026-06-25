@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, MessageSquareText } from "lucide-react";
 
@@ -47,6 +48,7 @@ export default function ArticleFeedback() {
       .order("created_at", { ascending: false });
 
     if (error || !data) {
+      toast({ title: "Failed to load feedback.", description: error?.message, variant: "destructive" });
       setSummaries([]);
       setLoading(false);
       return;

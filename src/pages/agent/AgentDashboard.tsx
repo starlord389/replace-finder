@@ -503,7 +503,7 @@ export default function AgentDashboard() {
                 <ul className="divide-y overflow-hidden rounded-lg border">
                   {topMatches.map((r) => {
                     const accent = getClientAccent(r.clientId ?? r.clientName);
-                    const target = `/agent/workspace/${r.buyerExchangeId}?match=${r.matchId}`;
+                    const target = r.openHref;
                     const location = [r.propertyCity, r.propertyState].filter(Boolean).join(", ");
                     return (
                       <li

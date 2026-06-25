@@ -54,14 +54,26 @@ async function fetchConversations(userId: string, isDemo: boolean): Promise<Conv
 
   const propertyIds = Array.from(new Set((matchesRes.data ?? []).map((m) => m.seller_property_id)));
   // Conversation seller properties belong to the counterparty → masked view.
-  const { data: properties } = await supabase
-    .from("pledged_properties_secure")
-    .select("id, property_name, address, address_is_public, city, state, asset_type, agent_id, is_demo")
-    .in("id", propertyIds);
+  // Workspace bucketing keys off the connection's own exchanges (below), not
+  // this row — the masked row can be absent if the counterparty listing moved
+  // to draft, and we must never let a demo thread leak into Live.
+  const exchangeIds = Array.from(
+    new Set(
+      connections.flatMap((c) => [c.seller_exchange_id, c.buyer_exchange_id]).filter(Boolean) as string[],
+    ),
+  );
+  const [{ data: properties }, { data: exchanges }] = await Promise.all([
+    supabase
+      .from("pledged_properties_secure")
+      .select("id, property_name, address, address_is_public, city, state, asset_type, agent_id, is_demo")
+      .in("id", propertyIds),
+    supabase.from("exchanges").select("id, is_demo").in("id", exchangeIds),
+  ]);
 
   const profilesMap = new Map((profilesRes.data ?? []).map((p) => [p.id, p]));
   const matchesMap = new Map((matchesRes.data ?? []).map((m) => [m.id, m]));
   const propsMap = new Map((properties ?? []).map((p) => [p.id, p]));
+  const exchangeDemoMap = new Map((exchanges ?? []).map((e) => [e.id, e.is_demo]));
 
   const lastMsgByConn = new Map<string, any>();
   const unreadByConn = new Map<string, number>();
@@ -73,12 +85,20 @@ async function fetchConversations(userId: string, isDemo: boolean): Promise<Conv
   }
 
   return connections
-    // Scope to the active workspace: a conversation belongs to demo or live
-    // based on the property it's about (mock counterparty properties are demo).
+    // Scope to the active workspace from the connection's OWN exchanges (the
+    // seller side the thread is about, falling back to the buyer side), which
+    // are always present — unlike the masked seller property row, which can
+    // disappear when the counterparty listing moves to draft. Only fall back to
+    // the property row when both exchanges are unknown, and when even that's
+    // missing, exclude rather than risk surfacing a demo thread in Live.
     .filter((c) => {
+      const exDemo =
+        (c.seller_exchange_id != null ? exchangeDemoMap.get(c.seller_exchange_id) : undefined) ??
+        exchangeDemoMap.get(c.buyer_exchange_id);
+      if (exDemo !== undefined) return exDemo === isDemo;
       const match = matchesMap.get(c.match_id);
       const prop = match ? propsMap.get(match.seller_property_id) : null;
-      return prop ? Boolean((prop as any).is_demo) === isDemo : !isDemo;
+      return prop ? Boolean((prop as any).is_demo) === isDemo : false;
     })
     .map((c): Conversation => {
       const counterpartyId = c.buyer_agent_id === userId ? c.seller_agent_id : c.buyer_agent_id;

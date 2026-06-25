@@ -5,6 +5,7 @@ import { currency, scoreDotClass } from "../helpers";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import {
   deriveUiStatus,
+  formatCapRate,
   nextActionsFor,
   rankReason,
   UI_STATUS_CLASS,
@@ -111,7 +112,7 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClie
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
             <span className="font-semibold text-foreground">{currency(rel.askingPrice)}</span>
             {rel.capRate != null && (
-              <span className="text-muted-foreground">{rel.capRate.toFixed(1)}% cap</span>
+              <span className="text-muted-foreground">{formatCapRate(rel.capRate)} cap</span>
             )}
             {noi && <span className="text-muted-foreground">{noi}</span>}
           </div>
