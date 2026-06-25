@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, MapPin, Search, SlidersHorizontal, X, Clock } from "lucide-react";
-import { propertyImage } from "@/features/matches/components/inbox/propertyImage";
+import { Building2, ChevronRight, MapPin, Search, SlidersHorizontal, X, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -373,12 +372,18 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
                         className="group relative flex w-full items-center gap-4 rounded-xl border border-border/70 bg-card p-3 text-left transition-all duration-200 hover:border-primary/40 hover:shadow-[0_8px_20px_-12px_rgba(37,99,235,0.15)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                       >
                         <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-lg bg-muted">
-                          <img
-                            src={propertyImage(null, l.id)}
-                            alt=""
-                            loading="lazy"
-                            className="h-full w-full object-cover"
-                          />
+                          {l.coverUrl ? (
+                            <img
+                              src={l.coverUrl}
+                              alt=""
+                              loading="lazy"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <Building2 className="h-6 w-6 text-muted-foreground/40" />
+                            </div>
+                          )}
                           <div className="absolute left-1.5 top-1.5">
                             <span className="rounded border border-border/60 bg-background/95 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-foreground shadow-sm backdrop-blur-sm">
                               {statusLabel}

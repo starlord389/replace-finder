@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS, EXCHANGE_STATUS_COLORS } from "@/lib/constants";
 import { resolveListingName } from "@/lib/listingDisplay";
+import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 import { ListingPreviewDialog } from "@/features/workspace/components/ListingPreviewDialog";
 import type { AgentListing } from "@/features/pipeline/hooks/useAgentListings";
 import type { Enums } from "@/integrations/supabase/types";
@@ -87,10 +88,7 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
   const coverByProp = new Map<string, string>();
   for (const img of imgsRes.data ?? []) {
     if (!coverByProp.has(img.property_id)) {
-      const { data: signed } = supabase.storage
-        .from("property-images")
-        .getPublicUrl(img.storage_path);
-      coverByProp.set(img.property_id, signed?.publicUrl ?? "");
+      coverByProp.set(img.property_id, resolvePropertyImageUrl(img.storage_path));
     }
   }
 
@@ -142,6 +140,7 @@ function toAgentListing(l: ListingRow, clientId: string, clientName: string | nu
     strategyType: null,
     askingPrice: l.askingPrice,
     pipelineStageOverride: null,
+    coverUrl: l.coverUrl,
   };
 }
 

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveListingName } from "@/lib/listingDisplay";
+import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 
 export interface AgentListing {
@@ -18,6 +19,8 @@ export interface AgentListing {
   strategyType: string | null;
   askingPrice: number | null;
   pipelineStageOverride: string | null;
+  /** First uploaded photo (display URL), or null when the listing has no real photo. */
+  coverUrl: string | null;
 }
 
 async function fetchAgentListings(userId: string, isDemo: boolean): Promise<AgentListing[]> {
@@ -99,6 +102,28 @@ async function fetchAgentListings(userId: string, isDemo: boolean): Promise<Agen
     }
   }
 
+  // First uploaded photo per property → real cover URL (no fabricated fallback).
+  const allPropIds = Array.from(
+    new Set([
+      ...propIds,
+      ...Object.values(propByExchange).map((p: any) => p.id).filter(Boolean),
+    ]),
+  );
+  const coverByProp: Record<string, string> = {};
+  if (allPropIds.length) {
+    const { data: imgs } = await supabase
+      .from("property_images")
+      .select("property_id, storage_path")
+      .in("property_id", allPropIds)
+      .order("sort_order");
+    for (const img of imgs ?? []) {
+      const pid = (img as any).property_id as string;
+      if (!coverByProp[pid]) {
+        coverByProp[pid] = resolvePropertyImageUrl((img as any).storage_path);
+      }
+    }
+  }
+
   return rows.map((r) => {
     const primary = r.relinquished_property_id ? propMap[r.relinquished_property_id] : null;
     const fallback = propByExchange[r.id];
@@ -121,6 +146,7 @@ async function fetchAgentListings(userId: string, isDemo: boolean): Promise<Agen
       strategyType: p?.strategy_type ?? null,
       askingPrice: f?.asking_price ?? null,
       pipelineStageOverride: r.pipeline_stage_override,
+      coverUrl: propId ? coverByProp[propId] ?? null : null,
     };
   });
 }
