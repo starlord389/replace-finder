@@ -145,7 +145,7 @@ export default function AgentConnectionDetail() {
       type: "connection_declined",
       title: "Connection Declined",
       message: "Your connection request was declined.",
-      link_to: "/agent/connections",
+      link_to: `/agent/connections/${conn.id}`,
     });
     toast({ title: "Connection declined." });
     setActing(false);
@@ -255,7 +255,7 @@ export default function AgentConnectionDetail() {
       type: "connection_failed",
       title: "Exchange Connection Failed",
       message: `The exchange connection has been marked as failed.${failReason ? ` Reason: ${failReason}` : ""}`,
-      link_to: "/agent/connections",
+      link_to: `/agent/connections/${conn.id}`,
     });
 
     toast({ title: "Connection marked as failed." });
@@ -440,7 +440,7 @@ export default function AgentConnectionDetail() {
               </p>
             </div>
             <Button asChild>
-              <Link to={`/agent/messages?connection=${conn.id}`}>
+              <Link to={`/agent/workspace/${conn.buyer_exchange_id}?match=${conn.match_id}&view=conversation`}>
                 <MessageSquare className="mr-1.5 h-4 w-4" /> Open conversation
               </Link>
             </Button>

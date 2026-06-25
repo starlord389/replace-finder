@@ -23,12 +23,14 @@ interface Props {
   rank?: number | null;
   totalInScope?: number;
   previewMode?: boolean;
+  /** Tab to open on mount (e.g. "conversation" via a deep link). Falls back to overview if unavailable. */
+  initialTab?: string;
 }
 
-export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = false }: Props) {
+export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = false, initialTab }: Props) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
-  const [tab, setTab] = useState<string>("overview");
+  const [tab, setTab] = useState<string>(initialTab ?? "overview");
   const accent = getClientAccent(rel.clientId);
   const { state } = useMatchLocalState(rel.matchId);
   const status = useMemo(() => deriveUiStatus(rel, state), [rel, state]);
@@ -47,6 +49,10 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
     ...(conversationAvailable ? [{ v: "conversation", label: "Conversation" }] : []),
     { v: "docs", label: "Docs" },
   ];
+
+  // Guard against a requested tab that isn't currently available (e.g. a deep
+  // link to "conversation" before the conversation exists) → fall back cleanly.
+  const activeTab = tabs.some((t) => t.v === tab) ? tab : "overview";
 
   return (
     <div
@@ -91,7 +97,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
           )}
         >
           <div className="min-w-0">
-            <Tabs value={tab} onValueChange={setTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={setTab} className="w-full">
               <div className="sticky top-0 z-10 mb-6 border-b border-border bg-card/95 py-2 backdrop-blur">
                 <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
                   {tabs.map((t) => (
