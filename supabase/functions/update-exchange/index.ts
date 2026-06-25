@@ -73,6 +73,17 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── MOVE TO DRAFT: fail fast BEFORE any mutation ──
+    // The accepted/completed-connection guard must run before we touch any
+    // property/financials/criteria/image data (the wizard path applies those —
+    // including irreversible storage deletes — before flipping status). Running
+    // it first means a rejected unpublish leaves all listing data and storage
+    // untouched instead of 500-ing after the writes already landed.
+    if (payload.intent === "move_to_draft") {
+      const blocked = await assertNoAcceptedConnections(db, exchange.id);
+      if (blocked) return blocked;
+    }
+
     // ── DELETE DRAFT ──
     if (payload.intent === "delete_draft") {
       if (exchange.status !== "draft") return response({ error: "Only drafts can be deleted" }, 400);
@@ -138,23 +149,60 @@ Deno.serve(async (req) => {
     }
 
     if (payload.financials && propertyId) {
-      const finUpdate = deriveFinancialColumns(payload.financials);
-      const { error } = await db.from("property_financials").update(finUpdate).eq("property_id", propertyId);
+      const fin = payload.financials;
+
+      // The UI always sends the full input set (a CLEARED field arrives as an
+      // empty/null value under a PRESENT key), but a direct authenticated API
+      // call may OMIT keys entirely. deriveFinancialColumns(payload) alone
+      // collapses every absent input to null, so an unconditional .update() would
+      // wipe NOI/cap_rate/rent/opex/loan for any omitted field — dropping the
+      // listing out of matching. Instead, merge only the keys the caller actually
+      // included over the stored row — keyed on PRESENCE, not value, so the UI
+      // can still clear a field to null while a partial API call leaves omitted
+      // fields untouched — then re-derive noi/cap_rate/occupancy from the merge.
+      const inputKeys = [
+        "asking_price",
+        "gross_rent_roll",
+        "total_operating_expenses",
+        "annual_debt_service",
+        "loan_balance",
+      ] as const;
+      const providedKeys = inputKeys.filter((k) => k in fin);
+
+      const { data: storedFin, error: readErr } = await db
+        .from("property_financials")
+        .select("asking_price, gross_rent_roll, total_operating_expenses, annual_debt_service, loan_balance")
+        .eq("property_id", propertyId)
+        .maybeSingle();
+      if (readErr) throw readErr;
+
+      // Effective inputs: provided value wins, else the stored value.
+      const mergedInputs: Record<string, unknown> = {
+        asking_price: storedFin?.asking_price,
+        gross_rent_roll: storedFin?.gross_rent_roll,
+        total_operating_expenses: storedFin?.total_operating_expenses,
+        annual_debt_service: storedFin?.annual_debt_service,
+        loan_balance: storedFin?.loan_balance,
+      };
+      for (const k of providedKeys) mergedInputs[k] = fin[k];
+
+      const derived = deriveFinancialColumns(mergedInputs);
+      const { error } = await db.from("property_financials").update(derived).eq("property_id", propertyId);
       if (error) throw error;
 
-      // Server-authoritative equity/proceeds from the validated asking price and
+      // Server-authoritative equity/proceeds from the (merged) asking price and
       // loan balance, rather than trusting client-sent values.
       // estimated_equity = raw equity (asking − loan).
       const estimatedEquity =
-        finUpdate.asking_price != null && finUpdate.loan_balance != null
-          ? Math.max(0, finUpdate.asking_price - finUpdate.loan_balance)
+        derived.asking_price != null && derived.loan_balance != null
+          ? Math.max(0, derived.asking_price - derived.loan_balance)
           : null;
       // exchange_proceeds = equity NET of estimated seller closing costs (~5% of
       // asking price), mirroring the wizard. Prefer a valid client-sent value.
       const exchangeProceeds = resolveExchangeProceeds(
         payload.financials.exchange_proceeds,
-        finUpdate.asking_price,
-        finUpdate.loan_balance,
+        derived.asking_price,
+        derived.loan_balance,
       );
       await db.from("exchanges").update({
         exchange_proceeds: exchangeProceeds,
@@ -278,19 +326,33 @@ async function handleStatusChange(
       await runMatchingSafe(db, userId, exchange.id, propertyId, !!exchange.is_demo, fromWizard ? "update:publish-wizard" : "update:publish-inline");
     }
   } else {
-    // move_to_draft — guard: no accepted/completed connections
-    const { count } = await db
-      .from("exchange_connections")
-      .select("id", { count: "exact", head: true })
-      .eq("buyer_exchange_id", exchange.id)
-      .in("status", ["accepted", "completed"]);
-    if ((count ?? 0) > 0) {
-      throw new Error("Cannot move to draft: exchange has accepted or completed connections");
-    }
+    // move_to_draft. The accepted/completed-connection guard already ran before
+    // any mutation (assertNoAcceptedConnections in the request handler); re-check
+    // here as a defensive safety net so this helper is correct even if a future
+    // caller forgets the up-front guard.
+    const blocked = await assertNoAcceptedConnections(db, exchange.id);
+    if (blocked) return blocked;
+
     await db.from("exchanges").update({ status: "draft" }).eq("id", exchange.id);
     if (propertyId) {
       await db.from("pledged_properties").update({ status: "draft" }).eq("id", propertyId);
     }
+
+    // Pausing matching (the property is no longer 'active') stops NEW matches from
+    // being computed, but any matches scored while the listing was live remain in
+    // the table with status 'active' and stay visible to the counterparty — so a
+    // withdrawn listing can still surface as a live match. Remove this listing's
+    // own open matches in BOTH directions:
+    //   • buyer side  → matches where this exchange is the buyer (buyer_exchange_id)
+    //   • seller side → matches where this exchange's relinquished property is the
+    //                   listed property (seller_property_id = propertyId)
+    // Never delete a match that already has an accepted/completed connection: that
+    // is a live deal between two agents and must survive an unpublish. (The guard
+    // above already blocks unpublishing when THIS exchange is the buyer on such a
+    // connection, but the seller-side property can carry a connection driven by a
+    // different exchange, so filter those out explicitly.)
+    await removeOpenMatchesForListing(db, exchange.id, propertyId);
+
     await db.from("exchange_timeline").insert({
       exchange_id: exchange.id,
       event_type: "exchange_moved_to_draft",
@@ -299,6 +361,89 @@ async function handleStatusChange(
     });
   }
   return response({ exchange_id: exchange.id, status: intent === "publish" ? "active" : "draft" });
+}
+
+// Guard move_to_draft against an in-flight deal. Returns a 400 Response when the
+// exchange (as buyer) has an accepted, in-progress, or completed connection — unpublishing
+// would orphan a live deal — or null when it is safe to move to draft. Returning
+// a Response (rather than throwing) lets the handler fail fast with a clean 400
+// before any data/storage is mutated, instead of a post-mutation 500.
+async function assertNoAcceptedConnections(
+  db: ReturnType<typeof createClient>,
+  exchangeId: string,
+): Promise<Response | null> {
+  const { count, error } = await db
+    .from("exchange_connections")
+    .select("id", { count: "exact", head: true })
+    .eq("buyer_exchange_id", exchangeId)
+    // 'in_progress' (under contract) is a live deal too — migration
+    // 20260625140000 added it between accepted and completed, and the app treats
+    // ['accepted','in_progress','completed'] as active everywhere.
+    .in("status", ["accepted", "in_progress", "completed"]);
+  if (error) throw error;
+  if ((count ?? 0) > 0) {
+    return response(
+      { error: "Cannot move to draft: exchange has an in-flight (accepted, under-contract, or completed) connection" },
+      400,
+    );
+  }
+  return null;
+}
+
+// When a listing is withdrawn (moved to draft), remove its own *untouched*
+// matches so they stop surfacing to counterparties. Covers both match directions
+// for this listing: the exchange as buyer (buyer_exchange_id), and its
+// relinquished property as the listed seller property (seller_property_id).
+//
+// We delete ONLY matches that no agent has acted on — i.e. matches with no row
+// in exchange_connections and none in identification_list. This is both the
+// least-surprising action and the only safe one: those two tables FK to
+// matches(id) with NO ON DELETE CASCADE, so deleting a referenced match would
+// raise a foreign-key violation. Any match carrying a connection (pending,
+// accepted, completed, declined or cancelled) or an identification entry holds
+// real agent history / a live deal and must survive an unpublish; the accepted/
+// completed guard already blocks the buyer-side live-deal case up front.
+//
+// Errors are surfaced. Matching is paused regardless of this cleanup, so this
+// only governs whether STALE open rows linger.
+async function removeOpenMatchesForListing(
+  db: ReturnType<typeof createClient>,
+  exchangeId: string,
+  propertyId: string | null,
+) {
+  // Candidate match ids for this listing, both directions.
+  const buyerSide = await db.from("matches").select("id").eq("buyer_exchange_id", exchangeId);
+  if (buyerSide.error) throw buyerSide.error;
+  const sellerSide = propertyId
+    ? await db.from("matches").select("id").eq("seller_property_id", propertyId)
+    : { data: [] as Array<{ id: string }>, error: null };
+  if (sellerSide.error) throw sellerSide.error;
+
+  const matchIds = [
+    ...new Set(
+      [...(buyerSide.data ?? []), ...(sellerSide.data ?? [])].map((m) => m.id),
+    ),
+  ];
+  if (matchIds.length === 0) return;
+
+  // Any match referenced by a connection (any status) or an identification entry
+  // is off-limits: it has agent history/a deal, and its FK has no cascade.
+  const [connsRes, identsRes] = await Promise.all([
+    db.from("exchange_connections").select("match_id").in("match_id", matchIds),
+    db.from("identification_list").select("match_id").in("match_id", matchIds),
+  ]);
+  if (connsRes.error) throw connsRes.error;
+  if (identsRes.error) throw identsRes.error;
+
+  const referenced = new Set<string>();
+  for (const row of connsRes.data ?? []) if (row.match_id) referenced.add(row.match_id);
+  for (const row of identsRes.data ?? []) if (row.match_id) referenced.add(row.match_id);
+
+  const deletable = matchIds.filter((id) => !referenced.has(id));
+  if (deletable.length === 0) return;
+
+  const { error: delErr } = await db.from("matches").delete().in("id", deletable);
+  if (delErr) throw delErr;
 }
 
 // Guard a publish against the persisted listing state. Returns a 400 Response

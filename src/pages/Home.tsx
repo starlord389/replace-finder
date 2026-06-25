@@ -1172,8 +1172,22 @@ const FEATURES = [
 
 function FeaturesSection() {
   const [active, setActive] = useState(0);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const f = FEATURES[active];
   const Visual = f.Visual;
+
+  const onTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    let next: number | null = null;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") next = (active + 1) % FEATURES.length;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = (active - 1 + FEATURES.length) % FEATURES.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = FEATURES.length - 1;
+    if (next === null) return;
+    e.preventDefault();
+    setActive(next);
+    tabRefs.current[next]?.focus();
+  };
+
   return (
     <section id="feature" className="px-5 py-16 sm:px-8 sm:py-24">
       <div className="fs">
@@ -1181,14 +1195,32 @@ function FeaturesSection() {
           <h2>Every tool you need to close a 1031 exchange.</h2>
           <p className="fs-sub">One workspace for the whole exchange — your clients, their matches, the connections you've opened, and the offers on the table.</p>
         </div>
-        <div className="fs-tabs" data-reveal>
+        <div className="fs-tabs" data-reveal role="tablist" aria-label="Features">
           {FEATURES.map((t, i) => (
-            <button key={t.id} type="button" className={`fs-tab${active === i ? " is-active" : ""}`} onClick={() => setActive(i)}>
+            <button
+              key={t.id}
+              ref={(el) => { tabRefs.current[i] = el; }}
+              type="button"
+              role="tab"
+              id={`fs-tab-${t.id}`}
+              aria-selected={active === i}
+              aria-controls={`fs-panel-${t.id}`}
+              tabIndex={active === i ? 0 : -1}
+              className={`fs-tab${active === i ? " is-active" : ""}`}
+              onClick={() => setActive(i)}
+              onKeyDown={onTabKeyDown}
+            >
               <t.Icon /><span>{t.label}</span>
             </button>
           ))}
         </div>
-        <div className="fs-card" data-reveal>
+        <div
+          className="fs-card"
+          data-reveal
+          role="tabpanel"
+          id={`fs-panel-${f.id}`}
+          aria-labelledby={`fs-tab-${f.id}`}
+        >
           <div className="fs-left" key={`v-${f.id}`}><Visual /></div>
           <div className="fs-right" key={`c-${f.id}`}>
             <span className="fs-eyebrow">{f.eyebrow}</span>

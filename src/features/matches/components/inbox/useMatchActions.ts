@@ -57,6 +57,17 @@ export function useMatchActions(rel: Relationship, cb: Callbacks = {}) {
         });
         return;
       }
+      // The connection row requires both agent ids (NOT NULL). On a seller-side
+      // match with no connection yet, the buyer agent is unknown until the buyer
+      // engages — inserting a null buyer_agent_id would violate the constraint.
+      if (!rel.buyerAgentId) {
+        toast({
+          title: "Can't start conversation",
+          description: "The buyer's agent isn't available for this match yet.",
+          variant: "destructive",
+        });
+        return;
+      }
       const { error } = await supabase.from("exchange_connections").insert({
         match_id: rel.matchId,
         buyer_exchange_id: rel.buyerExchangeId,

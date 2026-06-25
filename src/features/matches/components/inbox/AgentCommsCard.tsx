@@ -13,7 +13,6 @@ interface Props {
 export function AgentCommsCard({ rel }: Props) {
   const connected = isConnected(rel.stage) && !!rel.connectionId;
   const [draft, setDraft] = useState<string | undefined>(undefined);
-  const [draftKey, setDraftKey] = useState(0);
 
   const displayName =
     rel.counterpartyName ??
@@ -21,7 +20,6 @@ export function AgentCommsCard({ rel }: Props) {
 
   function inject(msg: string) {
     setDraft(msg);
-    setDraftKey((k) => k + 1);
   }
 
   return (
@@ -64,7 +62,7 @@ export function AgentCommsCard({ rel }: Props) {
       {connected ? (
         <div className="flex h-[420px] min-h-0 flex-col">
           <ThreadView
-            key={draftKey + "-" + rel.connectionId}
+            key={rel.connectionId}
             connectionId={rel.connectionId!}
             counterpartyName={displayName}
             embedded
