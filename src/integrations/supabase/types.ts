@@ -502,6 +502,13 @@ export type Database = {
             referencedRelation: "pledged_properties"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "exchanges_relinquished_property_fkey"
+            columns: ["relinquished_property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       identification_list: {
@@ -555,6 +562,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "identification_list_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -666,6 +680,13 @@ export type Database = {
             columns: ["seller_property_id"]
             isOneToOne: false
             referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_seller_property_id_fkey"
+            columns: ["seller_property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -1004,6 +1025,13 @@ export type Database = {
             referencedRelation: "pledged_properties"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "property_documents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       property_financials: {
@@ -1120,6 +1148,13 @@ export type Database = {
             referencedRelation: "pledged_properties"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "property_financials_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "pledged_properties_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       property_images: {
@@ -1153,6 +1188,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_images_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -1458,7 +1500,140 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      pledged_properties_secure: {
+        Row: {
+          address: string | null
+          address_is_public: boolean | null
+          agent_id: string | null
+          amenities: string[] | null
+          asset_subtype: string | null
+          asset_type: Database["public"]["Enums"]["asset_type"] | null
+          building_square_footage: number | null
+          city: string | null
+          construction_type: string | null
+          county: string | null
+          created_at: string | null
+          description: string | null
+          exchange_id: string | null
+          hvac_type: string | null
+          id: string | null
+          is_demo: boolean | null
+          land_area_acres: number | null
+          listed_at: string | null
+          num_buildings: number | null
+          num_stories: number | null
+          owner_authorization_confirmed: boolean | null
+          parking_spaces: number | null
+          parking_type: string | null
+          property_class: string | null
+          property_condition: string | null
+          property_name: string | null
+          recent_renovations: string | null
+          roof_type: string | null
+          source: Database["public"]["Enums"]["property_source"] | null
+          state: string | null
+          status: Database["public"]["Enums"]["pledged_property_status"] | null
+          strategy_type: Database["public"]["Enums"]["strategy_type"] | null
+          unit_suite: string | null
+          units: number | null
+          updated_at: string | null
+          withdrawn_at: string | null
+          year_built: number | null
+          zip: string | null
+          zoning: string | null
+        }
+        Insert: {
+          address?: never
+          address_is_public?: boolean | null
+          agent_id?: string | null
+          amenities?: string[] | null
+          asset_subtype?: string | null
+          asset_type?: Database["public"]["Enums"]["asset_type"] | null
+          building_square_footage?: number | null
+          city?: string | null
+          construction_type?: string | null
+          county?: string | null
+          created_at?: string | null
+          description?: string | null
+          exchange_id?: string | null
+          hvac_type?: string | null
+          id?: string | null
+          is_demo?: boolean | null
+          land_area_acres?: number | null
+          listed_at?: string | null
+          num_buildings?: number | null
+          num_stories?: number | null
+          owner_authorization_confirmed?: boolean | null
+          parking_spaces?: number | null
+          parking_type?: string | null
+          property_class?: string | null
+          property_condition?: string | null
+          property_name?: string | null
+          recent_renovations?: string | null
+          roof_type?: string | null
+          source?: Database["public"]["Enums"]["property_source"] | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["pledged_property_status"] | null
+          strategy_type?: Database["public"]["Enums"]["strategy_type"] | null
+          unit_suite?: string | null
+          units?: number | null
+          updated_at?: string | null
+          withdrawn_at?: string | null
+          year_built?: number | null
+          zip?: string | null
+          zoning?: string | null
+        }
+        Update: {
+          address?: never
+          address_is_public?: boolean | null
+          agent_id?: string | null
+          amenities?: string[] | null
+          asset_subtype?: string | null
+          asset_type?: Database["public"]["Enums"]["asset_type"] | null
+          building_square_footage?: number | null
+          city?: string | null
+          construction_type?: string | null
+          county?: string | null
+          created_at?: string | null
+          description?: string | null
+          exchange_id?: string | null
+          hvac_type?: string | null
+          id?: string | null
+          is_demo?: boolean | null
+          land_area_acres?: number | null
+          listed_at?: string | null
+          num_buildings?: number | null
+          num_stories?: number | null
+          owner_authorization_confirmed?: boolean | null
+          parking_spaces?: number | null
+          parking_type?: string | null
+          property_class?: string | null
+          property_condition?: string | null
+          property_name?: string | null
+          recent_renovations?: string | null
+          roof_type?: string | null
+          source?: Database["public"]["Enums"]["property_source"] | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["pledged_property_status"] | null
+          strategy_type?: Database["public"]["Enums"]["strategy_type"] | null
+          unit_suite?: string | null
+          units?: number | null
+          updated_at?: string | null
+          withdrawn_at?: string | null
+          year_built?: number | null
+          zip?: string | null
+          zoning?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pledged_properties_exchange_id_fkey"
+            columns: ["exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_invite_by_token: {
