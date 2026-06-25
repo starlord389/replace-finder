@@ -117,18 +117,24 @@ export default function AgentConnectionDetail() {
   const handleAccept = async () => {
     if (!conn) return;
     setActing(true);
-    await supabase.from("exchange_connections").update({
+    const { error: updateErr } = await supabase.from("exchange_connections").update({
       status: "accepted",
       accepted_at: new Date().toISOString(),
       facilitation_fee_agreed: true,
     }).eq("id", conn.id);
-    await supabase.from("notifications").insert({
-      user_id: conn.buyer_agent_id,
-      type: "connection_accepted",
-      title: "Connection Accepted",
-      message: "Your connection request has been accepted. You can now view agent details and start messaging.",
-      link_to: `/agent/connections/${conn.id}`,
+    if (updateErr) {
+      toast({ title: "Couldn't accept connection", description: updateErr.message, variant: "destructive" });
+      setActing(false);
+      return;
+    }
+    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty", {
+      p_connection_id: conn.id,
+      p_type: "connection_accepted",
+      p_title: "Connection Accepted",
+      p_message: "Your connection request has been accepted. You can now view agent details and start messaging.",
+      p_link_to: `/agent/connections/${conn.id}`,
     });
+    if (notifyErr) console.error("Failed to notify counterparty of acceptance:", notifyErr);
     toast({ title: "Connection accepted!", description: "You can now message the other agent." });
     setActing(false);
     loadData();
@@ -137,18 +143,24 @@ export default function AgentConnectionDetail() {
   const handleDecline = async () => {
     if (!conn) return;
     setActing(true);
-    await supabase.from("exchange_connections").update({
+    const { error: updateErr } = await supabase.from("exchange_connections").update({
       status: "declined",
       declined_at: new Date().toISOString(),
       decline_reason: declineReason || null,
     }).eq("id", conn.id);
-    await supabase.from("notifications").insert({
-      user_id: conn.buyer_agent_id,
-      type: "connection_declined",
-      title: "Connection Declined",
-      message: "Your connection request was declined.",
-      link_to: `/agent/connections/${conn.id}`,
+    if (updateErr) {
+      toast({ title: "Couldn't decline connection", description: updateErr.message, variant: "destructive" });
+      setActing(false);
+      return;
+    }
+    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty", {
+      p_connection_id: conn.id,
+      p_type: "connection_declined",
+      p_title: "Connection Declined",
+      p_message: "Your connection request was declined.",
+      p_link_to: `/agent/connections/${conn.id}`,
     });
+    if (notifyErr) console.error("Failed to notify counterparty of decline:", notifyErr);
     toast({ title: "Connection declined." });
     setActing(false);
     setDeclineOpen(false);
@@ -186,25 +198,32 @@ export default function AgentConnectionDetail() {
       updates.facilitation_fee_status = "invoiced";
     }
 
-    await supabase.from("exchange_connections").update(updates).eq("id", conn.id);
+    const { error: updateErr } = await supabase.from("exchange_connections").update(updates).eq("id", conn.id);
+    if (updateErr) {
+      toast({ title: "Couldn't save stage", description: updateErr.message, variant: "destructive" });
+      setActing(false);
+      return;
+    }
 
-    const otherId = conn.buyer_agent_id === user!.id ? conn.seller_agent_id : conn.buyer_agent_id;
-    await supabase.from("notifications").insert({
-      user_id: otherId,
-      type: "connection_milestone",
-      title: `${stageDialog.mode === "edit" ? "Updated" : "Reached"}: ${stage.label}`,
-      message: `${stage.label} ${stageDialog.mode === "edit" ? "date updated" : "marked complete"} on ${format(milestoneDate, "MMM d, yyyy")}.${milestoneNote ? ` Note: ${milestoneNote}` : ""}`,
-      link_to: `/agent/connections/${conn.id}`,
+    // Notify the counterparty and log to both timelines via SECURITY DEFINER
+    // RPCs — direct authenticated inserts to notifications / exchange_timeline
+    // are blocked by RLS (service_role / admin only).
+    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty", {
+      p_connection_id: conn.id,
+      p_type: "connection_milestone",
+      p_title: `${stageDialog.mode === "edit" ? "Updated" : "Reached"}: ${stage.label}`,
+      p_message: `${stage.label} ${stageDialog.mode === "edit" ? "date updated" : "marked complete"} on ${format(milestoneDate, "MMM d, yyyy")}.${milestoneNote ? ` Note: ${milestoneNote}` : ""}`,
+      p_link_to: `/agent/connections/${conn.id}`,
     });
+    if (notifyErr) console.error("Failed to notify counterparty of milestone:", notifyErr);
 
-    const timelineEntry = {
-      event_type: "connection_milestone",
-      description: `${stageDialog.mode === "edit" ? "Updated" : "Completed"}: ${stage.label}${milestoneNote ? ` — ${milestoneNote}` : ""}`,
-      actor_id: user!.id,
-      metadata: { milestone: stage.key, date: isoDate, note: milestoneNote || null },
-    };
-    if (conn.buyer_exchange_id) await supabase.from("exchange_timeline").insert({ ...timelineEntry, exchange_id: conn.buyer_exchange_id });
-    if (conn.seller_exchange_id) await supabase.from("exchange_timeline").insert({ ...timelineEntry, exchange_id: conn.seller_exchange_id });
+    const { error: timelineErr } = await supabase.rpc("log_connection_event", {
+      p_connection_id: conn.id,
+      p_event_type: "connection_milestone",
+      p_description: `${stageDialog.mode === "edit" ? "Updated" : "Completed"}: ${stage.label}${milestoneNote ? ` — ${milestoneNote}` : ""}`,
+      p_metadata: { milestone: stage.key, date: isoDate, note: milestoneNote || null },
+    });
+    if (timelineErr) console.error("Failed to log milestone to timeline:", timelineErr);
 
     if (stage.key === "closed_at") {
       const dateOnly = isoDate.split("T")[0];
@@ -226,16 +245,20 @@ export default function AgentConnectionDetail() {
     const updates: Record<string, any> = { [key]: null };
     if (key === "closed_at") updates.status = "in_progress";
     if (key === "under_contract_at") updates.status = "accepted";
-    await supabase.from("exchange_connections").update(updates).eq("id", conn.id);
+    const { error: updateErr } = await supabase.from("exchange_connections").update(updates).eq("id", conn.id);
+    if (updateErr) {
+      toast({ title: "Couldn't clear stage", description: updateErr.message, variant: "destructive" });
+      setActing(false);
+      return;
+    }
 
-    const timelineEntry = {
-      event_type: "connection_milestone",
-      description: `Cleared: ${stage.label}`,
-      actor_id: user!.id,
-      metadata: { milestone: key, cleared: true },
-    };
-    if (conn.buyer_exchange_id) await supabase.from("exchange_timeline").insert({ ...timelineEntry, exchange_id: conn.buyer_exchange_id });
-    if (conn.seller_exchange_id) await supabase.from("exchange_timeline").insert({ ...timelineEntry, exchange_id: conn.seller_exchange_id });
+    const { error: timelineErr } = await supabase.rpc("log_connection_event", {
+      p_connection_id: conn.id,
+      p_event_type: "connection_milestone",
+      p_description: `Cleared: ${stage.label}`,
+      p_metadata: { milestone: key, cleared: true },
+    });
+    if (timelineErr) console.error("Failed to log stage clear to timeline:", timelineErr);
 
     toast({ title: "Stage cleared", description: `${stage.label} reset.` });
     setActing(false);
@@ -245,20 +268,25 @@ export default function AgentConnectionDetail() {
   const handleMarkFailed = async () => {
     if (!conn) return;
     setActing(true);
-    await supabase.from("exchange_connections").update({
+    const { error: updateErr } = await supabase.from("exchange_connections").update({
       status: "cancelled",
       failed_at: new Date().toISOString(),
       failure_reason: failReason || null,
     }).eq("id", conn.id);
+    if (updateErr) {
+      toast({ title: "Couldn't mark as failed", description: updateErr.message, variant: "destructive" });
+      setActing(false);
+      return;
+    }
 
-    const otherId = conn.buyer_agent_id === user!.id ? conn.seller_agent_id : conn.buyer_agent_id;
-    await supabase.from("notifications").insert({
-      user_id: otherId,
-      type: "connection_failed",
-      title: "Exchange Connection Failed",
-      message: `The exchange connection has been marked as failed.${failReason ? ` Reason: ${failReason}` : ""}`,
-      link_to: `/agent/connections/${conn.id}`,
+    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty", {
+      p_connection_id: conn.id,
+      p_type: "connection_failed",
+      p_title: "Exchange Connection Failed",
+      p_message: `The exchange connection has been marked as failed.${failReason ? ` Reason: ${failReason}` : ""}`,
+      p_link_to: `/agent/connections/${conn.id}`,
     });
+    if (notifyErr) console.error("Failed to notify counterparty of failure:", notifyErr);
 
     toast({ title: "Connection marked as failed." });
     setFailOpen(false);
