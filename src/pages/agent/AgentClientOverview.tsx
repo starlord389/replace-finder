@@ -109,7 +109,10 @@ export default function AgentClientOverview() {
         </TabsList>
 
         <TabsContent value="profile" className="mt-4">
-          <ClientProfileTab clientId={clientId} />
+          <ClientProfileTab
+            clientId={clientId}
+            onSaved={(info) => setClient((c) => (c ? { ...c, ...info } : c))}
+          />
         </TabsContent>
 
         <TabsContent value="listings" className="mt-4">

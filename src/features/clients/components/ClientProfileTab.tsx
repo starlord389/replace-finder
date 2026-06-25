@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,9 +10,11 @@ import { toast } from "sonner";
 
 interface Props {
   clientId: string;
+  onSaved?: (info: { client_name: string; client_email: string | null; client_phone: string | null }) => void;
 }
 
-export function ClientProfileTab({ clientId }: Props) {
+export function ClientProfileTab({ clientId, onSaved }: Props) {
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -50,6 +53,16 @@ export function ClientProfileTab({ clientId }: Props) {
     }).eq("id", clientId);
     setSavingInfo(false);
     if (error) { toast.error("Failed to save"); return; }
+    const info = {
+      client_name: name.trim(),
+      client_email: email.trim() || null,
+      client_phone: phone.trim() || null,
+    };
+    onSaved?.(info);
+    // The client's name shows on listings, matches, and the pipeline — refresh them.
+    for (const key of ["unified-relationships", "agent-listings", "agent-exchanges", "agent-pipeline"]) {
+      queryClient.invalidateQueries({ queryKey: [key] });
+    }
     toast.success("Contact info saved");
   };
 

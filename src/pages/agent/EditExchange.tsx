@@ -124,7 +124,11 @@ export default function EditExchange() {
     })();
 
     return () => { cancelled = true; };
-  }, [id, user, navigate]);
+    // Depend on the stable user id, not the whole user object (which gets a new
+    // reference on every auth/token-refresh and would silently re-hydrate the
+    // form, discarding unsaved edits).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user?.id, navigate]);
 
   function validatePublish(d: WizardState): { valid: boolean; firstInvalidStep: number; message: string } {
     if (!d.selectedClientId) return { valid: false, firstInvalidStep: 1, message: "Select a client before publishing." };

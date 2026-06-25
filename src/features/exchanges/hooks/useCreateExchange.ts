@@ -11,12 +11,13 @@ export function useCreateExchange() {
       return createExchange(request);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["agent-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["agent-exchanges"] });
-      queryClient.invalidateQueries({ queryKey: ["agent-matches"] });
-      queryClient.invalidateQueries({ queryKey: ["agent-listings"] });
-      queryClient.invalidateQueries({ queryKey: ["client-listings"] });
-      queryClient.invalidateQueries({ queryKey: ["client-activity"] });
+      // Live query keys only (agent-dashboard / agent-matches were no-ops).
+      for (const key of [
+        "agent-exchanges", "agent-listings", "agent-pipeline", "agent-attention",
+        "unified-relationships", "client-listings", "client-activity",
+      ]) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
     },
   });
 }
