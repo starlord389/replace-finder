@@ -314,7 +314,7 @@ export default function AdminUsers() {
                                   busy={!!busy[`v-${u.id}`]}
                                   userLabel={u.full_name || u.email || "this user"}
                                   onSuspend={() => setVerification(u.id, "suspended")}
-                                  onReactivate={() => setVerification(u.id, "active")}
+                                  onReactivate={() => setVerification(u.id, "verified")}
                                 />
                               </div>
                             </div>
