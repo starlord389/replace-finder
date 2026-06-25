@@ -1636,10 +1636,6 @@ export type Database = {
       }
     }
     Functions: {
-      accept_client_invite: {
-        Args: { p_token: string }
-        Returns: string
-      }
       get_invite_by_token: {
         Args: { _token: string }
         Returns: {
@@ -1665,29 +1661,6 @@ export type Database = {
       is_exchange_agent: {
         Args: { _exchange_id: string; _user_id: string }
         Returns: boolean
-      }
-      log_connection_event: {
-        Args: {
-          p_connection_id: string
-          p_event_type: string
-          p_description: string
-          p_metadata?: Json
-        }
-        Returns: undefined
-      }
-      mark_match_viewed: {
-        Args: { p_match_id: string }
-        Returns: undefined
-      }
-      notify_connection_counterparty: {
-        Args: {
-          p_connection_id: string
-          p_type: string
-          p_title: string
-          p_message: string
-          p_link_to: string
-        }
-        Returns: undefined
       }
       users_share_active_connection: {
         Args: { _user_a: string; _user_b: string }
