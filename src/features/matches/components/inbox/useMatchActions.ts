@@ -25,15 +25,28 @@ export function useMatchActions(rel: Relationship, cb: Callbacks = {}) {
    * is the green light), then drops the agent into the live conversation.
    */
   async function startConversation() {
-    // A pending invite from the other side just becomes an open line.
+    // A pending request can only be accepted by the OTHER side. If we initiated
+    // it, we're awaiting their response — don't let the requester self-accept and
+    // bypass the counterparty's consent.
     if (rel.connectionId && rel.connectionStatus === "pending") {
+      const iInitiated =
+        rel.connectionInitiatedBy === (rel.mySide === "buyer" ? "buyer_agent" : "seller_agent");
+      if (iInitiated) {
+        toast({
+          title: "Awaiting their response",
+          description: "You've already requested to connect — the other agent needs to accept before the conversation opens.",
+        });
+        return;
+      }
       const { error } = await supabase
         .from("exchange_connections")
         .update({ status: "accepted", accepted_at: new Date().toISOString() })
         .eq("id", rel.connectionId);
-      if (!error) {
-        await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
+      if (error) {
+        toast({ title: "Couldn't accept", description: error.message, variant: "destructive" });
+        return;
       }
+      await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
     }
     if (!rel.connectionId) {
       if (!rel.sellerAgentId) {

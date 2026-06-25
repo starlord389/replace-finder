@@ -328,6 +328,7 @@ export default function AgentMatches() {
                     rel={selected}
                     rank={rankMap.get(selected.id) ?? null}
                     totalInScope={visibleRels.length}
+                    initialTab={searchParams.get("view") ?? undefined}
                   />
                 </div>
               </>

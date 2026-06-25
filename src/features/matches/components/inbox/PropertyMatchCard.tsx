@@ -65,16 +65,11 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClie
             size="sm"
             className="min-w-0 flex-1"
           />
-          <div className="flex shrink-0 items-center gap-1.5">
-            {rank != null && (
-              <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-bold text-foreground/80">
-                #{rank}
-              </span>
-            )}
-            {rel.unreadCount > 0 && (
-              <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />
-            )}
-          </div>
+          {rank != null && (
+            <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-bold text-foreground/80">
+              #{rank}
+            </span>
+          )}
         </div>
       )}
 
@@ -96,6 +91,12 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClie
           >
             {Math.round(rel.score)}
           </span>
+          {rel.unreadCount > 0 && (
+            <span
+              className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card"
+              aria-label="Unread messages"
+            />
+          )}
         </div>
 
         <div className="min-w-0 flex-1">

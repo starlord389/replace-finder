@@ -149,12 +149,17 @@ export function whyThisMatched(rel: Relationship): string[] {
   else if (rel.score >= 70) out.push("Solid fit with minor trade-offs across scoring dimensions.");
   else out.push("Partial fit — worth a closer look on the weaker dimensions.");
 
-  if (rel.askingPrice) out.push(`Asking price ${formatMoney(rel.askingPrice)} sits within your client's replacement budget.`);
-  if (rel.propertyCity) out.push(`Located in ${rel.propertyCity}${rel.propertyState ? `, ${rel.propertyState}` : ""} — aligned with target geography.`);
+  // Only claim a dimension fits when the engine actually scored it that way —
+  // don't assert budget / geography / timeline fit we haven't verified.
+  if ((rel.geoScore ?? 0) >= 70 && rel.propertyCity) {
+    out.push(`Located in ${rel.propertyCity}${rel.propertyState ? `, ${rel.propertyState}` : ""} — strong location fit with the client's target geography.`);
+  } else if (rel.propertyCity) {
+    out.push(`Located in ${rel.propertyCity}${rel.propertyState ? `, ${rel.propertyState}` : ""}.`);
+  }
   if (rel.bootStatus === "no_boot") out.push("No boot exposure — full equity replacement looks achievable.");
   else if (rel.bootStatus === "minor_boot") out.push("Minor boot expected — manageable equity gap.");
-  if (rel.capRate) out.push(`Projected cap rate of ${rel.capRate.toFixed(1)}% supports a healthy cash-on-cash return.`);
-  out.push("Timeline aligns with the 1031 identification and closing windows.");
+  if (rel.capRate) out.push(`Projected cap rate of ${rel.capRate.toFixed(1)}%.`);
+  if (rel.askingPrice) out.push(`Asking price ${formatMoney(rel.askingPrice)}.`);
   return out;
 }
 
@@ -201,7 +206,7 @@ export function financialMetrics(rel: Relationship): FinancialMetric[] {
     { key: "price", label: "Price", value: price ? formatMoney(price) : "—" },
     { key: "noi", label: "NOI", value: noi ? formatMoney(noi) : "—" },
     { key: "cap", label: "Cap Rate", value: cap ? `${cap.toFixed(2)}%` : "—" },
-    { key: "coc", label: "Projected ROE", value: projectedRoe != null ? `${projectedRoe.toFixed(1)}%` : "—", estimated: !fromEngine },
+    { key: "coc", label: "Projected ROE", value: projectedRoe != null ? `${projectedRoe.toFixed(1)}%` : "—", estimated: rel.candidateRoe == null },
     { key: "dscr", label: "DSCR", value: dscr ? dscr.toFixed(2) : "—", estimated: !fromEngine },
     { key: "occupancy", label: "Occupancy", value: rel.occupancy != null ? `${Math.round(rel.occupancy)}%` : "—" },
     { key: "equity", label: "Est. Down (25%)", value: equity ? formatMoney(equity) : "—", estimated: true },
