@@ -175,52 +175,73 @@ export async function computeMatchesForExchange(
   return allMatches;
 }
 
-export async function persistMatchesAndNotifications(db: any, matches: ScoredMatch[], userId: string) {
-  let upsertedCount = 0;
-  if (matches.length > 0) {
-    const rows = matches.map((m) => ({
-      buyer_exchange_id: m.buyer_exchange_id,
-      seller_property_id: m.seller_property_id,
-      total_score: m.total,
-      price_score: m.price,
-      geo_score: m.geo,
-      asset_score: m.asset,
-      strategy_score: m.strategy,
-      financial_score: m.financial,
-      estimated_cash_boot: m.estimated_cash_boot,
-      estimated_mortgage_boot: m.estimated_mortgage_boot,
-      estimated_total_boot: m.estimated_total_boot,
-      estimated_boot_tax: m.estimated_boot_tax,
-      boot_status: m.boot_status,
-      buyer_current_roe: m.buyer_current_roe,
-      candidate_roe: m.candidate_roe,
-      roe_improvement_pp: m.roe_improvement_pp,
-      roe_improvement_rel: m.roe_improvement_rel,
-      candidate_annual_debt_service: m.candidate_annual_debt_service,
-      status: "active",
-    }));
+export async function persistMatchesAndNotifications(
+  db: any,
+  matches: ScoredMatch[],
+  userId: string,
+  isDemo = false,
+) {
+  if (matches.length === 0) return 0;
 
-    const { data: upserted, error } = await db
-      .from("matches")
-      .upsert(rows, { onConflict: "buyer_exchange_id,seller_property_id" })
-      .select("id");
-    if (error) throw error;
-    upsertedCount = upserted?.length || 0;
-  }
+  // Which (buyer_exchange_id, seller_property_id) pairs already exist? Only the
+  // genuinely new ones should fire a "New Match" notification — otherwise every
+  // re-run / criteria edit re-notifies for matches the agent has already seen.
+  const buyerExIds = [...new Set(matches.map((m) => m.buyer_exchange_id))];
+  const sellerPropIds = [...new Set(matches.map((m) => m.seller_property_id))];
+  const { data: existing } = await db
+    .from("matches")
+    .select("buyer_exchange_id, seller_property_id")
+    .in("buyer_exchange_id", buyerExIds)
+    .in("seller_property_id", sellerPropIds);
+  const existingSet = new Set(
+    (existing ?? []).map((r: any) => `${r.buyer_exchange_id}:${r.seller_property_id}`),
+  );
 
-  const notifications = matches.map((match) => ({
-    user_id: match.direction === "buyer" ? userId : match.other_agent_id,
-    type: "new_match",
-    title: "New Match Found",
-    message: "A new property/exchange match is available for review.",
-    link_to: "/agent/matches",
+  const rows = matches.map((m) => ({
+    buyer_exchange_id: m.buyer_exchange_id,
+    seller_property_id: m.seller_property_id,
+    total_score: m.total,
+    price_score: m.price,
+    geo_score: m.geo,
+    asset_score: m.asset,
+    strategy_score: m.strategy,
+    financial_score: m.financial,
+    estimated_cash_boot: m.estimated_cash_boot,
+    estimated_mortgage_boot: m.estimated_mortgage_boot,
+    estimated_total_boot: m.estimated_total_boot,
+    estimated_boot_tax: m.estimated_boot_tax,
+    boot_status: m.boot_status,
+    buyer_current_roe: m.buyer_current_roe,
+    candidate_roe: m.candidate_roe,
+    roe_improvement_pp: m.roe_improvement_pp,
+    roe_improvement_rel: m.roe_improvement_rel,
+    candidate_annual_debt_service: m.candidate_annual_debt_service,
+    status: "active",
   }));
 
-  if (notifications.length) {
+  const { error } = await db
+    .from("matches")
+    .upsert(rows, { onConflict: "buyer_exchange_id,seller_property_id" });
+  if (error) throw error;
+
+  // Notify only for genuinely new matches, tagged with the workspace so demo
+  // matching stays out of the live feed and is cleaned up on demo reset.
+  const newMatches = matches.filter(
+    (m) => !existingSet.has(`${m.buyer_exchange_id}:${m.seller_property_id}`),
+  );
+  if (newMatches.length) {
+    const notifications = newMatches.map((match) => ({
+      user_id: match.direction === "buyer" ? userId : match.other_agent_id,
+      type: "new_match",
+      title: "New Match Found",
+      message: "A new property/exchange match is available for review.",
+      link_to: "/agent/matches",
+      metadata: { demo: isDemo },
+    }));
     await db.from("notifications").insert(notifications);
   }
 
-  return upsertedCount;
+  return newMatches.length;
 }
 
 // ─── ROE-based scoring ──────────────────────────────────────────────────────
@@ -480,11 +501,12 @@ export async function runMatchingSafe(
   userId: string,
   exchangeId: string,
   propertyId: string,
+  isDemo: boolean,
   reason: string,
 ): Promise<{ ok: boolean; new_matches?: number; error?: string }> {
   try {
     const matches = await computeMatchesForExchange(db, userId, exchangeId, propertyId);
-    const newCount = await persistMatchesAndNotifications(db, matches, userId);
+    const newCount = await persistMatchesAndNotifications(db, matches, userId, isDemo);
     console.log(`[matching:${reason}] exchange=${exchangeId} new=${newCount}`);
     return { ok: true, new_matches: newCount };
   } catch (err) {

@@ -118,9 +118,17 @@ Deno.serve(async (req) => {
         if (imageError) throw imageError;
       }
 
+      const derived = deriveFinancialColumns(payload.financials);
+      // Server-authoritative equity/proceeds: derive from the validated asking
+      // price and loan balance rather than trusting client-sent values.
+      const estimatedEquity =
+        derived.asking_price != null && derived.loan_balance != null
+          ? Math.max(0, derived.asking_price - derived.loan_balance)
+          : null;
+
       const financialInsert = {
         property_id: propertyId,
-        ...deriveFinancialColumns(payload.financials),
+        ...derived,
       };
 
       const { error: financialError } = await db.from("property_financials").insert(financialInsert);
@@ -132,10 +140,10 @@ Deno.serve(async (req) => {
           agent_id: user.id,
           client_id: payload.clientId,
           relinquished_property_id: propertyId,
-          exchange_proceeds: numberOrNull(payload.financials.exchange_proceeds),
-          estimated_equity: numberOrNull(payload.financials.estimated_equity),
+          exchange_proceeds: estimatedEquity,
+          estimated_equity: estimatedEquity,
           is_demo: payload.isDemo === true,
-          status: "draft",
+          status: payload.activate ? "active" : "draft",
         })
         .select("id")
         .single();
@@ -184,7 +192,7 @@ Deno.serve(async (req) => {
       await db.from("exchange_timeline").insert(timelineRows);
 
       if (payload.activate) {
-        await runMatchingSafe(db, user.id, exchangeId, propertyId, "create:activate");
+        await runMatchingSafe(db, user.id, exchangeId, propertyId, payload.isDemo === true, "create:activate");
       }
 
       return response({
@@ -200,6 +208,13 @@ Deno.serve(async (req) => {
         await db.from("property_images").delete().eq("property_id", propertyId);
         await db.from("property_financials").delete().eq("property_id", propertyId);
         await db.from("pledged_properties").delete().eq("id", propertyId);
+      }
+      // Don't leave just-uploaded photos orphaned in storage on rollback.
+      if (Array.isArray(payload.images) && payload.images.length > 0) {
+        await db.storage
+          .from("property-images")
+          .remove(payload.images.map((img) => String(img.storage_path)))
+          .catch(() => {});
       }
       throw innerError;
     }

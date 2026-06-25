@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     // Verify ownership
     const { data: exchange, error: exErr } = await db
       .from("exchanges")
-      .select("id, agent_id, status, relinquished_property_id, criteria_id")
+      .select("id, agent_id, status, relinquished_property_id, criteria_id, is_demo")
       .eq("id", payload.exchangeId)
       .maybeSingle();
     if (exErr) throw exErr;
@@ -126,10 +126,15 @@ Deno.serve(async (req) => {
       const { error } = await db.from("property_financials").update(finUpdate).eq("property_id", propertyId);
       if (error) throw error;
 
-      // Update exchange-level econ
+      // Server-authoritative equity/proceeds from the validated asking price and
+      // loan balance, rather than trusting client-sent values.
+      const estimatedEquity =
+        finUpdate.asking_price != null && finUpdate.loan_balance != null
+          ? Math.max(0, finUpdate.asking_price - finUpdate.loan_balance)
+          : null;
       await db.from("exchanges").update({
-        exchange_proceeds: numberOrNull(payload.financials.exchange_proceeds),
-        estimated_equity: numberOrNull(payload.financials.estimated_equity),
+        exchange_proceeds: estimatedEquity,
+        estimated_equity: estimatedEquity,
       }).eq("id", exchange.id);
     }
 
@@ -199,7 +204,7 @@ Deno.serve(async (req) => {
       });
       // If published & criteria/financials changed, re-run matching inline
       if (exchange.status !== "draft" && (payload.criteria || payload.financials) && propertyId) {
-        await runMatchingSafe(db, user.id, exchange.id, propertyId, "update:rescore");
+        await runMatchingSafe(db, user.id, exchange.id, propertyId, !!exchange.is_demo, "update:rescore");
       }
     }
 
@@ -233,7 +238,7 @@ async function handleStatusChange(
       actor_id: userId,
     });
     if (propertyId) {
-      await runMatchingSafe(db, userId, exchange.id, propertyId, fromWizard ? "update:publish-wizard" : "update:publish-inline");
+      await runMatchingSafe(db, userId, exchange.id, propertyId, !!exchange.is_demo, fromWizard ? "update:publish-wizard" : "update:publish-inline");
     }
   } else {
     // move_to_draft — guard: no accepted/completed connections

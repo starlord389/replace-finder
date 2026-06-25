@@ -184,13 +184,20 @@ Deno.serve(async (req) => {
   }
 });
 
-// ── Clear (is_demo only) ─────────────────────────────────────────────────────
+// ── Clear (scoped to the caller + the shared seeded counterparty agents) ─────
+// Deletes are scoped to ownerId plus the @replacefinder.test counterparty agents
+// (not a blanket is_demo=true), so one owner's reset can't wipe another owner's
+// demo workspace. Live data is never touched (everything here is is_demo=true).
 async function clearOwnerDemo(db: any, ownerId: string) {
+  const { data: cpAgents } = await db.from("profiles").select("id").ilike("email", "%@replacefinder.test");
+  const cpAgentIds = (cpAgents ?? []).map((a: any) => a.id);
+  const scopedAgentIds = [ownerId, ...cpAgentIds];
+
   const { data: exchanges } = await db.from("exchanges").select("id, criteria_id").eq("agent_id", ownerId).eq("is_demo", true);
   const exIds = (exchanges ?? []).map((e: any) => e.id);
 
   // Counterparty demo exchanges (for the inbound/seller-side match scenario).
-  const { data: cpEx } = await db.from("exchanges").select("id, criteria_id").eq("is_demo", true).neq("agent_id", ownerId);
+  const { data: cpEx } = await db.from("exchanges").select("id, criteria_id").eq("is_demo", true).in("agent_id", cpAgentIds);
   const allExIds = [...exIds, ...(cpEx ?? []).map((e: any) => e.id)];
 
   if (allExIds.length) {
@@ -206,8 +213,8 @@ async function clearOwnerDemo(db: any, ownerId: string) {
     await db.from("exchanges").delete().in("id", allExIds);
   }
 
-  // All demo properties (owner + counterparty) + matches against them + children.
-  const { data: props } = await db.from("pledged_properties").select("id").eq("is_demo", true);
+  // Demo properties owned by the caller or the seeded counterparty agents.
+  const { data: props } = await db.from("pledged_properties").select("id").eq("is_demo", true).in("agent_id", scopedAgentIds);
   const propIds = (props ?? []).map((p: any) => p.id);
   if (propIds.length) {
     await db.from("matches").delete().in("seller_property_id", propIds);
@@ -216,7 +223,7 @@ async function clearOwnerDemo(db: any, ownerId: string) {
     await db.from("pledged_properties").delete().in("id", propIds);
   }
 
-  await db.from("agent_clients").delete().eq("is_demo", true);
+  await db.from("agent_clients").delete().eq("is_demo", true).in("agent_id", scopedAgentIds);
   await db.from("notifications").delete().eq("user_id", ownerId).contains("metadata", { demo: true });
 }
 

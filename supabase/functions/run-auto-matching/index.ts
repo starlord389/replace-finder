@@ -38,8 +38,25 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "exchange_id and property_id are required" }, 400);
     }
 
+    // Ownership check (this runs with the service-role key, which bypasses RLS):
+    // the caller must own BOTH the exchange and the property, and the property
+    // must be that exchange's relinquished property. Without this, any agent
+    // could match against another agent's exchange/property (IDOR).
+    const [{ data: exRow }, { data: propRow }] = await Promise.all([
+      db.from("exchanges").select("agent_id, relinquished_property_id, is_demo").eq("id", exchange_id).maybeSingle(),
+      db.from("pledged_properties").select("agent_id").eq("id", property_id).maybeSingle(),
+    ]);
+    if (
+      !exRow || !propRow ||
+      exRow.agent_id !== userId ||
+      propRow.agent_id !== userId ||
+      exRow.relinquished_property_id !== property_id
+    ) {
+      return jsonResponse({ error: "Forbidden" }, 403);
+    }
+
     const allMatches = await computeMatchesForExchange(db, userId, exchange_id, property_id);
-    const newMatchCount = await persistMatchesAndNotifications(db, allMatches, userId);
+    const newMatchCount = await persistMatchesAndNotifications(db, allMatches, userId, !!exRow.is_demo);
 
     const topMatches = allMatches
       .sort((a, b) => b.total - a.total)
