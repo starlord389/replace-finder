@@ -47,12 +47,16 @@ Deno.serve(async (req) => {
     if (authError || !user) return response({ error: "Unauthorized" }, 401);
 
     const db = createClient(supabaseUrl, serviceRoleKey);
-    const { data: profile } = await db
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    if (profile?.role !== "agent") return response({ error: "Agent role required" }, 403);
+    // Roles live in user_roles (the profiles.role column was dropped in
+    // 20260522172727). Selecting profiles.role here errored on every call and
+    // 403'd every agent, blocking all listing creation.
+    const { data: roleRow } = await db
+      .from("user_roles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .eq("role", "agent")
+      .maybeSingle();
+    if (!roleRow) return response({ error: "Agent role required" }, 403);
 
     const payload = (await req.json()) as CreateExchangePayload;
     if (!payload.clientId) return response({ error: "clientId is required" }, 400);
