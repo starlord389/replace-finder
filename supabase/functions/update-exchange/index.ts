@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { runMatchingSafe } from "../_shared/matching-core.ts";
 import { validateFinancials } from "../_shared/validate-financials.ts";
 import { deriveFinancialColumns } from "../_shared/derive-financials.ts";
+import { validatePublish } from "../_shared/validate-publish.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,6 +62,17 @@ Deno.serve(async (req) => {
     const propertyId = exchange.relinquished_property_id;
     const criteriaId = exchange.criteria_id;
 
+    // Storage IDOR guard: every client-supplied image path must live under the
+    // caller's own folder (`${user.id}/`). Otherwise an attacker could insert a
+    // victim's path into this listing, or — via the reconcile delete below —
+    // remove a victim's files from the public bucket.
+    if (Array.isArray(payload.images)) {
+      const foreign = payload.images.find((img) => !isOwnedPath(img?.storage_path, user.id));
+      if (foreign) {
+        return response({ error: "Image storage_path must belong to the current user" }, 400);
+      }
+    }
+
     // ── DELETE DRAFT ──
     if (payload.intent === "delete_draft") {
       if (exchange.status !== "draft") return response({ error: "Only drafts can be deleted" }, 400);
@@ -96,6 +108,10 @@ Deno.serve(async (req) => {
     const isStatusOnly = !payload.property && !payload.financials && !payload.criteria && !payload.images;
 
     if (isStatusOnly && (payload.intent === "publish" || payload.intent === "move_to_draft")) {
+      if (payload.intent === "publish") {
+        const publishError = await assertPublishable(db, propertyId);
+        if (publishError) return publishError;
+      }
       return await handleStatusChange(db, exchange, propertyId, payload.intent, user.id);
     }
 
@@ -128,12 +144,20 @@ Deno.serve(async (req) => {
 
       // Server-authoritative equity/proceeds from the validated asking price and
       // loan balance, rather than trusting client-sent values.
+      // estimated_equity = raw equity (asking − loan).
       const estimatedEquity =
         finUpdate.asking_price != null && finUpdate.loan_balance != null
           ? Math.max(0, finUpdate.asking_price - finUpdate.loan_balance)
           : null;
+      // exchange_proceeds = equity NET of estimated seller closing costs (~5% of
+      // asking price), mirroring the wizard. Prefer a valid client-sent value.
+      const exchangeProceeds = resolveExchangeProceeds(
+        payload.financials.exchange_proceeds,
+        finUpdate.asking_price,
+        finUpdate.loan_balance,
+      );
       await db.from("exchanges").update({
-        exchange_proceeds: estimatedEquity,
+        exchange_proceeds: exchangeProceeds,
         estimated_equity: estimatedEquity,
       }).eq("id", exchange.id);
     }
@@ -162,7 +186,14 @@ Deno.serve(async (req) => {
       const toDelete = (existingImgs ?? []).filter((img) => !newPaths.has(img.storage_path));
       if (toDelete.length > 0) {
         await db.from("property_images").delete().in("id", toDelete.map((i) => i.id));
-        await db.storage.from("property-images").remove(toDelete.map((i) => i.storage_path));
+        // Only remove caller-owned paths from storage; never touch foreign paths
+        // even if a legacy DB row holds one.
+        const ownedPaths = toDelete
+          .map((i) => i.storage_path)
+          .filter((path) => isOwnedPath(path, user.id));
+        if (ownedPaths.length > 0) {
+          await db.storage.from("property-images").remove(ownedPaths);
+        }
       }
 
       const existingPaths = new Set((existingImgs ?? []).map((i) => i.storage_path));
@@ -193,6 +224,12 @@ Deno.serve(async (req) => {
 
     // Optional status flip from wizard
     if (payload.intent === "publish" || payload.intent === "move_to_draft") {
+      if (payload.intent === "publish") {
+        // Wizard data has just been persisted above, so the DB reflects the
+        // values being published; validate against it.
+        const publishError = await assertPublishable(db, propertyId);
+        if (publishError) return publishError;
+      }
       await handleStatusChange(db, exchange, propertyId, payload.intent, user.id, /* fromWizard */ true);
     } else {
       // Plain save — timeline event
@@ -264,6 +301,41 @@ async function handleStatusChange(
   return response({ exchange_id: exchange.id, status: intent === "publish" ? "active" : "draft" });
 }
 
+// Guard a publish against the persisted listing state. Returns a 400 Response
+// when required fields are missing (city/state/asset_type/owner-authorization/
+// asking_price), or null when the listing may be published. Reads the DB so it
+// works for both status-only publishes and wizard publishes (where the new
+// values have already been written).
+async function assertPublishable(
+  db: ReturnType<typeof createClient>,
+  propertyId: string | null,
+): Promise<Response | null> {
+  if (!propertyId) {
+    return response(
+      { error: "Cannot publish: missing required fields", details: [{ field: "property", message: "Property is required to publish" }] },
+      400,
+    );
+  }
+  const [{ data: property }, { data: financials }] = await Promise.all([
+    db.from("pledged_properties")
+      .select("city, state, asset_type, owner_authorization_confirmed")
+      .eq("id", propertyId)
+      .maybeSingle(),
+    db.from("property_financials")
+      .select("asking_price")
+      .eq("property_id", propertyId)
+      .maybeSingle(),
+  ]);
+  const publishErrors = validatePublish(
+    property as Record<string, unknown> | null,
+    financials as Record<string, unknown> | null,
+  );
+  if (publishErrors.length > 0) {
+    return response({ error: "Cannot publish: missing required fields", details: publishErrors }, 400);
+  }
+  return null;
+}
+
 function response(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -295,3 +367,40 @@ function arrayOrDefault(value: unknown, fallback: string[]): string[] {
   return arrayOrNull(value) ?? fallback;
 }
 function boolOrFalse(value: unknown): boolean { return value === true; }
+
+// Every storage path must live under the caller's own folder. The uploader
+// writes to `${user.id}/<uuid>.<ext>`, so a legitimate path always starts with
+// `${userId}/`. Reject anything else (or a non-string) to prevent IDOR.
+function isOwnedPath(path: unknown, userId: string): boolean {
+  return typeof path === "string" && path.startsWith(`${userId}/`);
+}
+
+// Must match calculateEstimatedExchangeProceeds in src/lib/exchangeWizardTypes.ts:
+// proceeds = max((asking − loan) − asking × 5%, 0).
+const SELLER_COST_ESTIMATE_RATE = 0.05;
+
+function computeExchangeProceeds(
+  askingPrice: number | null,
+  loanBalance: number | null,
+): number | null {
+  if (askingPrice == null || loanBalance == null) return null;
+  const equity = askingPrice - loanBalance;
+  const sellerCosts = askingPrice * SELLER_COST_ESTIMATE_RATE;
+  return Math.max(equity - sellerCosts, 0);
+}
+
+// Prefer a client-sent exchange_proceeds when it matches the server formula
+// (within a small rounding tolerance); otherwise fall back to the server-
+// computed value.
+function resolveExchangeProceeds(
+  clientValue: unknown,
+  askingPrice: number | null,
+  loanBalance: number | null,
+): number | null {
+  const computed = computeExchangeProceeds(askingPrice, loanBalance);
+  const sent = numberOrNull(clientValue);
+  if (sent != null && computed != null && Math.abs(sent - computed) <= 1) {
+    return sent;
+  }
+  return computed;
+}

@@ -1,5 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
@@ -32,6 +34,30 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
   const [sendOpen, setSendOpen] = useState(false);
   const [tab, setTab] = useState<string>(initialTab ?? "overview");
   const accent = getClientAccent(rel.clientId);
+  const qc = useQueryClient();
+  const matchId = rel.matchId;
+
+  // Opening a real match marks the caller's side as viewed so the "new matches
+  // to review" badge and the unviewed-first sort clear. Skip synthetic preview
+  // panels (matchId is `preview-…`, also gated by previewMode) which have no row.
+  useEffect(() => {
+    if (previewMode || matchId.startsWith("preview-")) return;
+    let cancelled = false;
+    (async () => {
+      const { error } = await supabase.rpc("mark_match_viewed", { p_match_id: matchId });
+      if (cancelled) return;
+      if (error) {
+        // Non-fatal: the panel still works, only the "viewed" stamp failed.
+        console.error("mark_match_viewed failed", error);
+        return;
+      }
+      qc.invalidateQueries({ queryKey: ["agent-attention"] });
+      qc.invalidateQueries({ queryKey: ["unified-relationships"] });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [matchId, previewMode, qc]);
   const { state } = useMatchLocalState(rel.matchId);
   const status = useMemo(() => deriveUiStatus(rel, state), [rel, state]);
   const conversationAvailable =

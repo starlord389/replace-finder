@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { runMatchingSafe } from "../_shared/matching-core.ts";
 import { validateFinancials } from "../_shared/validate-financials.ts";
 import { deriveFinancialColumns } from "../_shared/derive-financials.ts";
+import { validatePublish } from "../_shared/validate-publish.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -66,14 +67,45 @@ Deno.serve(async (req) => {
       return response({ error: "Invalid financials", details: financialErrors }, 400);
     }
 
+    // Publishing (activate) requires a complete listing — mirror the client's
+    // validatePublish so we don't push an incomplete listing into the network.
+    if (payload.activate) {
+      const publishErrors = validatePublish(payload.property, payload.financials as Record<string, unknown>);
+      if (publishErrors.length > 0) {
+        return response({ error: "Cannot publish: missing required fields", details: publishErrors }, 400);
+      }
+    }
+
     // Ensure client belongs to this agent.
     const { data: clientCheck } = await db
       .from("agent_clients")
-      .select("id")
+      .select("id, is_demo")
       .eq("id", payload.clientId)
       .eq("agent_id", user.id)
       .maybeSingle();
     if (!clientCheck) return response({ error: "Client not found for this agent" }, 400);
+
+    // Workspace integrity: the client's workspace (demo sandbox vs live) must
+    // match the workspace this exchange is being created in. Otherwise a Live
+    // exchange could reference a Demo client, and a demo reset would
+    // CASCADE-delete the linked Live exchange.
+    const requestedIsDemo = payload.isDemo === true;
+    if (clientCheck.is_demo !== requestedIsDemo) {
+      return response(
+        { error: "Client workspace mismatch: the selected client belongs to a different workspace" },
+        400,
+      );
+    }
+
+    // Storage IDOR guard: every client-supplied image path must live under the
+    // caller's own folder (`${user.id}/`). Otherwise an attacker could insert a
+    // victim's path — or force a rollback — to delete the victim's files.
+    if (Array.isArray(payload.images)) {
+      const foreign = payload.images.find((img) => !isOwnedPath(img?.storage_path, user.id));
+      if (foreign) {
+        return response({ error: "Image storage_path must belong to the current user" }, 400);
+      }
+    }
 
     let propertyId: string | null = null;
     let exchangeId: string | null = null;
@@ -125,10 +157,20 @@ Deno.serve(async (req) => {
       const derived = deriveFinancialColumns(payload.financials);
       // Server-authoritative equity/proceeds: derive from the validated asking
       // price and loan balance rather than trusting client-sent values.
+      // estimated_equity = raw equity (asking − loan).
       const estimatedEquity =
         derived.asking_price != null && derived.loan_balance != null
           ? Math.max(0, derived.asking_price - derived.loan_balance)
           : null;
+      // exchange_proceeds = equity NET of estimated seller closing costs (~5% of
+      // asking price). This mirrors the figure the wizard shows/sends. Prefer a
+      // valid client-sent value (validated against the server formula); else
+      // replicate the formula here.
+      const exchangeProceeds = resolveExchangeProceeds(
+        payload.financials.exchange_proceeds,
+        derived.asking_price,
+        derived.loan_balance,
+      );
 
       const financialInsert = {
         property_id: propertyId,
@@ -144,7 +186,7 @@ Deno.serve(async (req) => {
           agent_id: user.id,
           client_id: payload.clientId,
           relinquished_property_id: propertyId,
-          exchange_proceeds: estimatedEquity,
+          exchange_proceeds: exchangeProceeds,
           estimated_equity: estimatedEquity,
           is_demo: payload.isDemo === true,
           status: payload.activate ? "active" : "draft",
@@ -213,12 +255,15 @@ Deno.serve(async (req) => {
         await db.from("property_financials").delete().eq("property_id", propertyId);
         await db.from("pledged_properties").delete().eq("id", propertyId);
       }
-      // Don't leave just-uploaded photos orphaned in storage on rollback.
+      // Don't leave just-uploaded photos orphaned in storage on rollback — but
+      // only ever remove paths owned by the caller, never arbitrary paths.
       if (Array.isArray(payload.images) && payload.images.length > 0) {
-        await db.storage
-          .from("property-images")
-          .remove(payload.images.map((img) => String(img.storage_path)))
-          .catch(() => {});
+        const ownedPaths = payload.images
+          .map((img) => String(img.storage_path))
+          .filter((path) => isOwnedPath(path, user.id));
+        if (ownedPaths.length > 0) {
+          await db.storage.from("property-images").remove(ownedPaths).catch(() => {});
+        }
       }
       throw innerError;
     }
@@ -270,4 +315,42 @@ function arrayOrDefault(value: unknown, fallback: string[]): string[] {
 
 function boolOrFalse(value: unknown): boolean {
   return value === true;
+}
+
+// Every storage path must live under the caller's own folder. The uploader
+// writes to `${user.id}/<uuid>.<ext>`, so a legitimate path always starts with
+// `${userId}/`. Reject anything else (or a non-string) to prevent IDOR.
+function isOwnedPath(path: unknown, userId: string): boolean {
+  return typeof path === "string" && path.startsWith(`${userId}/`);
+}
+
+// Must match calculateEstimatedExchangeProceeds in src/lib/exchangeWizardTypes.ts:
+// proceeds = max((asking − loan) − asking × 5%, 0).
+const SELLER_COST_ESTIMATE_RATE = 0.05;
+
+function computeExchangeProceeds(
+  askingPrice: number | null,
+  loanBalance: number | null,
+): number | null {
+  if (askingPrice == null || loanBalance == null) return null;
+  const equity = askingPrice - loanBalance;
+  const sellerCosts = askingPrice * SELLER_COST_ESTIMATE_RATE;
+  return Math.max(equity - sellerCosts, 0);
+}
+
+// Prefer a client-sent exchange_proceeds when it matches the server formula
+// (within a small rounding tolerance); otherwise fall back to the server-
+// computed value. This keeps the stored figure authoritative while honoring the
+// exact value the wizard displayed to the agent.
+function resolveExchangeProceeds(
+  clientValue: unknown,
+  askingPrice: number | null,
+  loanBalance: number | null,
+): number | null {
+  const computed = computeExchangeProceeds(askingPrice, loanBalance);
+  const sent = numberOrNull(clientValue);
+  if (sent != null && computed != null && Math.abs(sent - computed) <= 1) {
+    return sent;
+  }
+  return computed;
 }

@@ -26,31 +26,6 @@ interface Client {
 }
 
 export default function StepSelectClient({ selectedClientId, onChange, onNext, lockedClientName }: Props) {
-  if (lockedClientName) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Client</h2>
-          <p className="text-sm text-muted-foreground">The client is locked for an existing exchange and cannot be changed.</p>
-        </div>
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <User className="h-5 w-5" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-foreground">{lockedClientName}</p>
-              <p className="text-xs text-muted-foreground">Locked</p>
-            </div>
-          </CardContent>
-        </Card>
-        <div className="flex justify-end pt-4">
-          <Button onClick={onNext}>Continue</Button>
-        </div>
-      </div>
-    );
-  }
-
   const { user, loading: authLoading } = useAuth();
   const { isDemo } = useWorkspaceMode();
   const [clients, setClients] = useState<Client[]>([]);
@@ -61,6 +36,8 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // Don't fetch when the client is locked to an existing exchange.
+    if (lockedClientName) return;
     if (authLoading) return;
     if (!user) { setLoading(false); return; }
 
@@ -71,6 +48,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
         .from("agent_clients")
         .select("id, client_name, client_email, client_phone, status")
         .eq("agent_id", user.id)
+        .eq("is_demo", isDemo)
         .order("client_name", { ascending: true });
 
       if (cancelled) return;
@@ -86,7 +64,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
     })();
 
     return () => { cancelled = true; };
-  }, [user, authLoading]);
+  }, [user, authLoading, isDemo, lockedClientName]);
 
   const activeClients = useMemo(() => clients.filter(c => c.status === "active"), [clients]);
   const inactiveClients = useMemo(() => clients.filter(c => c.status !== "active"), [clients]);
@@ -124,6 +102,31 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
     setNewClient({ name: "", email: "", phone: "" });
     toast.success("Client added");
   };
+
+  if (lockedClientName) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Client</h2>
+          <p className="text-sm text-muted-foreground">The client is locked for an existing exchange and cannot be changed.</p>
+        </div>
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <User className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-foreground">{lockedClientName}</p>
+              <p className="text-xs text-muted-foreground">Locked</p>
+            </div>
+          </CardContent>
+        </Card>
+        <div className="flex justify-end pt-4">
+          <Button onClick={onNext}>Continue</Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

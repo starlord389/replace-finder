@@ -1636,6 +1636,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_client_invite: {
+        Args: { p_token: string }
+        Returns: string
+      }
       get_invite_by_token: {
         Args: { _token: string }
         Returns: {
@@ -1669,6 +1673,10 @@ export type Database = {
           p_description: string
           p_metadata?: Json
         }
+        Returns: undefined
+      }
+      mark_match_viewed: {
+        Args: { p_match_id: string }
         Returns: undefined
       }
       notify_connection_counterparty: {

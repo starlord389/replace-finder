@@ -59,29 +59,21 @@ export default function AcceptInvite() {
     })();
   }, [token]);
 
-  // If user is already signed in, just link the invite to their account
+  // If user is already signed in, link the invite to their account via a
+  // SECURITY DEFINER RPC. (A direct agent_clients UPDATE silently no-ops for the
+  // invitee — the only UPDATE policy is agent-scoped — so the client was never
+  // linked while the invite was consumed.)
   const handleLinkExistingAccount = async () => {
-    if (!user || !invite) return;
+    if (!user || !token || !invite) return;
     setSubmitting(true);
 
-    const updates = await Promise.all([
-      supabase
-        .from("agent_clients")
-        .update({ client_user_id: user.id })
-        .eq("id", invite.client_id),
-      supabase
-        .from("client_invites")
-        .update({
-          status: "accepted",
-          accepted_at: new Date().toISOString(),
-          accepted_user_id: user.id,
-        })
-        .eq("id", invite.id),
-    ]);
+    const { error: acceptErr } = await supabase.rpc("accept_client_invite", {
+      p_token: token,
+    });
 
     setSubmitting(false);
-    if (updates.some((r) => r.error)) {
-      toast.error("Failed to accept invite. Please try again.");
+    if (acceptErr) {
+      toast.error(acceptErr.message ?? "Failed to accept invite. Please try again.");
       return;
     }
     toast.success("Invite accepted!");
