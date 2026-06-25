@@ -127,7 +127,7 @@ export default function AgentConnectionDetail() {
       setActing(false);
       return;
     }
-    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty", {
+    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty" as any, {
       p_connection_id: conn.id,
       p_type: "connection_accepted",
       p_title: "Connection Accepted",
@@ -153,7 +153,7 @@ export default function AgentConnectionDetail() {
       setActing(false);
       return;
     }
-    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty", {
+    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty" as any, {
       p_connection_id: conn.id,
       p_type: "connection_declined",
       p_title: "Connection Declined",
@@ -208,7 +208,7 @@ export default function AgentConnectionDetail() {
     // Notify the counterparty and log to both timelines via SECURITY DEFINER
     // RPCs — direct authenticated inserts to notifications / exchange_timeline
     // are blocked by RLS (service_role / admin only).
-    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty", {
+    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty" as any, {
       p_connection_id: conn.id,
       p_type: "connection_milestone",
       p_title: `${stageDialog.mode === "edit" ? "Updated" : "Reached"}: ${stage.label}`,
@@ -217,7 +217,7 @@ export default function AgentConnectionDetail() {
     });
     if (notifyErr) console.error("Failed to notify counterparty of milestone:", notifyErr);
 
-    const { error: timelineErr } = await supabase.rpc("log_connection_event", {
+    const { error: timelineErr } = await supabase.rpc("log_connection_event" as any, {
       p_connection_id: conn.id,
       p_event_type: "connection_milestone",
       p_description: `${stageDialog.mode === "edit" ? "Updated" : "Completed"}: ${stage.label}${milestoneNote ? ` — ${milestoneNote}` : ""}`,
@@ -252,7 +252,7 @@ export default function AgentConnectionDetail() {
       return;
     }
 
-    const { error: timelineErr } = await supabase.rpc("log_connection_event", {
+    const { error: timelineErr } = await supabase.rpc("log_connection_event" as any, {
       p_connection_id: conn.id,
       p_event_type: "connection_milestone",
       p_description: `Cleared: ${stage.label}`,
@@ -279,7 +279,7 @@ export default function AgentConnectionDetail() {
       return;
     }
 
-    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty", {
+    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty" as any, {
       p_connection_id: conn.id,
       p_type: "connection_failed",
       p_title: "Exchange Connection Failed",
