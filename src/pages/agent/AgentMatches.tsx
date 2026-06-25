@@ -23,7 +23,7 @@ import {
   EMPTY_FILTERS,
   type MatchFilters,
 } from "@/features/matches/components/inbox/SortFilterBar";
-import { readMatchLocalState } from "@/features/matches/components/inbox/useMatchLocalState";
+import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/matches/components/inbox/useMatchLocalState";
 
 export default function AgentMatches() {
   const { user } = useAuth();
@@ -104,13 +104,15 @@ export default function AgentMatches() {
 
   const selectedMatchId = searchParams.get("match");
 
+  // Recompute statuses/counts when a match action fires anywhere (localStorage-backed).
+  const localStateVersion = useMatchLocalStateVersion();
   const annotated = useMemo(
     () =>
       scopedRels.map((r) => ({
         rel: r,
         status: deriveUiStatus(r, readMatchLocalState(r.matchId)),
       })),
-    [scopedRels],
+    [scopedRels, localStateVersion],
   );
 
   const counts = useMemo(() => {

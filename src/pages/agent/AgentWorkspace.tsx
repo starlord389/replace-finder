@@ -22,7 +22,7 @@ import {
   type UiStatus,
 } from "@/features/matches/components/inbox/inboxHelpers";
 import { EMPTY_FILTERS, type MatchFilters } from "@/features/matches/components/inbox/SortFilterBar";
-import { readMatchLocalState } from "@/features/matches/components/inbox/useMatchLocalState";
+import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/matches/components/inbox/useMatchLocalState";
 import { EXCHANGE_STATUS_COLORS, EXCHANGE_STATUS_LABELS } from "@/lib/constants";
 import { setLastListing } from "@/features/workspace/lib/lastListing";
 
@@ -186,13 +186,15 @@ export default function AgentWorkspace() {
 
   const selectedMatchId = searchParams.get("match");
 
+  // Recompute statuses/counts when a match action fires anywhere (localStorage-backed).
+  const localStateVersion = useMatchLocalStateVersion();
   const annotated = useMemo(
     () =>
       exchangeRels.map((r) => ({
         rel: r,
         status: deriveUiStatus(r, readMatchLocalState(r.matchId)),
       })),
-    [exchangeRels],
+    [exchangeRels, localStateVersion],
   );
 
   const counts = useMemo(() => {

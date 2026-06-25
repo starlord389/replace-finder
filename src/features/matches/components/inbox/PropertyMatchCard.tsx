@@ -10,7 +10,7 @@ import {
   UI_STATUS_CLASS,
   UI_STATUS_LABEL,
 } from "./inboxHelpers";
-import { readMatchLocalState } from "./useMatchLocalState";
+import { readMatchLocalState, useMatchLocalStateVersion } from "./useMatchLocalState";
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
 import { ClientLeadLine } from "@/features/matches/components/shared/ClientLeadLine";
 
@@ -25,6 +25,9 @@ interface Props {
 }
 
 export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClientLead = false, rank }: Props) {
+  // Re-render this card when any match's local state changes, so its status
+  // badge / next-action stay fresh after an action taken elsewhere.
+  useMatchLocalStateVersion();
   const local = readMatchLocalState(rel.matchId);
   const status = deriveUiStatus(rel, local);
   const action = nextActionsFor(status).primary;

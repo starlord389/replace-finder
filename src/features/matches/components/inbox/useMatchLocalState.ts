@@ -92,3 +92,19 @@ export function useMatchLocalState(matchId: string | null) {
 export function readMatchLocalState(matchId: string): MatchLocalState {
   return read(matchId);
 }
+
+/**
+ * Subscribe to ANY match-local-state change and return a counter that bumps on
+ * each one. Components that read many matches via `readMatchLocalState` (inbox
+ * lists, filter counts, cards) should call this so they re-render / recompute
+ * when a match action fires elsewhere (e.g. from the detail panel).
+ */
+export function useMatchLocalStateVersion(): number {
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    const handler = () => setVersion((v) => v + 1);
+    window.addEventListener("match-local-state-change", handler);
+    return () => window.removeEventListener("match-local-state-change", handler);
+  }, []);
+  return version;
+}
