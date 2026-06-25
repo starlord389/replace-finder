@@ -55,7 +55,7 @@ async function fetchConversations(userId: string, isDemo: boolean): Promise<Conv
   const propertyIds = Array.from(new Set((matchesRes.data ?? []).map((m) => m.seller_property_id)));
   // Conversation seller properties belong to the counterparty → masked view.
   const { data: properties } = await supabase
-    .from("pledged_properties")
+    .from("pledged_properties_secure")
     .select("id, property_name, address, address_is_public, city, state, asset_type, agent_id, is_demo")
     .in("id", propertyIds);
 
