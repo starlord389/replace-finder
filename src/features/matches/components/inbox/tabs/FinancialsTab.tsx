@@ -5,14 +5,16 @@ import { cn } from "@/lib/utils";
 
 export function FinancialsTab({ rel }: { rel: Relationship }) {
   const metrics = financialMetrics(rel);
-  const noi = metrics.find((m) => m.key === "noi")?.value ?? "—";
   const cap = metrics.find((m) => m.key === "cap")?.value ?? "—";
-  const grossIncome = rel.askingPrice && rel.capRate
-    ? `$${Math.round(rel.askingPrice * (rel.capRate / 100) * 1.37).toLocaleString()}`
-    : "—";
-  const expenses = rel.askingPrice && rel.capRate
-    ? `$${Math.round(rel.askingPrice * (rel.capRate / 100) * 0.37).toLocaleString()}`
-    : "—";
+  // Real figures only — no fabricated gross/expense split. Gross income and
+  // operating expenses come straight from the listing's stored financials; NOI
+  // prefers the stored (server-derived) value.
+  const money = (v: number | null) => (v != null ? `$${Math.round(v).toLocaleString()}` : "—");
+  const grossIncome = money(rel.grossRentRoll);
+  const expenses = money(rel.totalOperatingExpenses);
+  const noi = rel.noi != null ? money(rel.noi) : (metrics.find((m) => m.key === "noi")?.value ?? "—");
+  const hasIncomeStatement =
+    rel.grossRentRoll != null || rel.totalOperatingExpenses != null || rel.noi != null;
 
   return (
     <div className="space-y-8">
@@ -29,7 +31,6 @@ export function FinancialsTab({ rel }: { rel: Relationship }) {
         <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
           <Receipt className="h-4 w-4 text-primary" />
           Income &amp; Expenses
-          <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">estimated</span>
         </h3>
         <div className="mt-4 overflow-hidden rounded-xl border border-border">
           <table className="w-full text-sm">
@@ -50,7 +51,10 @@ export function FinancialsTab({ rel }: { rel: Relationship }) {
           </table>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Figures are estimated from the property's asking price and cap rate. Request the offering memorandum and T-12 for verified, line-item financials.
+          {hasIncomeStatement
+            ? "Income and expense figures as provided by the listing agent."
+            : "The listing agent hasn't shared a detailed income statement yet."}{" "}
+          Request the offering memorandum and T-12 for verified, line-item financials.
         </p>
       </section>
 

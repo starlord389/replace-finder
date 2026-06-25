@@ -70,6 +70,10 @@ export interface Relationship {
   propertyImageUrls: string[];
   askingPrice: number | null;
   capRate: number | null;
+  // Real income-statement figures (from property_financials); null when unentered.
+  grossRentRoll: number | null;
+  totalOperatingExpenses: number | null;
+  noi: number | null;
 
   // client / exchange context
   clientId: string | null;
@@ -172,11 +176,11 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
         // we're an admin, or the owner published it.
         supabase
           .from("pledged_properties_secure")
-          .select("id, property_name, city, state, address, address_is_public, zip, asset_type, units, year_built, building_square_footage, land_area_acres, description, recent_renovations")
+          .select("id, agent_id, property_name, city, state, address, address_is_public, zip, asset_type, units, year_built, building_square_footage, land_area_acres, description, recent_renovations")
           .in("id", allSellerPropIds),
         supabase
           .from("property_financials")
-          .select("property_id, asking_price, cap_rate, occupancy_rate")
+          .select("property_id, asking_price, cap_rate, occupancy_rate, gross_rent_roll, total_operating_expenses, noi")
           .in("property_id", allSellerPropIds),
         supabase
           .from("property_images")
@@ -372,6 +376,9 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       propertyImageUrls: imgs,
       askingPrice: fin?.asking_price ? Number(fin.asking_price) : null,
       capRate: fin?.cap_rate ? Number(fin.cap_rate) : null,
+      grossRentRoll: fin?.gross_rent_roll != null ? Number(fin.gross_rent_roll) : null,
+      totalOperatingExpenses: fin?.total_operating_expenses != null ? Number(fin.total_operating_expenses) : null,
+      noi: fin?.noi != null ? Number(fin.noi) : null,
       clientId: exClientIdMap.get(match.buyer_exchange_id) ?? null,
       clientName: exClientNameMap.get(match.buyer_exchange_id) ?? null,
       buyerExchangeId: match.buyer_exchange_id,
@@ -391,8 +398,11 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       inspectionCompleteAt: conn?.inspection_complete_at ?? null,
       financingApprovedAt: conn?.financing_approved_at ?? null,
       declineReason: conn?.decline_reason ?? null,
-      buyerAgentId: conn?.buyer_agent_id ?? null,
-      sellerAgentId: conn?.seller_agent_id ?? null,
+      // Fall back so a brand-new match (no connection row yet) can still open a
+      // conversation: the seller is the listing's owner; for buyer-side matches
+      // the buyer is the current agent.
+      buyerAgentId: conn?.buyer_agent_id ?? (mySide === "buyer" ? userId : null),
+      sellerAgentId: conn?.seller_agent_id ?? prop?.agent_id ?? null,
     };
   }
 
