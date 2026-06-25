@@ -86,12 +86,23 @@ export default function AdminExchangeDetail() {
 
   async function logEvent(description: string) {
     if (!exchange) return;
-    await supabase.from("exchange_timeline").insert({
+    // Both callers log a status/stage override, so use 'status_change' — the
+    // fitting value in exchange_timeline_event_check (there is no
+    // 'admin_action'). The admin origin stays in the description + actor_id.
+    const { error } = await supabase.from("exchange_timeline").insert({
       exchange_id: exchange.id,
-      event_type: "admin_action",
+      event_type: "status_change",
       description,
       actor_id: user?.id ?? null,
     });
+    if (error) {
+      console.error("Failed to write admin timeline entry:", error);
+      toast({
+        title: "Action saved, but the timeline entry could not be logged.",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   }
 
   async function changeStatus(status: string) {
