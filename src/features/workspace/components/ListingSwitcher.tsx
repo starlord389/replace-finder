@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Building2, ChevronRight, MapPin, Search, SlidersHorizontal, X, Clock } from "lucide-react";
+import { Building2, ChevronRight, MapPin, Search, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,7 +47,6 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
   }, [filters, hydrated, user?.id]);
 
   const lastListingId = user?.id ? getLastListing(user.id) : null;
-  const lastListing = lastListingId ? listings.find((l) => l.id === lastListingId) : null;
 
   const facets = useMemo(() => {
     const clients = new Map<string, string>();
@@ -126,27 +124,6 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
 
   return (
     <div className="space-y-3">
-      {lastListing && (
-        <Link
-          to={`/agent/workspace/${lastListing.id}`}
-          className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5 transition-colors hover:bg-primary/10"
-        >
-          <Clock className="h-4 w-4 shrink-0 text-primary" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
-              Continue where you left off
-            </p>
-            <p className="truncate text-sm font-medium text-foreground">
-              {lastListing.propertyName || lastListing.address || "Untitled"}
-              {lastListing.clientName && (
-                <span className="text-muted-foreground"> · {lastListing.clientName}</span>
-              )}
-            </p>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </Link>
-      )}
-
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

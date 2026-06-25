@@ -52,7 +52,7 @@ export default function NewExchange() {
       } else {
         toast.success("Exchange saved as draft.");
       }
-      navigate(`/agent/workspace/${result.exchange_id}`);
+      navigate("/agent/listings");
     } catch (err: any) {
       console.error("Save error:", err);
       toast.error("Failed to save exchange: " + (err.message || "Unknown error"));
