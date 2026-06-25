@@ -63,16 +63,30 @@ export default function AdminDeals() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [ex, pr, mt, cn, profiles, clients] = await Promise.all([
-        supabase.from("exchanges").select("*").order("created_at", { ascending: false }),
-        supabase.from("pledged_properties").select("*").order("created_at", { ascending: false }),
-        supabase.from("matches").select("*").order("created_at", { ascending: false }),
-        supabase.from("exchange_connections").select("*").order("created_at", { ascending: false }),
+      // Live data only. exchanges/pledged_properties carry is_demo; matches and
+      // exchange_connections don't, so scope them to live exchange ids.
+      const ex = await supabase
+        .from("exchanges")
+        .select("*")
+        .eq("is_demo", false)
+        .order("created_at", { ascending: false });
+      const liveExchanges = ex.data ?? [];
+      const liveExchangeIds = liveExchanges.map((e) => e.id);
+      // Non-empty sentinel so the .in() filters match nothing (not everything)
+      // when there are no live exchanges yet.
+      const scopeIds = liveExchangeIds.length
+        ? liveExchangeIds
+        : ["00000000-0000-0000-0000-000000000000"];
+
+      const [pr, mt, cn, profiles, clients] = await Promise.all([
+        supabase.from("pledged_properties").select("*").eq("is_demo", false).order("created_at", { ascending: false }),
+        supabase.from("matches").select("*").in("buyer_exchange_id", scopeIds).order("created_at", { ascending: false }),
+        supabase.from("exchange_connections").select("*").in("buyer_exchange_id", scopeIds).order("created_at", { ascending: false }),
         supabase.from("profiles").select("id, full_name, email"),
         supabase.from("agent_clients").select("id, client_name"),
       ]);
       if (ex.error) toast({ title: "Failed to load deals.", description: ex.error.message, variant: "destructive" });
-      setExchanges(ex.data ?? []);
+      setExchanges(liveExchanges);
       setProperties(pr.data ?? []);
       setMatches(mt.data ?? []);
       setConnections(cn.data ?? []);
@@ -114,7 +128,7 @@ export default function AdminDeals() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Deal Oversight</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every exchange, property, match, and connection across all agents.
+          Every live exchange, property, match, and connection across all agents (demo data excluded).
         </p>
       </div>
 

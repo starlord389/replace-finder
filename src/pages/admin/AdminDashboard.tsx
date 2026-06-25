@@ -51,26 +51,42 @@ export default function AdminDashboard() {
     queryFn: async () => {
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const head = { count: "exact" as const, head: true };
+
+      // The admin dashboard reflects LIVE data only. exchanges / pledged_properties
+      // carry is_demo, so filter them directly. matches / exchange_connections /
+      // exchange_timeline have no is_demo column, so scope them to the set of live
+      // (is_demo = false) exchange ids they each reference.
+      const { data: liveExRows } = await supabase
+        .from("exchanges")
+        .select("id")
+        .eq("is_demo", false);
+      const liveExchangeIds = (liveExRows ?? []).map((r) => r.id as string);
+      // Guard the .in() filters: a non-empty array with an impossible id matches
+      // nothing when there are no live exchanges (instead of relying on empty-IN).
+      const scopeIds = liveExchangeIds.length
+        ? liveExchangeIds
+        : ["00000000-0000-0000-0000-000000000000"];
+
       const [
         activeExchanges, activeMatches, openConnections, openTickets,
         totalUsers, totalAgents, totalProperties, newDemos, newContact,
         newUsersWeek, newExchangesWeek, newDemosWeek,
         allExchanges, timelineEvents,
       ] = await Promise.all([
-        supabase.from("exchanges").select("id", head).in("status", ["active", "in_identification", "in_closing"]),
-        supabase.from("matches").select("id", head).eq("status", "active"),
-        supabase.from("exchange_connections").select("id", head).in("status", ["pending", "accepted"]),
+        supabase.from("exchanges").select("id", head).eq("is_demo", false).in("status", ["active", "in_identification", "in_closing"]),
+        supabase.from("matches").select("id", head).eq("status", "active").in("buyer_exchange_id", scopeIds),
+        supabase.from("exchange_connections").select("id", head).in("status", ["pending", "accepted"]).in("buyer_exchange_id", scopeIds),
         supabase.from("support_tickets").select("id", head).eq("status", "open"),
         supabase.from("profiles").select("id", head),
         supabase.from("user_roles").select("user_id", head).eq("role", "agent"),
-        supabase.from("pledged_properties").select("id", head),
+        supabase.from("pledged_properties").select("id", head).eq("is_demo", false),
         supabase.from("demo_requests").select("id", head).eq("status", "new"),
         supabase.from("contact_submissions").select("id", head).eq("status", "new"),
         supabase.from("profiles").select("id", head).gte("created_at", weekAgo),
-        supabase.from("exchanges").select("id", head).gte("created_at", weekAgo),
+        supabase.from("exchanges").select("id", head).eq("is_demo", false).gte("created_at", weekAgo),
         supabase.from("demo_requests").select("id", head).gte("created_at", weekAgo),
-        supabase.from("exchanges").select("status"),
-        supabase.from("exchange_timeline").select("id, exchange_id, event_type, description, created_at").order("created_at", { ascending: false }).limit(10),
+        supabase.from("exchanges").select("status").eq("is_demo", false),
+        supabase.from("exchange_timeline").select("id, exchange_id, event_type, description, created_at").in("exchange_id", scopeIds).order("created_at", { ascending: false }).limit(10),
       ]);
 
       return {
