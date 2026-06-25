@@ -452,7 +452,7 @@ function TrustSection() {
 
 const ROE_STEPS = [
   "See your property's real return on equity",
-  "Compare it to the ~8% our network averages",
+  "Compare it against a healthy ~8% target",
   "Trade up, tax-deferred, into a stronger property",
 ];
 
@@ -461,7 +461,7 @@ function RoeCalculator({ onGetConnected }: { onGetConnected: () => void }) {
   const [loan, setLoan] = useState(750000);
   const [cashflow, setCashflow] = useState(82000);
 
-  const PLATFORM = 8; // average return on equity on the platform (%)
+  const PLATFORM = 8; // healthy return-on-equity target used by this calculator (%)
   const equity = Math.max(0, value - loan);
   const roe = equity > 0 ? (cashflow / equity) * 100 : 0;
   const potential = equity * (PLATFORM / 100);
@@ -469,7 +469,7 @@ function RoeCalculator({ onGetConnected }: { onGetConnected: () => void }) {
 
   const usd = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
   const tone = roe < 5 ? "low" : roe < 8 ? "mid" : "high";
-  const verdictText = roe < 5 ? "Equity underperforming" : roe < 8 ? "Below the ~8% average" : "Beating the average";
+  const verdictText = roe < 5 ? "Equity underperforming" : roe < 8 ? "Below the ~8% target" : "Beating the target";
   const numColor = tone === "low" ? "#b8543a" : tone === "mid" ? "#9a7b22" : "#4e8466";
   const verdictStyle =
     tone === "low" ? { background: "rgba(184,84,58,0.12)", color: "#a8482f" }
@@ -537,9 +537,9 @@ function RoeCalculator({ onGetConnected }: { onGetConnected: () => void }) {
                 </div>
                 <div className="roe-compare">
                   {uplift > 0 ? (
-                    <p>Properties bought through our network average <b>~8% ROE</b>. Your {usd(equity)} of equity could be earning about <b>{usd(potential)}/yr</b> — roughly <b>{usd(uplift)} more</b> than it is today.</p>
+                    <p>A healthy repositioning targets <b>~8% ROE</b>. Your {usd(equity)} of equity could be earning about <b>{usd(potential)}/yr</b> — roughly <b>{usd(uplift)} more</b> than it is today.</p>
                   ) : (
-                    <p>You're already at or above the <b>~8%</b> our network averages — nicely done. When you're ready to trade up tax-deferred, we'll connect you with an agent.</p>
+                    <p>You're already at or above a healthy <b>~8%</b> target — nicely done. When you're ready to trade up tax-deferred, we'll connect you with an agent.</p>
                   )}
                 </div>
                 <p className="roe-fine">Estimate only — not tax or investment advice.</p>

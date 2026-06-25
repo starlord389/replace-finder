@@ -34,9 +34,24 @@ export function useNotificationPrefs() {
   const update = useMutation({
     mutationFn: async (patch: Partial<NotificationPrefs>) => {
       if (!user?.id) return;
+      // Merge the patch onto the user's CURRENT prefs (not DEFAULTS) so toggling
+      // one switch never silently re-enables the others. Falls back to DEFAULTS
+      // only when no row exists yet (first save).
+      const current = qc.getQueryData<NotificationPrefs>(["notification-prefs", user.id]);
+      const base = current ?? DEFAULTS;
       const { error } = await supabase
         .from("user_notification_preferences")
-        .upsert({ user_id: user.id, ...DEFAULTS, ...patch }, { onConflict: "user_id" });
+        .upsert(
+          {
+            user_id: user.id,
+            notify_new_match: base.notify_new_match,
+            notify_connection_request: base.notify_connection_request,
+            notify_connection_accepted: base.notify_connection_accepted,
+            notify_new_message: base.notify_new_message,
+            ...patch,
+          },
+          { onConflict: "user_id" },
+        );
       if (error) throw error;
     },
     onSuccess: () => {

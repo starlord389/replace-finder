@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -116,13 +116,17 @@ async function fetchConversations(userId: string, isDemo: boolean): Promise<Conv
 export function useConversations() {
   const { user } = useAuth();
   const { isDemo } = useWorkspaceMode();
+  const qc = useQueryClient();
   const query = useQuery({
     queryKey: ["conversations", user?.id, isDemo],
     queryFn: () => fetchConversations(user!.id, isDemo),
     enabled: !!user?.id,
   });
 
-  // Realtime: refetch on any new message in any of my connections
+  // Realtime: refresh on any new message in any of my connections.
+  // Invalidate via the query client (stable) rather than depending on the
+  // `query` object — that reference changes every render and was tearing down
+  // and re-subscribing the channel on each one.
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
@@ -130,13 +134,13 @@ export function useConversations() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "messages" },
-        () => query.refetch(),
+        () => qc.invalidateQueries({ queryKey: ["conversations", user.id] }),
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, query]);
+  }, [user?.id, qc]);
 
   return query;
 }

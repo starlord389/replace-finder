@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { ArrowLeft, Mail, Phone, Plus, User, List, Sparkles, Activity, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ export default function AgentClientOverview() {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") ?? "profile";
   const [client, setClient] = useState<ClientRow | null>(null);
@@ -39,9 +41,12 @@ export default function AgentClientOverview() {
         .select("id, client_name, client_email, client_phone, status")
         .eq("id", clientId)
         .eq("agent_id", user.id)
+        .eq("is_demo", isDemo)
         .single();
       if (cancelled) return;
       if (error || !data) {
+        // Not in the active workspace (e.g. a demo client opened while in Live,
+        // or vice-versa) → treat as not found rather than leaking across modes.
         toast.error("Client not found");
         navigate("/agent/clients");
         return;
@@ -50,7 +55,7 @@ export default function AgentClientOverview() {
       setLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [clientId, user, navigate]);
+  }, [clientId, user?.id, isDemo, navigate]);
 
   if (loading || !client || !clientId) {
     return (

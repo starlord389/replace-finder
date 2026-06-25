@@ -7,8 +7,8 @@ const links = {
     { label: "For Landlords", to: "/landlords" },
   ],
   Legal: [
-    { label: "Terms of Service", to: "#" },
-    { label: "Privacy Policy", to: "#" },
+    { label: "Terms of Service", to: "/terms" },
+    { label: "Privacy Policy", to: "/privacy" },
   ],
   Support: [
     { label: "Contact Us", to: "mailto:support@1031exchangeup.com" },

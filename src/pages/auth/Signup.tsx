@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -425,7 +425,14 @@ function PostSignupVerify({ email, onBack }: { email: string; onBack: () => void
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [lastSentAt, setLastSentAt] = useState<Date | null>(null);
+  const cooldownTimer = useRef<number | null>(null);
 
+  // Stop the countdown if the user navigates away mid-cooldown.
+  useEffect(() => {
+    return () => {
+      if (cooldownTimer.current !== null) window.clearInterval(cooldownTimer.current);
+    };
+  }, []);
 
   const handleResend = async () => {
     if (cooldown > 0 || resending) return;
@@ -442,10 +449,12 @@ function PostSignupVerify({ email, onBack }: { email: string; onBack: () => void
     }
     setLastSentAt(new Date());
     setCooldown(60);
-    const id = window.setInterval(() => {
+    if (cooldownTimer.current !== null) window.clearInterval(cooldownTimer.current);
+    cooldownTimer.current = window.setInterval(() => {
       setCooldown((c) => {
         if (c <= 1) {
-          window.clearInterval(id);
+          if (cooldownTimer.current !== null) window.clearInterval(cooldownTimer.current);
+          cooldownTimer.current = null;
           return 0;
         }
         return c - 1;

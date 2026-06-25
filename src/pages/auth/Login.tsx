@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,16 @@ export default function Login() {
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const cooldownTimer = useRef<number | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Stop the countdown interval if the user leaves the page mid-cooldown.
+  useEffect(() => {
+    return () => {
+      if (cooldownTimer.current !== null) window.clearInterval(cooldownTimer.current);
+    };
+  }, []);
 
   const handleResend = async () => {
     if (cooldown > 0 || resending || !email) return;
@@ -34,10 +42,12 @@ export default function Login() {
       return;
     }
     setCooldown(60);
-    const id = window.setInterval(() => {
+    if (cooldownTimer.current !== null) window.clearInterval(cooldownTimer.current);
+    cooldownTimer.current = window.setInterval(() => {
       setCooldown((c) => {
         if (c <= 1) {
-          window.clearInterval(id);
+          if (cooldownTimer.current !== null) window.clearInterval(cooldownTimer.current);
+          cooldownTimer.current = null;
           return 0;
         }
         return c - 1;

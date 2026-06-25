@@ -55,8 +55,8 @@ function buildPreviewRel(listing: AgentListing): Relationship {
     propertyLotAcres: null,
     propertyDescription: null,
     propertyRenovations: null,
-    propertyImageUrl: null,
-    propertyImageUrls: [],
+    propertyImageUrl: listing.coverUrl ?? null,
+    propertyImageUrls: listing.coverUrl ? [listing.coverUrl] : [],
     askingPrice: listing.askingPrice,
     capRate: null,
     grossRentRoll: null,
@@ -102,7 +102,7 @@ export function ListingPreviewDialog({ listing, open, onOpenChange }: Props) {
       <DialogContent className="max-w-6xl gap-0 overflow-hidden p-0">
         <DialogTitle className="sr-only">Investor preview — {title}</DialogTitle>
         <DialogDescription className="sr-only">
-          This is exactly how matched investors see your listing.
+          A preview of how matched investors see your listing.
         </DialogDescription>
 
         {/* Preview-mode banner */}

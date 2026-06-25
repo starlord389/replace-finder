@@ -207,13 +207,22 @@ export default function AgentSettings() {
         supabase.from("pledged_properties").select("*").eq("agent_id", user.id).eq("is_demo", isDemo),
         supabase.from("exchange_connections").select("*").or(`buyer_agent_id.eq.${user.id},seller_agent_id.eq.${user.id}`),
       ]);
+      // exchange_connections has no is_demo column, so scope it to the current
+      // workspace via the exchanges on each side — otherwise a Live export would
+      // leak demo deals (and vice-versa).
+      const exchangeIds = new Set((exchanges.data ?? []).map((e) => e.id));
+      const scopedConnections = (connections.data ?? []).filter(
+        (c) =>
+          exchangeIds.has(c.buyer_exchange_id) ||
+          (c.seller_exchange_id != null && exchangeIds.has(c.seller_exchange_id)),
+      );
       const payload = {
         exported_at: new Date().toISOString(),
         profile: profile.data,
         clients: clients.data,
         exchanges: exchanges.data,
         pledged_properties: properties.data,
-        connections: connections.data,
+        connections: scopedConnections,
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
