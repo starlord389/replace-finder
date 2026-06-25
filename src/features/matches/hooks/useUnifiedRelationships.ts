@@ -171,7 +171,7 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
         // address-masked view: the DB nulls `address` unless it's our own listing,
         // we're an admin, or the owner published it.
         supabase
-          .from("pledged_properties_secure")
+          .from("pledged_properties")
           .select("id, property_name, city, state, address, address_is_public, zip, asset_type, units, year_built, building_square_footage, land_area_acres, description, recent_renovations")
           .in("id", allSellerPropIds),
         supabase
