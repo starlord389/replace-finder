@@ -44,7 +44,7 @@ async function fetchConversations(userId: string, isDemo: boolean): Promise<Conv
 
   const [profilesRes, matchesRes, messagesRes] = await Promise.all([
     supabase.from("profiles").select("id, full_name, email, profile_photo_url").in("id", counterpartyIds),
-    supabase.from("matches").select("id, seller_property_id").in("id", matchIds),
+    supabase.from("matches_secure").select("id, seller_property_id").in("id", matchIds),
     supabase
       .from("messages")
       .select("connection_id, sender_id, content, created_at, read_at")

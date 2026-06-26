@@ -20,7 +20,7 @@ export default function MatchRedirect() {
     (async () => {
       // Try as match id first
       const { data: m } = await supabase
-        .from("matches")
+        .from("matches_secure")
         .select("id, buyer_exchange_id")
         .eq("id", id)
         .maybeSingle();
@@ -39,7 +39,7 @@ export default function MatchRedirect() {
         .maybeSingle();
       if (c?.match_id) {
         const { data: m2 } = await supabase
-          .from("matches")
+          .from("matches_secure")
           .select("id, buyer_exchange_id")
           .eq("id", c.match_id)
           .maybeSingle();

@@ -79,7 +79,7 @@ export default function AgentConnectionDetail() {
     setConn(connData);
 
     const [matchRes, buyerProfRes, sellerProfRes] = await Promise.all([
-      supabase.from("matches").select("*").eq("id", connData.match_id).single(),
+      supabase.from("matches_secure").select("*").eq("id", connData.match_id).single(),
       supabase.from("profiles").select("*").eq("id", connData.buyer_agent_id).maybeSingle(),
       supabase.from("profiles").select("*").eq("id", connData.seller_agent_id).maybeSingle(),
     ]);

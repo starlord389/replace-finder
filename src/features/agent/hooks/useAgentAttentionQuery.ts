@@ -131,7 +131,7 @@ async function fetchAgentAttention(userId: string, isDemo: boolean): Promise<Age
     // carries its own flag). Filter BEFORE limiting so the workspace is respected.
     const matchIds = [...new Set(awaiting.map((c) => c.match_id))];
     const { data: matchesData } = matchIds.length > 0
-      ? await supabase.from("matches").select("id, seller_property_id").in("id", matchIds)
+      ? await supabase.from("matches_secure").select("id, seller_property_id").in("id", matchIds)
       : { data: [] as Array<{ id: string; seller_property_id: string }> };
     const matchMap = new Map((matchesData ?? []).map((m) => [m.id, m]));
     const sellerPropertyIds = [...new Set((matchesData ?? []).map((m) => m.seller_property_id))];

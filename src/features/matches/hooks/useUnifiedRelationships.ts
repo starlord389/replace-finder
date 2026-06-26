@@ -165,11 +165,13 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     buyerMatches = data ?? [];
   }
 
-  // 4. Seller-side matches
+  // 4. Seller-side matches — read through the masked view so a matched buyer's
+  // private financials (ROE / boot / debt service) stay hidden from the seller
+  // until the two agents are actually connected.
   let sellerMatches: any[] = [];
   if (myPropertyIds.length > 0) {
     const { data } = await supabase
-      .from("matches")
+      .from("matches_secure")
       .select("*")
       .in("seller_property_id", myPropertyIds)
       .eq("status", "active");
