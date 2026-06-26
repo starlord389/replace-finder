@@ -190,6 +190,7 @@ export function whyThisMatched(rel: Relationship): string[] {
   }
   if (rel.bootStatus === "no_boot") out.push("No boot exposure — full equity replacement looks achievable.");
   else if (rel.bootStatus === "minor_boot") out.push("Minor boot expected — manageable equity gap.");
+  else if (rel.bootStatus === "significant_boot") out.push("Significant boot expected — a meaningful taxable gap; structure the exchange carefully.");
   if (rel.capRate) out.push(`Projected cap rate of ${formatCapRate(rel.capRate)}.`);
   if (rel.askingPrice) out.push(`Asking price ${formatMoney(rel.askingPrice)}.`);
   return out;

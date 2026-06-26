@@ -45,7 +45,7 @@ export function NextStepsTab({
       {/* Lifecycle stepper */}
       <div className="rounded-2xl border bg-card p-5">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-bold text-foreground">Where this deal stands</h3>
+          <h2 className="text-sm font-bold text-foreground">Where this deal stands</h2>
           <span className="shrink-0 text-xs font-semibold text-foreground">
             {isArchived ? "Archived" : UI_STATUS_LABEL[status]}
           </span>
@@ -164,7 +164,7 @@ export function NextStepsTab({
 
       {/* Listed by — anonymized until the intro is accepted */}
       <div className="rounded-2xl border bg-card p-5">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Listed by</p>
+        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Listed by</h3>
         <div className="mt-2.5 flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
             {brokerageInitials || "LB"}

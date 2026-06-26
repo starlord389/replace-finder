@@ -137,7 +137,10 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
                 >
                   {t.label}
                   {t.v === "conversation" && (
-                    <span className="ml-1.5 inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <>
+                      <span className="ml-1.5 inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                      <span className="sr-only"> (active)</span>
+                    </>
                   )}
                 </TabsTrigger>
               ))}

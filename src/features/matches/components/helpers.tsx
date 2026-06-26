@@ -20,6 +20,13 @@ export function scoreTextClass(s: number) {
   return "text-rose-700";
 }
 
+/** Score chip fill + foreground — darker fills so white digits meet WCAG AA contrast. */
+export function scoreChipClass(s: number) {
+  if (s >= 85) return "bg-emerald-700 text-white";
+  if (s >= 70) return "bg-amber-700 text-white";
+  return "bg-rose-700 text-white";
+}
+
 export type PipelineColumn = "new" | "pending" | "active" | "closed";
 
 export const COLUMN_FOR_STAGE: Record<RelationshipStage, PipelineColumn> = {

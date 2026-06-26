@@ -1,17 +1,27 @@
 import {
-  Building, Ruler, Calendar, Layers, TrendingUp, DollarSign, ArrowRight,
+  Building, Ruler, Calendar, Layers, TrendingUp, DollarSign, ArrowRight, Scale,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
-import { currency, scoreDotClass } from "../helpers";
+import { currency, scoreChipClass } from "../helpers";
 import {
   financialMetrics, UI_STATUS_LABEL, UI_STATUS_CLASS,
   type UiStatus, type ActionDescriptor,
 } from "./inboxHelpers";
 import { ACTION_ICONS } from "./actionIcons";
+
+/** Boot exposure for this match, in plain words — null when there's no boot signal. */
+function prettyBoot(bootStatus: string | null): string | null {
+  switch (bootStatus) {
+    case "no_boot": return "No boot";
+    case "minor_boot": return "Minor boot";
+    case "significant_boot": return "Significant";
+    default: return null;
+  }
+}
 
 interface Props {
   rel: Relationship;
@@ -50,6 +60,8 @@ export function ListingHeaderBar({
   if (rel.propertyUnits) stats.push({ icon: Layers, label: "Units", value: String(rel.propertyUnits) });
   if (cap && cap !== "—") stats.push({ icon: TrendingUp, label: "Cap", value: cap });
   if (noi && noi !== "—") stats.push({ icon: DollarSign, label: "NOI", value: noi });
+  const boot = prettyBoot(rel.bootStatus);
+  if (boot) stats.push({ icon: Scale, label: "Boot", value: boot });
 
   const PrimaryIcon = primary ? ACTION_ICONS[primary.id] ?? ArrowRight : null;
 
@@ -87,7 +99,7 @@ export function ListingHeaderBar({
         </div>
 
         {!previewMode && (
-          <div className="flex shrink-0 items-stretch gap-2.5">
+          <div className="flex flex-wrap items-stretch gap-2.5 sm:shrink-0">
             {onJumpToMatch && (
               <button
                 type="button"
@@ -97,8 +109,8 @@ export function ListingHeaderBar({
               >
                 <span
                   className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white",
-                    scoreDotClass(rel.score),
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold",
+                    scoreChipClass(rel.score),
                   )}
                 >
                   {Math.round(rel.score)}
@@ -110,7 +122,7 @@ export function ListingHeaderBar({
             )}
             {primary && onPrimary && (
               <Button
-                className="h-auto min-h-[44px] justify-center gap-2 px-5 text-sm font-semibold"
+                className="h-auto min-h-[44px] w-full justify-center gap-2 px-5 text-sm font-semibold sm:w-auto"
                 onClick={onPrimary}
                 disabled={primaryBusy}
               >
