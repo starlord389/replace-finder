@@ -2284,8 +2284,8 @@ export default function Home() {
         <FeaturesSection />
         <IntegrationsSection />
         <WhyAgentsJoinSection />
-        <PricingSection />
         <RoeCalculator />
+        <PricingSection />
         <FaqSection />
         <FinalCta />
       </div>
