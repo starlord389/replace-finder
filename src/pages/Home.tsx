@@ -2280,12 +2280,12 @@ export default function Home() {
         <Hero />
         <LogoMarquee />
         <ProblemSection />
+        <WhyAgentsJoinSection />
         <HowItWorks />
         <FeaturesSection />
         <IntegrationsSection />
-        <WhyAgentsJoinSection />
-        <RoeCalculator />
         <PricingSection />
+        <RoeCalculator />
         <FaqSection />
         <FinalCta />
       </div>
