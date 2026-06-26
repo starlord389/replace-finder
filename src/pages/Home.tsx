@@ -588,7 +588,7 @@ function LogoMarquee() {
 const HIW_STEPS = [
   {
     num: "01",
-    title: "Create your profile",
+    title: "Create Your Profile",
     body: "Join a network of real estate agents, investors, and landlords focused on 1031 exchange opportunities.",
     preview: (
       <div className="hiw-pv">
@@ -609,7 +609,7 @@ const HIW_STEPS = [
   },
   {
     num: "02",
-    title: "Add properties & exchange criteria",
+    title: "Add Properties & Exchange Criteria",
     body: "Share available properties and what your clients are looking for in a replacement property.",
     preview: (
       <div className="hiw-pv">
@@ -630,7 +630,7 @@ const HIW_STEPS = [
   },
   {
     num: "03",
-    title: "Get matched",
+    title: "Get Matched",
     body: "Our platform identifies potential exchange opportunities and connects qualified parties.",
     preview: (
       <div className="hiw-pv">
@@ -651,7 +651,7 @@ const HIW_STEPS = [
   },
   {
     num: "04",
-    title: "Create more opportunities",
+    title: "Create More Opportunities",
     body: "Help clients discover replacement properties, build relationships, and complete more successful exchanges.",
     preview: (
       <div className="hiw-pv">
@@ -2117,7 +2117,7 @@ function WhyAgentsJoinSection() {
               </div>
             </div>
             <div className="why-text">
-              <h3 className="why-title">Find replacement properties</h3>
+              <h3 className="why-title">Find Replacement Properties</h3>
               <p className="why-body">Help clients identify potential exchange opportunities faster.</p>
             </div>
           </div>
@@ -2144,7 +2144,7 @@ function WhyAgentsJoinSection() {
               </div>
             </div>
             <div className="why-text">
-              <h3 className="why-title">Grow your exchange network</h3>
+              <h3 className="why-title">Grow Your Exchange Network</h3>
               <p className="why-body">Connect with agents, investors, and industry professionals.</p>
             </div>
           </div>
@@ -2171,7 +2171,7 @@ function WhyAgentsJoinSection() {
               </div>
             </div>
             <div className="why-text">
-              <h3 className="why-title">Close more 1031 transactions</h3>
+              <h3 className="why-title">Close More 1031 Transactions</h3>
               <p className="why-body">Create opportunities and provide more value to your clients.</p>
             </div>
           </div>
