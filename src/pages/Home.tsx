@@ -2049,17 +2049,14 @@ function ProblemSection() {
       <div className="prob">
         <div className="prob-copy" data-reveal>
           <span className="sec-eyebrow"><span className="sec-eyebrow-dot" />The problem we&rsquo;re solving</span>
-          <h2>
-            Selling isn&rsquo;t the hard part. Finding the replacement in{" "}
-            <span className="prob-emph">45 days</span> is.
-          </h2>
+          <h2>The biggest challenge in a 1031 exchange isn&rsquo;t selling a property.</h2>
           <p>
-            The moment a sale closes, the clock starts. Investors get just 45 days to identify a
-            replacement &mdash; and too often the right one never surfaces in time, creating
-            unnecessary stress and missed opportunities. 1031 Exchange Up surfaces matched, off-market
-            replacements early, so the window works for you, not against you.
+            It&rsquo;s finding the right replacement property within the{" "}
+            <span className="prob-emph">45-day identification period</span>. Too often, investors
+            struggle to identify suitable properties, creating unnecessary stress and missed
+            opportunities. 1031 Exchange Up helps investors, landlords, and real estate agents connect,
+            collaborate, and uncover replacement property opportunities more efficiently.
           </p>
-          <div className="prob-stat"><b>45 days</b><span>to identify &mdash; or the tax deferral is lost.</span></div>
         </div>
 
         <div className="prob-card" data-reveal>
@@ -2103,10 +2100,6 @@ function WhyAgentsJoinSection() {
       <div className="why">
         <div className="fs-head" data-reveal>
           <h2>Why real estate agents join</h2>
-          <p className="fs-sub">
-            More business, a stronger network, and a clearer path to closing the exchange &mdash; for you
-            and your clients.
-          </p>
         </div>
         <div className="why-grid" data-reveal>
 
@@ -2125,7 +2118,7 @@ function WhyAgentsJoinSection() {
             </div>
             <div className="why-text">
               <h3 className="why-title">Find replacement properties</h3>
-              <p className="why-body">Surface matched, off-market replacements for your clients faster &mdash; before they ever hit the open market.</p>
+              <p className="why-body">Help clients identify potential exchange opportunities faster.</p>
             </div>
           </div>
 
@@ -2152,7 +2145,7 @@ function WhyAgentsJoinSection() {
             </div>
             <div className="why-text">
               <h3 className="why-title">Grow your exchange network</h3>
-              <p className="why-body">Build direct relationships with exchange-focused agents, investors, and the professionals who close deals.</p>
+              <p className="why-body">Connect with agents, investors, and industry professionals.</p>
             </div>
           </div>
 
@@ -2179,7 +2172,7 @@ function WhyAgentsJoinSection() {
             </div>
             <div className="why-text">
               <h3 className="why-title">Close more 1031 transactions</h3>
-              <p className="why-body">Turn early access into more deals at the table &mdash; and more value delivered to every client you represent.</p>
+              <p className="why-body">Create opportunities and provide more value to your clients.</p>
             </div>
           </div>
 
