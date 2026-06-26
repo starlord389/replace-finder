@@ -348,6 +348,31 @@ const PAGE_STYLE = `
   [data-landing] .hiw-pv-offer-row b { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
   [data-landing] .hiw-pv-sent { margin-left: auto; font-size: 9px; font-weight: 700; background: rgba(29,29,29,0.12); padding: 3px 8px; border-radius: 999px; }
 
+  /* Step previews — richer, on-message content (profile + network / property + criteria / match + connect) */
+  [data-landing] .hiw-pv-profile { display: flex; align-items: center; gap: 9px; }
+  [data-landing] .hiw-pv-avatar { width: 34px; height: 34px; border-radius: 999px; background: linear-gradient(135deg, #8a86bf 0%, #6f6ab0 100%); color: #fff; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; box-shadow: 0 4px 10px rgba(40,35,28,0.14); }
+  [data-landing] .hiw-pv-pname { font-size: 12.5px; font-weight: 700; letter-spacing: -0.01em; }
+  [data-landing] .hiw-pv-pmeta { font-size: 9.5px; color: rgba(97,97,97,0.78); margin-top: 1px; }
+  [data-landing] .hiw-pv-verified { margin-left: auto; display: inline-flex; align-items: center; gap: 3px; font-size: 8.5px; font-weight: 700; color: #1d7a52; background: rgba(127,174,140,0.18); padding: 3px 7px; border-radius: 999px; flex: none; }
+  [data-landing] .hiw-pv-verified svg { width: 9px; height: 9px; stroke-width: 3; }
+  [data-landing] .hiw-pv-net { margin-top: auto; display: flex; align-items: center; gap: 9px; padding: 9px 10px; border-radius: 11px; background: rgba(255,255,255,0.7); box-shadow: inset 0 0 0 1px rgba(214,210,205,0.5); }
+  [data-landing] .hiw-pv-av { width: 22px; height: 22px; border-radius: 999px; color: #fff; font-size: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; margin-left: -8px; box-shadow: 0 0 0 2px rgba(255,255,255,0.92); }
+  [data-landing] .hiw-pv-av:first-child { margin-left: 0; }
+  [data-landing] .hiw-pv-net-txt { font-size: 9.5px; font-weight: 600; color: #6b655c; line-height: 1.3; }
+  [data-landing] .hiw-pv-net-txt b { color: #1d1d1d; }
+  [data-landing] .hiw-pv-prop { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 10px; background: rgba(255,255,255,0.86); box-shadow: inset 0 0 0 1px rgba(214,210,205,0.55); }
+  [data-landing] .hiw-pv-prop-ico { width: 28px; height: 28px; border-radius: 8px; background: rgba(127,174,140,0.16); color: #4f7d62; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  [data-landing] .hiw-pv-prop-ico svg { width: 15px; height: 15px; stroke-width: 1.9; }
+  [data-landing] .hiw-pv-prop-n { font-size: 11px; font-weight: 700; }
+  [data-landing] .hiw-pv-prop-m { font-size: 9px; color: rgba(97,97,97,0.75); margin-top: 1px; }
+  [data-landing] .hiw-pv-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  [data-landing] .hiw-pv-chip { font-size: 9.5px; font-weight: 600; color: #6b5a18; background: #fbeaa0; box-shadow: inset 0 0 0 1px rgba(227,168,46,0.35); padding: 4px 8px; border-radius: 999px; }
+  [data-landing] .hiw-pv-score-b { background: #b9b3a7; }
+  [data-landing] .hiw-pv-conn { margin-left: auto; width: 20px; height: 20px; border-radius: 999px; background: #7fae8c; color: #fff; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  [data-landing] .hiw-pv-conn svg { width: 11px; height: 11px; stroke-width: 3; }
+  [data-landing] .hiw-pv-connbar { margin-top: auto; display: flex; align-items: center; gap: 7px; font-size: 9.5px; font-weight: 600; color: #1d7a52; background: rgba(127,174,140,0.14); box-shadow: inset 0 0 0 1px rgba(127,174,140,0.3); padding: 8px 10px; border-radius: 10px; }
+  [data-landing] .hiw-pv-connbar svg { width: 12px; height: 12px; flex: none; }
+
   @media (max-width: 809.98px) {
     [data-landing] .hiw-row { flex-direction: column; height: auto; margin-top: 18px; }
     [data-landing] .hiw-card { flex: none; gap: 18px; }
@@ -593,15 +618,25 @@ const HIW_STEPS = [
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
-          <div className="hiw-pv-title">Your profile</div>
-          <div className="hiw-pv-sub">Verified agent</div>
-          <div className="hiw-pv-field">
-            <label>Brokerage</label>
-            <div className="hiw-pv-input">Compass · Boston, MA</div>
+          <div className="hiw-pv-profile">
+            <span className="hiw-pv-avatar">MR</span>
+            <div>
+              <div className="hiw-pv-pname">Marcus Reeves</div>
+              <div className="hiw-pv-pmeta">Compass · Boston, MA</div>
+            </div>
+            <span className="hiw-pv-verified"><ShieldCheck />Verified</span>
           </div>
           <div className="hiw-pv-field">
             <label>Focus</label>
             <div className="hiw-pv-input hiw-pv-hl">1031 exchange replacements</div>
+          </div>
+          <div className="hiw-pv-net">
+            <div style={{ display: "flex" }}>
+              <span className="hiw-pv-av" style={{ background: "#8a86bf" }}>JW</span>
+              <span className="hiw-pv-av" style={{ background: "#7fae8c" }}>AR</span>
+              <span className="hiw-pv-av" style={{ background: "#d6a868" }}>KP</span>
+            </div>
+            <div className="hiw-pv-net-txt">Joining <b>agents, investors &amp; landlords</b></div>
           </div>
         </div>
       </div>
@@ -614,15 +649,24 @@ const HIW_STEPS = [
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
-          <div className="hiw-pv-title">New exchange</div>
-          <div className="hiw-pv-sub">Step 1 of 3</div>
           <div className="hiw-pv-field">
-            <label>Relinquished property</label>
-            <div className="hiw-pv-input">Cambridge, MA office</div>
+            <label>Available property</label>
+            <div className="hiw-pv-prop">
+              <span className="hiw-pv-prop-ico"><Building2 /></span>
+              <div>
+                <div className="hiw-pv-prop-n">Cambridge Office Park</div>
+                <div className="hiw-pv-prop-m">$3.8M · Office · stabilized</div>
+              </div>
+            </div>
           </div>
           <div className="hiw-pv-field">
-            <label>Asset type</label>
-            <div className="hiw-pv-input hiw-pv-hl">Office · stabilized</div>
+            <label>Client is looking for</label>
+            <div className="hiw-pv-chips">
+              <span className="hiw-pv-chip">Retail</span>
+              <span className="hiw-pv-chip">$3–6M</span>
+              <span className="hiw-pv-chip">6.5%+ cap</span>
+              <span className="hiw-pv-chip">Greater Boston</span>
+            </div>
           </div>
         </div>
       </div>
@@ -636,15 +680,17 @@ const HIW_STEPS = [
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
           <div className="hiw-pv-title">Match found</div>
-          <div className="hiw-pv-sub">Auto-scored against the network</div>
+          <div className="hiw-pv-sub">Auto-scored &amp; connected</div>
           <div className="hiw-pv-match hiw-pv-match-hot">
-            <span className="hiw-pv-score">92</span>
-            <div><div className="hiw-pv-mt">Harbor Point Office</div><div className="hiw-pv-mm">$4.2M · Boston, MA</div></div>
+            <span className="hiw-pv-score">94</span>
+            <div><div className="hiw-pv-mt">Harbor Point Office</div><div className="hiw-pv-mm">$4.2M · 6.8% cap</div></div>
+            <span className="hiw-pv-conn"><Check /></span>
           </div>
           <div className="hiw-pv-match">
-            <span className="hiw-pv-score">88</span>
-            <div><div className="hiw-pv-mt">Back Bay Retail</div><div className="hiw-pv-mm">$3.75M · Newton, MA</div></div>
+            <span className="hiw-pv-score hiw-pv-score-b">88</span>
+            <div><div className="hiw-pv-mt">Back Bay Retail</div><div className="hiw-pv-mm">$3.75M · 7.2% cap</div></div>
           </div>
+          <div className="hiw-pv-connbar"><MessageSquare />Connected — start the conversation</div>
         </div>
       </div>
     ),
