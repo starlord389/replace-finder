@@ -6,44 +6,47 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 20% 10%;
+    /* Warm premium theme — matches the marketing site (cream background, ink
+       text, warm borders). Retuned app-wide so every page shares the homepage
+       feel instead of the old clinical white/blue-gray admin look. */
+    --background: 40 20% 95%;
+    --foreground: 28 10% 13%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 224 20% 10%;
+    --card: 40 40% 99%;
+    --card-foreground: 28 10% 13%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 20% 10%;
+    --popover: 40 40% 99%;
+    --popover-foreground: 28 10% 13%;
 
     --primary: 0 0% 11%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 18% 96%;
-    --secondary-foreground: 224 20% 10%;
+    --secondary: 40 25% 93%;
+    --secondary-foreground: 28 10% 13%;
 
-    --muted: 40 16% 96%;
-    --muted-foreground: 220 9% 42%;
+    --muted: 40 25% 93%;
+    --muted-foreground: 33 8% 40%;
 
-    --accent: 40 18% 94%;
-    --accent-foreground: 224 20% 10%;
+    --accent: 40 30% 90%;
+    --accent-foreground: 28 10% 13%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 36 14% 88%;
-    --input: 36 14% 88%;
-    --ring: 198 15% 26%;
+    --border: 38 17% 87%;
+    --input: 38 17% 87%;
+    --ring: 30 10% 30%;
 
-    --radius: 0.625rem;
+    --radius: 0.8rem;
 
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 224 20% 10%;
+    --sidebar-background: 40 22% 96%;
+    --sidebar-foreground: 28 10% 13%;
     --sidebar-primary: 0 0% 11%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 16% 96%;
-    --sidebar-accent-foreground: 224 20% 10%;
-    --sidebar-border: 36 14% 88%;
-    --sidebar-ring: 198 15% 26%;
+    --sidebar-accent: 40 25% 92%;
+    --sidebar-accent-foreground: 28 10% 13%;
+    --sidebar-border: 38 17% 87%;
+    --sidebar-ring: 30 10% 30%;
   }
 
   .dark {

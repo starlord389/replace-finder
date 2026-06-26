@@ -1,5 +1,5 @@
 import {
-  Building, Ruler, Calendar, Layers, TrendingUp, DollarSign, ArrowRight, Scale,
+  Building, Ruler, Calendar, Layers, TrendingUp, DollarSign, ArrowRight, Scale, Trees,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,7 @@ export function ListingHeaderBar({
   if (assetLabel) stats.push({ icon: Building, label: "Type", value: assetLabel });
   if (rel.propertyBuildingSqft)
     stats.push({ icon: Ruler, label: "Building", value: `${rel.propertyBuildingSqft.toLocaleString()} sq.ft.` });
+  if (rel.propertyLotAcres) stats.push({ icon: Trees, label: "Lot", value: `${rel.propertyLotAcres} acres` });
   if (rel.propertyYearBuilt) stats.push({ icon: Calendar, label: "Built", value: String(rel.propertyYearBuilt) });
   if (rel.propertyUnits) stats.push({ icon: Layers, label: "Units", value: String(rel.propertyUnits) });
   if (cap && cap !== "—") stats.push({ icon: TrendingUp, label: "Cap", value: cap });
