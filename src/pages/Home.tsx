@@ -965,17 +965,17 @@ const FEATURES_STYLE = `
 
   /* Content card */
   [data-landing] .fs-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); overflow: hidden; border-radius: 24px; background: linear-gradient(180deg, #faf8f4 0%, #f7f5f0 100%); border: 1px solid rgba(0,0,0,0.04); box-shadow: 0 8px 20px rgba(104,99,80,0.15); }
-  [data-landing] .fs-left { position: relative; min-height: 372px; margin: 8px; border-radius: 18px; overflow: hidden; background: radial-gradient(circle at 10% 92%, rgba(132,24,0,0.9) 0%, rgba(132,24,0,0) 30%), radial-gradient(circle at 95% 88%, rgba(122,23,0,0.78) 0%, rgba(122,23,0,0) 28%), linear-gradient(180deg, #39484d 0%, #344248 56%, #27363a 100%); }
+  [data-landing] .fs-left { position: relative; min-height: 372px; margin: 8px; border-radius: 18px; overflow: hidden; background: radial-gradient(ellipse 70% 55% at 12% 88%, #ecc88c 0%, transparent 58%), radial-gradient(ellipse 60% 55% at 86% 14%, #e6bca8 0%, transparent 56%), radial-gradient(ellipse 55% 50% at 95% 92%, #c7d2b5 0%, transparent 58%), linear-gradient(135deg, #fbf4e6 0%, #f7efe2 50%, #f1ebde 100%); }
   [data-landing] .fs-right { display: flex; flex-direction: column; justify-content: center; padding: 44px 42px; }
   [data-landing] .fs-eyebrow { align-self: flex-start; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.01em; color: #1d1d1d; background: #fef7af; padding: 7px 12px; border-radius: 999px; line-height: 1; }
   [data-landing] .fs-title { margin-top: 18px; font-family: 'Albert Sans', sans-serif; font-size: clamp(23px, 2.7vw, 33px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.12; color: #1a1a1a; }
   [data-landing] .fs-desc { margin-top: 18px; max-width: 366px; font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 400; line-height: 1.55; letter-spacing: -0.015em; color: rgba(86,82,75,0.86); }
 
   /* Mockup window — a contained rounded panel sitting inside the dark frame */
-  [data-landing] .fs-mock { position: absolute; left: 14px; right: 14px; top: 18px; bottom: 14px; border-radius: 26px; overflow: hidden; background: rgba(255,255,255,0.98); box-shadow: 0 20px 36px rgba(20,28,32,0.22); padding: 20px 18px; font-family: 'Geist', sans-serif; color: #1d1d1d; }
+  [data-landing] .fs-mock { position: absolute; left: 14px; right: 14px; top: 18px; bottom: 14px; border-radius: 26px; overflow: hidden; background: rgba(255,255,255,0.9); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 16px 34px rgba(40,35,28,0.13), inset 0 0 0 1px rgba(255,255,255,0.55); padding: 20px 18px; font-family: 'Geist', sans-serif; color: #1d1d1d; }
   [data-landing] .fs-mock-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   [data-landing] .fs-mock-title { font-size: 13px; font-weight: 700; letter-spacing: -0.02em; }
-  [data-landing] .fs-verified { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #39484d; background: rgba(57,72,77,0.1); padding: 4px 9px; border-radius: 999px; letter-spacing: -0.01em; }
+  [data-landing] .fs-verified { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #1d7a52; background: rgba(127,174,140,0.16); padding: 4px 9px; border-radius: 999px; letter-spacing: -0.01em; }
   [data-landing] .fs-verified svg { width: 11px; height: 11px; }
 
   /* Off-market inventory grid */
