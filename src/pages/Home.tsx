@@ -1952,15 +1952,92 @@ function FinalCta() {
 /* ───────── The problem + why-agents-join sections (added per brand brief) ───────── */
 
 const EXTRA_STYLE = `
-  [data-landing] .sec-eyebrow { display: inline-flex; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #1d1d1d; background: #fef7af; padding: 7px 13px; border-radius: 999px; line-height: 1; margin-bottom: 18px; }
-  [data-landing] .prob-emph { color: #1d1d1d; box-shadow: inset 0 -0.5em 0 #fef7af; }
+  [data-landing] .sec-eyebrow { display: inline-flex; align-items: center; gap: 7px; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #8a5a06; background: #fdf0c8; padding: 7px 13px 7px 11px; border-radius: 999px; line-height: 1; }
+  [data-landing] .sec-eyebrow-dot { position: relative; width: 7px; height: 7px; border-radius: 999px; background: #e0a84a; flex: none; }
+  [data-landing] .sec-eyebrow-dot::after { content: ''; position: absolute; inset: 0; border-radius: 999px; background: #e0a84a; animation: fsLive 2s ease-out infinite; }
+  [data-landing] .prob-emph { position: relative; color: #1d1d1d; box-shadow: inset 0 -0.42em 0 #fdd96b; }
+
+  /* ── The problem: copy + a live "45-day window" tracker ── */
+  [data-landing] .prob { width: min(1040px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 56px; align-items: center; }
+  [data-landing] .prob-copy h2 { margin: 18px 0 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(28px, 3.6vw, 44px); font-weight: 400; letter-spacing: -0.045em; line-height: 1.04; color: #171717; }
+  [data-landing] .prob-copy p { margin: 20px 0 0; max-width: 440px; font-family: 'Geist', sans-serif; font-size: 16.5px; font-weight: 400; line-height: 1.55; letter-spacing: -0.02em; color: rgba(86, 82, 75, 0.88); }
+  [data-landing] .prob-stat { margin-top: 22px; display: inline-flex; align-items: baseline; gap: 9px; }
+  [data-landing] .prob-stat b { font-family: 'Albert Sans', sans-serif; font-size: 30px; font-weight: 500; letter-spacing: -0.04em; color: #1d1d1d; }
+  [data-landing] .prob-stat span { font-family: 'Geist', sans-serif; font-size: 13px; color: rgba(86, 82, 75, 0.8); }
+  [data-landing] .prob-card { position: relative; background: linear-gradient(180deg, #fffdf9 0%, #fbf7f0 100%); border: 1px solid rgba(214, 210, 205, 0.55); border-radius: 24px; padding: 24px; box-shadow: 0 30px 60px rgba(40, 35, 28, 0.13), 0 4px 14px rgba(40, 35, 28, 0.05); }
+  [data-landing] .prob-card-head { display: flex; align-items: center; justify-content: space-between; }
+  [data-landing] .prob-card-title { font-family: 'Geist', sans-serif; font-size: 12.5px; font-weight: 700; letter-spacing: -0.02em; color: #1d1d1d; }
+  [data-landing] .prob-day { display: inline-flex; align-items: center; gap: 6px; font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600; color: #6b655c; }
+  [data-landing] .prob-day-dot { position: relative; width: 7px; height: 7px; border-radius: 999px; background: #e0a84a; flex: none; }
+  [data-landing] .prob-day-dot::after { content: ''; position: absolute; inset: 0; border-radius: 999px; background: #e0a84a; animation: fsLive 2s ease-out infinite; }
+  [data-landing] .prob-ring-wrap { position: relative; width: 150px; height: 150px; margin: 14px auto 6px; }
+  [data-landing] .prob-ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  [data-landing] .prob-ring-bg { fill: none; stroke: rgba(214, 210, 205, 0.5); stroke-width: 9; }
+  [data-landing] .prob-ring-fg { fill: none; stroke: #e0a84a; stroke-width: 9; stroke-linecap: round; stroke-dasharray: 327; stroke-dashoffset: 327; animation: probDraw 1.25s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both; }
+  [data-landing] .prob-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  [data-landing] .prob-ring-num { font-family: 'Albert Sans', sans-serif; font-size: 44px; font-weight: 500; letter-spacing: -0.045em; color: #1d1d1d; line-height: 1; }
+  [data-landing] .prob-ring-lbl { margin-top: 5px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #9a7b15; }
+  [data-landing] .prob-slots-h { margin: 16px 0 9px; display: flex; align-items: center; justify-content: space-between; font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600; color: #6b655c; }
+  [data-landing] .prob-slot { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 11px; margin-bottom: 7px; font-family: 'Geist', sans-serif; }
+  [data-landing] .prob-slot:last-child { margin-bottom: 0; }
+  [data-landing] .prob-slot-found { background: rgba(127, 174, 140, 0.13); box-shadow: inset 0 0 0 1px rgba(127, 174, 140, 0.32); }
+  [data-landing] .prob-slot-empty { background: rgba(224, 168, 74, 0.06); box-shadow: inset 0 0 0 1px rgba(224, 168, 74, 0.45); }
+  [data-landing] .prob-slot-ico { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 7px; flex: none; }
+  [data-landing] .prob-slot-found .prob-slot-ico { background: #7fae8c; color: #fff; }
+  [data-landing] .prob-slot-empty .prob-slot-ico { background: rgba(224, 168, 74, 0.18); color: #b07d1f; }
+  [data-landing] .prob-slot-ico svg { width: 13px; height: 13px; stroke-width: 2.4; }
+  [data-landing] .prob-slot-n { font-size: 12px; font-weight: 600; color: #1d1d1d; }
+  [data-landing] .prob-slot-empty .prob-slot-n { color: rgba(86, 82, 75, 0.8); font-weight: 500; }
+  [data-landing] .prob-slot-m { font-size: 10px; color: #a39d93; margin-top: 1px; }
+  [data-landing] .prob-warn { margin-top: 14px; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 11px; background: rgba(224, 168, 74, 0.1); font-family: 'Geist', sans-serif; font-size: 11.5px; font-weight: 500; color: #8a5a06; }
+  [data-landing] .prob-warn svg { width: 14px; height: 14px; flex: none; }
+  @keyframes probDraw { from { stroke-dashoffset: 327; } to { stroke-dashoffset: 87; } }
+
+  /* ── Why agents join: three benefit cards, each with a living mini-mockup ── */
   [data-landing] .why { width: min(1040px, 100%); margin: 0 auto; }
-  [data-landing] .why-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 42px; }
-  [data-landing] .why-card { background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(214, 210, 205, 0.5); border-radius: 20px; padding: 28px 26px; box-shadow: 0 20px 44px rgba(40, 35, 28, 0.06), 0 3px 12px rgba(40, 35, 28, 0.04); }
-  [data-landing] .why-ico { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #fef7af; color: #1d1d1d; }
-  [data-landing] .why-ico svg { width: 22px; height: 22px; stroke-width: 1.9; }
-  [data-landing] .why-title { margin-top: 18px; font-family: 'Albert Sans', sans-serif; font-size: 21px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.2; color: #1a1a1a; }
-  [data-landing] .why-body { margin-top: 10px; font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 400; line-height: 1.55; letter-spacing: -0.015em; color: rgba(86, 82, 75, 0.86); }
+  [data-landing] .why-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 46px; }
+  [data-landing] .why-card { position: relative; overflow: hidden; background: linear-gradient(180deg, #fffdf9 0%, #faf7f0 100%); border: 1px solid rgba(214, 210, 205, 0.55); border-radius: 22px; padding-bottom: 26px; box-shadow: 0 18px 40px rgba(40, 35, 28, 0.07), 0 3px 12px rgba(40, 35, 28, 0.04); transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease; }
+  [data-landing] .why-card:hover { transform: translateY(-6px); box-shadow: 0 32px 60px rgba(40, 35, 28, 0.14), 0 4px 14px rgba(40, 35, 28, 0.05); }
+  [data-landing] .why-stage { position: relative; height: 148px; margin: 14px 14px 0; border-radius: 16px; overflow: hidden; background: radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 45%), linear-gradient(160deg, #f3efe7 0%, #ece7dd 100%); box-shadow: inset 0 0 0 1px rgba(214, 210, 205, 0.5); }
+  [data-landing] .why-stage-inner { position: absolute; inset: 0; padding: 16px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+  [data-landing] .why-chip { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 11px; background: rgba(255, 255, 255, 0.92); box-shadow: 0 6px 16px rgba(40, 35, 28, 0.08), inset 0 0 0 1px rgba(214, 210, 205, 0.5); }
+  [data-landing] .why-chip-hot { background: #fff; box-shadow: 0 10px 22px rgba(40, 35, 28, 0.1), inset 0 0 0 1px rgba(224, 168, 74, 0.4); }
+  [data-landing] .why-score { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: #7fae8c; color: #fff; font-family: 'Geist', sans-serif; font-size: 10.5px; font-weight: 800; flex: none; }
+  [data-landing] .why-score-b { background: #b9b3a7; }
+  [data-landing] .why-chip-n { font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: -0.01em; color: #1d1d1d; }
+  [data-landing] .why-chip-m { font-family: 'Geist', sans-serif; font-size: 9px; color: #a39d93; margin-top: 1px; }
+  [data-landing] .why-conn { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.92); box-shadow: 0 6px 16px rgba(40, 35, 28, 0.07), inset 0 0 0 1px rgba(214, 210, 205, 0.5); }
+  [data-landing] .why-av { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; color: #fff; font-family: 'Geist', sans-serif; font-size: 9px; font-weight: 700; flex: none; }
+  [data-landing] .why-conn-n { font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600; color: #1d1d1d; flex: 1; }
+  [data-landing] .why-conn-badge { display: inline-flex; align-items: center; gap: 4px; font-family: 'Geist', sans-serif; font-size: 8.5px; font-weight: 700; color: #1d7a52; background: rgba(127, 174, 140, 0.18); padding: 3px 7px; border-radius: 999px; }
+  [data-landing] .why-conn-badge svg { width: 9px; height: 9px; stroke-width: 3; }
+  [data-landing] .why-netcount { display: flex; align-items: center; gap: 8px; padding-left: 2px; }
+  [data-landing] .why-netcount .why-av { width: 22px; height: 22px; margin-left: -8px; box-shadow: 0 0 0 2px #f1ece3; }
+  [data-landing] .why-netcount .why-av:first-child { margin-left: 0; }
+  [data-landing] .why-netcount span { font-family: 'Geist', sans-serif; font-size: 10px; font-weight: 600; color: #6b655c; margin-left: 4px; }
+  [data-landing] .why-pipe { display: flex; align-items: center; padding: 0 4px; }
+  [data-landing] .why-pipe-dot { width: 13px; height: 13px; border-radius: 999px; flex: none; display: inline-flex; align-items: center; justify-content: center; background: #fff; box-shadow: inset 0 0 0 1.5px rgba(214, 210, 205, 0.8); }
+  [data-landing] .why-pipe-dot.done { background: #7fae8c; box-shadow: none; color: #fff; }
+  [data-landing] .why-pipe-dot.now { background: #e0a84a; box-shadow: 0 0 0 4px rgba(224, 168, 74, 0.2); }
+  [data-landing] .why-pipe-dot svg { width: 8px; height: 8px; stroke-width: 3.5; }
+  [data-landing] .why-pipe-line { height: 2px; flex: 1; background: rgba(214, 210, 205, 0.7); }
+  [data-landing] .why-pipe-line.done { background: #7fae8c; }
+  [data-landing] .why-pipe-labels { display: flex; justify-content: space-between; margin-top: 8px; padding: 0 2px; }
+  [data-landing] .why-pipe-labels span { font-family: 'Geist', sans-serif; font-size: 8px; font-weight: 600; color: #a39d93; }
+  [data-landing] .why-pipe-labels span.now { color: #b07d1f; }
+  [data-landing] .why-closed { margin-top: 14px; display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 11px; background: rgba(127, 174, 140, 0.13); box-shadow: inset 0 0 0 1px rgba(127, 174, 140, 0.3); }
+  [data-landing] .why-closed-ico { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: #7fae8c; color: #fff; flex: none; }
+  [data-landing] .why-closed-ico svg { width: 13px; height: 13px; stroke-width: 3; }
+  [data-landing] .why-closed b { font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 700; color: #1d1d1d; }
+  [data-landing] .why-closed span { font-family: 'Geist', sans-serif; font-size: 10px; color: #5f7d66; margin-left: auto; }
+  [data-landing] .why-text { padding: 20px 24px 0; }
+  [data-landing] .why-title { font-family: 'Albert Sans', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.2; color: #1a1a1a; }
+  [data-landing] .why-body { margin-top: 9px; font-family: 'Geist', sans-serif; font-size: 14.5px; font-weight: 400; line-height: 1.55; letter-spacing: -0.015em; color: rgba(86, 82, 75, 0.86); }
+
+  @media (max-width: 880px) {
+    [data-landing] .prob { grid-template-columns: 1fr; gap: 34px; }
+    [data-landing] .prob-card { max-width: 400px; }
+  }
   @media (max-width: 809.98px) {
     [data-landing] .why-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 30px; }
   }
@@ -1969,28 +2046,56 @@ const EXTRA_STYLE = `
 function ProblemSection() {
   return (
     <section id="problem" className="px-5 py-16 sm:px-8 sm:py-24">
-      <div className="fs-head" data-reveal>
-        <span className="sec-eyebrow">The problem we&rsquo;re solving</span>
-        <h2>
-          Selling isn&rsquo;t the hard part. Finding the replacement in{" "}
-          <span className="prob-emph">45 days</span> is.
-        </h2>
-        <p className="fs-sub">
-          Too often, investors struggle to identify suitable replacement properties inside the 45-day
-          identification window &mdash; creating unnecessary stress and missed opportunities. 1031 Exchange
-          Up helps investors, landlords, and agents connect, collaborate, and uncover replacement-property
-          opportunities more efficiently.
-        </p>
+      <div className="prob">
+        <div className="prob-copy" data-reveal>
+          <span className="sec-eyebrow"><span className="sec-eyebrow-dot" />The problem we&rsquo;re solving</span>
+          <h2>
+            Selling isn&rsquo;t the hard part. Finding the replacement in{" "}
+            <span className="prob-emph">45 days</span> is.
+          </h2>
+          <p>
+            The moment a sale closes, the clock starts. Investors get just 45 days to identify a
+            replacement &mdash; and too often the right one never surfaces in time, creating
+            unnecessary stress and missed opportunities. 1031 Exchange Up surfaces matched, off-market
+            replacements early, so the window works for you, not against you.
+          </p>
+          <div className="prob-stat"><b>45 days</b><span>to identify &mdash; or the tax deferral is lost.</span></div>
+        </div>
+
+        <div className="prob-card" data-reveal>
+          <div className="prob-card-head">
+            <span className="prob-card-title">Identification window</span>
+            <span className="prob-day"><span className="prob-day-dot" />Day 12 of 45</span>
+          </div>
+          <div className="prob-ring-wrap">
+            <svg viewBox="0 0 120 120" className="prob-ring-svg" aria-hidden="true">
+              <circle cx="60" cy="60" r="52" className="prob-ring-bg" />
+              <circle cx="60" cy="60" r="52" className="prob-ring-fg" />
+            </svg>
+            <div className="prob-ring-center">
+              <span className="prob-ring-num">33</span>
+              <span className="prob-ring-lbl">days left</span>
+            </div>
+          </div>
+          <div className="prob-slots-h"><span>Replacement candidates</span><span>1 of 3 identified</span></div>
+          <div className="prob-slot prob-slot-found">
+            <span className="prob-slot-ico"><Check /></span>
+            <div><div className="prob-slot-n">Harbor Point Office</div><div className="prob-slot-m">$4.2M · 6.8% cap · Boston</div></div>
+          </div>
+          <div className="prob-slot prob-slot-empty">
+            <span className="prob-slot-ico"><Plus /></span>
+            <div><div className="prob-slot-n">Still to identify</div></div>
+          </div>
+          <div className="prob-slot prob-slot-empty">
+            <span className="prob-slot-ico"><Plus /></span>
+            <div><div className="prob-slot-n">Still to identify</div></div>
+          </div>
+          <div className="prob-warn"><Calendar />Most investors run out of road right here.</div>
+        </div>
       </div>
     </section>
   );
 }
-
-const WHY_CALLOUTS = [
-  { Icon: Building2, title: "Find replacement properties", body: "Help clients identify potential exchange opportunities faster." },
-  { Icon: Users, title: "Grow your exchange network", body: "Connect with agents, investors, and industry professionals." },
-  { Icon: TrendingUp, title: "Close more 1031 transactions", body: "Create opportunities and provide more value to your clients." },
-];
 
 function WhyAgentsJoinSection() {
   return (
@@ -2004,13 +2109,80 @@ function WhyAgentsJoinSection() {
           </p>
         </div>
         <div className="why-grid" data-reveal>
-          {WHY_CALLOUTS.map((c) => (
-            <div key={c.title} className="why-card">
-              <span className="why-ico"><c.Icon /></span>
-              <h3 className="why-title">{c.title}</h3>
-              <p className="why-body">{c.body}</p>
+
+          <div className="why-card">
+            <div className="why-stage">
+              <div className="why-stage-inner">
+                <div className="why-chip why-chip-hot fs-anim" style={{ "--i": 0 } as CSSProperties}>
+                  <span className="why-score">94</span>
+                  <div><div className="why-chip-n">Harbor Point Office</div><div className="why-chip-m">$4.2M · 6.8% cap</div></div>
+                </div>
+                <div className="why-chip fs-anim" style={{ "--i": 1 } as CSSProperties}>
+                  <span className="why-score why-score-b">88</span>
+                  <div><div className="why-chip-n">Back Bay Retail</div><div className="why-chip-m">$3.75M · 7.2% cap</div></div>
+                </div>
+              </div>
             </div>
-          ))}
+            <div className="why-text">
+              <h3 className="why-title">Find replacement properties</h3>
+              <p className="why-body">Surface matched, off-market replacements for your clients faster &mdash; before they ever hit the open market.</p>
+            </div>
+          </div>
+
+          <div className="why-card">
+            <div className="why-stage">
+              <div className="why-stage-inner">
+                <div className="why-conn fs-anim" style={{ "--i": 0 } as CSSProperties}>
+                  <span className="why-av" style={{ background: "#8a86bf" }}>JW</span>
+                  <span className="why-conn-n">James Wilson</span>
+                  <span className="why-conn-badge"><Check />Connected</span>
+                </div>
+                <div className="why-conn fs-anim" style={{ "--i": 1 } as CSSProperties}>
+                  <span className="why-av" style={{ background: "#7fae8c" }}>AR</span>
+                  <span className="why-conn-n">Ana Reyes</span>
+                  <span className="why-conn-badge"><Check />Connected</span>
+                </div>
+                <div className="why-netcount fs-anim" style={{ "--i": 2 } as CSSProperties}>
+                  <span className="why-av" style={{ background: "#d6a868" }}>KP</span>
+                  <span className="why-av" style={{ background: "#cf877b" }}>MT</span>
+                  <span className="why-av" style={{ background: "#7ea7bd" }}>+9</span>
+                  <span>in your network</span>
+                </div>
+              </div>
+            </div>
+            <div className="why-text">
+              <h3 className="why-title">Grow your exchange network</h3>
+              <p className="why-body">Build direct relationships with exchange-focused agents, investors, and the professionals who close deals.</p>
+            </div>
+          </div>
+
+          <div className="why-card">
+            <div className="why-stage">
+              <div className="why-stage-inner">
+                <div className="fs-anim" style={{ "--i": 0 } as CSSProperties}>
+                  <div className="why-pipe">
+                    <span className="why-pipe-dot done"><Check /></span>
+                    <span className="why-pipe-line done" />
+                    <span className="why-pipe-dot done"><Check /></span>
+                    <span className="why-pipe-line done" />
+                    <span className="why-pipe-dot now" />
+                    <span className="why-pipe-line" />
+                    <span className="why-pipe-dot" />
+                  </div>
+                  <div className="why-pipe-labels"><span>Match</span><span>Connect</span><span className="now">Offer</span><span>Closed</span></div>
+                </div>
+                <div className="why-closed fs-anim" style={{ "--i": 1 } as CSSProperties}>
+                  <span className="why-closed-ico"><Check /></span>
+                  <b>$4.2M deal closed</b><span>+ fee</span>
+                </div>
+              </div>
+            </div>
+            <div className="why-text">
+              <h3 className="why-title">Close more 1031 transactions</h3>
+              <p className="why-body">Turn early access into more deals at the table &mdash; and more value delivered to every client you represent.</p>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
