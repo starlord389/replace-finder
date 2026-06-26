@@ -1,0 +1,1 @@
+DELETE FROM auth.users WHERE email = 'forge-test-271786626@example.com';
