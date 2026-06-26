@@ -589,7 +589,7 @@ const HIW_STEPS = [
   {
     num: "01",
     title: "Create your profile",
-    body: "Join a network of agents, investors, and landlords focused on 1031 exchange opportunities.",
+    body: "Join a network of real estate agents, investors, and landlords focused on 1031 exchange opportunities.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
@@ -610,7 +610,7 @@ const HIW_STEPS = [
   {
     num: "02",
     title: "Add properties & exchange criteria",
-    body: "Share available properties and what your clients are looking for in a replacement.",
+    body: "Share available properties and what your clients are looking for in a replacement property.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
@@ -652,7 +652,7 @@ const HIW_STEPS = [
   {
     num: "04",
     title: "Create more opportunities",
-    body: "Help clients discover replacements, build relationships, and complete more successful exchanges.",
+    body: "Help clients discover replacement properties, build relationships, and complete more successful exchanges.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
