@@ -1,0 +1,1 @@
+DELETE FROM auth.users WHERE email IN ('privesc-test-730211815@example.com','sec-probe-456011662@example.com','leak-verify-560799433@example.com');
