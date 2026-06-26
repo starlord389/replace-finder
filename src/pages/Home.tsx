@@ -588,8 +588,29 @@ function LogoMarquee() {
 const HIW_STEPS = [
   {
     num: "01",
-    title: "Add your client's property",
-    body: "Enter the property your client currently holds. It anchors every replacement the system scores.",
+    title: "Create your profile",
+    body: "Join a network of agents, investors, and landlords focused on 1031 exchange opportunities.",
+    preview: (
+      <div className="hiw-pv">
+        <div className="hiw-pv-glass">
+          <div className="hiw-pv-title">Your profile</div>
+          <div className="hiw-pv-sub">Verified agent</div>
+          <div className="hiw-pv-field">
+            <label>Brokerage</label>
+            <div className="hiw-pv-input">Compass · Boston, MA</div>
+          </div>
+          <div className="hiw-pv-field">
+            <label>Focus</label>
+            <div className="hiw-pv-input hiw-pv-hl">1031 exchange replacements</div>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    num: "02",
+    title: "Add properties & exchange criteria",
+    body: "Share available properties and what your clients are looking for in a replacement.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
@@ -608,9 +629,9 @@ const HIW_STEPS = [
     ),
   },
   {
-    num: "02",
-    title: "Filter and find your match",
-    body: "Filter by ROI target, location, asset type, or cap rate. Every property in the network is auto-scored against your client's exchange.",
+    num: "03",
+    title: "Get matched",
+    body: "Our platform identifies potential exchange opportunities and connects qualified parties.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
@@ -629,9 +650,9 @@ const HIW_STEPS = [
     ),
   },
   {
-    num: "03",
-    title: "Connect and offer",
-    body: "Open a direct line with the listing agent, submit an offer, and move to contract.",
+    num: "04",
+    title: "Create more opportunities",
+    body: "Help clients discover replacements, build relationships, and complete more successful exchanges.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
@@ -1928,6 +1949,74 @@ function FinalCta() {
 
 /* ───────────────────────── Page ───────────────────────── */
 
+/* ───────── The problem + why-agents-join sections (added per brand brief) ───────── */
+
+const EXTRA_STYLE = `
+  [data-landing] .sec-eyebrow { display: inline-flex; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #1d1d1d; background: #fef7af; padding: 7px 13px; border-radius: 999px; line-height: 1; margin-bottom: 18px; }
+  [data-landing] .prob-emph { color: #1d1d1d; box-shadow: inset 0 -0.5em 0 #fef7af; }
+  [data-landing] .why { width: min(1040px, 100%); margin: 0 auto; }
+  [data-landing] .why-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 42px; }
+  [data-landing] .why-card { background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(214, 210, 205, 0.5); border-radius: 20px; padding: 28px 26px; box-shadow: 0 20px 44px rgba(40, 35, 28, 0.06), 0 3px 12px rgba(40, 35, 28, 0.04); }
+  [data-landing] .why-ico { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #fef7af; color: #1d1d1d; }
+  [data-landing] .why-ico svg { width: 22px; height: 22px; stroke-width: 1.9; }
+  [data-landing] .why-title { margin-top: 18px; font-family: 'Albert Sans', sans-serif; font-size: 21px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.2; color: #1a1a1a; }
+  [data-landing] .why-body { margin-top: 10px; font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 400; line-height: 1.55; letter-spacing: -0.015em; color: rgba(86, 82, 75, 0.86); }
+  @media (max-width: 809.98px) {
+    [data-landing] .why-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 30px; }
+  }
+`;
+
+function ProblemSection() {
+  return (
+    <section id="problem" className="px-5 py-16 sm:px-8 sm:py-24">
+      <div className="fs-head" data-reveal>
+        <span className="sec-eyebrow">The problem we&rsquo;re solving</span>
+        <h2>
+          Selling isn&rsquo;t the hard part. Finding the replacement in{" "}
+          <span className="prob-emph">45 days</span> is.
+        </h2>
+        <p className="fs-sub">
+          Too often, investors struggle to identify suitable replacement properties inside the 45-day
+          identification window &mdash; creating unnecessary stress and missed opportunities. 1031 Exchange
+          Up helps investors, landlords, and agents connect, collaborate, and uncover replacement-property
+          opportunities more efficiently.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+const WHY_CALLOUTS = [
+  { Icon: Building2, title: "Find replacement properties", body: "Help clients identify potential exchange opportunities faster." },
+  { Icon: Users, title: "Grow your exchange network", body: "Connect with agents, investors, and industry professionals." },
+  { Icon: TrendingUp, title: "Close more 1031 transactions", body: "Create opportunities and provide more value to your clients." },
+];
+
+function WhyAgentsJoinSection() {
+  return (
+    <section id="why-agents" className="px-5 py-16 sm:px-8 sm:py-24">
+      <div className="why">
+        <div className="fs-head" data-reveal>
+          <h2>Why real estate agents join</h2>
+          <p className="fs-sub">
+            More business, a stronger network, and a clearer path to closing the exchange &mdash; for you
+            and your clients.
+          </p>
+        </div>
+        <div className="why-grid" data-reveal>
+          {WHY_CALLOUTS.map((c) => (
+            <div key={c.title} className="why-card">
+              <span className="why-ico"><c.Icon /></span>
+              <h3 className="why-title">{c.title}</h3>
+              <p className="why-body">{c.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const rootRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
@@ -1991,14 +2080,17 @@ export default function Home() {
       <style>{ROE_STYLE}</style>
       <style>{FAQ_STYLE}</style>
       <style>{CTA_STYLE}</style>
+      <style>{EXTRA_STYLE}</style>
       <div className="lp-bg" aria-hidden="true" />
       <div className="lp-grain" aria-hidden="true" />
       <div className="lp-content">
         <Hero />
         <LogoMarquee />
+        <ProblemSection />
         <HowItWorks />
         <FeaturesSection />
         <IntegrationsSection />
+        <WhyAgentsJoinSection />
         <PricingSection />
         <RoeCalculator />
         <FaqSection />
