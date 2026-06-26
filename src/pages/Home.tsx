@@ -631,7 +631,7 @@ const HIW_STEPS = [
   {
     num: "03",
     title: "Get Matched",
-    body: "Our platform identifies potential exchange opportunities and connects qualified parties, helping clients discover replacement properties, build relationships, and complete more successful exchanges.",
+    body: "Our platform identifies potential exchange opportunities and connects qualified parties — helping clients discover replacement properties, build relationships, and complete more successful exchanges.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
