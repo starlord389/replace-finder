@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
@@ -17,12 +18,14 @@ import { Button } from "@/components/ui/button";
 import { useAgentAttentionQuery } from "@/features/agent/hooks/useAgentAttentionQuery";
 import type { AgentAttentionData } from "@/features/agent/hooks/useAgentAttentionQuery";
 import { useAgentExchangesQuery } from "@/features/agent/hooks/useAgentExchangesQuery";
+import { useAgentListings, type AgentListing } from "@/features/pipeline/hooks/useAgentListings";
 import { useAgentClientsCount } from "@/features/agent/hooks/useAgentClientsCount";
 import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
 import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRelationships";
 import { deriveUiStatus } from "@/features/matches/components/inbox/inboxHelpers";
 import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/matches/components/inbox/useMatchLocalState";
 import { DemoDataControls } from "@/features/workspace/components/DemoDataControls";
+import { ListingPreviewDialog } from "@/features/workspace/components/ListingPreviewDialog";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { getAgentVerificationUiState } from "@/lib/agentVerification";
 
@@ -268,6 +271,12 @@ export default function AgentDashboard() {
   const { data: clientCount = 0, isLoading: clientsLoading } = useAgentClientsCount(user?.id);
   const { data: relationships = [], isLoading: relsLoading } = useUnifiedRelationships();
   const { data: launchpadProgress, isLoading: launchpadLoading } = useAgentLaunchpadProgress(user?.id);
+  const { data: agentListings = [] } = useAgentListings(user?.id);
+  const listingById = useMemo(
+    () => new Map(agentListings.map((l) => [l.id, l])),
+    [agentListings],
+  );
+  const [previewListing, setPreviewListing] = useState<AgentListing | null>(null);
 
   const verificationUi = getAgentVerificationUiState(agentVerificationStatus);
   const launchpadIncomplete =
@@ -572,7 +581,6 @@ export default function AgentDashboard() {
                     const state = e.pledged_properties?.state ?? null;
                     const location = [city, state].filter(Boolean).join(", ");
                     const price = fmtPrice(e.exchange_proceeds);
-                    const target = `/agent/matches?listing=${e.id}`;
                     return (
                       <li
                         key={e.id}
@@ -595,10 +603,32 @@ export default function AgentDashboard() {
                             {price ? ` · ${price}` : ""}
                           </p>
                         </div>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={target}>
-                            Open <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                          </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setPreviewListing(
+                              listingById.get(e.id) ?? {
+                                id: e.id,
+                                status: e.status,
+                                createdAt: e.created_at,
+                                clientId: e.client_id,
+                                clientName: e.agent_clients?.client_name ?? null,
+                                propertyId: e.relinquished_property_id,
+                                propertyName: e.pledged_properties?.address ?? null,
+                                address: e.pledged_properties?.address ?? null,
+                                city: e.pledged_properties?.city ?? null,
+                                state: e.pledged_properties?.state ?? null,
+                                assetType: null,
+                                strategyType: null,
+                                askingPrice: null,
+                                pipelineStageOverride: null,
+                                coverUrl: null,
+                              },
+                            )
+                          }
+                        >
+                          Open <ArrowRight className="ml-1 h-3.5 w-3.5" />
                         </Button>
                       </li>
                     );
@@ -607,6 +637,14 @@ export default function AgentDashboard() {
               </CardContent>
             </Card>
           )}
+
+          <ListingPreviewDialog
+            listing={previewListing}
+            open={!!previewListing}
+            onOpenChange={(o) => {
+              if (!o) setPreviewListing(null);
+            }}
+          />
 
           {/* Empty onboarding */}
           {!hasAnyExchange && (
