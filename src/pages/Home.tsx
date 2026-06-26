@@ -2279,10 +2279,10 @@ export default function Home() {
       <div className="lp-content">
         <Hero />
         <LogoMarquee />
-        <ProblemSection />
-        <WhyAgentsJoinSection />
         <HowItWorks />
         <FeaturesSection />
+        <ProblemSection />
+        <WhyAgentsJoinSection />
         <IntegrationsSection />
         <PricingSection />
         <RoeCalculator />
