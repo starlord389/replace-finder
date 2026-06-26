@@ -370,6 +370,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "exchange_connections_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "exchange_connections_seller_exchange_id_fkey"
             columns: ["seller_exchange_id"]
             isOneToOne: false
@@ -555,6 +562,13 @@ export type Database = {
             columns: ["match_id"]
             isOneToOne: false
             referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "identification_list_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches_secure"
             referencedColumns: ["id"]
           },
           {
@@ -1500,6 +1514,62 @@ export type Database = {
       }
     }
     Views: {
+      matches_secure: {
+        Row: {
+          asset_score: number | null
+          boot_status: Database["public"]["Enums"]["boot_status"] | null
+          buyer_agent_viewed: boolean | null
+          buyer_agent_viewed_at: string | null
+          buyer_current_roe: number | null
+          buyer_exchange_id: string | null
+          candidate_annual_debt_service: number | null
+          candidate_roe: number | null
+          created_at: string | null
+          debt_fit_score: number | null
+          estimated_boot_tax: number | null
+          estimated_cash_boot: number | null
+          estimated_mortgage_boot: number | null
+          estimated_total_boot: number | null
+          financial_score: number | null
+          geo_score: number | null
+          id: string | null
+          price_score: number | null
+          roe_improvement_pp: number | null
+          roe_improvement_rel: number | null
+          scale_fit_score: number | null
+          seller_agent_viewed: boolean | null
+          seller_agent_viewed_at: string | null
+          seller_property_id: string | null
+          status: string | null
+          strategy_score: number | null
+          timing_score: number | null
+          total_score: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_buyer_exchange_id_fkey"
+            columns: ["buyer_exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_seller_property_id_fkey"
+            columns: ["seller_property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_seller_property_id_fkey"
+            columns: ["seller_property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pledged_properties_secure: {
         Row: {
           address: string | null
