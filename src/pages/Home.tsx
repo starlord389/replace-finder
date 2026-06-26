@@ -631,7 +631,7 @@ const HIW_STEPS = [
   {
     num: "03",
     title: "Get Matched",
-    body: "Our platform identifies potential exchange opportunities and connects qualified parties.",
+    body: "Our platform identifies potential exchange opportunities and connects qualified parties, helping clients discover replacement properties, build relationships, and complete more successful exchanges.",
     preview: (
       <div className="hiw-pv">
         <div className="hiw-pv-glass">
@@ -644,24 +644,6 @@ const HIW_STEPS = [
           <div className="hiw-pv-match">
             <span className="hiw-pv-score">88</span>
             <div><div className="hiw-pv-mt">Back Bay Retail</div><div className="hiw-pv-mm">$3.75M · Newton, MA</div></div>
-          </div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    num: "04",
-    title: "Create More Opportunities",
-    body: "Help clients discover replacement properties, build relationships, and complete more successful exchanges.",
-    preview: (
-      <div className="hiw-pv">
-        <div className="hiw-pv-glass">
-          <div className="hiw-pv-title">Private connection</div>
-          <div className="hiw-pv-sub">With Alex Chen</div>
-          <div className="hiw-pv-chat">Financials attached. Open to offers.</div>
-          <div className="hiw-pv-offer">
-            <div className="hiw-pv-offer-label">Offer submitted</div>
-            <div className="hiw-pv-offer-row"><b>$4.15M</b><span className="hiw-pv-sent">Sent</span></div>
           </div>
         </div>
       </div>
