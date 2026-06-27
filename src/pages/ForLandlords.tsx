@@ -133,6 +133,10 @@ const FL_STYLE = `
     box-shadow: 0 0 0 0 rgba(217,167,42,0.55); animation: flDot 2.1s ease-out infinite;
   }
   @keyframes flDot { 0% { box-shadow: 0 0 0 0 rgba(217,167,42,0.5); } 70%, 100% { box-shadow: 0 0 0 6px rgba(217,167,42,0); } }
+  /* The shared .lp-h2 reset sets margin:0 and out-specifies Tailwind's mt-*,
+     so the eyebrow -> headline gap must be set here (higher specificity). */
+  [data-landing] .fl-eyebrow + .lp-h2,
+  [data-landing] .fl-faq-pill + .lp-h2 { margin-top: 30px; }
   [data-landing] .fl-sub {
     margin: 18px 0 0; font-family: 'Geist', sans-serif; font-size: 16px; font-weight: 400;
     line-height: 1.55; letter-spacing: -0.02em; color: rgba(86,82,75,0.86);
@@ -399,7 +403,7 @@ const ROE_STYLE = `
   [data-landing] .roe { width: min(1040px, 100%); margin: 0 auto; }
   [data-landing] .roe-grid { display: grid; grid-template-columns: minmax(0, 0.86fr) minmax(0, 1fr); gap: 56px; align-items: center; }
   [data-landing] .roe-left { max-width: 440px; }
-  [data-landing] .roe-left h2 { margin: 26px 0 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(28px, 3.6vw, 44px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.06; color: #171717; }
+  [data-landing] .roe-left h2 { margin: 30px 0 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(28px, 3.6vw, 44px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.06; color: #171717; }
   [data-landing] .roe-sub { margin: 18px 0 0; font-family: 'Geist', sans-serif; font-size: 16px; font-weight: 400; line-height: 1.5; letter-spacing: -0.02em; color: rgba(86,82,75,0.86); }
   [data-landing] .roe-cta { margin-top: 26px; }
   [data-landing] .roe-steps { list-style: none; margin: 30px 0 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
