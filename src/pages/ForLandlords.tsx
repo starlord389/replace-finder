@@ -399,7 +399,7 @@ const ROE_STYLE = `
   [data-landing] .roe { width: min(1040px, 100%); margin: 0 auto; }
   [data-landing] .roe-grid { display: grid; grid-template-columns: minmax(0, 0.86fr) minmax(0, 1fr); gap: 56px; align-items: center; }
   [data-landing] .roe-left { max-width: 440px; }
-  [data-landing] .roe-left h2 { margin: 16px 0 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(28px, 3.6vw, 44px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.06; color: #171717; }
+  [data-landing] .roe-left h2 { margin: 26px 0 0; font-family: 'Albert Sans', sans-serif; font-size: clamp(28px, 3.6vw, 44px); font-weight: 400; letter-spacing: -0.04em; line-height: 1.06; color: #171717; }
   [data-landing] .roe-sub { margin: 18px 0 0; font-family: 'Geist', sans-serif; font-size: 16px; font-weight: 400; line-height: 1.5; letter-spacing: -0.02em; color: rgba(86,82,75,0.86); }
   [data-landing] .roe-cta { margin-top: 26px; }
   [data-landing] .roe-steps { list-style: none; margin: 30px 0 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
@@ -470,7 +470,7 @@ function SectionHead({ eyebrow, title, sub, align = "left", titleMaxWidth }: {
   return (
     <div data-reveal className={align === "center" ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
       <span className="fl-eyebrow">{eyebrow}</span>
-      <h2 className="lp-h2 mt-5" style={titleMaxWidth ? ({ maxWidth: titleMaxWidth, ...(align === "center" ? { marginInline: "auto" } : {}) } as CSSProperties) : undefined}>
+      <h2 className="lp-h2 mt-7" style={titleMaxWidth ? ({ maxWidth: titleMaxWidth, ...(align === "center" ? { marginInline: "auto" } : {}) } as CSSProperties) : undefined}>
         {title}
       </h2>
       {sub ? <p className="fl-sub">{sub}</p> : null}
@@ -547,7 +547,7 @@ function ProblemSection() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
         <div data-reveal>
           <span className="fl-eyebrow">The quiet problem</span>
-          <h2 className="lp-h2 mt-5" style={{ maxWidth: 460 }}>Your building is doing fine. Your equity might not be.</h2>
+          <h2 className="lp-h2 mt-7" style={{ maxWidth: 460 }}>Your building is doing fine. Your equity might not be.</h2>
           <p className="fl-sub max-w-[30rem]">
             You don't have a building problem — you have a redeployment problem. Years of appreciation and
             paydown have locked more value in the property than the day you bought it, but the income rarely
@@ -902,7 +902,7 @@ function FaqSection() {
       <div className="mx-auto max-w-3xl">
         <div data-reveal className="text-center">
           <span className="fl-faq-pill"><span className="fl-live" />Free · private · no obligation</span>
-          <h2 className="lp-h2 mt-5" style={{ marginInline: "auto", maxWidth: 520 }}>The questions a careful owner asks first.</h2>
+          <h2 className="lp-h2 mt-7" style={{ marginInline: "auto", maxWidth: 520 }}>The questions a careful owner asks first.</h2>
           <p className="fl-sub" style={{ marginInline: "auto", maxWidth: 420 }}>No spin. If the honest answer is no, we say no.</p>
         </div>
         <div className="fl-faq-list" data-reveal>
@@ -1037,7 +1037,7 @@ export default function ForLandlords() {
             <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <div>
                 <span className="fl-eyebrow">Get connected</span>
-                <h2 className="lp-h2 mt-5" style={{ maxWidth: 360 }}>Tell us about your property — in confidence.</h2>
+                <h2 className="lp-h2 mt-7" style={{ maxWidth: 360 }}>Tell us about your property — in confidence.</h2>
                 <p className="fl-sub max-w-[26rem]">
                   Six fields, about two minutes. We'll match you with one vetted, licensed agent who works
                   your market and closes 1031 buyers — usually within one business day. No listing, no fee,
