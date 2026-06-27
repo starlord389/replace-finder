@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState, type CSSProperties } from "react";
 import {
-  ArrowRight, BadgeCheck, CheckCircle2, ChevronDown, EyeOff, Loader2, Lock, Plus,
+  ArrowRight, BadgeCheck, Check, CheckCircle2, ChevronDown, EyeOff, Loader2, Lock,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,29 +11,45 @@ import {
 /* ───────────────────────────── Content ───────────────────────────── */
 
 const HERO = {
-  eyebrow: "For commercial property owners",
-  headline: "Sell your property and find your replacement.",
+  eyebrow: "For property owners & 1031 exchangers",
+  headline: "Find your replacement before the 45-day clock beats you.",
   subheadline:
-    "That's the hard part of a 1031 exchange — selling for the most, then reinvesting before the clock runs out. We're the off-market network for both sides: motivated buyers for the property you're selling, and replacement properties for the one you're buying. Tell us what you're working on and we'll connect you, free and in confidence, with a licensed agent who handles both.",
+    "The hardest part of a 1031 isn't selling — it's finding the right replacement before the identification window closes and the gain gets taxed. We surface off-market replacements matched and scored to your exact criteria, before they ever list. And when you're ready to sell the property you're leaving, the same agent handles that half too. Tell us where you are and we'll connect you, free and in confidence.",
 };
 
-/* Hero detail-card buyers — each carries a live countdown ring (daysLeft / 180). */
-const HERO_BUYERS = [
-  { name: "Cash buyer · office → retail", daysLeft: 42, hot: true, color: "#cf877b" },
-  { name: "1031 buyer · multifamily", daysLeft: 68, hot: false, color: "#7ea7bd" },
+/* Hero match card — an off-market replacement scored to the exchanger's criteria. */
+const HERO_CRITERIA = [
+  { label: "Asset type", val: "Industrial" },
+  { label: "Geography", val: "Reno metro" },
+  { label: "Target return", val: "7.2% / 7%" },
 ] as const;
 
-const PROBLEM_CHIPS = [
-  { title: "Equity grows", body: "Appreciation and loan paydown leave far more value locked in the building than the day you bought it." },
-  { title: "Income lags", body: "Rents rarely keep pace with that growing equity, so the real percentage return on what you own keeps slipping." },
-  { title: "Tax keeps you stuck", body: "Selling outright can mean a capital-gains hit big enough that doing nothing feels safer. A 1031 exchange is the way around it." },
+/* Scramble — the 45-day identification window, made literal. */
+const SCRAMBLE_CHIPS = [
+  { n: "45", unit: "days to identify", body: "From the day your sale closes, you have 45 days to name your replacement in writing." },
+  { n: "3", unit: "properties max", body: "The IRS identification cap — so every property you name has to count." },
+  { n: "0", unit: "do-overs", body: "The list is final once filed. Miss it, or fail to close in 180, and the gain is taxed." },
 ] as const;
 
+/* Scored off-market replacement matches (the centerpiece feed). */
+const MATCH_CARDS = [
+  { name: "Cedar Point Industrial", loc: "Reno, NV", price: "$2.8–3.4M", score: 96, hot: true, photo: "/landing-prop-industrial.jpg", crit: ["Industrial", "Sun Belt", "$2.8–3.4M", "7%+ return"] },
+  { name: "Stonebridge Flex Park", loc: "Boise, ID", price: "$3.1M", score: 91, hot: false, photo: "/landing-prop-retail.jpg", crit: ["Flex space", "Mountain West", "Sub-$3.5M", "6.8% return"] },
+  { name: "Harbor Logistics Center", loc: "Tucson, AZ", price: "$2.9M", score: 84, hot: false, photo: "/landing-prop-office.jpg", crit: ["Logistics", "Sun Belt", "$2.9M", "6.5% return"] },
+] as const;
+
+const MATCH_POINTS = [
+  { title: "Your criteria, exactly", body: "Asset type, market, price band, the return you're targeting. The match is built from what you actually need — not whatever happens to be listed." },
+  { title: "Scored, not scrolled", body: "Each off-market property is scored against your criteria and ranked, so you start from the few that fit instead of sifting hundreds that don't." },
+  { title: "Surfaced first", body: "Matches reach you before the property is ever publicly listed — when there's still room to move, and before the deadline crowd arrives." },
+] as const;
+
+/* Sell side — Act Two. The motivated, on-the-clock 1031 buyer. */
 const BUYER_POINTS = [
   {
     badge: "45 / 180",
     title: "A deadline, not a whim",
-    body: "45 days to identify, 180 to close. Miss it and the tax bill lands. That deadline is the IRS's, not yours — it just happens to work in your favor.",
+    body: "45 days to identify, 180 to close. The buyer's clock is the IRS's, not yours — it just happens to put motivated money across the table from you.",
   },
   {
     badge: "Cash in escrow",
@@ -50,11 +66,11 @@ const BUYER_POINTS = [
 const TRUST_POINTS = [
   {
     title: "Agents-only, by law — not by gimmick",
-    body: "Real estate law reserves marketing, transacting, and referral fees for licensed agents. The limitation is the whole design, not a catch buried in the terms — so we connect you to one rather than working around it.",
+    body: "Real estate law reserves marketing, sourcing, transacting, and referral fees for licensed agents. The limitation is the whole design, not a catch buried in the terms — so we connect you to one rather than working around it.",
   },
   {
     title: "Hand-matched, never auctioned",
-    body: "Every agent is licensed and verified. You get the one who works your market and your asset type — not whoever bid highest for the lead. Your details are never resold.",
+    body: "Every agent is licensed and verified. You get the one who works your market and your asset type and closes 1031s for a living — not whoever bid highest for the lead. Your details are never resold.",
   },
   {
     title: "Free, private, no obligation",
@@ -65,43 +81,47 @@ const TRUST_POINTS = [
 const HOW_STEPS = [
   {
     step: "01",
-    title: "Tell us about your property",
-    body: "Six fields, about two minutes: where it is, what type, and a ballpark value. No documents, no obligation, no account. Just enough to route you to the right person.",
+    title: "Tell us about your exchange",
+    body: "Six fields, about two minutes: where you are in the exchange, what you're looking for or selling, location, type, ballpark value. No documents, no account, no obligation.",
   },
   {
     step: "02",
     title: "We hand-match your agent",
-    body: "Not a lead auction. We pair you with one vetted, licensed agent who works your market and your asset class and closes 1031 buyers for a living. They reach out to understand your goals — usually within one business day.",
+    body: "Not a lead auction. One vetted, licensed agent who works your market and asset class and lives in 1031 deadlines. They reach out, usually within one business day.",
   },
   {
     step: "03",
-    title: "Your property meets the buyers",
-    body: "Your agent quietly represents it to matched 1031 buyers in the network, where it's auto-scored against every active buyer's exact criteria. You decide if, when, and how it ever goes wider.",
+    title: "They work both halves",
+    body: "Your agent surfaces matched, scored off-market replacements inside your window — and quietly shows the property you're leaving to motivated 1031 buyers. You set the pace.",
   },
 ] as const;
 
 const ROE_STEPS = [
   { n: "01", title: "See your real return on equity", body: "Not cap rate, not cash-on-cash — what your actual trapped equity earns per year, as a percentage, at today's value." },
-  { n: "02", title: "Measure it against ~8%", body: "A simple, honest benchmark for whether your equity is pulling its weight or coasting in appreciated walls." },
-  { n: "03", title: "See the tax-deferred upside", body: "An estimate of the additional annual income the same equity could produce in a stronger replacement — with the full gain still working, untaxed." },
+  { n: "02", title: "Measure it against ~8%", body: "A simple, honest benchmark for whether your equity is pulling its weight or just coasting in appreciated walls." },
+  { n: "03", title: "See the tax-deferred upside", body: "An estimate of the additional annual income the same equity could produce in a stronger replacement — full gain still working, untaxed." },
 ] as const;
 
 const FAQS = [
   {
-    q: "What's the catch — why is this free for me?",
-    a: "Agents pay to be in the network; owners never do. We're paid by the professional side, so the introduction costs you nothing and carries no obligation. If your property isn't a fit, the honest outcome is simply that we tell you.",
+    q: "Can you really find me a replacement inside 45 days?",
+    a: "That's the network's whole reason to exist. A vetted 1031 agent surfaces off-market properties matched and scored to your criteria — asset type, geography, price, return — so you're choosing from real fits inside the window instead of trawling public listings. We can't promise a specific building, but we put the right options in front of you fast, which is exactly where most exchangers lose.",
   },
   {
-    q: "Will my building be listed publicly?",
-    a: "Not unless you choose to. It can start entirely off-market, shown only to matched buyers. Your agent advises if and when going wider makes sense — it's always your decision. Tenants, competitors, and lenders learn nothing until you say so.",
+    q: "What's the catch — why is this free for me?",
+    a: "Agents pay to be in the network; owners never do. We're paid by the professional side, so the introduction costs you nothing and carries no obligation. If your exchange isn't a fit, the honest outcome is simply that we tell you.",
+  },
+  {
+    q: "Will my building be listed publicly when I sell?",
+    a: "Not unless you choose to. It can start entirely off-market, shown only to matched 1031 buyers. Your agent advises if and when going wider makes sense — always your decision. Tenants, competitors, and lenders learn nothing until you say so.",
   },
   {
     q: "What happens to my information?",
     a: "It goes only to the one vetted agent we match you with, so they can reach out. We don't sell your details, post them publicly, or blast them to a buyer pool.",
   },
   {
-    q: "Am I committing to sell?",
-    a: "Not at all. There's no listing agreement and no commitment. Many owners start just curious what their building could fetch or whether their equity is working. You can take the conversation as far — or as little — as you like, and stop at any point.",
+    q: "Am I committing to anything?",
+    a: "Not at all. No listing agreement, no buy-side mandate, no commitment. Many owners start just curious what their building could fetch or whether their equity is working. You take the conversation as far — or as little — as you like, and stop at any point.",
   },
   {
     q: "Why can't I just join the network myself?",
@@ -110,8 +130,8 @@ const FAQS = [
 ] as const;
 
 const FORM_BENEFITS = [
+  "Off-market replacement inventory, matched to your criteria",
   "Free for owners — no fees, ever",
-  "No listing agreement, no obligation to sell",
   "Hand-matched to one vetted agent, not a buyer pool",
   "Off-market by default — your details stay private",
 ] as const;
@@ -141,6 +161,11 @@ const FL_STYLE = `
     margin: 18px 0 0; font-family: 'Geist', sans-serif; font-size: 16px; font-weight: 400;
     line-height: 1.55; letter-spacing: -0.02em; color: rgba(86,82,75,0.86);
   }
+  [data-landing] .fl-mini { margin-top: 26px; display: flex; flex-direction: column; gap: 16px; padding: 0; }
+  [data-landing] .fl-mini li { list-style: none; display: flex; gap: 11px; }
+  [data-landing] .fl-mini i { margin-top: 7px; width: 6px; height: 6px; border-radius: 999px; background: #d9a72a; flex: none; }
+  [data-landing] .fl-mini b { font-family: 'Geist', sans-serif; font-size: 14.5px; font-weight: 600; color: #1f1d1a; letter-spacing: -0.01em; }
+  [data-landing] .fl-mini span { display: block; margin-top: 2px; font-family: 'Geist', sans-serif; font-size: 13px; line-height: 1.5; color: rgba(86,82,75,0.82); }
 
   /* ── Countdown rings (shared) ── */
   [data-landing] .fl-ring { display: block; transform: rotate(-90deg); }
@@ -162,6 +187,7 @@ const FL_STYLE = `
   [data-landing] .fl-pcard-main { position: relative; border-radius: 24px; padding: 16px 16px 18px; transform: rotate(-2.5deg); }
   [data-landing] .fl-pcard-photo { position: relative; height: 156px; border-radius: 16px; background-size: cover; background-position: center; }
   [data-landing] .fl-private { position: absolute; top: 10px; left: 10px; font-size: 10px; font-weight: 700; color: #fff; background: rgba(29,29,29,0.6); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 999px; }
+  [data-landing] .fl-pcard-clock { position: absolute; right: 10px; bottom: 10px; font-size: 9.5px; font-weight: 700; color: #5a4410; background: #fbeaa0; box-shadow: 0 0 0 1px rgba(227,168,46,0.45); padding: 4px 9px; border-radius: 999px; }
   [data-landing] .fl-pcard-name { margin-top: 14px; font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
   [data-landing] .fl-pcard-loc { margin-top: 3px; font-size: 12.5px; color: #8a847b; }
   [data-landing] .fl-pcard-row { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 13px; border-top: 1px solid rgba(0,0,0,0.07); font-size: 12px; font-weight: 600; color: #4a453d; }
@@ -169,46 +195,63 @@ const FL_STYLE = `
   [data-landing] .fl-live::after { content: ''; position: absolute; inset: 0; border-radius: 999px; background: #4fae6e; animation: flLive 1.9s ease-out infinite; }
   @keyframes flLive { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(2.7); opacity: 0; } }
 
-  [data-landing] .fl-pcard-detail { position: absolute; right: -3%; bottom: 0; width: 64%; border-radius: 18px; padding: 14px; transform: rotate(5deg); background: rgba(255,255,255,0.94); }
-  [data-landing] .fl-detail-head { display: flex; align-items: center; gap: 10px; }
-  [data-landing] .fl-detail-big { font-family: 'Albert Sans', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: #1d1d1d; }
-  [data-landing] .fl-detail-head b { display: block; font-size: 12px; font-weight: 700; letter-spacing: -0.01em; }
-  [data-landing] .fl-detail-head span { display: block; font-size: 10px; color: #8a847b; margin-top: 1px; }
-  [data-landing] .fl-buyers { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; }
-  [data-landing] .fl-buyer { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 11px; background: #f6f3ed; }
-  [data-landing] .fl-buyer.is-hot { background: #fbeaa0; }
-  [data-landing] .fl-buyer-ring { position: relative; width: 30px; height: 30px; flex: none; display: inline-flex; align-items: center; justify-content: center; }
-  [data-landing] .fl-buyer-ring span { position: absolute; inset: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; color: #8a6d12; }
-  [data-landing] .fl-buyer-main { flex: 1; min-width: 0; }
-  [data-landing] .fl-buyer-name { font-size: 9.5px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  [data-landing] .fl-buyer-clock { font-size: 8.5px; font-weight: 600; color: #8a6d12; margin-top: 1px; }
+  [data-landing] .fl-pcard-detail { position: absolute; right: -3%; bottom: 0; width: 66%; border-radius: 18px; padding: 15px; transform: rotate(5deg); background: rgba(255,255,255,0.94); }
+  [data-landing] .fl-match-head { display: flex; align-items: center; gap: 11px; }
+  [data-landing] .fl-match-ring { position: relative; width: 54px; height: 54px; flex: none; display: inline-flex; align-items: center; justify-content: center; }
+  [data-landing] .fl-match-ring > span { position: absolute; inset: 0; display: inline-flex; align-items: center; justify-content: center; font-family: 'Albert Sans', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -0.03em; color: #1a1a1a; }
+  [data-landing] .fl-match-meta b { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: -0.01em; }
+  [data-landing] .fl-match-meta i { display: block; font-style: normal; font-size: 10px; color: #8a847b; margin-top: 1px; }
+  [data-landing] .fl-match-rows { margin-top: 13px; display: flex; flex-direction: column; gap: 7px; }
+  [data-landing] .fl-match-row { display: flex; align-items: center; gap: 7px; }
+  [data-landing] .fl-match-check { width: 14px; height: 14px; border-radius: 999px; background: #7fae8c; color: #fff; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  [data-landing] .fl-match-check svg { width: 9px; height: 9px; stroke-width: 3.5; }
+  [data-landing] .fl-match-label { font-size: 9.5px; font-weight: 600; color: #6b665e; }
+  [data-landing] .fl-match-val { margin-left: auto; font-size: 9.5px; font-weight: 700; color: #1a1a1a; }
 
-  /* ── Problem: equity-drift chart ── */
-  [data-landing] .fl-drift {
-    position: relative; border-radius: 24px; background: #faf8f4; border: 1px solid rgba(0,0,0,0.04);
-    box-shadow: 0 12px 30px rgba(104,99,80,0.13); padding: 26px 26px 22px; overflow: hidden;
+  /* ── Scramble: 45-day identification timeline ── */
+  [data-landing] .fl-timeline {
+    border-radius: 24px; background: #faf8f4; border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 12px 30px rgba(104,99,80,0.13); padding: 38px 26px 24px;
   }
-  [data-landing] .fl-drift-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
-  [data-landing] .fl-drift-legend { display: flex; gap: 16px; }
-  [data-landing] .fl-drift-leg { display: inline-flex; align-items: center; gap: 6px; font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600; color: #6b665e; }
-  [data-landing] .fl-drift-leg i { width: 14px; height: 3px; border-radius: 999px; display: inline-block; }
-  [data-landing] .fl-drift-svg { width: 100%; height: auto; display: block; }
-  [data-landing] .fl-drift-line { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: var(--len); stroke-dashoffset: var(--len); }
-  [data-landing] [data-reveal].is-visible .fl-drift-line { transition: stroke-dashoffset 1.4s cubic-bezier(0.22,1,0.36,1); stroke-dashoffset: 0; }
-  [data-landing] .fl-drift-gap { opacity: 0; transition: opacity 0.6s ease 0.8s; }
-  [data-landing] [data-reveal].is-visible .fl-drift-gap { opacity: 1; }
-  [data-landing] .fl-drift-callout {
-    position: absolute; right: 22px; top: 58px; max-width: 168px; font-family: 'Geist', sans-serif;
-    font-size: 11.5px; line-height: 1.4; font-weight: 600; color: #7a5f12;
-    background: rgba(255,255,255,0.82); border: 1px solid rgba(201,176,74,0.35);
-    border-radius: 12px; padding: 9px 11px; box-shadow: 0 8px 20px rgba(104,99,80,0.12);
-    opacity: 0; transform: translateY(6px); transition: opacity 0.5s ease 1s, transform 0.5s ease 1s;
-  }
-  [data-landing] [data-reveal].is-visible .fl-drift-callout { opacity: 1; transform: none; }
-  [data-landing] .fl-chips { margin-top: 28px; display: grid; gap: 16px; }
-  [data-landing] .fl-chip-t { font-family: 'Albert Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: #1a1a1a; }
-  [data-landing] .fl-chip-b { margin-top: 5px; font-family: 'Geist', sans-serif; font-size: 13.5px; line-height: 1.5; color: rgba(86,82,75,0.84); }
-  [data-landing] .fl-chip-n { font-family: 'Albert Sans', sans-serif; font-size: 13px; font-weight: 700; color: #c2a23e; }
+  [data-landing] .fl-tl-track { position: relative; display: flex; gap: 4px; height: 12px; }
+  [data-landing] .fl-tl-seg { position: relative; border-radius: 999px; }
+  [data-landing] .fl-tl-seg.identify { flex: 45; background: linear-gradient(90deg, #f3cf63, #e0a84a); }
+  [data-landing] .fl-tl-seg.close { flex: 135; background: #e7e1d6; }
+  [data-landing] .fl-tl-dot { position: absolute; left: 31%; top: 50%; transform: translate(-50%, -50%); width: 13px; height: 13px; border-radius: 999px; background: #fff; border: 3px solid #d9871f; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 2; }
+  [data-landing] .fl-tl-dot::after { content: ''; position: absolute; inset: -3px; border-radius: 999px; border: 2px solid rgba(217,135,31,0.5); animation: flPing 1.9s ease-out infinite; }
+  @keyframes flPing { 0% { transform: scale(0.85); opacity: 0.7; } 100% { transform: scale(2.1); opacity: 0; } }
+  [data-landing] .fl-tl-cliff { position: absolute; left: 25%; top: -11px; bottom: -11px; width: 2px; background: #cf5340; border-radius: 999px; z-index: 1; }
+  [data-landing] .fl-tl-cliff b { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: 'Geist', sans-serif; font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #b8432f; }
+  [data-landing] .fl-tl-labels { display: flex; gap: 4px; margin-top: 15px; }
+  [data-landing] .fl-tl-lab.identify { flex: 45; }
+  [data-landing] .fl-tl-lab.close { flex: 135; }
+  [data-landing] .fl-tl-lab b { display: block; font-family: 'Geist', sans-serif; font-size: 11.5px; font-weight: 700; color: #1a1a1a; }
+  [data-landing] .fl-tl-lab span { font-family: 'Geist', sans-serif; font-size: 10.5px; color: #8a847b; }
+  [data-landing] .fl-tl-warn { margin-top: 18px; display: flex; align-items: flex-start; gap: 8px; font-family: 'Geist', sans-serif; font-size: 12.5px; line-height: 1.45; font-weight: 600; color: #a8482f; background: rgba(184,84,58,0.08); border: 1px solid rgba(184,84,58,0.18); border-radius: 12px; padding: 10px 12px; }
+  [data-landing] .fl-tl-warn svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
+  [data-landing] .fl-tl-chips { margin-top: 24px; display: grid; gap: 16px; }
+  [data-landing] .fl-tl-chip b { font-family: 'Albert Sans', sans-serif; font-size: 25px; font-weight: 600; letter-spacing: -0.03em; color: #1a1a1a; line-height: 1; }
+  [data-landing] .fl-tl-chip i { font-style: normal; font-family: 'Geist', sans-serif; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #c2a23e; margin-left: 6px; }
+  [data-landing] .fl-tl-chip p { margin-top: 6px; font-family: 'Geist', sans-serif; font-size: 12.5px; line-height: 1.45; color: rgba(86,82,75,0.84); }
+
+  /* ── Scored replacement match feed ── */
+  [data-landing] .fl-rep-caption { font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #8a6d12; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+  [data-landing] .fl-rep-feed { display: flex; flex-direction: column; gap: 12px; }
+  [data-landing] .fl-rep-card { position: relative; border-radius: 18px; background: #faf8f4; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 8px 20px rgba(104,99,80,0.12); padding: 14px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+  [data-landing] .fl-rep-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(104,99,80,0.16); }
+  [data-landing] .fl-rep-card.is-hot { background: linear-gradient(180deg, #fffdf4, #fdf6e0); border-color: rgba(227,168,46,0.4); box-shadow: 0 14px 32px rgba(201,160,60,0.2); }
+  [data-landing] .fl-rep-flag { position: absolute; top: -9px; right: 16px; font-family: 'Geist', sans-serif; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #fff; background: #e0a84a; padding: 3px 9px; border-radius: 999px; box-shadow: 0 4px 10px rgba(224,168,74,0.4); }
+  [data-landing] .fl-rep-top { display: flex; align-items: center; gap: 13px; }
+  [data-landing] .fl-rep-thumb { position: relative; width: 66px; height: 66px; border-radius: 12px; background-size: cover; background-position: center; flex: none; }
+  [data-landing] .fl-rep-off { position: absolute; top: 4px; left: 4px; font-size: 7px; font-weight: 700; color: #fff; background: rgba(29,29,29,0.62); padding: 2px 5px; border-radius: 999px; }
+  [data-landing] .fl-rep-info { flex: 1; min-width: 0; }
+  [data-landing] .fl-rep-name { font-family: 'Albert Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: #1a1a1a; }
+  [data-landing] .fl-rep-loc { font-family: 'Geist', sans-serif; font-size: 12px; color: #8a847b; margin-top: 1px; }
+  [data-landing] .fl-rep-crit { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+  [data-landing] .fl-rep-pill { display: inline-flex; align-items: center; gap: 3px; font-family: 'Geist', sans-serif; font-size: 9.5px; font-weight: 600; color: #3a8f57; background: rgba(127,174,140,0.16); padding: 3px 7px; border-radius: 999px; }
+  [data-landing] .fl-rep-pill svg { width: 8px; height: 8px; stroke-width: 3.5; }
+  [data-landing] .fl-rep-ring { position: relative; width: 50px; height: 50px; flex: none; display: inline-flex; align-items: center; justify-content: center; }
+  [data-landing] .fl-rep-ring > span { position: absolute; inset: 0; display: inline-flex; align-items: center; justify-content: center; font-family: 'Albert Sans', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -0.03em; color: #1a1a1a; }
 
   /* ── Buyer / "why" cards ── */
   [data-landing] .fl-card {
@@ -266,10 +309,13 @@ const FL_STYLE = `
   [data-landing] .fl-mk-av { width: 30px; height: 30px; border-radius: 999px; background: linear-gradient(135deg, #8a86bf, #6f6ab0); color: #fff; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; }
   [data-landing] .fl-mk-vbadge { display: inline-flex; align-items: center; gap: 3px; font-size: 8px; font-weight: 700; color: #1d7a52; background: rgba(127,174,140,0.18); padding: 3px 6px; border-radius: 999px; margin-top: 4px; }
   [data-landing] .fl-mk-vbadge svg { width: 8px; height: 8px; }
-  [data-landing] .fl-mk-buyer { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 9px; }
+  [data-landing] .fl-mk-split { display: flex; gap: 8px; height: 100%; }
+  [data-landing] .fl-mk-half { flex: 1; min-width: 0; border-radius: 9px; background: #f7f4ee; padding: 8px; }
+  [data-landing] .fl-mk-half .fl-mk-label { font-size: 7px; }
+  [data-landing] .fl-mk-row { display: flex; align-items: center; gap: 5px; margin-top: 6px; font-size: 9px; }
   [data-landing] .fl-mk-score { width: 17px; height: 17px; border-radius: 999px; background: #7fae8c; color: #fff; font-size: 8px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; }
-  [data-landing] .fl-mk-buyer.is-hot .fl-mk-score { background: #e0a84a; }
-  [data-landing] .fl-mk-bar { flex: 1; height: 6px; border-radius: 999px; background: #efe9df; }
+  [data-landing] .fl-mk-row.is-hot .fl-mk-score { background: #e0a84a; }
+  [data-landing] .fl-mk-bar { flex: 1; height: 6px; border-radius: 999px; background: #e6e0d5; }
   [data-landing] .fl-step-num { display: inline-block; margin-top: 16px; font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: #c2a23e; }
   [data-landing] .fl-step-title { margin-top: 6px; font-family: 'Albert Sans', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.2; color: #1a1a1a; }
   [data-landing] .fl-step-body { margin-top: 9px; font-family: 'Geist', sans-serif; font-size: 13.5px; line-height: 1.5; color: rgba(86,82,75,0.84); }
@@ -370,7 +416,7 @@ const FL_STYLE = `
   [data-landing] .fl-done p { margin: 10px 0 0; max-width: 380px; font-family: 'Geist', sans-serif; font-size: 14px; line-height: 1.55; color: #365339; }
 
   @media (min-width: 768px) {
-    [data-landing] .fl-chips { grid-template-columns: repeat(3, 1fr); }
+    [data-landing] .fl-tl-chips { grid-template-columns: repeat(3, 1fr); }
     [data-landing] .fl-aurora-grid { grid-template-columns: repeat(3, 1fr); }
   }
   @media (min-width: 640px) {
@@ -381,11 +427,11 @@ const FL_STYLE = `
     [data-landing] .fl-aurora { padding: 40px 26px; border-radius: 26px; }
     [data-landing] .fl-handoff { max-width: 100%; }
   }
-  /* Phones: stack the layered hero cards straight so nothing clips */
   @media (max-width: 700px) {
     [data-landing] .fl-flow { grid-template-columns: 1fr; gap: 14px; }
     [data-landing] .fl-flow::before, [data-landing] .fl-flow-dot { display: none; }
   }
+  /* Phones: stack the layered hero cards straight so nothing clips */
   @media (max-width: 600px) {
     [data-landing] .fl-hero-visual { max-width: 360px; padding-bottom: 0; }
     [data-landing] .fl-pcard-main { transform: none; }
@@ -393,8 +439,8 @@ const FL_STYLE = `
   }
   @media (prefers-reduced-motion: reduce) {
     [data-landing] .fl-ring .arc { animation: none !important; transition: none !important; stroke-dashoffset: var(--ring-off) !important; }
-    [data-landing] .fl-drift-line { transition: none !important; stroke-dashoffset: 0 !important; }
     [data-landing] .fl-flow-dot { animation: none !important; }
+    [data-landing] .fl-tl-dot::after { animation: none !important; }
     [data-landing] .fl-eyebrow::before, [data-landing] .fl-live::after { animation: none !important; }
   }
 `;
@@ -488,36 +534,35 @@ function HeroVisual() {
   return (
     <div className="fl-hero-visual lp-in" style={inDelay(0.2)}>
       <div className="fl-pcard fl-pcard-main">
-        <div className="fl-pcard-photo" style={{ backgroundImage: "url(/landing-prop-retail.jpg)" }}>
-          <span className="fl-private">Off-market</span>
+        <div className="fl-pcard-photo" style={{ backgroundImage: "url(/landing-prop-industrial.jpg)" }}>
+          <span className="fl-private">Off-market · pre-listing</span>
+          <span className="fl-pcard-clock">Day 14 of 45 to identify</span>
         </div>
-        <div className="fl-pcard-name">Maple Street Retail Center</div>
-        <div className="fl-pcard-loc">Somerville, MA · ~$3.4M</div>
+        <div className="fl-pcard-name">Cedar Point Industrial</div>
+        <div className="fl-pcard-loc">Reno, NV · ~$4.2M</div>
         <div className="fl-pcard-row">
           <span className="fl-live" />
-          Shown privately to matched buyers
+          Surfaced before public listing
         </div>
       </div>
 
       <div className="fl-pcard fl-pcard-detail">
-        <div className="fl-detail-head">
-          <span className="fl-detail-big">3</span>
-          <div>
-            <b>1031 buyers</b>
-            <span>matched · on a 180-day clock</span>
+        <div className="fl-match-head">
+          <span className="fl-match-ring">
+            <Ring pct={0.94} size={54} stroke={5} color="#7fae8c" track="rgba(127,174,140,0.2)" />
+            <span>94</span>
+          </span>
+          <div className="fl-match-meta">
+            <b>Match score</b>
+            <i>to your criteria</i>
           </div>
         </div>
-        <div className="fl-buyers">
-          {HERO_BUYERS.map((b) => (
-            <div key={b.name} className={`fl-buyer${b.hot ? " is-hot" : ""}`}>
-              <span className="fl-buyer-ring">
-                <Ring pct={b.daysLeft / 180} size={30} stroke={3} color={b.hot ? "#d9a72a" : "#9aaab4"} />
-                <span>{b.daysLeft}</span>
-              </span>
-              <div className="fl-buyer-main">
-                <div className="fl-buyer-name">{b.name}</div>
-                <div className="fl-buyer-clock">{b.daysLeft} days left to close</div>
-              </div>
+        <div className="fl-match-rows">
+          {HERO_CRITERIA.map((c) => (
+            <div key={c.label} className="fl-match-row">
+              <span className="fl-match-check"><Check /></span>
+              <span className="fl-match-label">{c.label}</span>
+              <span className="fl-match-val">{c.val}</span>
             </div>
           ))}
         </div>
@@ -545,48 +590,42 @@ function Hero({ onGetConnected, onSeeHow }: { onGetConnected: () => void; onSeeH
   );
 }
 
-function ProblemSection() {
+function ScrambleSection() {
   return (
     <section className="px-5 py-16 sm:px-8 sm:py-20">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
         <div data-reveal>
-          <span className="fl-eyebrow">The quiet problem</span>
-          <h2 className="lp-h2 mt-7" style={{ maxWidth: 460 }}>Your building is doing fine. Your equity might not be.</h2>
+          <span className="fl-eyebrow">The 45-day problem</span>
+          <h2 className="lp-h2 mt-7" style={{ maxWidth: 480 }}>Selling is the easy half. Finding the replacement is the one that taxes you.</h2>
           <p className="fl-sub max-w-[30rem]">
-            You don't have a building problem — you have a redeployment problem. Years of appreciation and
-            paydown have locked more value in the property than the day you bought it, but the income rarely
-            keeps pace. So the return on the money you actually own keeps quietly sliding, while the building
-            still looks like a success. Selling outright triggers a tax bill big enough that staying put feels
-            like the only option. A 1031 exchange is the door around it — and there's a quiet way to test what
-            your property is really worth before you ever commit.
+            Every exchanger lives the same trap. The day your sale closes, the IRS starts a 45-day countdown
+            to identify your replacement in writing — and you can only name three. Pick wrong, run out of time,
+            or fail to close inside 180, and the gain you just worked to defer becomes due. The open market is
+            the worst place to be shopping under that clock: the good buildings are gone before they list. The
+            scramble is the whole game — and the part we built the network for.
           </p>
         </div>
 
         <div data-reveal>
-          <div className="fl-drift">
-            <div className="fl-drift-head">
-              <div className="fl-drift-legend">
-                <span className="fl-drift-leg"><i style={{ background: "#e0a84a" }} />Property value</span>
-                <span className="fl-drift-leg"><i style={{ background: "#7fae8c" }} />Return on equity</span>
-              </div>
+          <div className="fl-timeline">
+            <div className="fl-tl-track">
+              <div className="fl-tl-seg identify"><span className="fl-tl-dot" /></div>
+              <div className="fl-tl-seg close" />
+              <div className="fl-tl-cliff"><b>Gain taxed</b></div>
             </div>
-            <svg className="fl-drift-svg" viewBox="0 0 320 170" preserveAspectRatio="none" aria-hidden="true">
-              {/* ~8% healthy guideline */}
-              <line x1="0" y1="74" x2="320" y2="74" stroke="rgba(40,36,30,0.22)" strokeWidth="1.5" strokeDasharray="4 4" />
-              {/* shaded drift gap */}
-              <path className="fl-drift-gap" d="M0,150 L0,150 C90,150 150,150 320,150 L320,118 C150,118 90,140 0,150 Z" fill="rgba(254,247,175,0.55)" />
-              {/* property value — climbing (amber) */}
-              <path className="fl-drift-line" style={{ ["--len" as string]: 360 } as CSSProperties} stroke="#e0a84a" d="M4,150 C80,140 150,96 230,58 C270,40 300,30 316,24" />
-              {/* return on equity — drooping (green) */}
-              <path className="fl-drift-line" style={{ ["--len" as string]: 340 } as CSSProperties} stroke="#7fae8c" d="M4,108 C80,110 150,120 230,134 C270,141 300,146 316,150" />
-            </svg>
-            <span className="fl-drift-callout">This is the equity that could be working harder.</span>
-            <div className="fl-chips">
-              {PROBLEM_CHIPS.map((c, i) => (
-                <div key={c.title}>
-                  <span className="fl-chip-n">0{i + 1}</span>
-                  <p className="fl-chip-t">{c.title}</p>
-                  <p className="fl-chip-b">{c.body}</p>
+            <div className="fl-tl-labels">
+              <div className="fl-tl-lab identify"><b>Days 0–45</b><span>Identify your replacement</span></div>
+              <div className="fl-tl-lab close"><b>Days 45–180</b><span>Close the purchase</span></div>
+            </div>
+            <p className="fl-tl-warn">
+              <Lock />
+              Miss the 45-day identification window and the entire deferred gain is taxed.
+            </p>
+            <div className="fl-tl-chips">
+              {SCRAMBLE_CHIPS.map((c) => (
+                <div key={c.unit}>
+                  <span className="fl-tl-chip"><b>{c.n}</b><i>{c.unit}</i></span>
+                  <p>{c.body}</p>
                 </div>
               ))}
             </div>
@@ -597,183 +636,56 @@ function ProblemSection() {
   );
 }
 
-function BuyerMicroVisual({ badge }: { badge: string }) {
-  if (badge === "45 / 180") {
-    return (
-      <div className="fl-mv">
-        <span className="fl-twin">
-          <Ring pct={0.69} size={64} stroke={4} color="#cbb45a" track="rgba(40,36,30,0.08)" />
-          <span style={{ inset: "11px" }}>
-            <Ring pct={0.31} size={42} stroke={4} color="#e0a84a" track="rgba(40,36,30,0.08)" />
-          </span>
-          <span><b>31</b><i>of 45</i></span>
-        </span>
-        <span className="fl-mv-cap">Day 31 of 45 to identify</span>
-      </div>
-    );
-  }
-  if (badge === "Cash in escrow") {
-    return (
-      <div className="fl-mv">
-        <span className="fl-escrow">
-          <CheckCircle2 />
-          <b>Funds verified · in escrow</b>
-          <s>maybe-loan</s>
-        </span>
-      </div>
-    );
-  }
-  return (
-    <div className="fl-mv" style={{ display: "block" }}>
-      <div className="fl-redact">
-        <div className="fl-redact-line" style={{ width: "78%" }} />
-        <div className="fl-redact-line" style={{ width: "92%" }} />
-        <div className="fl-redact-line" style={{ width: "64%" }} />
-        <span className="fl-redact-eye"><EyeOff /></span>
-      </div>
-      <p className="fl-redact-cap">Tenants &amp; competitors: not notified</p>
-    </div>
-  );
-}
-
-function BuyersSection() {
+function MatchSection() {
   return (
     <section className="px-5 py-16 sm:px-8 sm:py-20">
-      <div className="mx-auto max-w-6xl">
-        <SectionHead
-          eyebrow="Why these buyers are different"
-          title="They've already sold. The money is in escrow. The clock is running."
-          sub="A 1031 exchange buyer isn't shopping — they're under a federal deadline to spend money they already have. They sold a property, parked the proceeds with a qualified intermediary, and now have 45 days to identify a replacement and 180 to close, or the IRS taxes the gain. That deadline is your leverage."
-          titleMaxWidth={640}
-        />
-        <div className="mt-12 grid gap-5 md:grid-cols-3">
-          {BUYER_POINTS.map((card, i) => (
-            <article key={card.title} className="fl-card" data-reveal style={{ ["--reveal-delay" as string]: `${i * 0.06}s` } as CSSProperties}>
-              <div className="fl-card-top">
-                <BuyerMicroVisual badge={card.badge} />
-                <span className="fl-stat">{card.badge}</span>
-              </div>
-              <h3 className="fl-card-title">{card.title}</h3>
-              <p className="fl-card-body">{card.body}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function HonestSection() {
-  return (
-    <section className="px-3 py-4 sm:px-5 sm:py-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="fl-aurora" data-reveal>
-          <span className="fl-aurora-eyebrow">The honest part</span>
-          <h2>You can't join this network. That's exactly why you can trust it.</h2>
-          <p className="fl-aurora-sub">
-            Most "free property value" sites exist to sell your contact details to whoever pays the most.
-            We're built differently. By law, only a licensed agent can represent a property, transact, and
-            collect a referral fee — so we have nothing to sell you. All we can do is hand you to one
-            professional who can actually close, and step out of the way.
+      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.02fr)]">
+        <div data-reveal>
+          <span className="fl-eyebrow">Off-market replacement inventory</span>
+          <h2 className="lp-h2 mt-7" style={{ maxWidth: 480 }}>Replacement properties matched to your criteria — before they ever list.</h2>
+          <p className="fl-sub max-w-[30rem]">
+            Tell your agent what the replacement has to be — asset type, geography, price band, the return you
+            need — and the network surfaces options matched and scored against exactly that, quietly, before
+            they reach a public listing. A vetted agent who works 1031s every day puts real, fitting properties
+            in front of you inside the window, ranked by fit, so identification is a decision instead of a panic.
           </p>
+          <ul className="fl-mini">
+            {MATCH_POINTS.map((p) => (
+              <li key={p.title}>
+                <i />
+                <div><b>{p.title}</b><span>{p.body}</span></div>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          {/* Handoff diagram — our logo sits off the transaction line */}
-          <div className="fl-handoff">
-            <div className="fl-handoff-line" />
-            <div className="fl-barrier"><b>licensed only</b><i /></div>
-            <div className="fl-node you">
-              <span className="fl-node-dot"><Lock /></span>
-              <span className="fl-node-label">You<i>owner</i></span>
-            </div>
-            <div className="fl-node agent">
-              <span className="fl-node-dot"><BadgeCheck /></span>
-              <span className="fl-node-label">Vetted agent<i>transacts &amp; closes</i></span>
-            </div>
-            <div className="fl-node">
-              <div className="fl-node buyers">
-                <span className="fl-node-av" style={{ background: "#cf877b" }} />
-                <span className="fl-node-av" style={{ background: "#7ea7bd" }} />
-                <span className="fl-node-av" style={{ background: "#a98cbe" }} />
-              </div>
-              <span className="fl-node-label" style={{ marginTop: 7 }}>Matched buyers<i>on the clock</i></span>
-            </div>
-          </div>
-          <p className="fl-handoff-tag">We make the <b>introduction</b> — we're never a party to your deal.</p>
-
-          <div className="fl-aurora-grid">
-            {TRUST_POINTS.map((point, i) => (
-              <div key={point.title}>
-                <span className="fl-aurora-ic">{i + 1}</span>
-                <h3 className="fl-aurora-title">{point.title}</h3>
-                <p className="fl-aurora-body">{point.body}</p>
+        <div data-reveal>
+          <div className="fl-rep-caption"><span className="fl-live" />Surfaced privately to you — pre-listing</div>
+          <div className="fl-rep-feed">
+            {MATCH_CARDS.map((c) => (
+              <div key={c.name} className={`fl-rep-card${c.hot ? " is-hot" : ""}`}>
+                {c.hot ? <span className="fl-rep-flag">New this week</span> : null}
+                <div className="fl-rep-top">
+                  <div className="fl-rep-thumb" style={{ backgroundImage: `url(${c.photo})` }}>
+                    <span className="fl-rep-off">Off-market</span>
+                  </div>
+                  <div className="fl-rep-info">
+                    <div className="fl-rep-name">{c.name}</div>
+                    <div className="fl-rep-loc">{c.loc} · {c.price}</div>
+                    <div className="fl-rep-crit">
+                      {c.crit.map((k) => (
+                        <span key={k} className="fl-rep-pill"><Check />{k}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <span className="fl-rep-ring">
+                    <Ring pct={c.score / 100} size={50} stroke={4} color={c.hot ? "#e0a84a" : "#7fae8c"} track="rgba(40,36,30,0.08)" />
+                    <span>{c.score}</span>
+                  </span>
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StepMock({ step }: { step: string }) {
-  if (step === "01") {
-    return (
-      <div className="fl-step-mock">
-        <span className="fl-mk-label">Property details</span>
-        <div className="fl-mk-field" style={{ width: "70%" }} />
-        <div className="fl-mk-field" style={{ width: "90%" }} />
-        <div className="fl-mk-field is-fill" style={{ width: "55%" }} />
-        <div className="fl-mk-field" style={{ width: "80%" }} />
-      </div>
-    );
-  }
-  if (step === "02") {
-    return (
-      <div className="fl-step-mock">
-        <div className="fl-mk-agent">
-          <span className="fl-mk-av">DR</span>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "-0.01em" }}>Dana Reyes</div>
-            <span className="fl-mk-vbadge"><BadgeCheck />Verified · works your market</span>
-          </div>
-        </div>
-        <div style={{ marginTop: 9, fontSize: 9, color: "#9a948b" }}>Closes 1031 buyers daily · Greater Boston</div>
-      </div>
-    );
-  }
-  return (
-    <div className="fl-step-mock">
-      <span className="fl-mk-label">Maple Street Retail · matched</span>
-      {[{ s: 94, hot: true }, { s: 88, hot: false }, { s: 81, hot: false }].map((b, i) => (
-        <div key={i} className={`fl-mk-buyer${b.hot ? " is-hot" : ""}`}>
-          <span className="fl-mk-score">{b.s}</span>
-          <span className="fl-mk-bar" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function HowSection() {
-  return (
-    <section id="how" className="scroll-mt-28 px-5 py-16 sm:px-8 sm:py-20">
-      <div className="mx-auto max-w-6xl">
-        <SectionHead
-          eyebrow="How it works"
-          title="Two minutes now. A vetted agent reaches out by tomorrow."
-          sub="No account to create, nothing to list, no listing agreement, no commitment. You tell us the basics; we hand-match you to one right agent; they take it from there, at whatever pace you set."
-          titleMaxWidth={600}
-        />
-        <div className="fl-flow mt-12" data-reveal>
-          <div className="fl-flow-dot" />
-          {HOW_STEPS.map((item) => (
-            <div key={item.step} className="fl-step">
-              <StepMock step={item.step} />
-              <span className="fl-step-num">{item.step}</span>
-              <h3 className="fl-step-title">{item.title}</h3>
-              <p className="fl-step-body">{item.body}</p>
-            </div>
-          ))}
         </div>
       </div>
     </section>
@@ -800,7 +712,6 @@ function RoeCalculator({ onGetConnected }: { onGetConnected: () => void }) {
     : tone === "mid" ? { background: "rgba(154,123,34,0.14)", color: "#7e6418" }
     : { background: "rgba(78,132,102,0.14)", color: "#3f7257" };
 
-  // bar heights for the two-bar comparison (relative to the higher value)
   const maxV = Math.max(cashflow, potential, 1);
   const todayH = Math.max(8, (cashflow / maxV) * 100);
   const reposH = Math.max(8, (potential / maxV) * 100);
@@ -817,11 +728,12 @@ function RoeCalculator({ onGetConnected }: { onGetConnected: () => void }) {
         <div className="roe-grid">
           <div className="roe-left" data-reveal>
             <span className="fl-eyebrow">Equity check</span>
-            <h2>Run the number most owners never check.</h2>
+            <h2>Before you trade up, run the number most owners never check.</h2>
             <p className="roe-sub">
               Cap rate tells you how the building performs. Return on equity tells you how your money performs —
-              and it's almost always the lower, uglier number. Move three sliders to see yours in seconds, hold
-              it against a healthy ~8% target, and see what that same equity could earn redeployed, tax-deferred.
+              and it's almost always the lower, uglier number. Move three sliders to see yours, hold it against
+              a healthy ~8% line, and see what that same equity could earn redeployed into a stronger replacement,
+              with the full gain still working untaxed.
             </p>
             <div className="roe-cta"><Pill onClick={onGetConnected} primary>Get connected with an agent</Pill></div>
             <ul className="roe-steps">
@@ -877,7 +789,7 @@ function RoeCalculator({ onGetConnected }: { onGetConnected: () => void }) {
                       </div>
                       <div className="roe-uplift">
                         <b>+{usd(uplift)}/yr</b>
-                        <span>left on the table, tax-deferred</span>
+                        <span>in a matched replacement, tax-deferred</span>
                       </div>
                     </div>
                     <div className="roe-compare">
@@ -899,6 +811,194 @@ function RoeCalculator({ onGetConnected }: { onGetConnected: () => void }) {
   );
 }
 
+function BuyerMicroVisual({ badge }: { badge: string }) {
+  if (badge === "45 / 180") {
+    return (
+      <div className="fl-mv">
+        <span className="fl-twin">
+          <Ring pct={0.69} size={64} stroke={4} color="#cbb45a" track="rgba(40,36,30,0.08)" />
+          <span style={{ inset: "11px" }}>
+            <Ring pct={0.31} size={42} stroke={4} color="#e0a84a" track="rgba(40,36,30,0.08)" />
+          </span>
+          <span><b>31</b><i>of 45</i></span>
+        </span>
+        <span className="fl-mv-cap">Day 31 of 45 to identify</span>
+      </div>
+    );
+  }
+  if (badge === "Cash in escrow") {
+    return (
+      <div className="fl-mv">
+        <span className="fl-escrow">
+          <CheckCircle2 />
+          <b>Funds verified · in escrow</b>
+          <s>maybe-loan</s>
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className="fl-mv" style={{ display: "block" }}>
+      <div className="fl-redact">
+        <div className="fl-redact-line" style={{ width: "78%" }} />
+        <div className="fl-redact-line" style={{ width: "92%" }} />
+        <div className="fl-redact-line" style={{ width: "64%" }} />
+        <span className="fl-redact-eye"><EyeOff /></span>
+      </div>
+      <p className="fl-redact-cap">Tenants &amp; competitors: not notified</p>
+    </div>
+  );
+}
+
+function SellSection() {
+  return (
+    <section className="px-5 py-16 sm:px-8 sm:py-20">
+      <div className="mx-auto max-w-6xl">
+        <SectionHead
+          eyebrow="The other half of your exchange"
+          title="Now the sell side: your property, shown to buyers who've already sold."
+          sub="A 1031 buyer isn't browsing — they've already sold, parked the cash with a qualified intermediary, and are under the same federal clock you know too well. They move fast, with money that's real, and rarely lowball. The same agent who found your replacement shows the property you're leaving — quietly, off-market first — only to the buyers it actually fits."
+          titleMaxWidth={640}
+        />
+        <div className="mt-12 grid gap-5 md:grid-cols-3">
+          {BUYER_POINTS.map((card, i) => (
+            <article key={card.title} className="fl-card" data-reveal style={{ ["--reveal-delay" as string]: `${i * 0.06}s` } as CSSProperties}>
+              <div className="fl-card-top">
+                <BuyerMicroVisual badge={card.badge} />
+                <span className="fl-stat">{card.badge}</span>
+              </div>
+              <h3 className="fl-card-title">{card.title}</h3>
+              <p className="fl-card-body">{card.body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HonestSection() {
+  return (
+    <section className="px-3 py-4 sm:px-5 sm:py-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="fl-aurora" data-reveal>
+          <span className="fl-aurora-eyebrow">The honest part</span>
+          <h2>You can't join this network. That's exactly why you can trust it.</h2>
+          <p className="fl-aurora-sub">
+            Most "free property value" sites exist to sell your contact details to whoever pays the most.
+            We're built the opposite way. By law, only a licensed agent can market a property, source
+            replacements, transact, and collect a referral fee — so we have nothing to sell you. All we can do
+            is hand you to one professional who works 1031s daily, then step out of the way.
+          </p>
+
+          {/* Handoff diagram — our logo sits off the transaction line */}
+          <div className="fl-handoff">
+            <div className="fl-handoff-line" />
+            <div className="fl-barrier"><b>licensed only</b><i /></div>
+            <div className="fl-node you">
+              <span className="fl-node-dot"><Lock /></span>
+              <span className="fl-node-label">You<i>owner</i></span>
+            </div>
+            <div className="fl-node agent">
+              <span className="fl-node-dot"><BadgeCheck /></span>
+              <span className="fl-node-label">Vetted agent<i>transacts &amp; closes</i></span>
+            </div>
+            <div className="fl-node">
+              <div className="fl-node buyers">
+                <span className="fl-node-av" style={{ background: "#cf877b" }} />
+                <span className="fl-node-av" style={{ background: "#7ea7bd" }} />
+                <span className="fl-node-av" style={{ background: "#a98cbe" }} />
+              </div>
+              <span className="fl-node-label" style={{ marginTop: 7 }}>Replacements &amp; buyers<i>on the clock</i></span>
+            </div>
+          </div>
+          <p className="fl-handoff-tag">We make the <b>introduction</b> — we're never a party to your deal.</p>
+
+          <div className="fl-aurora-grid">
+            {TRUST_POINTS.map((point, i) => (
+              <div key={point.title}>
+                <span className="fl-aurora-ic">{i + 1}</span>
+                <h3 className="fl-aurora-title">{point.title}</h3>
+                <p className="fl-aurora-body">{point.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StepMock({ step }: { step: string }) {
+  if (step === "01") {
+    return (
+      <div className="fl-step-mock">
+        <span className="fl-mk-label">Your exchange</span>
+        <div className="fl-mk-field" style={{ width: "70%" }} />
+        <div className="fl-mk-field is-fill" style={{ width: "88%" }} />
+        <div className="fl-mk-field" style={{ width: "60%" }} />
+        <div className="fl-mk-field" style={{ width: "80%" }} />
+      </div>
+    );
+  }
+  if (step === "02") {
+    return (
+      <div className="fl-step-mock">
+        <div className="fl-mk-agent">
+          <span className="fl-mk-av">DR</span>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "-0.01em" }}>Dana Reyes</div>
+            <span className="fl-mk-vbadge"><BadgeCheck />Verified · works your market</span>
+          </div>
+        </div>
+        <div style={{ marginTop: 9, fontSize: 9, color: "#9a948b" }}>Closes 1031s daily · Greater Boston</div>
+      </div>
+    );
+  }
+  return (
+    <div className="fl-step-mock">
+      <div className="fl-mk-split">
+        <div className="fl-mk-half">
+          <span className="fl-mk-label">Replacement</span>
+          <div className="fl-mk-row is-hot"><span className="fl-mk-score">94</span><span className="fl-mk-bar" /></div>
+          <div className="fl-mk-row"><span className="fl-mk-score">88</span><span className="fl-mk-bar" /></div>
+        </div>
+        <div className="fl-mk-half">
+          <span className="fl-mk-label">Your property</span>
+          <div className="fl-mk-row"><span className="fl-mk-score">91</span><span className="fl-mk-bar" /></div>
+          <div className="fl-mk-row"><span className="fl-mk-score">85</span><span className="fl-mk-bar" /></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HowSection() {
+  return (
+    <section id="how" className="scroll-mt-28 px-5 py-16 sm:px-8 sm:py-20">
+      <div className="mx-auto max-w-6xl">
+        <SectionHead
+          eyebrow="How it works"
+          title="Two minutes now. A vetted agent who works your exchange reaches out by tomorrow."
+          sub="No account, nothing to list, no listing agreement, no commitment. You tell us where you are in your exchange — finding a replacement, selling, or both. We hand-match you to one vetted agent, and they go to work on whichever half you need first."
+          titleMaxWidth={640}
+        />
+        <div className="fl-flow mt-12" data-reveal>
+          <div className="fl-flow-dot" />
+          {HOW_STEPS.map((item) => (
+            <div key={item.step} className="fl-step">
+              <StepMock step={item.step} />
+              <span className="fl-step-num">{item.step}</span>
+              <h3 className="fl-step-title">{item.title}</h3>
+              <p className="fl-step-body">{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FaqSection() {
   const [open, setOpen] = useState<number | null>(0);
   return (
@@ -906,7 +1006,7 @@ function FaqSection() {
       <div className="mx-auto max-w-3xl">
         <div data-reveal className="text-center">
           <span className="fl-faq-pill"><span className="fl-live" />Free · private · no obligation</span>
-          <h2 className="lp-h2 mt-7" style={{ marginInline: "auto", maxWidth: 520 }}>The questions a careful owner asks first.</h2>
+          <h2 className="lp-h2 mt-7" style={{ marginInline: "auto", maxWidth: 520 }}>The questions a careful exchanger asks first.</h2>
           <p className="fl-sub" style={{ marginInline: "auto", maxWidth: 420 }}>No spin. If the honest answer is no, we say no.</p>
         </div>
         <div className="fl-faq-list" data-reveal>
@@ -1028,11 +1128,12 @@ export default function ForLandlords() {
 
       <div className="lp-content">
         <Hero onGetConnected={goToForm} onSeeHow={goToHow} />
-        <ProblemSection />
-        <BuyersSection />
+        <ScrambleSection />
+        <MatchSection />
+        <RoeCalculator onGetConnected={goToForm} />
+        <SellSection />
         <HonestSection />
         <HowSection />
-        <RoeCalculator onGetConnected={goToForm} />
         <FaqSection />
 
         {/* ── Referral form ── */}
@@ -1041,11 +1142,12 @@ export default function ForLandlords() {
             <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <div>
                 <span className="fl-eyebrow">Get connected</span>
-                <h2 className="lp-h2 mt-7" style={{ maxWidth: 360 }}>Tell us about your property — in confidence.</h2>
+                <h2 className="lp-h2 mt-7" style={{ maxWidth: 380 }}>Tell us where you are in your exchange — in confidence.</h2>
                 <p className="fl-sub max-w-[26rem]">
-                  Six fields, about two minutes. We'll match you with one vetted, licensed agent who works
-                  your market and closes 1031 buyers — usually within one business day. No listing, no fee,
-                  no obligation, and your details stay private.
+                  Six fields, about two minutes. Whether you're hunting a replacement against the clock, getting
+                  ready to sell, or doing both, we'll match you with one vetted, licensed agent who works your
+                  market and lives in 1031 deadlines — usually within one business day. No listing, no fee, no
+                  obligation, and your details stay private.
                 </p>
                 <ul className="mt-7 space-y-3.5">
                   {FORM_BENEFITS.map((point) => (
@@ -1063,9 +1165,9 @@ export default function ForLandlords() {
                     <span className="fl-done-ic"><CheckCircle2 /></span>
                     <h3>Done — you're in good hands.</h3>
                     <p>
-                      We've got your details and we're matching you now. One vetted, licensed agent from our
-                      network who works your market will reach out within one business day to talk through your
-                      options — at your pace, with no pressure and no obligation.
+                      We've got your details and we're matching you now. One vetted, licensed agent who works
+                      your market will reach out within one business day to talk through your exchange — finding
+                      your replacement, selling, or both — at your pace, with no pressure and no obligation.
                     </p>
                   </div>
                 ) : (
@@ -1118,7 +1220,7 @@ export default function ForLandlords() {
                     <div className="fl-form-foot">
                       <p className="fl-fine">
                         By submitting, you agree that a licensed agent from our network may contact you about
-                        your property. No fees, no obligation.
+                        your exchange. No fees, no obligation.
                       </p>
                       <button type="submit" className="fl-submit" disabled={submitting}>
                         {submitting ? (<><Loader2 className="fl-submit-spin" />Submitting…</>)
