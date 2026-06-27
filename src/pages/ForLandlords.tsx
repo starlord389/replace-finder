@@ -12,9 +12,9 @@ import {
 
 const HERO = {
   eyebrow: "For commercial property owners",
-  headline: "Your building, shown quietly to buyers who must close in 180 days.",
+  headline: "Your building, in front of buyers who can't wait.",
   subheadline:
-    "Every buyer in our network already sold a property, already holds the cash in escrow, and is racing an IRS clock to reinvest it — or get taxed. They don't browse. They buy. Tell us about your property and we'll connect you, privately and free, with a licensed agent who can put it in front of them.",
+    "They're 1031-exchange buyers — they've already sold, the cash is sitting in escrow, and they're racing a 180-day IRS deadline to reinvest it. They don't browse; they buy. Tell us about your property and we'll connect you, quietly and free, with a licensed agent who can put it in front of them.",
 };
 
 /* Hero detail-card buyers — each carries a live countdown ring (daysLeft / 180). */
