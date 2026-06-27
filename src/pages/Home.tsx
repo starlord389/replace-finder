@@ -375,9 +375,10 @@ const PAGE_STYLE = `
 
   @media (max-width: 809.98px) {
     [data-landing] .hiw-row { flex-direction: column; height: auto; margin-top: 18px; }
-    [data-landing] .hiw-card { flex: none; gap: 18px; }
+    [data-landing] .hiw-card { flex: none; gap: 18px; align-items: center; text-align: center; }
     [data-landing] .hiw-card-text, [data-landing] .hiw-card-active .hiw-card-text { max-width: 100%; }
-    [data-landing] .hiw-card-preview { position: relative; inset: auto; opacity: 1; transform: none; width: 100%; max-width: 280px; height: 248px; margin-top: 4px; }
+    [data-landing] .hiw-body { margin-left: auto; margin-right: auto; }
+    [data-landing] .hiw-card-preview { position: relative; inset: auto; opacity: 1; transform: none; width: 100%; max-width: 280px; height: 248px; margin: 4px auto 0; text-align: left; }
   }
 
   /* Logo marquee */
