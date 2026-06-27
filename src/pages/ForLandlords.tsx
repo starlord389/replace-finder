@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState, type CSSProperties } from "react";
 import {
-  ArrowRight, BadgeCheck, Check, CheckCircle2, ChevronDown, EyeOff, Loader2, Lock,
+  ArrowRight, BadgeCheck, Building2, Check, CheckCircle2, ChevronDown, Eye, Loader2, Lock,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,16 +12,16 @@ import {
 
 const HERO = {
   eyebrow: "For landlords",
-  headline: "Find your replacement before the 45-day clock beats you.",
+  headline: "Line up a better-returning building before you ever have to sell.",
   subheadline:
-    "The hardest part of a 1031 isn't selling — it's finding the right replacement before the identification window closes and the gain gets taxed. We surface off-market replacements matched and scored to your exact criteria, before they ever list. And when you're ready to sell the property you're leaving, the same agent handles that half too. Tell us where you are and we'll connect you, free and in confidence.",
+    "The hard part of a 1031 isn't selling — it's having somewhere worth moving into before the tax clock starts. So we built a private network of agents who do these exchanges for their owner-clients. Your agent enters the building you own now and its numbers, and the network automatically surfaces other owners' buildings that would earn you a better return and that you can afford. No wish-list, no guessing. At the same time, your building is quietly surfaced to owners looking for a better return of their own. Nothing is public — names and addresses stay hidden until both sides choose to connect. Owners pay nothing, so tell us where you are and we'll connect you with a vetted agent, in confidence.",
 };
 
-/* Hero match card — an off-market replacement scored to the exchanger's criteria. */
-const HERO_CRITERIA = [
-  { label: "Asset type", val: "Industrial" },
-  { label: "Geography", val: "Reno metro" },
-  { label: "Target return", val: "7.2% / 7%" },
+/* Hero match card — a replacement that out-earns the owner's current building. */
+const HERO_MATCH = [
+  { label: "Earns more than yours", val: "7.4% vs 4.1%" },
+  { label: "Within your budget", val: "Yes" },
+  { label: "Agent-represented", val: "Yes" },
 ] as const;
 
 const PROBLEM_CHIPS = [
@@ -30,68 +30,68 @@ const PROBLEM_CHIPS = [
   { title: "Tax keeps you stuck", body: "Selling outright can mean a capital-gains hit big enough that doing nothing feels safer. A 1031 exchange is the way around it." },
 ] as const;
 
-/* Scored off-market replacement matches (the centerpiece feed). */
+/* Replacement matches the network surfaces — each out-earns the owner's building. */
 const MATCH_CARDS = [
-  { name: "Cedar Point Industrial", loc: "Reno, NV", price: "$2.8–3.4M", score: 96, hot: true, photo: "/landing-prop-industrial.jpg", crit: ["Industrial", "Sun Belt", "$2.8–3.4M", "7%+ return"] },
-  { name: "Stonebridge Flex Park", loc: "Boise, ID", price: "$3.1M", score: 91, hot: false, photo: "/landing-prop-retail.jpg", crit: ["Flex space", "Mountain West", "Sub-$3.5M", "6.8% return"] },
-  { name: "Harbor Logistics Center", loc: "Tucson, AZ", price: "$2.9M", score: 84, hot: false, photo: "/landing-prop-office.jpg", crit: ["Logistics", "Sun Belt", "$2.9M", "6.5% return"] },
+  { name: "Cedar Point Industrial", loc: "Reno, NV", price: "$3.1M", score: 96, hot: true, photo: "/landing-prop-industrial.jpg", ret: "7.4% return", lift: "+3.3% vs yours" },
+  { name: "Stonebridge Flex Park", loc: "Boise, ID", price: "$3.1M", score: 91, hot: false, photo: "/landing-prop-retail.jpg", ret: "6.8% return", lift: "+2.7% vs yours" },
+  { name: "Harbor Logistics Center", loc: "Tucson, AZ", price: "$2.9M", score: 84, hot: false, photo: "/landing-prop-office.jpg", ret: "6.5% return", lift: "+2.4% vs yours" },
 ] as const;
 
 const MATCH_POINTS = [
-  { title: "Built around what you need", body: "The kind of building, the market, the price, and the return you're targeting. Every option starts from what you actually want, not from whatever happens to be for sale." },
-  { title: "Ranked, so you don't have to dig", body: "Each off-market building is scored against what you asked for and put in order of fit. You start with the few that match, instead of sifting through hundreds that don't." },
-  { title: "You see them first", body: "Matches reach you before the building is ever listed publicly, while there's still room to move and before everyone else racing the same deadline shows up." },
+  { title: "No wish-list needed", body: "You never specify a type, an area, a price, or a target return. The starting point is one thing: the building you already own and what it earns. Everything else follows from that." },
+  { title: "Driven by the return math", body: "The network only surfaces buildings that would beat the return you're getting today and that your equity can actually reach. If it can't earn you more, it doesn't show up." },
+  { title: "Buildings you'd never find alone", body: "Every building belongs to another owner in the same spot as you — still holding it, weighing a move. You'd have no way to reach them on your own." },
 ] as const;
 
-/* Sell side — Act Two. The motivated, on-the-clock 1031 buyer. */
-const BUYER_POINTS = [
+/* The other half — your building is automatically a match for other owners. */
+const SELL_CARDS = [
   {
-    badge: "45 / 180",
-    title: "On a real deadline",
-    body: "They have 45 days to pick a property and 180 to close. That clock comes from the IRS, not from you. It just happens to put motivated money on the other side of the table.",
+    icon: Eye,
+    title: "Lined up before you commit",
+    body: "You can see whether there's real interest in your building before you decide to sell anything. No listing, no sign out front, no parade of tire-kickers — just a quiet read on genuine interest.",
   },
   {
-    badge: "Cash in escrow",
-    title: "The cash is ready now",
-    body: "Their money is already sitting in escrow from a sale that has closed. No pre-approval, no financing that can fall through. When a 1031 buyer makes an offer, the cash is ready to go.",
+    icon: Building2,
+    title: "The other side still owns their building",
+    body: "They haven't sold and aren't sitting on cash. They're an owner in your exact position, looking for a better-returning building to move into — and yours might be it.",
   },
   {
-    badge: "Off-market",
-    title: "Nobody has to know it's for sale",
-    body: "It starts off-market. No sign out front, no public listing, no parade of tire-kickers. Your agent shows it only to the buyers it fits, and tells you when it's worth opening it up wider.",
+    icon: Lock,
+    title: "Nothing is public",
+    body: "Tenants, competitors, and lenders learn nothing. Your name and address stay hidden, and a match only becomes a conversation when both sides choose to connect.",
   },
 ] as const;
 
 const TRUST_POINTS = [
   {
-    title: "Agents only, because the law says so",
-    body: "The law reserves marketing, finding properties, handling deals, and referral fees for licensed agents. That's not a catch hidden in the fine print. It's the whole reason we simply connect you to one.",
+    title: "A licensed agent handles the deal",
+    body: "The replacement search, the negotiation, the close, and any fee all sit with a licensed agent. That's why we connect you with one instead of trying to act as one ourselves. We're not a brokerage and we don't touch the deal.",
   },
   {
-    title: "Matched by hand, never auctioned off",
-    body: "Every agent is licensed and checked. You get the one who knows your market and your kind of building and closes 1031s for a living, not whoever paid the most for your name. Your details are never resold.",
+    title: "Agents pay, owners never do",
+    body: "Agents pay to be in the network. You don't, ever. The introduction costs you nothing and commits you to nothing, so our advice has no angle on you.",
   },
   {
-    title: "Free, private, and no obligation",
-    body: "Owners never pay a fee. Agents pay to be in the network, not you. The conversation is free and commits you to nothing. Every next step is your call.",
+    title: "Free, private, no obligation",
+    body: "Your details go to one vetted agent, not a pool of buyers. Nothing is public, nothing is resold, and every next step is your call.",
   },
 ] as const;
 
 const HOW_STEPS = [
   {
     step: "01",
-    title: "Tell us about your exchange",
-    body: "Six quick fields, about two minutes. Where you are in the exchange, what you're buying or selling, the location, the type, and a rough value. No documents, no account, no obligation.",
+    title: "Tell us about your situation",
+    body: "A few quick fields: the building you own, roughly what it's worth, and where you are in your thinking. About two minutes. No documents, no account, no obligation.",
   },
   {
     step: "02",
-    title: "We match you with an agent",
-    body: "Not a lead auction. One vetted, licensed agent who knows your market and your kind of building and works in 1031 deadlines all day. They usually reach out within one business day.",
+    title: "We connect you with one agent",
+    body: "Not a lead auction. One vetted, licensed agent who knows your market and your kind of building and does these exchanges for a living. They'll reach out to talk it through.",
   },
   {
     step: "03",
-    title: "They handle both halves",
-    body: "Your agent brings you ranked, off-market buildings inside your deadline, and quietly shows the one you're leaving to motivated 1031 buyers. You set the pace.",
+    title: "Your building goes into the network",
+    body: "Your agent enters your building, which surfaces better-returning replacements for you and surfaces your building to other owners looking to trade up. Nothing is public, and you set the pace.",
   },
 ] as const;
 
@@ -104,35 +104,35 @@ const ROE_STEPS = [
 const FAQS = [
   {
     q: "Can you really find me a replacement within 45 days?",
-    a: "That's the whole reason this network exists. A vetted 1031 agent brings you off-market buildings ranked against what you need: the type, the area, the price, and the return. So you're choosing from real fits inside the deadline instead of trawling public listings. We can't promise one specific building, but we get the right options in front of you fast, which is exactly where most exchangers fall behind.",
+    a: "That's what the network is built for. Once your agent enters the building you own and its numbers, the system automatically surfaces other owners' buildings that would earn you a better return and that you can afford. There's no wish-list to fill in — the return math does the matching. We can't promise one specific building, but getting real, better-returning options in front of you fast is exactly what this is for, and that's the part where most owners run out of time on their own.",
   },
   {
     q: "What's the catch? Why is this free for me?",
-    a: "Agents pay to be in the network. Owners never do. We're paid by the agent side, so the introduction costs you nothing and carries no obligation. And if your exchange isn't a fit, we'll just tell you that straight.",
+    a: "Agents pay to be in the network. Owners never do. We're paid by the agent side, so the introduction costs you nothing and carries no obligation. If your situation isn't a fit, we'll just tell you that straight.",
   },
   {
-    q: "Will my building be listed publicly when I sell?",
-    a: "Not unless you want it to be. It can stay completely off-market, shown only to matched 1031 buyers. Your agent will advise if and when going wider makes sense, but it's always your decision. Tenants, competitors, and lenders learn nothing until you say so.",
+    q: "Is any of this public?",
+    a: "No. Nothing goes on a public site. Your name and your building's address stay hidden, and a match only becomes a conversation when both sides choose to connect. Tenants, competitors, and lenders learn nothing unless and until you decide to take it further.",
   },
   {
     q: "What happens to my information?",
-    a: "It goes to the one vetted agent we match you with, and only so they can reach out. We don't sell your details, post them anywhere, or send them to a pool of buyers.",
+    a: "It goes to the one vetted agent we connect you with, and only so they can reach out. We don't sell your details, post them anywhere, or send them to a pool of buyers.",
   },
   {
     q: "Am I committing to anything?",
-    a: "Not at all. No listing agreement, no buying mandate, no commitment. Plenty of owners start just curious what their building could fetch, or whether their money is working hard enough. You take the conversation as far as you like, and stop whenever you want.",
+    a: "Not at all. No agreement, no mandate, no commitment. Plenty of owners start just curious whether a better-returning building exists for them, or whether their money is working as hard as it could. You take the conversation as far as you like and stop whenever you want.",
   },
   {
     q: "Why can't I just join the network myself?",
-    a: "Because the law reserves marketing, handling deals, and referral fees for licensed agents. The network is agents only by design. Rather than work around that, we connect you to someone who can do it properly, which is also why our advice has no angle on you.",
+    a: "Because the deal and any fee are handled by a licensed agent, and the network is built for the agents who run these exchanges all day. Rather than have you work around that, we connect you with one who can do it properly — which is also why our introduction has no angle on you.",
   },
 ] as const;
 
 const FORM_BENEFITS = [
-  "Off-market buildings matched to what you need",
-  "Free for owners, with no fees ever",
-  "Matched by hand to one vetted agent, not a buyer pool",
-  "Off-market by default, so your details stay private",
+  "Better-returning buildings, surfaced by the return math",
+  "Free for owners — agents pay, you never do",
+  "Connected by hand to one vetted agent, not a buyer pool",
+  "Nothing public — your name and address stay private",
 ] as const;
 
 const PROPERTY_TYPES = [
@@ -265,25 +265,8 @@ const FL_STYLE = `
   [data-landing] .fl-stat { font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: -0.01em; color: #8a6d12; background: #fef7af; padding: 6px 12px; border-radius: 999px; }
   [data-landing] .fl-card-title { margin-top: 4px; font-family: 'Albert Sans', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.2; color: #1a1a1a; }
   [data-landing] .fl-card-body { margin-top: 12px; font-family: 'Geist', sans-serif; font-size: 14.5px; line-height: 1.55; letter-spacing: -0.01em; color: rgba(86,82,75,0.86); }
-
-  /* micro-visual: twin rings */
-  [data-landing] .fl-mv { height: 64px; display: flex; align-items: center; }
-  [data-landing] .fl-twin { position: relative; width: 64px; height: 64px; flex: none; }
-  [data-landing] .fl-twin span { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Albert Sans', sans-serif; }
-  [data-landing] .fl-twin span b { font-size: 14px; font-weight: 700; letter-spacing: -0.03em; color: #1a1a1a; line-height: 1; }
-  [data-landing] .fl-twin span i { font-size: 7px; font-style: normal; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #8a847b; margin-top: 2px; }
-  [data-landing] .fl-mv-cap { margin-left: 14px; font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600; color: #8a6d12; }
-  /* micro-visual: escrow chip */
-  [data-landing] .fl-escrow { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #eef7f0; border: 1px solid rgba(79,174,110,0.3); }
-  [data-landing] .fl-escrow svg { width: 16px; height: 16px; color: #3a8f57; }
-  [data-landing] .fl-escrow b { font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 700; color: #2f7048; }
-  [data-landing] .fl-escrow s { font-family: 'Geist', sans-serif; font-size: 11px; color: #b3ada4; margin-left: 4px; }
-  /* micro-visual: off-market */
-  [data-landing] .fl-redact { position: relative; width: 100%; }
-  [data-landing] .fl-redact-line { height: 7px; border-radius: 999px; background: #ece7dd; margin-bottom: 6px; }
-  [data-landing] .fl-redact-eye { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 999px; background: #1d1d1d; color: #fadc6a; display: inline-flex; align-items: center; justify-content: center; }
-  [data-landing] .fl-redact-eye svg { width: 17px; height: 17px; }
-  [data-landing] .fl-redact-cap { margin-top: 12px; font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600; color: #8a847b; }
+  [data-landing] .fl-card-ic { width: 46px; height: 46px; border-radius: 13px; background: #f1ece3; color: #1d1d1d; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+  [data-landing] .fl-card-ic svg { width: 22px; height: 22px; }
 
   /* ── How: flow board ── */
   [data-landing] .fl-flow { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
@@ -534,15 +517,12 @@ function HeroVisual() {
   return (
     <div className="fl-hero-visual lp-in" style={inDelay(0.2)}>
       <div className="fl-pcard fl-pcard-main">
-        <div className="fl-pcard-photo" style={{ backgroundImage: "url(/landing-prop-industrial.jpg)" }}>
-          <span className="fl-private">Off-market · pre-listing</span>
-          <span className="fl-pcard-clock">Day 14 of 45 to identify</span>
-        </div>
+        <div className="fl-pcard-photo" style={{ backgroundImage: "url(/landing-prop-industrial.jpg)" }} />
         <div className="fl-pcard-name">Cedar Point Industrial</div>
-        <div className="fl-pcard-loc">Reno, NV · ~$4.2M</div>
+        <div className="fl-pcard-loc">Reno, NV · ~$3.1M</div>
         <div className="fl-pcard-row">
           <span className="fl-live" />
-          Surfaced before public listing
+          Hidden until you connect
         </div>
       </div>
 
@@ -554,11 +534,11 @@ function HeroVisual() {
           </span>
           <div className="fl-match-meta">
             <b>Match score</b>
-            <i>to your criteria</i>
+            <i>vs your building</i>
           </div>
         </div>
         <div className="fl-match-rows">
-          {HERO_CRITERIA.map((c) => (
+          {HERO_MATCH.map((c) => (
             <div key={c.label} className="fl-match-row">
               <span className="fl-match-check"><Check /></span>
               <span className="fl-match-label">{c.label}</span>
@@ -643,14 +623,14 @@ function MatchSection() {
     <section className="px-5 py-16 sm:px-8 sm:py-20">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.02fr)]">
         <div data-reveal>
-          <span className="fl-eyebrow">Off-market replacement inventory</span>
-          <h2 className="lp-h2 mt-7" style={{ maxWidth: 480 }}>We find your next building before it ever hits the market.</h2>
+          <span className="fl-eyebrow">How the matching works</span>
+          <h2 className="lp-h2 mt-7" style={{ maxWidth: 480 }}>The network finds the buildings that beat what you own now.</h2>
           <p className="fl-sub max-w-[30rem]">
-            Tell your agent exactly what you need: the kind of building, the area, the price, and the return
-            you're after. Your agent then quietly finds matching buildings before they're listed anywhere
-            public, and brings them to you ranked by how well they fit. These are real options, put in front of
-            you while the 45-day clock is still on your side. So choosing your replacement becomes a clear
-            decision, not a scramble.
+            There's no form where you describe a dream building. Your agent enters the property you own today
+            and its numbers, and the network works out the return you're actually earning on your equity. The
+            moment it's in, it scans every other owner's building and surfaces the ones that would earn you more
+            than what you hold now and that you can afford. You don't search — the better-returning options come
+            to you, driven by the math, while you still own what you have and before you commit to anything.
           </p>
           <ul className="fl-mini">
             {MATCH_POINTS.map((p) => (
@@ -663,22 +643,19 @@ function MatchSection() {
         </div>
 
         <div data-reveal>
-          <div className="fl-rep-caption"><span className="fl-live" />Surfaced privately to you — pre-listing</div>
+          <div className="fl-rep-caption"><span className="fl-live" />Buildings that beat your return</div>
           <div className="fl-rep-feed">
             {MATCH_CARDS.map((c) => (
               <div key={c.name} className={`fl-rep-card${c.hot ? " is-hot" : ""}`}>
                 {c.hot ? <span className="fl-rep-flag">New this week</span> : null}
                 <div className="fl-rep-top">
-                  <div className="fl-rep-thumb" style={{ backgroundImage: `url(${c.photo})` }}>
-                    <span className="fl-rep-off">Off-market</span>
-                  </div>
+                  <div className="fl-rep-thumb" style={{ backgroundImage: `url(${c.photo})` }} />
                   <div className="fl-rep-info">
                     <div className="fl-rep-name">{c.name}</div>
                     <div className="fl-rep-loc">{c.loc} · {c.price}</div>
                     <div className="fl-rep-crit">
-                      {c.crit.map((k) => (
-                        <span key={k} className="fl-rep-pill"><Check />{k}</span>
-                      ))}
+                      <span className="fl-rep-pill">{c.ret}</span>
+                      <span className="fl-rep-pill"><Check />{c.lift}</span>
                     </div>
                   </div>
                   <span className="fl-rep-ring">
@@ -814,66 +791,27 @@ function RoeCalculator({ onGetConnected }: { onGetConnected: () => void }) {
   );
 }
 
-function BuyerMicroVisual({ badge }: { badge: string }) {
-  if (badge === "45 / 180") {
-    return (
-      <div className="fl-mv">
-        <span className="fl-twin">
-          <Ring pct={0.69} size={64} stroke={4} color="#cbb45a" track="rgba(40,36,30,0.08)" />
-          <span style={{ inset: "11px" }}>
-            <Ring pct={0.31} size={42} stroke={4} color="#e0a84a" track="rgba(40,36,30,0.08)" />
-          </span>
-          <span><b>31</b><i>of 45</i></span>
-        </span>
-        <span className="fl-mv-cap">Day 31 of 45 to identify</span>
-      </div>
-    );
-  }
-  if (badge === "Cash in escrow") {
-    return (
-      <div className="fl-mv">
-        <span className="fl-escrow">
-          <CheckCircle2 />
-          <b>Funds verified · in escrow</b>
-          <s>maybe-loan</s>
-        </span>
-      </div>
-    );
-  }
-  return (
-    <div className="fl-mv" style={{ display: "block" }}>
-      <div className="fl-redact">
-        <div className="fl-redact-line" style={{ width: "78%" }} />
-        <div className="fl-redact-line" style={{ width: "92%" }} />
-        <div className="fl-redact-line" style={{ width: "64%" }} />
-        <span className="fl-redact-eye"><EyeOff /></span>
-      </div>
-      <p className="fl-redact-cap">Tenants &amp; competitors: not notified</p>
-    </div>
-  );
-}
-
 function SellSection() {
   return (
     <section className="px-5 py-16 sm:px-8 sm:py-20">
       <div className="mx-auto max-w-6xl">
         <SectionHead
           eyebrow="The other half of your exchange"
-          title="Now the other half: selling your building to buyers who've already sold theirs."
-          sub="A 1031 buyer isn't just looking around. They've already sold a property, the cash is sitting ready, and they're racing the same 45 and 180-day clock you know well. They move fast, the money is real, and they rarely lowball. The same agent who finds your next building also shows the one you're leaving, quietly and off-market first, only to the buyers it truly fits."
+          title="Your building is quietly a match for other owners too."
+          sub="Every building in the network belongs to an owner doing exactly what you're doing — they still own it, they haven't sold, and they're looking for their own better-returning replacement. So the moment your agent enters yours, it's automatically surfaced to owners whose money would do better in it. An interested party can be lined up privately, while you still own the building and well before you decide to sell. Nothing is public — names and addresses stay hidden until both sides choose to connect."
           titleMaxWidth={640}
         />
         <div className="mt-12 grid gap-5 md:grid-cols-3">
-          {BUYER_POINTS.map((card, i) => (
-            <article key={card.title} className="fl-card" data-reveal style={{ ["--reveal-delay" as string]: `${i * 0.06}s` } as CSSProperties}>
-              <div className="fl-card-top">
-                <BuyerMicroVisual badge={card.badge} />
-                <span className="fl-stat">{card.badge}</span>
-              </div>
-              <h3 className="fl-card-title">{card.title}</h3>
-              <p className="fl-card-body">{card.body}</p>
-            </article>
-          ))}
+          {SELL_CARDS.map((card, i) => {
+            const Icon = card.icon;
+            return (
+              <article key={card.title} className="fl-card" data-reveal style={{ ["--reveal-delay" as string]: `${i * 0.06}s` } as CSSProperties}>
+                <span className="fl-card-ic"><Icon strokeWidth={1.8} /></span>
+                <h3 className="fl-card-title">{card.title}</h3>
+                <p className="fl-card-body">{card.body}</p>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -889,9 +827,9 @@ function HonestSection() {
           <h2>You can't join this network yourself. That's exactly why you can trust it.</h2>
           <p className="fl-aurora-sub">
             Most free property-value sites exist to sell your contact details to the highest bidder. We're
-            built the other way around. By law, only a licensed agent can market a property, find replacements,
-            handle the deal, and earn a referral fee. So we have nothing to sell you. All we do is hand you to
-            one professional who does 1031 exchanges every day, then get out of the way.
+            built the other way around. The deal itself and any fee are handled by a licensed agent — so rather
+            than act as one, we simply connect you with one who does these exchanges every day, then step out of
+            the way. We make the introduction and we're never part of your deal.
           </p>
 
           {/* Handoff diagram — our logo sits off the transaction line */}
@@ -912,7 +850,7 @@ function HonestSection() {
                 <span className="fl-node-av" style={{ background: "#7ea7bd" }} />
                 <span className="fl-node-av" style={{ background: "#a98cbe" }} />
               </div>
-              <span className="fl-node-label" style={{ marginTop: 7 }}>Replacements &amp; buyers<i>on the clock</i></span>
+              <span className="fl-node-label" style={{ marginTop: 7 }}>Other owners<i>trading up</i></span>
             </div>
           </div>
           <p className="fl-handoff-tag">We make the <b>introduction</b> — we're never a party to your deal.</p>
@@ -982,8 +920,8 @@ function HowSection() {
       <div className="mx-auto max-w-6xl">
         <SectionHead
           eyebrow="How it works"
-          title="Spend two minutes now. A vetted agent reaches out by tomorrow."
-          sub="No account, nothing to list, no listing agreement, no commitment. Just tell us where you are in your exchange: looking for your next building, selling, or both. We match you by hand with one vetted agent, and they get to work on whichever half you need first."
+          title="Tell us where you stand. We'll connect you with one vetted agent."
+          sub="No account, nothing to list, no agreement, no commitment. Just tell us a little about your situation — the building you own and where you are in your thinking. We match you by hand with one vetted, licensed agent who does 1031 exchanges for a living, and they take it from there at your pace."
           titleMaxWidth={640}
         />
         <div className="fl-flow mt-12" data-reveal>
@@ -1145,12 +1083,13 @@ export default function ForLandlords() {
             <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <div>
                 <span className="fl-eyebrow">Get connected</span>
-                <h2 className="lp-h2 mt-7" style={{ maxWidth: 380 }}>Tell us where you are in your exchange, in confidence.</h2>
+                <h2 className="lp-h2 mt-7" style={{ maxWidth: 380 }}>Tell us about your building, in confidence.</h2>
                 <p className="fl-sub max-w-[26rem]">
-                  Six fields, about two minutes. Whether you're racing the clock to find your next building,
-                  getting ready to sell, or doing both, we'll match you with one vetted, licensed agent who
-                  knows your market and works in 1031 deadlines every day. Usually within one business day. No
-                  listing, no fee, no obligation, and your details stay private.
+                  A few fields, about two minutes. Tell us a little about the building you own and where you are
+                  in your thinking, and we'll connect you with one vetted, licensed agent who does 1031 exchanges
+                  every day. They'll enter your building into the network, surface better-returning options for
+                  you, and quietly surface yours to other owners. No listing, no fee, no obligation, and your
+                  details stay private.
                 </p>
                 <ul className="mt-7 space-y-3.5">
                   {FORM_BENEFITS.map((point) => (
@@ -1168,9 +1107,10 @@ export default function ForLandlords() {
                     <span className="fl-done-ic"><CheckCircle2 /></span>
                     <h3>Done. You're in good hands.</h3>
                     <p>
-                      We've got your details and we're matching you now. One vetted, licensed agent who knows
-                      your market will reach out within one business day to talk through your exchange: finding
-                      your next building, selling, or both. At your pace, with no pressure and no obligation.
+                      We've got your details and we're connecting you now. One vetted, licensed agent who knows
+                      your market will reach out to talk through your situation — lining up a better-returning
+                      building and, when you're ready, surfacing yours to other owners. At your pace, with no
+                      pressure and no obligation.
                     </p>
                   </div>
                 ) : (
