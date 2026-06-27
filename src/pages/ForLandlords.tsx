@@ -12,9 +12,9 @@ import {
 
 const HERO = {
   eyebrow: "For commercial property owners",
-  headline: "Your building, in front of buyers who can't wait.",
+  headline: "Sell your property and find your replacement.",
   subheadline:
-    "They're 1031-exchange buyers — they've already sold, the cash is sitting in escrow, and they're racing a 180-day IRS deadline to reinvest it. They don't browse; they buy. Tell us about your property and we'll connect you, quietly and free, with a licensed agent who can put it in front of them.",
+    "That's the hard part of a 1031 exchange — selling for the most, then reinvesting before the clock runs out. We're the off-market network for both sides: motivated buyers for the property you're selling, and replacement properties for the one you're buying. Tell us what you're working on and we'll connect you, free and in confidence, with a licensed agent who handles both.",
 };
 
 /* Hero detail-card buyers — each carries a live countdown ring (daysLeft / 180). */
