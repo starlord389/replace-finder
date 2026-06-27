@@ -237,6 +237,16 @@ const FL_STYLE = `
   @media (max-width: 860px) {
     [data-landing] .fl-aurora { padding: 40px 26px; border-radius: 26px; }
   }
+  /* Phones: the layered/rotated hero cards overlap and clip the property name
+     on narrow widths — stack them straight so both cards read cleanly. */
+  @media (max-width: 600px) {
+    [data-landing] .fl-hero-visual { max-width: 360px; padding-bottom: 0; }
+    [data-landing] .fl-pcard-main { transform: none; }
+    [data-landing] .fl-pcard-detail {
+      position: relative; right: auto; bottom: auto; width: 100%;
+      margin-top: 14px; transform: none;
+    }
+  }
 `;
 
 /* ── Equity / ROE calculator — landlord lead magnet, mirrors the homepage's
