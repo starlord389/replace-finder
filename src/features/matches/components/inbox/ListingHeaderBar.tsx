@@ -87,12 +87,18 @@ export function ListingHeaderBar({
           </div>
 
           {stats.length > 0 && (
-            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2.5">
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-3.5">
               {stats.map((s) => (
-                <div key={s.label} className="flex items-center gap-1.5 text-sm">
-                  <s.icon className="h-4 w-4 shrink-0 text-primary" />
-                  <span className="text-muted-foreground">{s.label}:</span>
-                  <span className="font-semibold text-foreground">{s.value}</span>
+                <div key={s.label} className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground/65">
+                    <s.icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                  </span>
+                  <div className="leading-tight">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-muted-foreground">
+                      {s.label}
+                    </p>
+                    <p className="text-[15px] font-bold text-foreground">{s.value}</p>
+                  </div>
                 </div>
               ))}
             </div>
