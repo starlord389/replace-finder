@@ -11,7 +11,7 @@ import {
 /* ───────────────────────────── Content ───────────────────────────── */
 
 const HERO = {
-  eyebrow: "For property owners & 1031 exchangers",
+  eyebrow: "For landlords",
   headline: "Find your replacement before the 45-day clock beats you.",
   subheadline:
     "The hardest part of a 1031 isn't selling — it's finding the right replacement before the identification window closes and the gain gets taxed. We surface off-market replacements matched and scored to your exact criteria, before they ever list. And when you're ready to sell the property you're leaving, the same agent handles that half too. Tell us where you are and we'll connect you, free and in confidence.",
@@ -24,11 +24,10 @@ const HERO_CRITERIA = [
   { label: "Target return", val: "7.2% / 7%" },
 ] as const;
 
-/* Scramble — the 45-day identification window, made literal. */
-const SCRAMBLE_CHIPS = [
-  { n: "45", unit: "days to identify", body: "From the day your sale closes, you have 45 days to name your replacement in writing." },
-  { n: "3", unit: "properties max", body: "The IRS identification cap — so every property you name has to count." },
-  { n: "0", unit: "do-overs", body: "The list is final once filed. Miss it, or fail to close in 180, and the gain is taxed." },
+const PROBLEM_CHIPS = [
+  { title: "Equity grows", body: "Appreciation and loan paydown leave far more value locked in the building than the day you bought it." },
+  { title: "Income lags", body: "Rents rarely keep pace with that growing equity, so the real percentage return on what you own keeps slipping." },
+  { title: "Tax keeps you stuck", body: "Selling outright can mean a capital-gains hit big enough that doing nothing feels safer. A 1031 exchange is the way around it." },
 ] as const;
 
 /* Scored off-market replacement matches (the centerpiece feed). */
@@ -208,31 +207,32 @@ const FL_STYLE = `
   [data-landing] .fl-match-label { font-size: 9.5px; font-weight: 600; color: #6b665e; }
   [data-landing] .fl-match-val { margin-left: auto; font-size: 9.5px; font-weight: 700; color: #1a1a1a; }
 
-  /* ── Scramble: 45-day identification timeline ── */
-  [data-landing] .fl-timeline {
-    border-radius: 24px; background: #faf8f4; border: 1px solid rgba(0,0,0,0.04);
-    box-shadow: 0 12px 30px rgba(104,99,80,0.13); padding: 38px 26px 24px;
+  /* ── Problem: equity-drift chart ── */
+  [data-landing] .fl-drift {
+    position: relative; border-radius: 24px; background: #faf8f4; border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 12px 30px rgba(104,99,80,0.13); padding: 26px 26px 22px; overflow: hidden;
   }
-  [data-landing] .fl-tl-track { position: relative; display: flex; gap: 4px; height: 12px; }
-  [data-landing] .fl-tl-seg { position: relative; border-radius: 999px; }
-  [data-landing] .fl-tl-seg.identify { flex: 45; background: linear-gradient(90deg, #f3cf63, #e0a84a); }
-  [data-landing] .fl-tl-seg.close { flex: 135; background: #e7e1d6; }
-  [data-landing] .fl-tl-dot { position: absolute; left: 31%; top: 50%; transform: translate(-50%, -50%); width: 13px; height: 13px; border-radius: 999px; background: #fff; border: 3px solid #d9871f; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 2; }
-  [data-landing] .fl-tl-dot::after { content: ''; position: absolute; inset: -3px; border-radius: 999px; border: 2px solid rgba(217,135,31,0.5); animation: flPing 1.9s ease-out infinite; }
-  @keyframes flPing { 0% { transform: scale(0.85); opacity: 0.7; } 100% { transform: scale(2.1); opacity: 0; } }
-  [data-landing] .fl-tl-cliff { position: absolute; left: 25%; top: -11px; bottom: -11px; width: 2px; background: #cf5340; border-radius: 999px; z-index: 1; }
-  [data-landing] .fl-tl-cliff b { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: 'Geist', sans-serif; font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #b8432f; }
-  [data-landing] .fl-tl-labels { display: flex; gap: 4px; margin-top: 15px; }
-  [data-landing] .fl-tl-lab.identify { flex: 45; }
-  [data-landing] .fl-tl-lab.close { flex: 135; }
-  [data-landing] .fl-tl-lab b { display: block; font-family: 'Geist', sans-serif; font-size: 11.5px; font-weight: 700; color: #1a1a1a; }
-  [data-landing] .fl-tl-lab span { font-family: 'Geist', sans-serif; font-size: 10.5px; color: #8a847b; }
-  [data-landing] .fl-tl-warn { margin-top: 18px; display: flex; align-items: flex-start; gap: 8px; font-family: 'Geist', sans-serif; font-size: 12.5px; line-height: 1.45; font-weight: 600; color: #a8482f; background: rgba(184,84,58,0.08); border: 1px solid rgba(184,84,58,0.18); border-radius: 12px; padding: 10px 12px; }
-  [data-landing] .fl-tl-warn svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
-  [data-landing] .fl-tl-chips { margin-top: 24px; display: grid; gap: 16px; }
-  [data-landing] .fl-tl-chip b { font-family: 'Albert Sans', sans-serif; font-size: 25px; font-weight: 600; letter-spacing: -0.03em; color: #1a1a1a; line-height: 1; }
-  [data-landing] .fl-tl-chip i { font-style: normal; font-family: 'Geist', sans-serif; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #c2a23e; margin-left: 6px; }
-  [data-landing] .fl-tl-chip p { margin-top: 6px; font-family: 'Geist', sans-serif; font-size: 12.5px; line-height: 1.45; color: rgba(86,82,75,0.84); }
+  [data-landing] .fl-drift-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  [data-landing] .fl-drift-legend { display: flex; gap: 16px; }
+  [data-landing] .fl-drift-leg { display: inline-flex; align-items: center; gap: 6px; font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600; color: #6b665e; }
+  [data-landing] .fl-drift-leg i { width: 14px; height: 3px; border-radius: 999px; display: inline-block; }
+  [data-landing] .fl-drift-svg { width: 100%; height: auto; display: block; }
+  [data-landing] .fl-drift-line { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: var(--len); stroke-dashoffset: var(--len); }
+  [data-landing] [data-reveal].is-visible .fl-drift-line { transition: stroke-dashoffset 1.4s cubic-bezier(0.22,1,0.36,1); stroke-dashoffset: 0; }
+  [data-landing] .fl-drift-gap { opacity: 0; transition: opacity 0.6s ease 0.8s; }
+  [data-landing] [data-reveal].is-visible .fl-drift-gap { opacity: 1; }
+  [data-landing] .fl-drift-callout {
+    position: absolute; right: 22px; top: 58px; max-width: 168px; font-family: 'Geist', sans-serif;
+    font-size: 11.5px; line-height: 1.4; font-weight: 600; color: #7a5f12;
+    background: rgba(255,255,255,0.82); border: 1px solid rgba(201,176,74,0.35);
+    border-radius: 12px; padding: 9px 11px; box-shadow: 0 8px 20px rgba(104,99,80,0.12);
+    opacity: 0; transform: translateY(6px); transition: opacity 0.5s ease 1s, transform 0.5s ease 1s;
+  }
+  [data-landing] [data-reveal].is-visible .fl-drift-callout { opacity: 1; transform: none; }
+  [data-landing] .fl-chips { margin-top: 28px; display: grid; gap: 16px; }
+  [data-landing] .fl-chip-t { font-family: 'Albert Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: #1a1a1a; }
+  [data-landing] .fl-chip-b { margin-top: 5px; font-family: 'Geist', sans-serif; font-size: 13.5px; line-height: 1.5; color: rgba(86,82,75,0.84); }
+  [data-landing] .fl-chip-n { font-family: 'Albert Sans', sans-serif; font-size: 13px; font-weight: 700; color: #c2a23e; }
 
   /* ── Scored replacement match feed ── */
   [data-landing] .fl-rep-caption { font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #8a6d12; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
@@ -416,7 +416,7 @@ const FL_STYLE = `
   [data-landing] .fl-done p { margin: 10px 0 0; max-width: 380px; font-family: 'Geist', sans-serif; font-size: 14px; line-height: 1.55; color: #365339; }
 
   @media (min-width: 768px) {
-    [data-landing] .fl-tl-chips { grid-template-columns: repeat(3, 1fr); }
+    [data-landing] .fl-chips { grid-template-columns: repeat(3, 1fr); }
     [data-landing] .fl-aurora-grid { grid-template-columns: repeat(3, 1fr); }
   }
   @media (min-width: 640px) {
@@ -440,7 +440,7 @@ const FL_STYLE = `
   @media (prefers-reduced-motion: reduce) {
     [data-landing] .fl-ring .arc { animation: none !important; transition: none !important; stroke-dashoffset: var(--ring-off) !important; }
     [data-landing] .fl-flow-dot { animation: none !important; }
-    [data-landing] .fl-tl-dot::after { animation: none !important; }
+    [data-landing] .fl-drift-line { transition: none !important; stroke-dashoffset: 0 !important; }
     [data-landing] .fl-eyebrow::before, [data-landing] .fl-live::after { animation: none !important; }
   }
 `;
@@ -590,42 +590,44 @@ function Hero({ onGetConnected, onSeeHow }: { onGetConnected: () => void; onSeeH
   );
 }
 
-function ScrambleSection() {
+function ProblemSection() {
   return (
     <section className="px-5 py-16 sm:px-8 sm:py-20">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
         <div data-reveal>
-          <span className="fl-eyebrow">The 45-day problem</span>
-          <h2 className="lp-h2 mt-7" style={{ maxWidth: 480 }}>Selling is the easy half. Finding the replacement is the one that taxes you.</h2>
+          <span className="fl-eyebrow">The quiet problem</span>
+          <h2 className="lp-h2 mt-7" style={{ maxWidth: 460 }}>Your building is doing fine. Your equity might not be.</h2>
           <p className="fl-sub max-w-[30rem]">
-            Every exchanger lives the same trap. The day your sale closes, the IRS starts a 45-day countdown
-            to identify your replacement in writing — and you can only name three. Pick wrong, run out of time,
-            or fail to close inside 180, and the gain you just worked to defer becomes due. The open market is
-            the worst place to be shopping under that clock: the good buildings are gone before they list. The
-            scramble is the whole game — and the part we built the network for.
+            You don't have a building problem — you have a redeployment problem. Years of appreciation and
+            paydown have locked more value in the property than the day you bought it, but the income rarely
+            keeps pace. So the return on the money you actually own keeps quietly sliding, while the building
+            still looks like a success. Selling outright triggers a tax bill big enough that staying put feels
+            like the only option. A 1031 exchange is the door around it — and there's a quiet way to test what
+            your property is really worth before you ever commit.
           </p>
         </div>
 
         <div data-reveal>
-          <div className="fl-timeline">
-            <div className="fl-tl-track">
-              <div className="fl-tl-seg identify"><span className="fl-tl-dot" /></div>
-              <div className="fl-tl-seg close" />
-              <div className="fl-tl-cliff"><b>Gain taxed</b></div>
+          <div className="fl-drift">
+            <div className="fl-drift-head">
+              <div className="fl-drift-legend">
+                <span className="fl-drift-leg"><i style={{ background: "#e0a84a" }} />Property value</span>
+                <span className="fl-drift-leg"><i style={{ background: "#7fae8c" }} />Return on equity</span>
+              </div>
             </div>
-            <div className="fl-tl-labels">
-              <div className="fl-tl-lab identify"><b>Days 0–45</b><span>Identify your replacement</span></div>
-              <div className="fl-tl-lab close"><b>Days 45–180</b><span>Close the purchase</span></div>
-            </div>
-            <p className="fl-tl-warn">
-              <Lock />
-              Miss the 45-day identification window and the entire deferred gain is taxed.
-            </p>
-            <div className="fl-tl-chips">
-              {SCRAMBLE_CHIPS.map((c) => (
-                <div key={c.unit}>
-                  <span className="fl-tl-chip"><b>{c.n}</b><i>{c.unit}</i></span>
-                  <p>{c.body}</p>
+            <svg className="fl-drift-svg" viewBox="0 0 320 170" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="0" y1="74" x2="320" y2="74" stroke="rgba(40,36,30,0.22)" strokeWidth="1.5" strokeDasharray="4 4" />
+              <path className="fl-drift-gap" d="M0,150 L0,150 C90,150 150,150 320,150 L320,118 C150,118 90,140 0,150 Z" fill="rgba(254,247,175,0.55)" />
+              <path className="fl-drift-line" style={{ ["--len" as string]: 360 } as CSSProperties} stroke="#e0a84a" d="M4,150 C80,140 150,96 230,58 C270,40 300,30 316,24" />
+              <path className="fl-drift-line" style={{ ["--len" as string]: 340 } as CSSProperties} stroke="#7fae8c" d="M4,108 C80,110 150,120 230,134 C270,141 300,146 316,150" />
+            </svg>
+            <span className="fl-drift-callout">This is the equity that could be working harder.</span>
+            <div className="fl-chips">
+              {PROBLEM_CHIPS.map((c, i) => (
+                <div key={c.title}>
+                  <span className="fl-chip-n">0{i + 1}</span>
+                  <p className="fl-chip-t">{c.title}</p>
+                  <p className="fl-chip-b">{c.body}</p>
                 </div>
               ))}
             </div>
@@ -1128,7 +1130,7 @@ export default function ForLandlords() {
 
       <div className="lp-content">
         <Hero onGetConnected={goToForm} onSeeHow={goToHow} />
-        <ScrambleSection />
+        <ProblemSection />
         <MatchSection />
         <RoeCalculator onGetConnected={goToForm} />
         <SellSection />
