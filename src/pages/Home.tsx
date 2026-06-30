@@ -107,11 +107,10 @@ const NAV_LINKS = [
   { label: "FAQ", href: "#faq" },
 ];
 
-const AVA = "/avatar-placeholder.svg";
 const NET_NODES = [
-  { tag: "BUYER", lbl: "Looking for Replacement Property", x: 48, y: 15, photo: AVA },
-  { tag: "AGENT", lbl: "Investor-Focused Real Estate Agent", x: 17, y: 45, photo: AVA },
-  { tag: "SELLER", lbl: "1031 Exchange Property Owner", x: 83, y: 45, photo: AVA },
+  { tag: "BUYER", lbl: "Looking for Replacement Property", x: 48, y: 15, photo: "/headshot-buyer.jpg" },
+  { tag: "AGENT", lbl: "Investor-Focused Real Estate Agent", x: 17, y: 45, photo: "/headshot-agent.jpg" },
+  { tag: "SELLER", lbl: "1031 Exchange Property Owner", x: 83, y: 45, photo: "/headshot-seller.jpg" },
 ];
 const NET_PROPS = [
   { x: 78, y: 20, size: 52, photo: "/landing-prop-retail.jpg", soft: true },
