@@ -57,26 +57,27 @@ const NB_STYLE = `
   [data-nb] .nb-sky-net .nb-pulse:nth-of-type(3n+1) { animation-duration: 5.2s; animation-delay: .6s; }
 
   /* ===== hero matchmaking network graphic (.nb-net) ===== */
-  [data-nb] .nb-net { position: relative; width: 100%; max-width: 540px; margin-left: auto; aspect-ratio: 1 / 1; --nb-line: rgba(95,193,170,.55); --nb-line-soft: rgba(95,193,170,.3); }
-  [data-nb] .nb-net::before { content: ''; position: absolute; left: 50%; top: 50%; width: 80%; height: 80%; transform: translate(-50%,-50%); border-radius: 999px; background: radial-gradient(circle, rgba(95,193,170,.2) 0%, rgba(95,193,170,0) 62%); filter: blur(6px); z-index: 0; }
+  [data-nb] .nb-net { position: relative; width: 100%; max-width: 560px; margin-left: auto; aspect-ratio: 1.06 / 1; }
   [data-nb] .nb-net-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; pointer-events: none; }
-  [data-nb] .nb-net-line { stroke: var(--nb-line); stroke-width: .55; stroke-linecap: round; fill: none; filter: drop-shadow(0 0 1.6px rgba(95,193,170,.6)); }
-  [data-nb] .nb-net-line.soft { stroke: var(--nb-line-soft); }
-  [data-nb] .nb-net-dot { fill: #5cc15f; filter: drop-shadow(0 0 2px rgba(92,193,95,.7)); }
-  [data-nb] .nb-net-dot.j { fill: rgba(95,193,170,.85); }
-  [data-nb] .nb-net-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 124px; height: 124px; border-radius: 999px; background: #fff; box-shadow: 0 14px 44px rgba(4,14,30,.45), 0 0 0 7px rgba(255,255,255,.10); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 4; }
-  [data-nb] .nb-net-center .nb-hub-brand { font-weight: 800; font-size: 15px; line-height: 1.04; color: #16284a; letter-spacing: -.01em; }
-  [data-nb] .nb-net-center .nb-hub-up { color: #43a047; }
-  [data-nb] .nb-net-center .nb-hub-arrow { width: 11px; height: 11px; display: inline-block; vertical-align: -1px; }
-  [data-nb] .nb-node { position: absolute; transform: translate(-50%,-50%); z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 164px; }
-  [data-nb] .nb-node-av { width: 80px; height: 80px; border-radius: 999px; border: 3px solid #fff; background-color: #1b3a63; background-size: cover; background-position: center top; box-shadow: 0 10px 26px rgba(4,14,30,.45); }
-  [data-nb] .nb-node-pill { display: inline-block; max-width: 162px; background: #eef1f5; border-radius: 12px; padding: 6px 12px; box-shadow: 0 5px 16px rgba(22,40,74,.2); text-align: center; }
-  [data-nb] .nb-node-pill-role { font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--nb-navy); line-height: 1.1; }
-  [data-nb] .nb-node-pill-desc { margin-top: 2px; font-size: 9.5px; font-weight: 500; line-height: 1.3; color: #6b7280; }
+  [data-nb] .nb-cw-line { stroke: #2ed3c6; fill: none; stroke-width: .4; stroke-linecap: round; filter: drop-shadow(0 0 1.3px rgba(46,211,198,.85)); }
+  [data-nb] .nb-cw-line.main { stroke-width: .55; }
+  [data-nb] .nb-cw-dot { fill: #6ff0e2; filter: drop-shadow(0 0 2px rgba(110,240,226,.95)); }
+  [data-nb] .nb-net-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 134px; height: 134px; border-radius: 999px; background: #fff; box-shadow: 0 16px 50px rgba(4,14,30,.5), 0 0 0 8px rgba(255,255,255,.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 4; }
+  [data-nb] .nb-hub-1031 { font-size: 28px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.02em; }
+  [data-nb] .nb-hub-ex { margin-top: 1px; font-size: 16px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.01em; display: inline-flex; align-items: center; }
+  [data-nb] .nb-hub-ex .up { color: #43a047; text-transform: uppercase; }
+  [data-nb] .nb-hub-arrow { width: 10px; height: 10px; margin-left: 1px; transform: translateY(-2px); }
+  [data-nb] .nb-cap { position: absolute; transform: translate(-50%,-50%); z-index: 3; display: flex; align-items: center; }
+  [data-nb] .nb-cap.rev { flex-direction: row-reverse; }
+  [data-nb] .nb-cap-photo { width: 76px; height: 76px; border-radius: 999px; border: 3px solid #fff; background-color: #1b3a63; background-size: cover; background-position: center top; box-shadow: 0 8px 24px rgba(4,14,30,.5); flex: 0 0 auto; position: relative; z-index: 2; }
+  [data-nb] .nb-cap-txt { background: rgba(255,255,255,.96); border: 1px solid rgba(120,160,200,.45); box-shadow: 0 6px 18px rgba(4,14,30,.28); border-radius: 999px; padding: 8px 16px 8px 26px; margin-left: -16px; max-width: 152px; }
+  [data-nb] .nb-cap.rev .nb-cap-txt { padding: 8px 26px 8px 16px; margin-left: 0; margin-right: -16px; text-align: right; }
+  [data-nb] .nb-cap-role { display: block; font-size: 12px; font-weight: 800; letter-spacing: .1em; color: #16284a; line-height: 1.1; }
+  [data-nb] .nb-cap-desc { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; line-height: 1.25; color: #5b6b7e; }
   [data-nb] .nb-prop { position: absolute; transform: translate(-50%,-50%); z-index: 2; border-radius: 999px; border: 3px solid rgba(255,255,255,.92); background-color: #14305a; background-size: cover; background-position: center; box-shadow: 0 8px 22px rgba(4,14,30,.45); }
-  [data-nb] .nb-prop::after { content: ''; position: absolute; inset: 0; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(95,193,170,.3); }
-  @media (max-width: 1023px) { [data-nb] .nb-net { margin: 0 auto; max-width: 430px; } }
-  @media (max-width: 480px) { [data-nb] .nb-net-center { width: 100px; height: 100px; } [data-nb] .nb-net-center .nb-hub-brand { font-size: 12px; } [data-nb] .nb-node-av { width: 66px; height: 66px; } }
+  [data-nb] .nb-prop::after { content: ''; position: absolute; inset: 0; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(46,211,198,.35); }
+  @media (max-width: 1023px) { [data-nb] .nb-net { margin: 0 auto; max-width: 470px; } }
+  @media (max-width: 480px) { [data-nb] .nb-net-center { width: 108px; height: 108px; } [data-nb] .nb-hub-1031 { font-size: 22px; } [data-nb] .nb-cap-photo { width: 64px; height: 64px; } }
 
   /* ===== hero CTAs + trust badges ===== */
   [data-nb] .nb-cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
@@ -109,19 +110,31 @@ const NAV_LINKS = [
   { label: "FAQ", href: "#faq" },
 ];
 
-const NET_NODES = [
-  { tag: "BUYER", lbl: "Looking for Replacement Property", x: 48, y: 15, photo: "/headshot-buyer.jpg" },
-  { tag: "AGENT", lbl: "Investor-Focused Real Estate Agent", x: 17, y: 45, photo: "/headshot-agent.jpg" },
-  { tag: "SELLER", lbl: "1031 Exchange Property Owner", x: 83, y: 45, photo: "/headshot-seller.jpg" },
+const NODES = [
+  { tag: "BUYER", lbl: ["Looking for", "Replacement Property"], x: 44, y: 16, rev: false, photo: "/headshot-buyer.jpg" },
+  { tag: "AGENT", lbl: ["Investor Focused", "Real Estate Agent"], x: 17, y: 49, rev: true, photo: "/headshot-agent.jpg" },
+  { tag: "SELLER", lbl: ["1031 Exchange", "Property Owner"], x: 84, y: 49, rev: false, photo: "/headshot-seller.jpg" },
 ];
 const NET_PROPS = [
-  { x: 78, y: 20, size: 52, photo: "/mf-1.jpg", soft: true },
-  { x: 91, y: 66, size: 46, photo: "/mf-2.jpg", soft: true },
-  { x: 70, y: 87, size: 62, photo: "/mf-3.jpg", soft: true },
-  { x: 47, y: 92, size: 56, photo: "/mf-4.jpg", soft: true },
-  { x: 24, y: 83, size: 60, photo: "/mf-5.jpg", soft: true },
-  { x: 11, y: 70, size: 44, photo: "/mf-6.jpg", soft: true },
+  { x: 75, y: 19, size: 54, photo: "/mf-1.jpg" },
+  { x: 92, y: 64, size: 48, photo: "/mf-2.jpg" },
+  { x: 70, y: 86, size: 62, photo: "/mf-3.jpg" },
+  { x: 48, y: 92, size: 56, photo: "/mf-4.jpg" },
+  { x: 25, y: 84, size: 58, photo: "/mf-5.jpg" },
+  { x: 10, y: 72, size: 46, photo: "/mf-6.jpg" },
 ];
+/* dense radial "circuit" spokes around the hub (teal glow) */
+const SPOKES = Array.from({ length: 20 }, (_, i) => {
+  const a = (i * 18 + 5) * (Math.PI / 180);
+  const r1 = 9.5 + (i % 2) * 1.5;
+  const r2 = 24 + ((i * 11) % 16);
+  const bend = (i % 3 === 0) ? 4 : 0;
+  return {
+    x1: 50 + Math.cos(a) * r1, y1: 50 + Math.sin(a) * r1,
+    mx: 50 + Math.cos(a + bend * 0.01) * (r1 + r2) / 2, my: 50 + Math.sin(a - bend * 0.01) * (r1 + r2) / 2,
+    x2: 50 + Math.cos(a) * r2, y2: 50 + Math.sin(a) * r2,
+  };
+});
 
 function LogoArrow() {
   return (
@@ -183,30 +196,38 @@ function HeroNetwork() {
   return (
     <div className="nb-net">
       <svg className="nb-net-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {[...NET_NODES, ...NET_PROPS].map((n, i) => (
-          <line key={`l-${i}`} className={`nb-net-line${(n as { soft?: boolean }).soft ? " soft" : ""}`} x1="50" y1="50" x2={n.x} y2={n.y} vectorEffect="non-scaling-stroke" />
+        {SPOKES.map((s, i) => (
+          <g key={`s-${i}`}>
+            <polyline className="nb-cw-line" points={`${s.x1},${s.y1} ${s.mx},${s.my} ${s.x2},${s.y2}`} vectorEffect="non-scaling-stroke" />
+            <circle className="nb-cw-dot" cx={s.x2} cy={s.y2} r="0.7" />
+            <circle className="nb-cw-dot" cx={s.mx} cy={s.my} r="0.45" />
+          </g>
         ))}
-        {[...NET_NODES, ...NET_PROPS].map((n, i) => (
-          <g key={`d-${i}`}>
-            <circle className="nb-net-dot" cx={50 + (n.x - 50) * 0.4} cy={50 + (n.y - 50) * 0.4} r="0.9" />
-            <circle className="nb-net-dot j" cx={50 + (n.x - 50) * 0.72} cy={50 + (n.y - 50) * 0.72} r="0.7" />
+        {[...NODES, ...NET_PROPS].map((n, i) => (
+          <g key={`m-${i}`}>
+            <line className="nb-cw-line main" x1="50" y1="50" x2={n.x} y2={n.y} vectorEffect="non-scaling-stroke" />
+            <circle className="nb-cw-dot" cx={50 + (n.x - 50) * 0.55} cy={50 + (n.y - 50) * 0.55} r="0.8" />
           </g>
         ))}
       </svg>
+
       {NET_PROPS.map((p, i) => (
         <div key={`p-${i}`} className="nb-prop" style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.size}px`, height: `${p.size}px`, backgroundImage: `url(${p.photo})` }} />
       ))}
-      {NET_NODES.map((n) => (
-        <div key={n.tag} className="nb-node" style={{ left: `${n.x}%`, top: `${n.y}%` }}>
-          <span className="nb-node-av" style={{ backgroundImage: `url(${n.photo})` }} />
-          <span className="nb-node-pill">
-            <span className="nb-node-pill-role">{n.tag}</span>
-            <span className="nb-node-pill-desc">{n.lbl}</span>
+
+      {NODES.map((n) => (
+        <div key={n.tag} className={`nb-cap${n.rev ? " rev" : ""}`} style={{ left: `${n.x}%`, top: `${n.y}%` }}>
+          <span className="nb-cap-photo" style={{ backgroundImage: `url(${n.photo})` }} />
+          <span className="nb-cap-txt">
+            <span className="nb-cap-role">{n.tag}</span>
+            <span className="nb-cap-desc">{n.lbl[0]}<br />{n.lbl[1]}</span>
           </span>
         </div>
       ))}
+
       <div className="nb-net-center">
-        <span className="nb-hub-brand">1031<br />Exchange<span className="nb-hub-up">UP</span>
+        <span className="nb-hub-1031">1031</span>
+        <span className="nb-hub-ex">Exchange<span className="up">UP</span>
           <svg className="nb-hub-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><polyline points="3,17 9.5,11 13.5,14 21,5.5" stroke="#43a047" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /><polygon points="21,5.5 14.6,5.7 21,12.1" fill="#43a047" /></svg>
         </span>
       </div>
