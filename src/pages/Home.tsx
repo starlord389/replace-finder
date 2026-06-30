@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
+import { SECTIONS_CSS, LandingSections } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
    NEW BRAND — navy + green "AI-powered matchmaking" landing page.
@@ -282,16 +283,6 @@ function NbHero() {
   );
 }
 
-function SectionStub({ id, eyebrow, title }: { id: string; eyebrow: string; title: string }) {
-  return (
-    <section id={id} className="mx-auto max-w-[1240px] px-5 py-14 sm:px-8">
-      <p className="nb-eyebrow">{eyebrow}</p>
-      <h2 className="nb-h2 mt-2">{title}</h2>
-      <p className="nb-lead mt-3">Section coming together…</p>
-    </section>
-  );
-}
-
 export default function Home() {
   useEffect(() => {
     document.title = "1031ExchangeUP — AI-Powered 1031 Exchange Matchmaking";
@@ -300,16 +291,10 @@ export default function Home() {
   return (
     <div data-nb className="min-h-screen bg-white">
       <style>{NB_STYLE}</style>
+      <style>{SECTIONS_CSS}</style>
       <NbNav />
       <NbHero />
-      <SectionStub id="problem" eyebrow="The Problem" title="The 1031 Exchange Process Is Broken" />
-      <SectionStub id="meet" eyebrow="Meet" title="Meet 1031ExchangeUP" />
-      <SectionStub id="how" eyebrow="How It Works" title="How It Works" />
-      <SectionStub id="who" eyebrow="Who It's For" title="Who It's Built For" />
-      <SectionStub id="why" eyebrow="Why Join" title="Why Join 1031ExchangeUP?" />
-      <SectionStub id="different" eyebrow="Why We're Different" title="Why We're Different" />
-      <SectionStub id="resources" eyebrow="Resources" title="Educational Resources" />
-      <SectionStub id="faq" eyebrow="FAQ" title="Frequently Asked Questions" />
+      <LandingSections />
     </div>
   );
 }
