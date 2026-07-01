@@ -118,7 +118,7 @@ const NB_STYLE = `
   [data-nb] .nb-btn-demo:active { transform: scale(.985); }
   [data-nb] .nb-play { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: transparent; border: 1.5px solid rgba(255,255,255,.85); flex: 0 0 auto; }
   [data-nb] .nb-play svg { display: block; width: 9px; height: 9px; }
-  [data-nb] .nb-badges { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px 18px; margin-top: 36px; }
+  [data-nb] .nb-badges { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 14px 18px; margin-top: 36px; }
   [data-nb] .nb-badge { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
   [data-nb] .nb-badge-ico { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex: 0 0 auto; color: var(--nb-green-bright); }
   [data-nb] .nb-badge-ico svg { display: block; width: 20px; height: 20px; }
@@ -144,6 +144,23 @@ const NB_STYLE = `
     [data-nb] .nb-mq-group { gap: 48px; padding-right: 48px; }
     [data-nb] .nb-mq-logo { height: 46px; }
     [data-nb] .nb-mq-logo img { height: var(--brand-h-mobile, 24px); }
+  }
+
+  /* ===== mobile centering (hero) ===== */
+  @media (max-width: 1023.98px) {
+    [data-nb] .nb-hero-h1, [data-nb] .nb-hero-sub { margin-left: auto; margin-right: auto; text-align: center; }
+    [data-nb] .nb-cta-row { justify-content: center; }
+    [data-nb] .nb-badges { justify-content: center; }
+  }
+  /* badges stay on ONE row everywhere — shrink + allow internal wrap on phones */
+  @media (max-width: 640px) {
+    [data-nb] .nb-badges { gap: 6px; justify-content: space-between; }
+    [data-nb] .nb-badge { gap: 4px; min-width: 0; flex: 1 1 0; align-items: flex-start; }
+    [data-nb] .nb-badge-ico { width: 12px; height: 12px; margin-top: 1px; }
+    [data-nb] .nb-badge-ico svg { width: 12px; height: 12px; }
+    [data-nb] .nb-badge-txt { font-size: 7.5px; white-space: normal; line-height: 1.25; }
+    [data-nb] .nb-badge-txt br { display: none; }
+    [data-nb] .nb-badge-txt > span::after { content: " "; }
   }
 `;
 
