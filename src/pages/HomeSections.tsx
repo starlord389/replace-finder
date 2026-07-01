@@ -73,12 +73,12 @@ function Sec_meet() {
       <div className="max-w-xl">
         <h2 className="nb-h2">Meet 1031Exchange<span style={{ color: '#43a047' }}>Up</span></h2>
         <p className="nb-lead mt-5">The first AI-powered matchmaking platform designed specifically to streamline the 1031 exchange process.</p>
-        <button type="button" className="nb-meet-btn mt-8">
+        <a href="#how" className="nb-meet-btn mt-8">
           <span className="nb-meet-play" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="#fff"><path d="M8 5v14l11-7z" /></svg>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
           </span>
-          How It Works (See in 90 Seconds)
-        </button>
+          See How It Works
+        </a>
       </div>
 
       <div className="nb-meet-flow">
@@ -219,7 +219,7 @@ function Sec_who() {
             </li>
           ))}
         </ul>
-        <a className="nb-who-link" href="#agents">Learn More <span aria-hidden="true">&rarr;</span></a>
+        <a className="nb-who-link" href="/signup">Learn More <span aria-hidden="true">&rarr;</span></a>
       </div>
 
       {/* Property Owners */}
@@ -244,7 +244,7 @@ function Sec_who() {
             </li>
           ))}
         </ul>
-        <a className="nb-who-link" href="#owners">Learn More <span aria-hidden="true">&rarr;</span></a>
+        <a className="nb-who-link" href="/signup">Learn More <span aria-hidden="true">&rarr;</span></a>
       </div>
 
       {/* Investors */}
@@ -268,7 +268,7 @@ function Sec_who() {
             </li>
           ))}
         </ul>
-        <a className="nb-who-link" href="#investors">Learn More <span aria-hidden="true">&rarr;</span></a>
+        <a className="nb-who-link" href="/signup">Learn More <span aria-hidden="true">&rarr;</span></a>
       </div>
     </div>
   </div>
@@ -781,7 +781,7 @@ function Sec_resources() {
               <span>Tax Strategies &amp; Insights</span>
             </li>
           </ul>
-          <a href="#" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>View All Resources →</a>
+          <a href="/signup" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>View All Resources →</a>
         </div>
 
         {/* (2) Learn From Trusted Experts */}
@@ -807,7 +807,7 @@ function Sec_resources() {
               </div>
             </div>
           </div>
-          <a href="#" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>Meet All Our Experts →</a>
+          <a href="/signup" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>Meet All Our Experts →</a>
         </div>
 
         {/* (3) Become a Founding Member */}
@@ -823,7 +823,7 @@ function Sec_resources() {
               </li>
             ))}
           </ul>
-          <a href="#" className="nb-btn nb-btn-green nb-res-btn">Join as a Founding Member</a>
+          <a href="/signup" className="nb-btn nb-btn-green nb-res-btn">Join as a Founding Member</a>
           <div className="nb-res-cap">Spots Are Limited!</div>
         </div>
       </div>
@@ -891,7 +891,7 @@ function Sec_faqcta() {
       </div>
 
       <div className="nb-fct-viewall">
-        <a href="#faqs">
+        <a href="/signup">
           View All FAQs
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
             <line x1="5" y1="12" x2="19" y2="12" />
@@ -907,8 +907,8 @@ function Sec_faqcta() {
         <h3 className="nb-fct-cta-h">Ready to Exchange Up?</h3>
         <p className="nb-fct-cta-sub">Join the AI-powered network that's revolutionizing the 1031 exchange process.</p>
         <div className="nb-fct-cta-btns">
-          <a href="#join" className="nb-fct-btn nb-fct-btn-green">Join the Network (Free)</a>
-          <a href="#demo" className="nb-fct-btn nb-fct-btn-out">
+          <a href="/signup" className="nb-fct-btn nb-fct-btn-green">Join the Network (Free)</a>
+          <a href="/book-demo" className="nb-fct-btn nb-fct-btn-out">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
             Schedule a Demo
           </a>
@@ -942,17 +942,17 @@ function Sec_faqcta() {
             <li><a href="#how">How It Works</a></li>
             <li><a href="#who">Who It's For</a></li>
             <li><a href="#resources">Resources</a></li>
-            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="/signup">Pricing</a></li>
           </ul>
         </div>
 
         <div className="nb-fct-fcol">
           <h4>Company</h4>
           <ul>
-            <li><a href="#about">About Us</a></li>
-            <li><a href="#mission">Our Mission</a></li>
-            <li><a href="#contact">Contact Us</a></li>
-            <li><a href="#careers">Careers</a></li>
+            <li><a href="#meet">About Us</a></li>
+            <li><a href="#meet">Our Mission</a></li>
+            <li><a href="mailto:support@1031exchangeup.com">Contact Us</a></li>
+            <li><a href="mailto:support@1031exchangeup.com">Careers</a></li>
           </ul>
         </div>
 
@@ -960,9 +960,9 @@ function Sec_faqcta() {
           <h4>Support</h4>
           <ul>
             <li><a href="#faq">FAQ</a></li>
-            <li><a href="#help">Help Center</a></li>
-            <li><a href="#terms">Terms of Service</a></li>
-            <li><a href="#privacy">Privacy Policy</a></li>
+            <li><a href="mailto:support@1031exchangeup.com">Help Center</a></li>
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
           </ul>
         </div>
 

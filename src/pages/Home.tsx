@@ -125,7 +125,7 @@ const NAV_LINKS = [
   { label: "How It Works", href: "#how" },
   { label: "Who It's For", href: "#who" },
   { label: "Resources", href: "#resources" },
-  { label: "About", href: "#about" },
+  { label: "About", href: "#meet" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -284,12 +284,10 @@ function NbHero() {
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
             <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Join the Network (Free)</Link>
-            <button type="button" className="nb-btn-demo">
-              <span>Watch 2-Minute Demo</span>
-              <span className="nb-play" aria-hidden="true">
-                <svg viewBox="0 0 12 12"><polygon points="3.2,2.2 9.6,6 3.2,9.8" fill="#ffffff" /></svg>
-              </span>
-            </button>
+            <Link to={ROUTES.bookDemo} className="nb-btn-demo">
+              <span>Book a Demo</span>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
+            </Link>
           </div>
 
           <div className="nb-badges">
