@@ -288,21 +288,19 @@ function RoeMiniCalc() {
   const parse = (s: string) => Number(s.replace(/[^0-9]/g, "")) || 0;
 
   const tone = roe < 5 ? "low" : roe < 8 ? "mid" : "high";
-  const verdict =
-    tone === "low" ? "Equity underperforming" : tone === "mid" ? "Below the ~8% target" : "Beating the target";
   const numColor = tone === "low" ? "#b8543a" : tone === "mid" ? "#16284a" : "#43a047";
 
   const FIELDS: { id: string; label: string; val: number; set: (n: number) => void }[] = [
     { id: "cv", label: "Current Property Value", val: value, set: setValue },
+    { id: "ni", label: "Current Net Income", val: income, set: setIncome },
     { id: "lb", label: "Loan Balance", val: loan, set: setLoan },
-    { id: "ni", label: "Annual Net Income", val: income, set: setIncome },
   ];
 
   return (
     <div className="nb-why-card">
       <h3 className="nb-why-card-title">Is Your Equity Working Hard Enough?</h3>
       <p className="nb-why-card-sub">
-        See what your tied-up equity actually earns today — and how it stacks up against a healthy 8% return.
+        In about 20 seconds, see whether your equity is pulling its weight — measured against a healthy 8% return.
       </p>
 
       <div className="nb-why-inputs">
@@ -327,18 +325,11 @@ function RoeMiniCalc() {
 
       {shown && (
         <div className="nb-why-result">
-          <div className="nb-why-result-top">
-            <span className="nb-why-roe-num" style={{ color: numColor }}>{roe.toFixed(1)}%</span>
-            <div className="nb-why-result-meta">
-              <span className="nb-why-result-label">Return on equity</span>
-              <span className="nb-why-verdict" data-tone={tone}>{verdict}</span>
-            </div>
-          </div>
           <p className="nb-why-result-note">
             {uplift > 0 ? (
-              <>Your <b>{usd(equity)}</b> of equity could earn about <b>{usd(potential)}/yr</b> at a healthy ~8% — roughly <b>{usd(uplift)} more</b> than today, with the full gain still working tax-deferred.</>
+              <>Your equity earns <b style={{ color: numColor }}>{roe.toFixed(1)}%</b> today — below a healthy 8%. That same <b>{usd(equity)}</b> could earn about <b>{usd(potential)}/yr</b>, roughly <b>{usd(uplift)} more</b>, in a stronger property.</>
             ) : (
-              <>You&rsquo;re already at or above a healthy ~8% target — nicely done.</>
+              <>Your equity earns <b style={{ color: numColor }}>{roe.toFixed(1)}%</b> — already at or above a healthy 8%. Nicely done.</>
             )}
           </p>
           <p className="nb-why-fine">Estimate only — not tax or investment advice.</p>
