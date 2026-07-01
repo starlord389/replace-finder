@@ -470,7 +470,7 @@ const DASHBOARD_CSS = `
   [data-nb] .nb-lapscale .pb { width: 166.7%; transform: scale(.6); transform-origin: top left; }
 
   /* Mobile phone — same app, mobile view, scaled into the composition */
-  [data-nb] .nb-phone { position: absolute; right: -3%; bottom: -5%; width: 208px; z-index: 5; border-radius: 26px; background: #0e1f38; padding: 4px; box-shadow: 0 28px 56px rgba(4,14,30,.4); border: 1px solid #22406a; transform: scale(.72); transform-origin: bottom right; }
+  [data-nb] .nb-phone { position: absolute; right: -3%; bottom: -5%; width: 208px; z-index: 5; border-radius: 26px; background: #fff; padding: 4px; box-shadow: 0 26px 54px rgba(14,42,77,.22); border: 1px solid #e8edf3; transform: scale(.72); transform-origin: bottom right; }
   [data-nb] .nb-phone-screen { border-radius: 22px; overflow: hidden; background: #f5f8fc; }
   [data-nb] .nb-ph-status { display: flex; align-items: center; justify-content: space-between; padding: 6px 13px 3px; font-size: 8px; font-weight: 700; color: #16284a; }
   [data-nb] .nb-ph-sig { width: 15px; height: 7px; border-radius: 2px; background: #16284a; opacity: .45; }
