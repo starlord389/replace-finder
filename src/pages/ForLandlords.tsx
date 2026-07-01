@@ -142,6 +142,21 @@ const PROPERTY_TYPES = [
 /* ───────────────────────────── Styles ───────────────────────────── */
 
 const FL_STYLE = `
+  /* ── Navy hero (matches the homepage hero) ── */
+  [data-landing] .fl-hero { position: relative; }
+  [data-landing] .fl-hero::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: calc(50% - 50vw); width: 100vw; z-index: 0;
+    background:
+      linear-gradient(105deg, rgba(11,31,61,0.96) 0%, rgba(13,38,70,0.9) 42%, rgba(14,42,77,0.55) 80%, rgba(14,42,77,0.42) 100%),
+      url(/hero-skyline.jpg) center 42% / cover no-repeat;
+  }
+  [data-landing] .fl-hero > * { position: relative; z-index: 1; }
+  [data-landing] .fl-hero h1 { color: #ffffff; }
+  [data-landing] .fl-hero .lp-sub { color: #c4d2e6; }
+  [data-landing] .fl-hero .lp-eyebrow { color: #ffffff; background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.28); }
+  [data-landing] .fl-hero .lp-pill:not([data-primary="true"]) { color: #ffffff; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.5); }
+  [data-landing] .fl-hero .lp-pill:not([data-primary="true"]):hover { background: rgba(255,255,255,0.14); border-color: #ffffff; }
+
   [data-landing] .fl-eyebrow {
     display: inline-flex; align-items: center; gap: 7px; font-family: 'Geist', sans-serif;
     font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
@@ -553,7 +568,7 @@ function HeroVisual() {
 
 function Hero({ onGetConnected, onSeeHow }: { onGetConnected: () => void; onSeeHow: () => void }) {
   return (
-    <section className="px-5 pb-12 pt-28 sm:px-8 sm:pt-[168px]">
+    <section className="fl-hero px-5 pb-12 pt-28 sm:px-8 sm:pt-[168px]">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <div className="lg:relative lg:left-6">
           <p className="lp-eyebrow lp-in" style={inDelay(0)}>{HERO.eyebrow}</p>
