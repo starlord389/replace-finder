@@ -103,6 +103,22 @@ const NB_STYLE = `
   [data-nb] .nb-eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #43a047; }
   [data-nb] .nb-h2 { font-size: clamp(26px, 2.8vw, 34px); font-weight: 800; color: #16284a; line-height: 1.15; }
   [data-nb] .nb-lead { font-size: 16.5px; line-height: 1.6; color: #56657a; }
+
+  /* ===== logo marquee ===== */
+  [data-nb] .nb-mq { background: #fff; padding: 46px 20px 42px; }
+  [data-nb] .nb-mq-label { text-align: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #8794a6; margin: 0 0 26px; }
+  @keyframes nb-mq-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  [data-nb] .nb-mq-viewport { overflow: hidden; width: min(1040px, calc(100vw - 80px)); margin: 0 auto; -webkit-mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent); }
+  [data-nb] .nb-mq-track { display: flex; align-items: center; width: max-content; animation: nb-mq-scroll 52s linear infinite; }
+  [data-nb] .nb-mq-group { display: flex; align-items: center; gap: 74px; padding-right: 74px; }
+  [data-nb] .nb-mq-logo { display: inline-flex; align-items: center; justify-content: center; height: 58px; flex: none; }
+  [data-nb] .nb-mq-logo img { height: var(--brand-h, 32px); width: auto; max-height: 100%; display: block; filter: grayscale(1); opacity: .55; pointer-events: none; }
+  @media (max-width: 809.98px) {
+    [data-nb] .nb-mq-viewport { width: calc(100vw - 36px); }
+    [data-nb] .nb-mq-group { gap: 48px; padding-right: 48px; }
+    [data-nb] .nb-mq-logo { height: 46px; }
+    [data-nb] .nb-mq-logo img { height: var(--brand-h-mobile, 24px); }
+  }
 `;
 
 const NAV_LINKS = [
@@ -111,6 +127,15 @@ const NAV_LINKS = [
   { label: "Resources", href: "#resources" },
   { label: "About", href: "#about" },
   { label: "FAQ", href: "#faq" },
+];
+
+const LOGO_BRANDS = [
+  { name: "Compass", src: "/logos/compass.svg", height: 22, mobileHeight: 16 },
+  { name: "Aluxety Real Estate", src: "/logos/aluxety.png", height: 34, mobileHeight: 26 },
+  { name: "Churchill Properties", src: "/logos/churchill.svg", height: 52, mobileHeight: 40 },
+  { name: "Keller Williams Realty", src: "/logos/keller-williams.svg", height: 48, mobileHeight: 36 },
+  { name: "Lyv Realty", src: "/logos/lyv-realty.png", height: 46, mobileHeight: 34 },
+  { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 40, mobileHeight: 30 },
 ];
 
 const NODES = [
@@ -283,6 +308,31 @@ function NbHero() {
   );
 }
 
+function NbLogoMarquee() {
+  return (
+    <section className="nb-mq">
+      <p className="nb-mq-label">Trusted by agents from</p>
+      <div className="nb-mq-viewport">
+        <div className="nb-mq-track">
+          {[0, 1].map((group) => (
+            <div className="nb-mq-group" key={group} aria-hidden={group === 1 ? "true" : undefined}>
+              {LOGO_BRANDS.map((brand) => (
+                <span
+                  key={`${group}-${brand.name}`}
+                  className="nb-mq-logo"
+                  style={{ ["--brand-h" as string]: `${brand.height}px`, ["--brand-h-mobile" as string]: `${brand.mobileHeight}px` }}
+                >
+                  <img src={brand.src} alt={group === 0 ? brand.name : ""} loading="lazy" />
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   useEffect(() => {
     document.title = "1031ExchangeUP — AI-Powered 1031 Exchange Matchmaking";
@@ -294,6 +344,7 @@ export default function Home() {
       <style>{SECTIONS_CSS}</style>
       <NbNav />
       <NbHero />
+      <NbLogoMarquee />
       <LandingSections />
     </div>
   );
