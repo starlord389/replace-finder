@@ -470,22 +470,25 @@ const DASHBOARD_CSS = `
   [data-nb] .nb-lapscale .pb { width: 166.7%; transform: scale(.6); transform-origin: top left; }
 
   /* Mobile phone — same app, mobile view, scaled into the composition */
-  [data-nb] .nb-phone { position: absolute; right: -3%; bottom: -5%; width: 200px; z-index: 5; border-radius: 30px; background: #0e1f38; padding: 7px; box-shadow: 0 30px 60px rgba(4,14,30,.44); border: 1px solid #24406a; transform: scale(.76); transform-origin: bottom right; }
-  [data-nb] .nb-phone-screen { border-radius: 24px; overflow: hidden; background: #f5f8fc; }
-  [data-nb] .nb-ph-status { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px 5px; font-size: 8px; font-weight: 700; color: #16284a; }
-  [data-nb] .nb-ph-sig { width: 16px; height: 8px; border-radius: 2px; background: #16284a; opacity: .5; }
-  [data-nb] .nb-ph-top { display: flex; align-items: center; gap: 8px; padding: 4px 13px 9px; }
-  [data-nb] .nb-ph-logo { width: 24px; height: 24px; flex: none; border-radius: 7px; background: #16284a; color: #fff; display: flex; align-items: center; justify-content: center; }
-  [data-nb] .nb-ph-logo svg { width: 13px; height: 13px; }
-  [data-nb] .nb-ph-title { font-size: 13px; font-weight: 800; letter-spacing: -.02em; color: #16284a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  [data-nb] .nb-ph-av { margin-left: auto; width: 24px; height: 24px; flex: none; border-radius: 999px; background: linear-gradient(135deg, #5b7cc0, #4a9e6a); }
-  [data-nb] .nb-ph-chips { display: flex; gap: 6px; padding: 0 13px 11px; }
+  [data-nb] .nb-phone { position: absolute; right: -3%; bottom: -5%; width: 208px; z-index: 5; border-radius: 26px; background: #0e1f38; padding: 4px; box-shadow: 0 28px 56px rgba(4,14,30,.4); border: 1px solid #22406a; transform: scale(.72); transform-origin: bottom right; }
+  [data-nb] .nb-phone-screen { border-radius: 22px; overflow: hidden; background: #f5f8fc; }
+  [data-nb] .nb-ph-status { display: flex; align-items: center; justify-content: space-between; padding: 6px 13px 3px; font-size: 8px; font-weight: 700; color: #16284a; }
+  [data-nb] .nb-ph-sig { width: 15px; height: 7px; border-radius: 2px; background: #16284a; opacity: .45; }
+  [data-nb] .nb-ph-top { display: flex; align-items: center; gap: 8px; padding: 3px 12px 7px; }
+  [data-nb] .nb-ph-logo { width: 23px; height: 23px; flex: none; border-radius: 7px; background: #16284a; color: #fff; display: flex; align-items: center; justify-content: center; }
+  [data-nb] .nb-ph-logo svg { width: 12px; height: 12px; }
+  [data-nb] .nb-ph-title { font-size: 12.5px; font-weight: 800; letter-spacing: -.02em; color: #16284a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  [data-nb] .nb-ph-av { margin-left: auto; width: 23px; height: 23px; flex: none; border-radius: 999px; background: linear-gradient(135deg, #5b7cc0, #4a9e6a); }
+  [data-nb] .nb-ph-chips { display: flex; gap: 6px; padding: 0 12px 8px; }
   [data-nb] .nb-ph-chip { font-size: 8px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: #fff; border: 1px solid #e8edf3; color: #56657a; white-space: nowrap; }
   [data-nb] .nb-ph-chip.active { background: #16284a; color: #fff; border-color: #16284a; }
-  [data-nb] .nb-ph-cards { display: flex; flex-direction: column; gap: 10px; padding: 0 12px 12px; }
-  [data-nb] .nb-ph-cards .pb-deal { padding: 11px; border-radius: 13px; }
-  [data-nb] .nb-ph-cards .pb-deal-photo { height: 74px; }
-  [data-nb] .nb-ph-nav { display: flex; align-items: center; justify-content: space-around; padding: 10px 8px; border-top: 1px solid #e8edf3; background: #fff; }
+  [data-nb] .nb-ph-cards { display: flex; flex-direction: column; gap: 8px; padding: 0 11px 9px; }
+  [data-nb] .nb-ph-cards .pb-deal { padding: 9px; border-radius: 12px; }
+  [data-nb] .nb-ph-cards .pb-deal-title { font-size: 12px; margin-top: 7px; }
+  [data-nb] .nb-ph-cards .pb-deal-text { margin-top: 5px; }
+  [data-nb] .nb-ph-cards .pb-deal-foot { margin-top: 9px; }
+  [data-nb] .nb-ph-cards .pb-deal-photo { height: 56px; margin-top: 8px; }
+  [data-nb] .nb-ph-nav { display: flex; align-items: center; justify-content: space-around; padding: 7px 8px; border-top: 1px solid #e8edf3; background: #fff; }
   [data-nb] .nb-ph-nav-item { width: 18px; height: 18px; color: #9fb0c8; stroke-width: 2; }
   [data-nb] .nb-ph-nav-item.active { color: #43a047; }
   @media (max-width: 640px) { [data-nb] .nb-phone { transform: scale(.62); } }
@@ -637,7 +640,7 @@ function PipelineBoard() {
 
 const PH_DEALS: PbDealData[] = [
   { tag: "Hot match", tone: "teal", title: "Harbor Point Office", photo: "/landing-prop-office.jpg", matches: 8, docs: 4, avatars: ["AK", "TS"] },
-  { tag: "New", tone: "blue", title: "Kendall Square Lab", text: "$6.8M · Cambridge · 6.2% cap. Stabilized lab/office steps from MIT.", matches: 5, docs: 2, avatars: ["RC", "MJ"] },
+  { tag: "New", tone: "blue", title: "Kendall Square Lab", text: "$6.8M · Cambridge · 6.2% cap rate.", matches: 5, docs: 2, avatars: ["RC", "MJ"] },
 ];
 
 /** Mobile view of the same pipeline app — a phone showing the deals stacked. */
