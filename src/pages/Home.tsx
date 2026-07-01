@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { SECTIONS_CSS, LandingSections } from "./HomeSections";
@@ -42,6 +42,19 @@ const NB_STYLE = `
   @media (min-width: 480px) { [data-nb] .nb-nav-btn-login { display: inline-flex; } }
   [data-nb] .nb-nav-btn-join { padding: 0 22px; background: #43a047; color: #fff; border: 1.5px solid #43a047; }
   [data-nb] .nb-nav-btn-join:hover { background: #3a8c3e; border-color: #3a8c3e; }
+  [data-nb] .nb-nav-burger { display: none; width: 42px; height: 42px; border-radius: 8px; border: 1.5px solid #e8edf3; background: #fff; color: #16284a; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; }
+  [data-nb] .nb-nav-burger svg { display: block; width: 20px; height: 20px; }
+  @media (max-width: 1023.98px) { [data-nb] .nb-nav-burger { display: inline-flex; } }
+  [data-nb] .nb-nav-mobile { border-top: 1px solid #e8edf3; background: #fff; padding: 8px 20px 16px; display: flex; flex-direction: column; }
+  [data-nb] .nb-nav-mlink { padding: 12px 4px; font-size: 15px; font-weight: 600; color: #33405a; text-decoration: none; border-bottom: 1px solid #f2f5fa; }
+  [data-nb] .nb-nav-mlink:last-child { border-bottom: none; }
+  @media (max-width: 480px) {
+    [data-nb] .nb-nav-inner { padding: 0 14px; }
+    [data-nb] .nb-logo { font-size: 18px; }
+    [data-nb] .nb-nav-actions { gap: 8px; }
+    [data-nb] .nb-nav-btn-join { padding: 0 14px; font-size: 14px; height: 40px; }
+    [data-nb] .nb-nav-burger { width: 40px; height: 40px; }
+  }
 
   /* ===== hero skyline backdrop (.nb-sky) ===== */
   [data-nb] .nb-sky { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
@@ -80,7 +93,19 @@ const NB_STYLE = `
   [data-nb] .nb-prop { position: absolute; transform: translate(-50%,-50%); z-index: 2; border-radius: 999px; border: 3px solid rgba(255,255,255,.92); background-color: #14305a; background-size: cover; background-position: center; box-shadow: 0 8px 22px rgba(4,14,30,.45); }
   [data-nb] .nb-prop::after { content: ''; position: absolute; inset: 0; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(46,211,198,.35); }
   @media (max-width: 1023px) { [data-nb] .nb-net { margin: 0 auto; max-width: 470px; } }
-  @media (max-width: 480px) { [data-nb] .nb-net-center { width: 108px; height: 108px; } [data-nb] .nb-hub-1031 { font-size: 22px; } [data-nb] .nb-cap-photo { width: 64px; height: 64px; } }
+  @media (max-width: 480px) {
+    [data-nb] .nb-net-center { width: 102px; height: 102px; box-shadow: 0 12px 34px rgba(4,14,30,.5), 0 0 0 6px rgba(255,255,255,.1); }
+    [data-nb] .nb-hub-1031 { font-size: 21px; }
+    [data-nb] .nb-hub-ex { font-size: 13px; }
+    [data-nb] .nb-cap { gap: 8px; padding: 4px 12px 4px 4px; }
+    [data-nb] .nb-cap.rev { padding: 4px 4px 4px 12px; }
+    [data-nb] .nb-cap-ico { width: 36px; height: 36px; }
+    [data-nb] .nb-cap-ico svg { width: 18px; height: 18px; }
+    [data-nb] .nb-cap-txt { max-width: 92px; }
+    [data-nb] .nb-cap-role { font-size: 9.5px; }
+    [data-nb] .nb-cap-desc { font-size: 8px; }
+    [data-nb] .nb-prop { transform: translate(-50%,-50%) scale(.78); }
+  }
 
   /* ===== hero CTAs + trust badges ===== */
   [data-nb] .nb-cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
@@ -187,6 +212,7 @@ function LogoArrow() {
 }
 
 function NbNav() {
+  const [open, setOpen] = useState(false);
   return (
     <nav className="nb-nav">
       <div className="nb-nav-inner">
@@ -201,8 +227,29 @@ function NbNav() {
         <div className="nb-nav-actions">
           <Link to={ROUTES.login} className="nb-nav-btn nb-nav-btn-login">Log In</Link>
           <Link to={ROUTES.signup} className="nb-nav-btn nb-nav-btn-join">Join Free</Link>
+          <button
+            type="button"
+            className="nb-nav-burger"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-label={open ? "Close menu" : "Open menu"}
+          >
+            {open ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            )}
+          </button>
         </div>
       </div>
+      {open && (
+        <div className="nb-nav-mobile">
+          {NAV_LINKS.map((l) => (
+            <a key={l.label} href={l.href} className="nb-nav-mlink" onClick={() => setOpen(false)}>{l.label}</a>
+          ))}
+          <Link to={ROUTES.login} className="nb-nav-mlink" onClick={() => setOpen(false)}>Log In</Link>
+        </div>
+      )}
     </nav>
   );
 }
