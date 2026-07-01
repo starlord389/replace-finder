@@ -8,6 +8,8 @@ export const ROUTES = {
   signup: "/signup",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
+  privacy: "/privacy",
+  terms: "/terms",
   agentHome: "/agent",
   agentLaunchpad: "/agent/launchpad",
   adminHome: "/admin",

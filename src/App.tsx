@@ -19,6 +19,8 @@ const Login = lazy(() => import("@/pages/auth/Login"));
 const Signup = lazy(() => import("@/pages/auth/Signup"));
 const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
+const PrivacyPolicy = lazy(() => import("@/pages/legal/PrivacyPolicy"));
+const Terms = lazy(() => import("@/pages/legal/Terms"));
 const AuthCallback = lazy(() => import("@/pages/auth/AuthCallback"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const SupportTickets = lazy(() => import("@/pages/admin/SupportTickets"));
@@ -91,6 +93,8 @@ const App = () => (
             <Route element={<PublicLayout />}>
               <Route path={ROUTES.forgotPassword} element={<ForgotPassword />} />
               <Route path={ROUTES.resetPassword} element={<ResetPassword />} />
+              <Route path={ROUTES.privacy} element={<PrivacyPolicy />} />
+              <Route path={ROUTES.terms} element={<Terms />} />
             </Route>
 
             {/* Auth callback — handles email-confirmation redirect, routes to dashboard */}
