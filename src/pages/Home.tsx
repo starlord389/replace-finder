@@ -118,11 +118,11 @@ const NB_STYLE = `
   [data-nb] .nb-btn-demo:active { transform: scale(.985); }
   [data-nb] .nb-play { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: transparent; border: 1.5px solid rgba(255,255,255,.85); flex: 0 0 auto; }
   [data-nb] .nb-play svg { display: block; width: 9px; height: 9px; }
-  [data-nb] .nb-badges { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 14px 18px; margin-top: 36px; }
-  [data-nb] .nb-badge { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-  [data-nb] .nb-badge-ico { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex: 0 0 auto; color: var(--nb-green-bright); }
-  [data-nb] .nb-badge-ico svg { display: block; width: 20px; height: 20px; }
-  [data-nb] .nb-badge-txt { font-size: 12px; font-weight: 600; line-height: 1.25; color: #fff; white-space: nowrap; }
+  [data-nb] .nb-badges { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 14px; margin-top: 36px; }
+  [data-nb] .nb-badge { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; }
+  [data-nb] .nb-badge-ico { display: inline-flex; align-items: center; justify-content: center; width: 23px; height: 23px; flex: 0 0 auto; color: var(--nb-green-bright); }
+  [data-nb] .nb-badge-ico svg { display: block; width: 23px; height: 23px; }
+  [data-nb] .nb-badge-txt { font-size: 13px; font-weight: 600; line-height: 1.3; color: #fff; white-space: nowrap; }
 
   /* ===== section scaffolding (stubs) ===== */
   [data-nb] .nb-eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #43a047; }
@@ -156,9 +156,9 @@ const NB_STYLE = `
   @media (max-width: 640px) {
     [data-nb] .nb-badges { gap: 6px; justify-content: space-between; }
     [data-nb] .nb-badge { gap: 4px; min-width: 0; flex: 1 1 0; align-items: flex-start; }
-    [data-nb] .nb-badge-ico { width: 12px; height: 12px; margin-top: 1px; }
-    [data-nb] .nb-badge-ico svg { width: 12px; height: 12px; }
-    [data-nb] .nb-badge-txt { font-size: 7.5px; white-space: normal; line-height: 1.25; }
+    [data-nb] .nb-badge-ico { width: 14px; height: 14px; margin-top: 1px; }
+    [data-nb] .nb-badge-ico svg { width: 14px; height: 14px; }
+    [data-nb] .nb-badge-txt { font-size: 8.5px; white-space: normal; line-height: 1.25; }
     [data-nb] .nb-badge-txt br { display: none; }
     [data-nb] .nb-badge-txt > span::after { content: " "; }
   }

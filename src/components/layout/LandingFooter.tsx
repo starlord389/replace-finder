@@ -1,8 +1,67 @@
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
-import { PUBLIC_FOOTER_LINKS } from "@/content/publicNavLinks";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+
+/* Navy site footer — mirrors the homepage footer (logo + tagline, Platform /
+   Get Started / Support columns, Stay Up to Date subscribe, copyright) so all
+   public pages share one consistent footer. */
+
+const NBF_CSS = `
+  .nbf { background: #0e2a4d; margin-top: 64px; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .nbf-inner { max-width: 1240px; margin: 0 auto; padding: 72px 20px 0; }
+  .nbf-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 1.4fr; gap: 40px; }
+  @media (max-width: 960px) { .nbf-grid { grid-template-columns: 1fr 1fr; gap: 36px; } }
+  @media (max-width: 520px) { .nbf-grid { grid-template-columns: 1fr; text-align: center; } .nbf-tag { margin-left: auto; margin-right: auto; } }
+  .nbf-logo { color: #fff; font-weight: 800; font-size: 22px; letter-spacing: -.02em; }
+  .nbf-logo b { color: #5cc15f; }
+  .nbf-tag { color: #9fb2cc; font-size: 14.5px; line-height: 1.6; margin-top: 14px; max-width: 300px; }
+  .nbf-col h4 { color: #fff; font-size: 14px; font-weight: 800; letter-spacing: .02em; margin: 0 0 16px; }
+  .nbf-col ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 11px; }
+  .nbf-col a { color: #9fb2cc; font-size: 14.5px; text-decoration: none; transition: color .2s ease; }
+  .nbf-col a:hover { color: #fff; }
+  .nbf-form { display: flex; gap: 8px; margin-top: 4px; }
+  .nbf-form input { flex: 1 1 auto; min-width: 0; height: 44px; border-radius: 9px; border: 1px solid #2a456e; background: #16284a; color: #fff; padding: 0 14px; font-size: 14px; outline: none; font-family: inherit; }
+  .nbf-form input::placeholder { color: #7e93b3; }
+  .nbf-form input:focus { border-color: #43a047; }
+  .nbf-form button { height: 44px; padding: 0 18px; border-radius: 9px; border: none; background: #43a047; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; transition: background .2s ease; white-space: nowrap; font-family: inherit; }
+  .nbf-form button:hover { background: #3a8c3e; }
+  .nbf-form button:disabled { opacity: .7; cursor: default; }
+  .nbf-bottom { max-width: 1240px; margin: 48px auto 0; padding: 24px 20px 28px; border-top: 1px solid #1d3a60; display: flex; flex-direction: column; gap: 10px; }
+  .nbf-disclaimer { color: #7e93b3; font-size: 12px; line-height: 1.5; max-width: 640px; margin: 0; }
+  .nbf-copy { color: #7e93b3; font-size: 13.5px; }
+  @media (max-width: 520px) { .nbf-bottom { text-align: center; } .nbf-disclaimer { margin: 0 auto; } }
+`;
+
+const FOOTER_COLS = [
+  {
+    title: "Platform",
+    links: [
+      { label: "How It Works", to: "/#how" },
+      { label: "Who It's For", to: "/#who" },
+      { label: "Why Join", to: "/#why" },
+      { label: "Resources", to: "/#resources" },
+    ],
+  },
+  {
+    title: "Get Started",
+    links: [
+      { label: "Join Free", to: "/signup" },
+      { label: "Book a Demo", to: "/book-demo" },
+      { label: "For Landlords", to: "/landlords" },
+      { label: "Log In", to: "/login" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { label: "FAQ", to: "/#faq" },
+      { label: "Contact Us", to: "mailto:support@1031exchangeup.com" },
+      { label: "Terms of Service", to: "/terms" },
+      { label: "Privacy Policy", to: "/privacy" },
+    ],
+  },
+];
 
 export default function LandingFooter() {
   const [email, setEmail] = useState("");
@@ -47,73 +106,56 @@ export default function LandingFooter() {
   }
 
   return (
-    <footer className="px-4 pb-4 sm:px-6 sm:pb-6">
-      <div className="mx-auto max-w-[1240px] rounded-[32px] bg-[#0e2a4d] px-8 py-10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] sm:px-10 sm:py-12 lg:px-14 lg:py-16">
-        <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_110px] md:items-start md:gap-8 lg:gap-10">
-          <div className="min-w-0">
-            <section className="max-w-[470px]">
-              <p className="text-[18px] font-normal tracking-[-0.04em] text-[#c4d2e6] sm:text-[22px] lg:text-[28px]">
-              Sign up for our newsletter
-              </p>
-              <form
-                className="relative mt-5 max-w-[470px]"
-                onSubmit={handleSubscribe}
-                noValidate
-              >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@email.com"
-                  className="h-11 w-full rounded-full border border-[#2a456e] bg-[#16284a] px-4 pr-32 text-[15px] text-white outline-none placeholder:text-[#7e93b3] sm:h-12 sm:px-5 sm:pr-36"
-                  aria-label="Email address"
-                  disabled={submitting}
-                />
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="absolute right-1 top-1 flex h-9 items-center rounded-full bg-[#43a047] px-5 text-[14px] font-medium tracking-[-0.02em] text-white transition-colors hover:bg-[#3a8c3e] disabled:opacity-70 sm:h-10 sm:px-6"
-                >
-                  {submitting ? "Subscribing…" : justSubscribed ? "Subscribed ✓" : "Subscribe"}
-                </button>
-              </form>
-            </section>
-
-            <div className="mt-14 sm:mt-20 lg:mt-28">
-              <a
-                href="mailto:support@1031exchangeup.com"
-                className="break-words text-[2.15rem] font-medium leading-[0.95] tracking-[-0.06em] text-white transition-colors hover:text-[#c4d2e6] sm:text-[3rem] lg:text-[3.45rem] xl:text-[4.05rem]"
-              >
-                support@1031exchangeup.com
-              </a>
-              <p className="mt-3 text-[13px] tracking-[-0.02em] text-[#8794a6] sm:text-[14px]">
-                © {new Date().getFullYear()} 1031 Exchange Up. All rights reserved.
-              </p>
-              <p className="mt-3 max-w-[540px] text-[12px] leading-[1.5] tracking-[-0.01em] text-[#8794a6]">
-                1031 Exchange Up is an agent-to-agent sourcing and referral network — not a
-                brokerage or an MLS, and not a substitute for either. Licensed agents remain
-                responsible for their own marketing and Clear Cooperation obligations.
-              </p>
-            </div>
+    <footer className="nbf">
+      <style>{NBF_CSS}</style>
+      <div className="nbf-inner">
+        <div className="nbf-grid">
+          <div>
+            <div className="nbf-logo">1031Exchange<b>UP</b></div>
+            <p className="nbf-tag">The AI-powered matchmaking platform for 1031 exchange success.</p>
           </div>
 
-          <nav aria-label="Footer navigation" className="md:justify-self-end">
-            <p className="text-[16px] font-normal tracking-[-0.03em] text-[#8794a6]">
-              Pages
-            </p>
-            <div className="mt-4 flex flex-col items-start gap-3">
-              {PUBLIC_FOOTER_LINKS.map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  className="text-[15px] font-medium tracking-[-0.03em] text-[#c4d2e6] transition-colors hover:text-white"
-                >
-                  {link.label}
-                </Link>
-              ))}
+          {FOOTER_COLS.map((col) => (
+            <div className="nbf-col" key={col.title}>
+              <h4>{col.title}</h4>
+              <ul>
+                {col.links.map((l) =>
+                  l.to.startsWith("mailto:") || l.to.startsWith("/#") ? (
+                    <li key={l.label}><a href={l.to}>{l.label}</a></li>
+                  ) : (
+                    <li key={l.label}><Link to={l.to}>{l.label}</Link></li>
+                  ),
+                )}
+              </ul>
             </div>
-          </nav>
+          ))}
+
+          <div className="nbf-col">
+            <h4>Stay Up to Date</h4>
+            <form className="nbf-form" onSubmit={handleSubscribe} noValidate>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                aria-label="Email address"
+                disabled={submitting}
+              />
+              <button type="submit" disabled={submitting}>
+                {submitting ? "Subscribing…" : justSubscribed ? "Subscribed ✓" : "Subscribe"}
+              </button>
+            </form>
+          </div>
         </div>
+      </div>
+
+      <div className="nbf-bottom">
+        <p className="nbf-disclaimer">
+          1031 Exchange Up is an agent-to-agent sourcing and referral network — not a
+          brokerage or an MLS, and not a substitute for either. Licensed agents remain
+          responsible for their own marketing and Clear Cooperation obligations.
+        </p>
+        <span className="nbf-copy">© {new Date().getFullYear()} 1031ExchangeUp. All rights reserved.</span>
       </div>
     </footer>
   );
