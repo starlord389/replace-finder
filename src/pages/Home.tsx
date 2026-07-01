@@ -60,21 +60,22 @@ const NB_STYLE = `
   /* ===== hero matchmaking network graphic (.nb-net) ===== */
   [data-nb] .nb-net { position: relative; width: 100%; max-width: 560px; margin-left: auto; aspect-ratio: 1.06 / 1; }
   [data-nb] .nb-net-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; pointer-events: none; }
-  [data-nb] .nb-cw-line { stroke: #2ed3c6; fill: none; stroke-width: .4; stroke-linecap: round; filter: drop-shadow(0 0 1.3px rgba(46,211,198,.85)); }
-  [data-nb] .nb-cw-line.main { stroke-width: .55; }
-  [data-nb] .nb-cw-dot { fill: #6ff0e2; filter: drop-shadow(0 0 2px rgba(110,240,226,.95)); }
+  [data-nb] .nb-cw-line { stroke: #33d6c9; fill: none; stroke-width: .9; stroke-linecap: round; opacity: .8; filter: drop-shadow(0 0 1.5px rgba(51,214,201,.9)); }
+  [data-nb] .nb-web-line { stroke: #33d6c9; fill: none; stroke-width: .7; stroke-linecap: round; opacity: .5; filter: drop-shadow(0 0 1.1px rgba(51,214,201,.8)); }
+  [data-nb] .nb-cw-dot { fill: #7ff0e4; filter: drop-shadow(0 0 1.8px rgba(51,214,201,.95)); }
   [data-nb] .nb-net-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 134px; height: 134px; border-radius: 999px; background: #fff; box-shadow: 0 16px 50px rgba(4,14,30,.5), 0 0 0 8px rgba(255,255,255,.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 4; }
   [data-nb] .nb-hub-1031 { font-size: 28px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.02em; }
   [data-nb] .nb-hub-ex { margin-top: 1px; font-size: 16px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.01em; display: inline-flex; align-items: center; }
   [data-nb] .nb-hub-ex .up { color: #43a047; text-transform: uppercase; }
   [data-nb] .nb-hub-arrow { width: 10px; height: 10px; margin-left: 1px; transform: translateY(-2px); }
-  [data-nb] .nb-cap { position: absolute; transform: translate(-50%,-50%); z-index: 3; display: flex; align-items: center; }
+  [data-nb] .nb-cap { position: absolute; transform: translate(-50%,-50%); z-index: 3; display: inline-flex; align-items: center; }
   [data-nb] .nb-cap.rev { flex-direction: row-reverse; }
-  [data-nb] .nb-cap-photo { width: 76px; height: 76px; border-radius: 999px; border: 3px solid #fff; background-color: #1b3a63; background-size: cover; background-position: center top; box-shadow: 0 8px 24px rgba(4,14,30,.5); flex: 0 0 auto; position: relative; z-index: 2; }
-  [data-nb] .nb-cap-txt { background: rgba(255,255,255,.96); border: 1px solid rgba(120,160,200,.45); box-shadow: 0 6px 18px rgba(4,14,30,.28); border-radius: 999px; padding: 8px 16px 8px 26px; margin-left: -16px; max-width: 152px; }
-  [data-nb] .nb-cap.rev .nb-cap-txt { padding: 8px 26px 8px 16px; margin-left: 0; margin-right: -16px; text-align: right; }
-  [data-nb] .nb-cap-role { display: block; font-size: 12px; font-weight: 800; letter-spacing: .1em; color: #16284a; line-height: 1.1; }
-  [data-nb] .nb-cap-desc { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; line-height: 1.25; color: #5b6b7e; }
+  [data-nb] .nb-cap-ico { width: 60px; height: 60px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 2px rgba(51,214,201,.85), 0 0 12px rgba(51,214,201,.45); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; position: relative; z-index: 2; }
+  [data-nb] .nb-cap-ico svg { width: 27px; height: 27px; stroke: #43a047; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  [data-nb] .nb-cap-txt { background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.5); box-shadow: 0 8px 20px rgba(4,14,30,.32); border-radius: 999px; padding: 7px 16px 7px 24px; margin-left: -14px; max-width: 150px; }
+  [data-nb] .nb-cap.rev .nb-cap-txt { padding: 7px 24px 7px 16px; margin-left: 0; margin-right: -14px; text-align: right; }
+  [data-nb] .nb-cap-role { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .09em; color: #16284a; line-height: 1.1; }
+  [data-nb] .nb-cap-desc { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; line-height: 1.25; color: #56657a; }
   [data-nb] .nb-prop { position: absolute; transform: translate(-50%,-50%); z-index: 2; border-radius: 999px; border: 3px solid rgba(255,255,255,.92); background-color: #14305a; background-size: cover; background-position: center; box-shadow: 0 8px 22px rgba(4,14,30,.45); }
   [data-nb] .nb-prop::after { content: ''; position: absolute; inset: 0; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(46,211,198,.35); }
   @media (max-width: 1023px) { [data-nb] .nb-net { margin: 0 auto; max-width: 470px; } }
@@ -112,10 +113,22 @@ const NAV_LINKS = [
 ];
 
 const NODES = [
-  { tag: "BUYER", lbl: ["Looking for", "Replacement Property"], x: 44, y: 16, rev: false, photo: "/headshot-buyer.jpg" },
-  { tag: "AGENT", lbl: ["Investor Focused", "Real Estate Agent"], x: 17, y: 49, rev: true, photo: "/headshot-agent.jpg" },
-  { tag: "SELLER", lbl: ["1031 Exchange", "Property Owner"], x: 84, y: 49, rev: false, photo: "/headshot-seller.jpg" },
+  { tag: "BUYER", lbl: ["Looking for", "Replacement Property"], x: 44, y: 16, rev: false },
+  { tag: "AGENT", lbl: ["Investor-Focused", "Real Estate Agent"], x: 17, y: 49, rev: true },
+  { tag: "SELLER", lbl: ["1031 Exchange", "Property Owner"], x: 84, y: 49, rev: false },
 ];
+
+const ROLE_ICON: Record<string, JSX.Element> = {
+  BUYER: (
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><line x1="20.5" y1="20.5" x2="15.4" y2="15.4" /></svg>
+  ),
+  AGENT: (
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>
+  ),
+  SELLER: (
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>
+  ),
+};
 const NET_PROPS = [
   { x: 75, y: 19, size: 54, photo: "/mf-1.jpg" },
   { x: 92, y: 64, size: 48, photo: "/mf-2.jpg" },
@@ -124,15 +137,13 @@ const NET_PROPS = [
   { x: 25, y: 84, size: 58, photo: "/mf-5.jpg" },
   { x: 10, y: 72, size: 46, photo: "/mf-6.jpg" },
 ];
-/* dense radial "circuit" spokes around the hub (teal glow) */
-const SPOKES = Array.from({ length: 20 }, (_, i) => {
-  const a = (i * 18 + 5) * (Math.PI / 180);
-  const r1 = 9.5 + (i % 2) * 1.5;
-  const r2 = 24 + ((i * 11) % 16);
-  const bend = (i % 3 === 0) ? 4 : 0;
+/* dense teal "circuit" web fanning out from the hub edge */
+const WEB = Array.from({ length: 34 }, (_, i) => {
+  const a = (i / 34) * Math.PI * 2 + 0.12;
+  const r1 = 12.5;
+  const r2 = 15.5 + ((i * 13) % 15);
   return {
     x1: 50 + Math.cos(a) * r1, y1: 50 + Math.sin(a) * r1,
-    mx: 50 + Math.cos(a + bend * 0.01) * (r1 + r2) / 2, my: 50 + Math.sin(a - bend * 0.01) * (r1 + r2) / 2,
     x2: 50 + Math.cos(a) * r2, y2: 50 + Math.sin(a) * r2,
   };
 });
@@ -176,19 +187,6 @@ function SkyBackdrop() {
       <div className="nb-sky-photo" />
       <div className="nb-sky-overlay" />
       <div className="nb-sky-vignette" />
-      <div className="nb-sky-net">
-        <svg viewBox="0 0 580 520" preserveAspectRatio="xMaxYMin slice" xmlns="http://www.w3.org/2000/svg">
-          <g stroke="rgba(95,193,170,.5)" strokeWidth="1" fill="none">
-            <line x1="70" y1="70" x2="200" y2="40" /><line x1="200" y1="40" x2="320" y2="110" /><line x1="320" y1="110" x2="450" y2="60" /><line x1="450" y1="60" x2="520" y2="150" /><line x1="200" y1="40" x2="150" y2="170" /><line x1="150" y1="170" x2="320" y2="110" /><line x1="320" y1="110" x2="280" y2="230" /><line x1="280" y1="230" x2="450" y2="200" /><line x1="450" y1="60" x2="490" y2="280" /><line x1="70" y1="70" x2="60" y2="200" /><line x1="60" y1="200" x2="150" y2="170" /><line x1="490" y1="280" x2="450" y2="200" />
-          </g>
-          <g fill="#5cc1aa">
-            <circle className="nb-pulse" cx="70" cy="70" r="2.6" /><circle className="nb-pulse" cx="200" cy="40" r="3.4" /><circle className="nb-pulse" cx="320" cy="110" r="2.8" /><circle className="nb-pulse" cx="450" cy="60" r="3.2" /><circle className="nb-pulse" cx="520" cy="150" r="2.4" /><circle className="nb-pulse" cx="150" cy="170" r="2.6" /><circle className="nb-pulse" cx="60" cy="200" r="2.2" /><circle className="nb-pulse" cx="280" cy="230" r="3" /><circle className="nb-pulse" cx="450" cy="200" r="2.6" /><circle className="nb-pulse" cx="490" cy="280" r="2.4" />
-          </g>
-          <g fill="rgba(95,193,170,.16)">
-            <circle cx="200" cy="40" r="7" /><circle cx="450" cy="60" r="6.5" /><circle cx="280" cy="230" r="6" />
-          </g>
-        </svg>
-      </div>
     </div>
   );
 }
@@ -197,17 +195,18 @@ function HeroNetwork() {
   return (
     <div className="nb-net">
       <svg className="nb-net-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {SPOKES.map((s, i) => (
-          <g key={`s-${i}`}>
-            <polyline className="nb-cw-line" points={`${s.x1},${s.y1} ${s.mx},${s.my} ${s.x2},${s.y2}`} vectorEffect="non-scaling-stroke" />
-            <circle className="nb-cw-dot" cx={s.x2} cy={s.y2} r="0.7" />
-            <circle className="nb-cw-dot" cx={s.mx} cy={s.my} r="0.45" />
+        {/* dense teal circuit web fanning from the hub edge */}
+        {WEB.map((w, i) => (
+          <g key={`w-${i}`}>
+            <line className="nb-web-line" x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2} vectorEffect="non-scaling-stroke" />
+            <circle className="nb-cw-dot" cx={w.x2} cy={w.y2} r="0.5" />
           </g>
         ))}
+        {/* connectors from the hub to each person + property */}
         {[...NODES, ...NET_PROPS].map((n, i) => (
           <g key={`m-${i}`}>
-            <line className="nb-cw-line main" x1="50" y1="50" x2={n.x} y2={n.y} vectorEffect="non-scaling-stroke" />
-            <circle className="nb-cw-dot" cx={50 + (n.x - 50) * 0.55} cy={50 + (n.y - 50) * 0.55} r="0.8" />
+            <line className="nb-cw-line" x1="50" y1="50" x2={n.x} y2={n.y} vectorEffect="non-scaling-stroke" />
+            <circle className="nb-cw-dot" cx={50 + (n.x - 50) * 0.5} cy={50 + (n.y - 50) * 0.5} r="0.7" />
           </g>
         ))}
       </svg>
@@ -218,7 +217,7 @@ function HeroNetwork() {
 
       {NODES.map((n) => (
         <div key={n.tag} className={`nb-cap${n.rev ? " rev" : ""}`} style={{ left: `${n.x}%`, top: `${n.y}%` }}>
-          <span className="nb-cap-photo" style={{ backgroundImage: `url(${n.photo})` }} />
+          <span className="nb-cap-ico">{ROLE_ICON[n.tag]}</span>
           <span className="nb-cap-txt">
             <span className="nb-cap-role">{n.tag}</span>
             <span className="nb-cap-desc">{n.lbl[0]}<br />{n.lbl[1]}</span>
