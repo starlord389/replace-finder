@@ -503,10 +503,10 @@ const PB_NAV = [
 ];
 
 const PB_EXCHANGES = [
-  { name: "Boston Office Park", dot: "#43a047", active: true },
-  { name: "Cambridge Lab", dot: "#2f8fd0" },
-  { name: "Seaport Retail", dot: "#2ec5c0" },
-  { name: "Quincy Industrial", dot: "#6b7bd0" },
+  { name: "42 Linden Avenue", dot: "#43a047", active: true },
+  { name: "8 Harborview Street", dot: "#2f8fd0" },
+  { name: "215 Chestnut Street", dot: "#2ec5c0" },
+  { name: "76 Warren Avenue", dot: "#6b7bd0" },
 ];
 
 type PbDealData = {
@@ -519,22 +519,22 @@ const PB_COLS: Array<{ title: string; count: number; dot: string; deals: PbDealD
   {
     title: "New matches", count: 4, dot: "#8794a6",
     deals: [
-      { tag: "New", tone: "blue", title: "Kendall Square Lab", text: "$6.8M · Cambridge · 6.2% cap. Stabilized lab/office steps from MIT.", matches: 5, docs: 2, avatars: ["RC", "MJ"] },
-      { tag: "Hot match", tone: "teal", lifted: true, title: "Harbor Point Office", photo: "/landing-prop-office.jpg", matches: 8, docs: 4, avatars: ["AK", "TS"] },
+      { tag: "New", tone: "blue", title: "42 Linden Avenue", text: "$1.15M · Somerville · Triplex · 5.9% cap. Three-family, fully leased near Davis Sq.", matches: 5, docs: 2, avatars: ["RC", "MJ"] },
+      { tag: "Hot match", tone: "teal", lifted: true, title: "8 Harborview Street", photo: "/mf-1.jpg", matches: 8, docs: 4, avatars: ["AK", "TS"] },
     ],
   },
   {
     title: "In review", count: 3, dot: "#2f8fd0",
     deals: [
-      { tag: "Strong fit", tone: "blue", title: "Back Bay Retail Center", photo: "/landing-prop-retail.jpg", matches: 6, docs: 3, avatars: ["BL", "DV"] },
-      { tag: "New", tone: "blue", title: "Seaport Self-Storage", text: "$2.9M · Boston · 7.1% cap. Value-add storage, 92% occupied.", matches: 3, docs: 1, avatars: ["JT"] },
+      { tag: "Strong fit", tone: "blue", title: "215 Chestnut Street", photo: "/mf-3.jpg", matches: 6, docs: 3, avatars: ["BL", "DV"] },
+      { tag: "New", tone: "blue", title: "76 Warren Avenue", text: "$820K · Quincy · Duplex · 6.4% cap. Two-family, value-add, 100% occupied.", matches: 3, docs: 1, avatars: ["JT"] },
     ],
   },
   {
     title: "Offers out", count: 2, dot: "#43a047",
     deals: [
-      { tag: "Offer sent", tone: "green", title: "Merrimack Logistics", photo: "/landing-prop-industrial.jpg", matches: 4, docs: 6, avatars: ["JA", "KP"] },
-      { tag: "Closing", tone: "green", title: "Quincy Flex Park", text: "$3.3M · Quincy · 6.4% cap. Under LOI, scheduled to close Q3.", matches: 2, docs: 5, avatars: ["RM"] },
+      { tag: "Offer sent", tone: "green", title: "134 Elm Street", photo: "/mf-5.jpg", matches: 4, docs: 6, avatars: ["JA", "KP"] },
+      { tag: "Closing", tone: "green", title: "19 Beacon Court", text: "$1.35M · Medford · Fourplex · 6.0% cap. Under LOI, closing Q3.", matches: 2, docs: 5, avatars: ["RM"] },
     ],
   },
 ];
@@ -595,7 +595,7 @@ function PipelineBoard() {
       </aside>
       <div className="pb-main">
         <div className="pb-top">
-          <span className="pb-title">Boston Office Park</span>
+          <span className="pb-title">42 Linden Avenue</span>
           <span className="pb-title-ico"><span><Pencil /></span><span><Link2 /></span></span>
           <div className="pb-top-right">
             <span className="pb-invite"><Plus />Invite</span>
@@ -639,8 +639,8 @@ function PipelineBoard() {
 }
 
 const PH_DEALS: PbDealData[] = [
-  { tag: "Hot match", tone: "teal", title: "Harbor Point Office", photo: "/landing-prop-office.jpg", matches: 8, docs: 4, avatars: ["AK", "TS"] },
-  { tag: "New", tone: "blue", title: "Kendall Square Lab", text: "$6.8M · Cambridge · 6.2% cap rate.", matches: 5, docs: 2, avatars: ["RC", "MJ"] },
+  { tag: "Hot match", tone: "teal", title: "8 Harborview Street", photo: "/mf-1.jpg", matches: 8, docs: 4, avatars: ["AK", "TS"] },
+  { tag: "New", tone: "blue", title: "42 Linden Avenue", text: "$1.15M · Somerville · Triplex.", matches: 5, docs: 2, avatars: ["RC", "MJ"] },
 ];
 
 /** Mobile view of the same pipeline app — a phone showing the deals stacked. */
@@ -651,7 +651,7 @@ function PhonePreview() {
         <div className="nb-ph-status"><span>9:41</span><span className="nb-ph-sig" /></div>
         <div className="nb-ph-top">
           <span className="nb-ph-logo"><Sparkles /></span>
-          <span className="nb-ph-title">Boston Office Park</span>
+          <span className="nb-ph-title">42 Linden Avenue</span>
           <span className="nb-ph-av" />
         </div>
         <div className="nb-ph-chips">
