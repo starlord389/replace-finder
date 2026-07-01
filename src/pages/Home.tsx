@@ -72,7 +72,7 @@ const NB_STYLE = `
   [data-nb] .nb-cap.rev { flex-direction: row-reverse; padding: 6px 6px 6px 18px; }
   [data-nb] .nb-cap-ico { width: 46px; height: 46px; border-radius: 999px; background: #16284a; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
   [data-nb] .nb-cap-ico svg { width: 23px; height: 23px; stroke: #5cc15f; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  [data-nb] .nb-cap-txt { max-width: 132px; }
+  [data-nb] .nb-cap-txt { width: 126px; flex: 0 0 auto; }
   [data-nb] .nb-cap.rev .nb-cap-txt { text-align: right; }
   [data-nb] .nb-cap-role { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .09em; color: #16284a; line-height: 1.1; }
   [data-nb] .nb-cap-desc { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; line-height: 1.25; color: #56657a; }
