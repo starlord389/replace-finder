@@ -1,4 +1,8 @@
 import { useState } from "react";
+import {
+  LayoutDashboard, Users, Sparkles, MessageSquare, Settings, Pencil, Link2, Plus,
+  SlidersHorizontal, Calendar, ChevronDown, Share2, LayoutGrid, Paperclip, Lightbulb,
+} from "lucide-react";
 
 /* AUTO-ASSEMBLED landing sections (navy+green brand). Person/expert photos are placeholders. */
 
@@ -382,105 +386,247 @@ function Sec_why() {
   );
 }
 
+const DASHBOARD_CSS = `
+  [data-nb] .nb-dash { border-radius: 18px; overflow: hidden; background: #fff; border: 1px solid #e8edf3; box-shadow: 0 26px 60px rgba(14,42,77,.16); }
+  [data-nb] .nb-dash-bar { display: flex; align-items: center; gap: 7px; padding: 12px 16px; border-bottom: 1px solid #eef3fb; background: #f7f9fc; }
+  [data-nb] .nb-dash-bar i { width: 10px; height: 10px; border-radius: 50%; background: #dfe6f0; }
+  [data-nb] .nb-dash-bar i:nth-child(3) { background: #cfe4d0; }
+  [data-nb] .nb-dash-url { margin-left: 10px; font-size: 11px; color: #8794a6; background: #eef3fb; padding: 5px 14px; border-radius: 7px; }
+  [data-nb] .nb-dash-screen { background: linear-gradient(160deg, #f5f8fc, #eaf0f8); }
+
+  [data-nb] .pb { display: flex; width: 100%; height: 486px; overflow: hidden; color: #16284a; text-align: left; font-family: 'Plus Jakarta Sans', sans-serif; }
+  [data-nb] .pb-side { width: 176px; flex: none; display: flex; flex-direction: column; padding: 16px 12px 14px; background: rgba(255,255,255,.7); border-right: 1px solid #e8edf3; }
+  [data-nb] .pb-brand { display: flex; align-items: center; gap: 8px; padding: 0 2px; margin-bottom: 14px; }
+  [data-nb] .pb-brand-logo { width: 26px; height: 26px; flex: none; border-radius: 8px; background: #16284a; color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+  [data-nb] .pb-brand-logo svg { width: 14px; height: 14px; }
+  [data-nb] .pb-brand-name { font-size: 12px; font-weight: 800; letter-spacing: -.02em; color: #16284a; }
+  [data-nb] .pb-brand-badge { margin-left: auto; font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #2f7a33; background: #e3f1e4; padding: 2px 6px; border-radius: 999px; }
+  [data-nb] .pb-navlabel { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #9fb0c8; margin: 14px 10px 7px; }
+  [data-nb] .pb-nav { display: flex; flex-direction: column; gap: 1px; }
+  [data-nb] .pb-nav-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 9px; font-size: 12px; font-weight: 500; color: #56657a; }
+  [data-nb] .pb-nav-item svg { width: 15px; height: 15px; flex: none; color: #9fb0c8; stroke-width: 2; }
+  [data-nb] .pb-nav-item.is-active { background: #e3f1e4; color: #2f7a33; font-weight: 600; }
+  [data-nb] .pb-nav-item.is-active svg { color: #43a047; }
+  [data-nb] .pb-proj { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 9px; font-size: 12px; font-weight: 500; color: #56657a; }
+  [data-nb] .pb-proj-dot { width: 7px; height: 7px; border-radius: 999px; flex: none; }
+  [data-nb] .pb-proj.is-active { background: #eef3fb; color: #16284a; font-weight: 600; }
+  [data-nb] .pb-widget { margin-top: auto; position: relative; border-radius: 14px; padding: 30px 12px 13px; text-align: center; background: linear-gradient(180deg, rgba(227,241,228,0) 0%, #e3f1e4 100%); border: 1px solid #dbeadd; overflow: hidden; }
+  [data-nb] .pb-widget-bulb { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); width: 30px; height: 30px; border-radius: 999px; background: radial-gradient(circle, rgba(67,160,71,.28) 0%, rgba(67,160,71,0) 68%); display: inline-flex; align-items: center; justify-content: center; }
+  [data-nb] .pb-widget-bulb svg { width: 15px; height: 15px; color: #43a047; }
+  [data-nb] .pb-widget-title { margin-top: 16px; font-size: 10.5px; font-weight: 700; color: #16284a; }
+  [data-nb] .pb-widget-text { margin-top: 4px; font-size: 9px; line-height: 1.45; color: #6c7c90; }
+
+  [data-nb] .pb-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  [data-nb] .pb-top { display: flex; align-items: center; gap: 9px; padding: 16px 20px 0; }
+  [data-nb] .pb-title { font-size: 19px; font-weight: 800; letter-spacing: -.03em; color: #16284a; }
+  [data-nb] .pb-title-ico { display: inline-flex; gap: 6px; margin-left: 3px; }
+  [data-nb] .pb-title-ico span { width: 22px; height: 22px; border-radius: 7px; background: #fff; border: 1px solid #e8edf3; display: inline-flex; align-items: center; justify-content: center; }
+  [data-nb] .pb-title-ico svg { width: 11px; height: 11px; color: #8794a6; }
+  [data-nb] .pb-top-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  [data-nb] .pb-invite { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: #56657a; }
+  [data-nb] .pb-invite svg { width: 13px; height: 13px; color: #8794a6; }
+  [data-nb] .pb-toolbar { display: flex; align-items: center; gap: 8px; padding: 14px 20px 0; }
+  [data-nb] .pb-pill { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid #e8edf3; background: #fff; font-size: 11.5px; font-weight: 600; color: #56657a; white-space: nowrap; }
+  [data-nb] .pb-pill svg { width: 13px; height: 13px; color: #8794a6; }
+  [data-nb] .pb-chev { width: 11px; height: 11px; }
+  [data-nb] .pb-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  [data-nb] .pb-iconbtn { width: 30px; height: 30px; border-radius: 999px; border: 1px solid #e8edf3; background: #fff; display: inline-flex; align-items: center; justify-content: center; }
+  [data-nb] .pb-iconbtn svg { width: 14px; height: 14px; color: #8794a6; }
+  [data-nb] .pb-share { color: #16284a; }
+  [data-nb] .pb-avatars { display: inline-flex; align-items: center; }
+  [data-nb] .pb-av { width: 24px; height: 24px; border-radius: 999px; margin-left: -7px; border: 2px solid #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: #fff; }
+  [data-nb] .pb-av:first-child { margin-left: 0; }
+  [data-nb] .pb-av-more { background: #d7e6f7; color: #2f6fd0; }
+  [data-nb] .pb-board { flex: 1; display: flex; gap: 14px; padding: 16px 20px 0; overflow: hidden; }
+  [data-nb] .pb-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  [data-nb] .pb-col-head { display: flex; align-items: center; gap: 7px; padding-bottom: 9px; margin-bottom: 13px; border-bottom: 2px solid #e8edf3; }
+  [data-nb] .pb-col-dot { width: 7px; height: 7px; border-radius: 999px; flex: none; }
+  [data-nb] .pb-col-title { font-size: 12px; font-weight: 700; color: #16284a; }
+  [data-nb] .pb-col-count { font-size: 9.5px; font-weight: 700; color: #8794a6; background: #eef3fb; padding: 1px 7px; border-radius: 999px; }
+  [data-nb] .pb-col-cards { display: flex; flex-direction: column; gap: 13px; }
+  [data-nb] .pb-deal { background: #fff; border: 1px solid #eef3fb; border-radius: 14px; padding: 12px; box-shadow: 0 1px 2px rgba(14,42,77,.04), 0 6px 18px rgba(14,42,77,.05); }
+  [data-nb] .pb-drag { position: relative; margin-top: 2px; }
+  [data-nb] .pb-placeholder { position: absolute; inset: 0; border: 2px dashed #cfdcea; border-radius: 14px; z-index: 0; }
+  [data-nb] .pb-deal.is-lifted { position: relative; z-index: 3; transform: rotate(-3deg) translate(-4px, -15px); box-shadow: 0 22px 44px rgba(14,42,77,.2); }
+  [data-nb] .pb-tag { display: inline-flex; font-size: 8.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+  [data-nb] .pb-tag.tone-blue { color: #2f6fd0; background: #e8f0fb; }
+  [data-nb] .pb-tag.tone-teal { color: #0f8a86; background: #d7f2ee; }
+  [data-nb] .pb-tag.tone-green { color: #2f7a33; background: #e3f1e4; }
+  [data-nb] .pb-deal-title { margin-top: 9px; font-size: 13px; font-weight: 700; letter-spacing: -.015em; color: #16284a; line-height: 1.25; }
+  [data-nb] .pb-deal-text { margin-top: 6px; font-size: 10px; line-height: 1.5; color: #6c7c90; }
+  [data-nb] .pb-deal-photo { margin-top: 11px; height: 80px; border-radius: 11px; background-size: cover; background-position: center; }
+  [data-nb] .pb-deal-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+  [data-nb] .pb-deal-foot .pb-av { width: 20px; height: 20px; font-size: 7.5px; }
+  [data-nb] .pb-meta { display: inline-flex; align-items: center; gap: 11px; }
+  [data-nb] .pb-meta-item { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 500; color: #8794a6; }
+  [data-nb] .pb-meta-item svg { width: 11px; height: 11px; }
+
+  @media (min-width: 980px) { [data-nb] .nb-diff-wrap { grid-template-columns: 1.32fr 1fr; } }
+  @media (max-width: 720px) { [data-nb] .pb-side { display: none; } [data-nb] .pb { height: 430px; } [data-nb] .pb-board { padding: 14px 14px 0; gap: 10px; } }
+`;
+
+const PB_NAV = [
+  { Icon: LayoutDashboard, label: "Dashboard" },
+  { Icon: Users, label: "My Clients" },
+  { Icon: Sparkles, label: "Matches", active: true },
+  { Icon: MessageSquare, label: "Messages" },
+  { Icon: Settings, label: "Settings" },
+];
+
+const PB_EXCHANGES = [
+  { name: "Boston Office Park", dot: "#43a047", active: true },
+  { name: "Cambridge Lab", dot: "#2f8fd0" },
+  { name: "Seaport Retail", dot: "#2ec5c0" },
+  { name: "Quincy Industrial", dot: "#6b7bd0" },
+];
+
+type PbDealData = {
+  tag: string; tone: "blue" | "teal" | "green"; title: string;
+  photo?: string; text?: string; lifted?: boolean;
+  matches: number; docs: number; avatars: string[];
+};
+
+const PB_COLS: Array<{ title: string; count: number; dot: string; deals: PbDealData[] }> = [
+  {
+    title: "New matches", count: 4, dot: "#8794a6",
+    deals: [
+      { tag: "New", tone: "blue", title: "Kendall Square Lab", text: "$6.8M · Cambridge · 6.2% cap. Stabilized lab/office steps from MIT.", matches: 5, docs: 2, avatars: ["RC", "MJ"] },
+      { tag: "Hot match", tone: "teal", lifted: true, title: "Harbor Point Office", photo: "/landing-prop-office.jpg", matches: 8, docs: 4, avatars: ["AK", "TS"] },
+    ],
+  },
+  {
+    title: "In review", count: 3, dot: "#2f8fd0",
+    deals: [
+      { tag: "Strong fit", tone: "blue", title: "Back Bay Retail Center", photo: "/landing-prop-retail.jpg", matches: 6, docs: 3, avatars: ["BL", "DV"] },
+      { tag: "New", tone: "blue", title: "Seaport Self-Storage", text: "$2.9M · Boston · 7.1% cap. Value-add storage, 92% occupied.", matches: 3, docs: 1, avatars: ["JT"] },
+    ],
+  },
+  {
+    title: "Offers out", count: 2, dot: "#43a047",
+    deals: [
+      { tag: "Offer sent", tone: "green", title: "Merrimack Logistics", photo: "/landing-prop-industrial.jpg", matches: 4, docs: 6, avatars: ["JA", "KP"] },
+      { tag: "Closing", tone: "green", title: "Quincy Flex Park", text: "$3.3M · Quincy · 6.4% cap. Under LOI, scheduled to close Q3.", matches: 2, docs: 5, avatars: ["RM"] },
+    ],
+  },
+];
+
+const PB_AV_COLORS = ["#5b7cc0", "#4a9e6a", "#3aa8b0", "#6a6fc0", "#5a86a8", "#7a6cc0", "#4a9e8a"];
+const avColor = (s: string) => PB_AV_COLORS[s.charCodeAt(0) % PB_AV_COLORS.length];
+
+function PbDeal({ d }: { d: PbDealData }) {
+  return (
+    <div className={`pb-deal${d.lifted ? " is-lifted" : ""}`}>
+      <span className={`pb-tag tone-${d.tone}`}>{d.tag}</span>
+      <div className="pb-deal-title">{d.title}</div>
+      {d.photo ? (
+        <div className="pb-deal-photo" style={{ backgroundImage: `url(${d.photo})` }} />
+      ) : (
+        <div className="pb-deal-text">{d.text}</div>
+      )}
+      <div className="pb-deal-foot">
+        <div className="pb-avatars">
+          {d.avatars.map((a) => <span key={a} className="pb-av" style={{ background: avColor(a) }} />)}
+        </div>
+        <div className="pb-meta">
+          <span className="pb-meta-item"><MessageSquare />{d.matches}</span>
+          <span className="pb-meta-item"><Paperclip />{d.docs}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PipelineBoard() {
+  return (
+    <div className="pb">
+      <aside className="pb-side">
+        <div className="pb-brand">
+          <span className="pb-brand-logo"><Sparkles /></span>
+          <span className="pb-brand-name">1031ExchangeUp</span>
+          <span className="pb-brand-badge">Agent</span>
+        </div>
+        <nav className="pb-nav">
+          {PB_NAV.map(({ Icon, label, active }) => (
+            <div key={label} className={`pb-nav-item${active ? " is-active" : ""}`}><Icon /><span>{label}</span></div>
+          ))}
+        </nav>
+        <div className="pb-navlabel">Exchanges</div>
+        <nav className="pb-nav">
+          {PB_EXCHANGES.map((e) => (
+            <div key={e.name} className={`pb-proj${e.active ? " is-active" : ""}`}>
+              <span className="pb-proj-dot" style={{ background: e.dot }} /><span>{e.name}</span>
+            </div>
+          ))}
+        </nav>
+        <div className="pb-widget">
+          <span className="pb-widget-bulb"><Lightbulb /></span>
+          <div className="pb-widget-title">Match radar</div>
+          <div className="pb-widget-text">3 new replacement-property matches surfaced this week.</div>
+        </div>
+      </aside>
+      <div className="pb-main">
+        <div className="pb-top">
+          <span className="pb-title">Boston Office Park</span>
+          <span className="pb-title-ico"><span><Pencil /></span><span><Link2 /></span></span>
+          <div className="pb-top-right">
+            <span className="pb-invite"><Plus />Invite</span>
+            <div className="pb-avatars">
+              {["AK", "TS", "MR", "DV"].map((a) => <span key={a} className="pb-av" style={{ background: avColor(a) }} />)}
+              <span className="pb-av pb-av-more">+2</span>
+            </div>
+          </div>
+        </div>
+        <div className="pb-toolbar">
+          <span className="pb-pill"><SlidersHorizontal />Filter<ChevronDown className="pb-chev" /></span>
+          <span className="pb-pill"><Calendar />This month<ChevronDown className="pb-chev" /></span>
+          <div className="pb-toolbar-right">
+            <span className="pb-pill pb-share"><Share2 />Share</span>
+            <span className="pb-iconbtn"><LayoutGrid /></span>
+          </div>
+        </div>
+        <div className="pb-board">
+          {PB_COLS.map((col) => (
+            <div key={col.title} className="pb-col">
+              <div className="pb-col-head" style={{ borderBottomColor: col.dot }}>
+                <span className="pb-col-dot" style={{ background: col.dot }} />
+                <span className="pb-col-title">{col.title}</span>
+                <span className="pb-col-count">{col.count}</span>
+              </div>
+              <div className="pb-col-cards">
+                {col.deals.map((d) =>
+                  d.lifted ? (
+                    <div key={d.title} className="pb-drag"><span className="pb-placeholder" /><PbDeal d={d} /></div>
+                  ) : (
+                    <PbDeal key={d.title} d={d} />
+                  ),
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Sec_diff() {
   return (
 <section id="different" className="w-full py-20 sm:py-24" data-nb style={{ background: "#eef3fb" }}>
+  <style>{DASHBOARD_CSS}</style>
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
     <div className="text-center mb-12 sm:mb-16">
       <h2 className="nb-h2">Why We&apos;re Different</h2>
     </div>
 
     <div className="nb-diff-wrap">
-      {/* LEFT — device mockup */}
-      <div className="nb-diff-devices" aria-hidden="true">
-        <div className="nb-diff-glow" />
-
-        {/* laptop */}
-        <div className="nb-diff-laptop">
-          <div className="nb-diff-laptop-screen">
-            <div className="nb-diff-laptop-bar">
-              <span className="nb-diff-dot" />
-              <span className="nb-diff-dot" />
-              <span className="nb-diff-dot g" />
-              <span className="nb-diff-urlbar">app.1031exchangeup.com/matches</span>
-            </div>
-            <div className="nb-diff-app">
-              <div className="nb-diff-app-head">
-                <div>
-                  <div className="nb-diff-app-kicker">AI MATCHES</div>
-                  <div className="nb-diff-app-title">Your replacement matches</div>
-                </div>
-                <span className="nb-diff-app-live"><span className="nb-diff-app-livedot" />12 new</span>
-              </div>
-              <div className="nb-diff-app-kpis">
-                <div className="nb-diff-kpi"><b>91%</b><span>Avg fit</span></div>
-                <div className="nb-diff-kpi"><b>+2.8%</b><span>Avg ROE lift</span></div>
-                <div className="nb-diff-kpi"><b>6</b><span>Ready to connect</span></div>
-              </div>
-              <div className="nb-diff-matches">
-                <div className="nb-diff-match">
-                  <div className="nb-diff-match-thumb" />
-                  <div className="nb-diff-match-body">
-                    <div className="nb-diff-match-name">Cedar Point Industrial</div>
-                    <div className="nb-diff-match-meta">Reno, NV &middot; $3.1M <span className="nb-diff-match-roe">+3.3% ROE</span></div>
-                  </div>
-                  <div className="nb-diff-match-score">94<i>%</i></div>
-                </div>
-                <div className="nb-diff-match">
-                  <div className="nb-diff-match-thumb" />
-                  <div className="nb-diff-match-body">
-                    <div className="nb-diff-match-name">Stonebridge Flex Park</div>
-                    <div className="nb-diff-match-meta">Boise, ID &middot; $3.1M <span className="nb-diff-match-roe">+2.7% ROE</span></div>
-                  </div>
-                  <div className="nb-diff-match-score">91<i>%</i></div>
-                </div>
-                <div className="nb-diff-match">
-                  <div className="nb-diff-match-thumb" />
-                  <div className="nb-diff-match-body">
-                    <div className="nb-diff-match-name">Harbor Logistics Center</div>
-                    <div className="nb-diff-match-meta">Tucson, AZ &middot; $2.9M <span className="nb-diff-match-roe">+2.4% ROE</span></div>
-                  </div>
-                  <div className="nb-diff-match-score">88<i>%</i></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="nb-diff-laptop-base" />
+      {/* LEFT — product dashboard */}
+      <div className="nb-dash" aria-hidden="true">
+        <div className="nb-dash-bar">
+          <i /><i /><i />
+          <span className="nb-dash-url">app.1031exchangeup.com/pipeline</span>
         </div>
-
-        {/* phone */}
-        <div className="nb-diff-phone">
-          <div className="nb-diff-phone-notch" />
-          <div className="nb-diff-pfhead">
-            <span className="nb-diff-pf-title">Matches</span>
-            <span className="nb-diff-app-live"><span className="nb-diff-app-livedot" />12</span>
-          </div>
-          <div className="nb-diff-matches">
-            <div className="nb-diff-match">
-              <div className="nb-diff-match-thumb" />
-              <div className="nb-diff-match-body">
-                <div className="nb-diff-match-name">Cedar Point Industrial</div>
-                <div className="nb-diff-match-meta">Reno, NV</div>
-              </div>
-              <div className="nb-diff-match-score">94<i>%</i></div>
-            </div>
-            <div className="nb-diff-match">
-              <div className="nb-diff-match-thumb" />
-              <div className="nb-diff-match-body">
-                <div className="nb-diff-match-name">Stonebridge Flex</div>
-                <div className="nb-diff-match-meta">Boise, ID</div>
-              </div>
-              <div className="nb-diff-match-score">91<i>%</i></div>
-            </div>
-            <div className="nb-diff-match">
-              <div className="nb-diff-match-thumb" />
-              <div className="nb-diff-match-body">
-                <div className="nb-diff-match-name">Harbor Logistics</div>
-                <div className="nb-diff-match-meta">Tucson, AZ</div>
-              </div>
-              <div className="nb-diff-match-score">88<i>%</i></div>
-            </div>
-          </div>
+        <div className="nb-dash-screen">
+          <PipelineBoard />
         </div>
       </div>
 
