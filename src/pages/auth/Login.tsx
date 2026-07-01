@@ -104,10 +104,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#F4F2EE] px-4 py-12">
+    <div className="min-h-[100dvh] w-full bg-[#f4f7fb] px-4 py-12">
       <div className="flex min-h-[80vh] items-center justify-center">
         <div className="w-full max-w-sm">
-          <Card className="border-[#d7c9b1] bg-white/90 shadow-sm">
+          <Card className="border-[#e8edf3] bg-white/90 shadow-sm">
             <CardContent className="p-6 sm:p-8">
               <div className="text-center">
                 <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
@@ -125,7 +125,7 @@ export default function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="focus-visible:ring-[#39484d]"
+                    className="focus-visible:ring-[#43a047]"
                   />
                 </div>
                 <div className="space-y-2">
@@ -137,12 +137,12 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="focus-visible:ring-[#39484d]"
+                    className="focus-visible:ring-[#43a047]"
                   />
                   <div className="text-right">
                     <Link
                       to="/forgot-password"
-                      className="text-xs text-[#5d5d5d] hover:text-[#1d1d1d] hover:underline"
+                      className="text-xs text-[#56657a] hover:text-[#16284a] hover:underline"
                     >
                       Forgot your password?
                     </Link>
@@ -150,14 +150,14 @@ export default function Login() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]"
+                  className="w-full bg-[#43a047] text-white hover:bg-[#3a8c3e]"
                   disabled={loading}
                 >
                   {loading ? "Signing in…" : "Sign In"}
                 </Button>
               </form>
               {needsConfirmation && (
-                <div className="mt-4 rounded-xl border border-[#e4dcd0] bg-[#FADC6A]/15 p-4 text-left">
+                <div className="mt-4 rounded-xl border border-[#e8edf3] bg-[#43a047]/15 p-4 text-left">
                   <p className="text-sm font-medium text-foreground">
                     Your email isn't verified yet
                   </p>
@@ -170,7 +170,7 @@ export default function Login() {
                     type="button"
                     onClick={handleResend}
                     disabled={resending || cooldown > 0 || !email}
-                    className="mt-3 w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]"
+                    className="mt-3 w-full bg-[#43a047] text-white hover:bg-[#3a8c3e]"
                   >
                     {resending
                       ? "Resending…"
@@ -182,7 +182,7 @@ export default function Login() {
               )}
               <p className="mt-6 text-center text-sm text-muted-foreground">
                 Don&apos;t have an account?{" "}
-                <Link to="/signup" className="font-medium text-[#1d1d1d] hover:underline">
+                <Link to="/signup" className="font-medium text-[#16284a] hover:underline">
                   Create one
                 </Link>
               </p>

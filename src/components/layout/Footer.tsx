@@ -17,7 +17,7 @@ const links = {
 
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-100 bg-gray-50/50">
+    <footer className="border-t border-[#13294e] bg-[#0e2a4d]">
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
@@ -25,10 +25,10 @@ export default function Footer() {
             <Link to="/" className="inline-flex items-center">
               <ExchangeLogoLockup
                 markClassName="h-8"
-                textClassName="text-[15px] font-semibold tracking-[-0.03em] text-gray-900"
+                textClassName="text-[15px] font-semibold tracking-[-0.03em] text-white"
               />
             </Link>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-gray-400">
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#9fb2cc]">
               The exchange network for 1031 agents. Automatic matching, boot
               calculations, and exchange tracking — all in one platform.
             </p>
@@ -37,7 +37,7 @@ export default function Footer() {
           {/* Link columns */}
           {Object.entries(links).map(([title, items]) => (
             <div key={title}>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-[#9fb2cc]">
                 {title}
               </h4>
               <ul className="mt-4 space-y-2.5">
@@ -46,7 +46,7 @@ export default function Footer() {
                     <li key={item.label}>
                       <a
                         href={item.to}
-                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
+                        className="text-sm text-[#9fb2cc] transition-colors hover:text-white"
                       >
                         {item.label}
                       </a>
@@ -55,7 +55,7 @@ export default function Footer() {
                     <li key={item.label}>
                       <Link
                         to={item.to}
-                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
+                        className="text-sm text-[#9fb2cc] transition-colors hover:text-white"
                       >
                         {item.label}
                       </Link>
@@ -67,8 +67,8 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 border-t border-gray-100 pt-6">
-          <p className="text-xs text-gray-400">
+        <div className="mt-12 border-t border-[#13294e] pt-6">
+          <p className="text-xs text-[#9fb2cc]">
             © {new Date().getFullYear()} 1031ExchangeUp. All rights reserved.
           </p>
         </div>

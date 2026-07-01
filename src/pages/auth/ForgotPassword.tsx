@@ -29,15 +29,15 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#F4F2EE] px-4 py-12">
+    <div className="min-h-[100dvh] w-full bg-[#f4f7fb] px-4 py-12">
       <div className="flex min-h-[80vh] items-center justify-center">
         <div className="w-full max-w-sm">
-          <Card className="border-[#d7c9b1] bg-white/90 shadow-sm">
+          <Card className="border-[#e8edf3] bg-white/90 shadow-sm">
             <CardContent className="p-6 sm:p-8">
               {sent ? (
                 <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FADC6A]/25">
-                    <Mail className="h-6 w-6 text-[#1d1d1d]" />
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#43a047]/15">
+                    <Mail className="h-6 w-6 text-[#2f7a33]" />
                   </div>
                   <h1 className="text-2xl font-bold text-foreground">Check your email</h1>
                   <p className="mt-3 text-sm text-muted-foreground">
@@ -46,7 +46,7 @@ export default function ForgotPassword() {
                   <Link to="/login">
                     <Button
                       variant="outline"
-                      className="mt-6 w-full border-[#d7c9b1] text-[#1d1d1d] hover:bg-[#f0ebe3] hover:text-[#1d1d1d]"
+                      className="mt-6 w-full border-[#e8edf3] text-[#16284a] hover:bg-[#eef3fb] hover:text-[#16284a]"
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />
                       Back to Sign In
@@ -71,19 +71,19 @@ export default function ForgotPassword() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="focus-visible:ring-[#39484d]"
+                        className="focus-visible:ring-[#43a047]"
                       />
                     </div>
                     <Button
                       type="submit"
-                      className="w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]"
+                      className="w-full bg-[#43a047] text-white hover:bg-[#3a8c3e]"
                       disabled={loading}
                     >
                       {loading ? "Sending…" : "Send Reset Link"}
                     </Button>
                   </form>
                   <p className="mt-6 text-center text-sm text-muted-foreground">
-                    <Link to="/login" className="font-medium text-[#1d1d1d] hover:underline">
+                    <Link to="/login" className="font-medium text-[#16284a] hover:underline">
                       Back to Sign In
                     </Link>
                   </p>

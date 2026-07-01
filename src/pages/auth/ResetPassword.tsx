@@ -61,14 +61,14 @@ export default function ResetPassword() {
   const confirmError = confirm.length > 0 && password !== confirm ? "Passwords do not match" : "";
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#F4F2EE] px-4 py-12">
+    <div className="min-h-[100dvh] w-full bg-[#f4f7fb] px-4 py-12">
       <div className="flex min-h-[80vh] items-center justify-center">
         <div className="w-full max-w-sm">
-          <Card className="border-[#d7c9b1] bg-white/90 shadow-sm">
+          <Card className="border-[#e8edf3] bg-white/90 shadow-sm">
             <CardContent className="p-6 sm:p-8">
               {linkState === "checking" ? (
                 <div className="flex flex-col items-center justify-center py-8">
-                  <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#39484d] border-t-transparent" />
+                  <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#16284a] border-t-transparent" />
                   <p className="mt-4 text-sm text-muted-foreground">Verifying your reset link…</p>
                 </div>
               ) : linkState === "invalid" ? (
@@ -81,22 +81,22 @@ export default function ResetPassword() {
                     This password reset link is no longer valid. Request a new one and we'll email it to you.
                   </p>
                   <Link to="/forgot-password">
-                    <Button className="mt-6 w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]">
+                    <Button className="mt-6 w-full bg-[#43a047] text-white hover:bg-[#3a8c3e]">
                       Request a new link
                     </Button>
                   </Link>
                 </div>
               ) : done ? (
                 <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FADC6A]/25">
-                    <CheckCircle2 className="h-6 w-6 text-[#1d1d1d]" />
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#43a047]/15">
+                    <CheckCircle2 className="h-6 w-6 text-[#2f7a33]" />
                   </div>
                   <h1 className="text-2xl font-bold text-foreground">Password updated</h1>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Your password has been updated.
                   </p>
                   <Link to="/login">
-                    <Button className="mt-6 w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]">
+                    <Button className="mt-6 w-full bg-[#43a047] text-white hover:bg-[#3a8c3e]">
                       Sign In
                     </Button>
                   </Link>
@@ -119,7 +119,7 @@ export default function ResetPassword() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="focus-visible:ring-[#39484d]"
+                        className="focus-visible:ring-[#16284a]"
                       />
                       {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
                     </div>
@@ -132,13 +132,13 @@ export default function ResetPassword() {
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
                         required
-                        className="focus-visible:ring-[#39484d]"
+                        className="focus-visible:ring-[#16284a]"
                       />
                       {confirmError && <p className="text-sm text-destructive">{confirmError}</p>}
                     </div>
                     <Button
                       type="submit"
-                      className="w-full bg-[#1d1d1d] text-white hover:bg-[#39484d]"
+                      className="w-full bg-[#43a047] text-white hover:bg-[#3a8c3e]"
                       disabled={!valid || loading}
                     >
                       {loading ? "Updating…" : "Update Password"}

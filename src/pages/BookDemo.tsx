@@ -168,27 +168,27 @@ export default function BookDemo() {
   }
 
   return (
-    <section className="bg-[#f4f2ee] px-4 pb-20 pt-20 sm:px-6 sm:pt-24">
+    <section className="bg-[#f4f7fb] px-4 pb-20 pt-20 sm:px-6 sm:pt-24">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,0.96fr)_minmax(0,0.84fr)] lg:items-start">
-          <div className="relative overflow-hidden rounded-[34px] border border-[#ddd8cf] bg-white/88 p-7 shadow-[0_22px_54px_rgba(38,34,28,0.08)] backdrop-blur-sm sm:p-10">
+          <div className="relative overflow-hidden rounded-[34px] border border-[#e8edf3] bg-white/88 p-7 shadow-[0_22px_54px_rgba(14,42,77,0.08)] backdrop-blur-sm sm:p-10">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute right-[-7rem] top-[-8rem] h-64 w-64 rounded-full bg-[#efe8dc]/55 blur-3xl"
+              className="pointer-events-none absolute right-[-7rem] top-[-8rem] h-64 w-64 rounded-full bg-[#eef3fb]/55 blur-3xl"
             />
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-[-9rem] left-[-8rem] h-72 w-72 rounded-full bg-[#efe8dc]/70 blur-3xl"
+              className="pointer-events-none absolute bottom-[-9rem] left-[-8rem] h-72 w-72 rounded-full bg-[#eef3fb]/70 blur-3xl"
             />
             <div className="relative">
-            <h1 className="max-w-xl text-[2.45rem] font-semibold tracking-[-0.05em] text-[#1d1d1d] sm:text-[3rem]">
+            <h1 className="max-w-xl text-[2.45rem] font-semibold tracking-[-0.05em] text-[#16284a] sm:text-[3rem]">
               Talk to our sales team.
             </h1>
 
-            <div className="mt-6 space-y-3 rounded-[26px] border border-[#e8e1d7] bg-[#fbfaf7]/88 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:p-5">
+            <div className="mt-6 space-y-3 rounded-[26px] border border-[#e8edf3] bg-[#eef3fb]/88 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:p-5">
               {introPoints.map((point) => (
-                <div key={point} className="flex items-start gap-3 text-sm leading-7 text-[#5f5a53] sm:text-[15px]">
-                  <span className="mt-1 flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full bg-[#fadc6a]/75 text-[#1d1d1d]">
+                <div key={point} className="flex items-start gap-3 text-sm leading-7 text-[#56657a] sm:text-[15px]">
+                  <span className="mt-1 flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full bg-[#e3f1e4] text-[#2f7a33]">
                     <CheckCircle2 className="h-[13px] w-[13px]" />
                   </span>
                   <p>{point}</p>
@@ -200,7 +200,7 @@ export default function BookDemo() {
               {highlightCards.map((card, index) => (
                 <article
                   key={card.company}
-                  className="group relative flex min-h-[258px] flex-col justify-between overflow-hidden rounded-[26px] border border-[#e4ded4] bg-white p-5 shadow-[0_14px_34px_rgba(38,34,28,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]"
+                  className="group relative flex min-h-[258px] flex-col justify-between overflow-hidden rounded-[26px] border border-[#e8edf3] bg-white p-5 shadow-[0_14px_34px_rgba(14,42,77,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]"
                 >
                   <div
                     aria-hidden="true"
@@ -208,27 +208,27 @@ export default function BookDemo() {
                     style={{
                       background:
                         index === 0
-                          ? "radial-gradient(circle, rgba(228,222,212,0.8), transparent 70%)"
-                          : "radial-gradient(circle, rgba(228,222,212,0.8), transparent 70%)",
+                          ? "radial-gradient(circle, rgba(238,243,251,0.8), transparent 70%)"
+                          : "radial-gradient(circle, rgba(238,243,251,0.8), transparent 70%)",
                     }}
                   />
                   <div>
-                    <div className="inline-flex rounded-full bg-[#f6f1e8] px-3 py-1.5 text-[13px] font-semibold tracking-[-0.03em] text-[#1d1d1d]">
+                    <div className="inline-flex rounded-full bg-[#eef3fb] px-3 py-1.5 text-[13px] font-semibold tracking-[-0.03em] text-[#16284a]">
                       {card.emphasis}
                     </div>
-                    <p className="mt-4 max-w-[14rem] text-[1.1rem] font-medium leading-7 tracking-[-0.045em] text-[#1d1d1d] sm:text-[1.2rem]">
+                    <p className="mt-4 max-w-[14rem] text-[1.1rem] font-medium leading-7 tracking-[-0.045em] text-[#16284a] sm:text-[1.2rem]">
                       {card.headline}
                     </p>
-                    <p className="mt-4 max-w-[15rem] text-sm leading-6 text-[#6b655e]">
+                    <p className="mt-4 max-w-[15rem] text-sm leading-6 text-[#56657a]">
                       “{card.quote}”
                     </p>
                   </div>
 
-                  <div className="relative z-[1] mt-6 border-t border-[#eee8de] pt-4">
-                    <p className="text-[1.02rem] font-semibold tracking-[-0.035em] text-[#1d1d1d]">
+                  <div className="relative z-[1] mt-6 border-t border-[#e8edf3] pt-4">
+                    <p className="text-[1.02rem] font-semibold tracking-[-0.035em] text-[#16284a]">
                       {card.company}
                     </p>
-                    <p className="mt-1.5 text-xs font-medium leading-5 text-[#7d766e]">
+                    <p className="mt-1.5 text-xs font-medium leading-5 text-[#8794a6]">
                       {card.description}
                     </p>
                   </div>
@@ -236,10 +236,10 @@ export default function BookDemo() {
               ))}
             </div>
 
-            <ul className="mt-9 space-y-3 rounded-[26px] border border-[#e8e1d7] bg-[#fbfaf7]/88 p-5">
+            <ul className="mt-9 space-y-3 rounded-[26px] border border-[#e8edf3] bg-[#eef3fb]/88 p-5">
               {benefitPoints.map((point) => (
-                <li key={point} className="flex items-start gap-3 text-sm leading-6 text-[#4d4943]">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1d1d1d] text-white">
+                <li key={point} className="flex items-start gap-3 text-sm leading-6 text-[#56657a]">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#43a047] text-white">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                   </span>
                   <span>{point}</span>
@@ -251,13 +251,13 @@ export default function BookDemo() {
 
           <div className="lg:pt-4">
             <div className="mx-auto w-full max-w-[530px] lg:ml-auto">
-              <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#6d6a63]">
+              <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#8794a6]">
                 Request a Demo
               </p>
-              <h2 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#1d1d1d]">
+              <h2 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#16284a]">
                 Contact our sales team
               </h2>
-              <p className="mt-3 max-w-[34rem] text-sm leading-6 text-[#5f5a53]">
+              <p className="mt-3 max-w-[34rem] text-sm leading-6 text-[#56657a]">
                 Share a few details and we&apos;ll tailor the conversation to your
                 exchange process, team structure, and rollout goals.
               </p>
@@ -271,8 +271,8 @@ export default function BookDemo() {
 
               <form onSubmit={handleSubmit} className="mt-8 space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="demo-work-email" className="text-[#1d1d1d]">
-                    Company Email <span className="text-[#7d766e]">*</span>
+                  <Label htmlFor="demo-work-email" className="text-[#16284a]">
+                    Company Email <span className="text-[#8794a6]">*</span>
                   </Label>
                   <Input
                     id="demo-work-email"
@@ -280,26 +280,26 @@ export default function BookDemo() {
                     value={formState.workEmail}
                     onChange={(event) => updateField("workEmail", event.target.value)}
                     placeholder="name@company.com"
-                    className="h-11 rounded-[14px] border-[#d8d4cb] bg-white text-[#1d1d1d] placeholder:text-[#918c84]"
+                    className="h-11 rounded-[14px] border-[#e8edf3] bg-white text-[#16284a] placeholder:text-[#9fb0c8]"
                   />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="demo-full-name" className="text-[#1d1d1d]">
-                      Your Name <span className="text-[#7d766e]">*</span>
+                    <Label htmlFor="demo-full-name" className="text-[#16284a]">
+                      Your Name <span className="text-[#8794a6]">*</span>
                     </Label>
                     <Input
                       id="demo-full-name"
                       value={formState.fullName}
                       onChange={(event) => updateField("fullName", event.target.value)}
                       placeholder="John Doe"
-                      className="h-11 rounded-[14px] border-[#d8d4cb] bg-white text-[#1d1d1d] placeholder:text-[#918c84]"
+                      className="h-11 rounded-[14px] border-[#e8edf3] bg-white text-[#16284a] placeholder:text-[#9fb0c8]"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="demo-phone" className="text-[#1d1d1d]">
+                    <Label htmlFor="demo-phone" className="text-[#16284a]">
                       Phone Number
                     </Label>
                     <Input
@@ -308,48 +308,48 @@ export default function BookDemo() {
                       value={formState.phone}
                       onChange={(event) => updateField("phone", event.target.value)}
                       placeholder="(555) 000-0000"
-                      className="h-11 rounded-[14px] border-[#d8d4cb] bg-white text-[#1d1d1d] placeholder:text-[#918c84]"
+                      className="h-11 rounded-[14px] border-[#e8edf3] bg-white text-[#16284a] placeholder:text-[#9fb0c8]"
                     />
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="demo-company" className="text-[#1d1d1d]">
-                      Company <span className="text-[#7d766e]">*</span>
+                    <Label htmlFor="demo-company" className="text-[#16284a]">
+                      Company <span className="text-[#8794a6]">*</span>
                     </Label>
                     <Input
                       id="demo-company"
                       value={formState.company}
                       onChange={(event) => updateField("company", event.target.value)}
                       placeholder="Your company"
-                      className="h-11 rounded-[14px] border-[#d8d4cb] bg-white text-[#1d1d1d] placeholder:text-[#918c84]"
+                      className="h-11 rounded-[14px] border-[#e8edf3] bg-white text-[#16284a] placeholder:text-[#9fb0c8]"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="demo-role" className="text-[#1d1d1d]">
-                      Role <span className="text-[#7d766e]">*</span>
+                    <Label htmlFor="demo-role" className="text-[#16284a]">
+                      Role <span className="text-[#8794a6]">*</span>
                     </Label>
                     <Input
                       id="demo-role"
                       value={formState.role}
                       onChange={(event) => updateField("role", event.target.value)}
                       placeholder="Investor, advisor, team lead..."
-                      className="h-11 rounded-[14px] border-[#d8d4cb] bg-white text-[#1d1d1d] placeholder:text-[#918c84]"
+                      className="h-11 rounded-[14px] border-[#e8edf3] bg-white text-[#16284a] placeholder:text-[#9fb0c8]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="demo-timeline" className="text-[#1d1d1d]">
+                  <Label htmlFor="demo-timeline" className="text-[#16284a]">
                     Timeline
                   </Label>
                   <select
                     id="demo-timeline"
                     value={formState.timeline}
                     onChange={(event) => updateField("timeline", event.target.value)}
-                    className="flex h-11 w-full rounded-[14px] border border-[#d8d4cb] bg-white px-3 text-sm text-[#1d1d1d] outline-none transition focus:border-[#1d1d1d]"
+                    className="flex h-11 w-full rounded-[14px] border border-[#e8edf3] bg-white px-3 text-sm text-[#16284a] outline-none transition focus:border-[#43a047]"
                   >
                     <option value="">Select a timeline</option>
                     {timelineOptions.map((option) => (
@@ -361,26 +361,26 @@ export default function BookDemo() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="demo-use-case" className="text-[#1d1d1d]">
-                    How can we help? <span className="text-[#7d766e]">*</span>
+                  <Label htmlFor="demo-use-case" className="text-[#16284a]">
+                    How can we help? <span className="text-[#8794a6]">*</span>
                   </Label>
                   <Textarea
                     id="demo-use-case"
                     value={formState.useCase}
                     onChange={(event) => updateField("useCase", event.target.value)}
                     placeholder="Tell us a bit about your process, team, or what you want to cover in the demo."
-                    className="min-h-[144px] rounded-[18px] border-[#d8d4cb] bg-white px-4 py-3 text-sm leading-6 text-[#1d1d1d] placeholder:text-[#918c84]"
+                    className="min-h-[144px] rounded-[18px] border-[#e8edf3] bg-white px-4 py-3 text-sm leading-6 text-[#16284a] placeholder:text-[#9fb0c8]"
                   />
                 </div>
 
-                <div className="flex flex-col gap-4 border-t border-[#ddd8cf] pt-4 sm:flex-row sm:items-end sm:justify-between">
-                  <div className="max-w-[19rem] space-y-2 text-xs leading-5 text-[#7b756e]">
+                <div className="flex flex-col gap-4 border-t border-[#e8edf3] pt-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="max-w-[19rem] space-y-2 text-xs leading-5 text-[#8794a6]">
                     <p>
                       By submitting, you agree that our team may contact you
                       about your demo request and the 1031 Exchange Up platform.
                     </p>
-                    <p className="flex items-start gap-2 text-[#6f695f]">
-                      <LifeBuoy className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1d1d1d]" />
+                    <p className="flex items-start gap-2 text-[#8794a6]">
+                      <LifeBuoy className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#16284a]" />
                       <span>
                         Need help instead?{" "}
                         <a
@@ -397,7 +397,7 @@ export default function BookDemo() {
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="h-11 rounded-full bg-[#1d1d1d] px-7 text-sm font-medium text-white transition-colors hover:bg-black sm:w-auto"
+                    className="h-11 rounded-full bg-[#43a047] px-7 text-sm font-medium text-white transition-colors hover:bg-[#3a8c3e] sm:w-auto"
                   >
                     {submitting ? (
                       <>

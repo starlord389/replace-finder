@@ -17,8 +17,8 @@ export const LANDING_BASE_CSS = `
   [data-landing] {
     position: relative;
     font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: #1d1d1d;
-    background-color: #f4f2ee;
+    color: #16284a;
+    background-color: #f4f7fb;
   }
 
   /* Top-of-page background, spanning the first ~1024px and fading smoothly to
@@ -63,7 +63,7 @@ export const LANDING_BASE_CSS = `
     font-weight: 400;
     line-height: 1.1;
     letter-spacing: -0.05em;
-    color: #000;
+    color: #16284a;
   }
 
   [data-landing] .lp-h2 {
@@ -72,7 +72,7 @@ export const LANDING_BASE_CSS = `
     font-weight: 400;
     line-height: 1.02;
     letter-spacing: -0.05em;
-    color: #0d0d0d;
+    color: #16284a;
   }
 
   /* Gray bordered eyebrow — used at the top of a hero. */
@@ -80,16 +80,16 @@ export const LANDING_BASE_CSS = `
     display: inline-flex;
     width: fit-content;
     padding: 6px 14px;
-    border: 1px solid rgba(29, 29, 29, 0.12);
+    border: 1px solid rgba(22, 40, 74, 0.12);
     border-radius: 999px;
-    background: rgba(29, 29, 29, 0.04);
+    background: rgba(22, 40, 74, 0.04);
     font-family: "Plus Jakarta Sans", -apple-system, sans-serif;
     font-size: 12px;
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #1d1d1d;
+    color: #16284a;
   }
 
   [data-landing] .lp-sub {
@@ -97,7 +97,7 @@ export const LANDING_BASE_CSS = `
     font-weight: 400;
     line-height: 1.55;
     letter-spacing: -0.01em;
-    color: #605f5f;
+    color: #56657a;
   }
 
   /* Pill CTAs — secondary is an outlined text button, primary is a black pill
@@ -116,9 +116,9 @@ export const LANDING_BASE_CSS = `
     letter-spacing: -0.01em;
     line-height: 1;
     text-decoration: none;
-    color: #1d1d1d;
+    color: #16284a;
     background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(29, 29, 29, 0.14);
+    border: 1px solid rgba(22, 40, 74, 0.14);
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
@@ -128,23 +128,23 @@ export const LANDING_BASE_CSS = `
     font-size: 16px;
     font-weight: 500;
     background: transparent;
-    border: 1px solid rgba(29, 29, 29, 0.22);
+    border: 1px solid rgba(22, 40, 74, 0.22);
     padding: 0 22px;
   }
   [data-landing] .lp-pill:not([data-primary="true"]):hover {
-    background: rgba(29, 29, 29, 0.05);
-    border-color: rgba(29, 29, 29, 0.32);
+    background: rgba(22, 40, 74, 0.05);
+    border-color: rgba(22, 40, 74, 0.32);
   }
   [data-landing] .lp-pill[data-primary="true"] {
     color: #fff;
-    background: #1d1d1d;
-    border-color: #1d1d1d;
+    background: #43a047;
+    border-color: #43a047;
     padding: 0 6px 0 18px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
   [data-landing] .lp-pill[data-primary="true"]:hover {
-    background: #000;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2), 0 0 0 5px rgba(29, 29, 29, 0.08);
+    background: #3a8c3e;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2), 0 0 0 5px rgba(22, 40, 74, 0.08);
   }
   [data-landing] .lp-pill-arrow {
     position: relative;
@@ -162,7 +162,7 @@ export const LANDING_BASE_CSS = `
     margin: auto;
     width: 14px;
     height: 14px;
-    color: #1d1d1d;
+    color: #16284a;
     transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
   }
   [data-landing] .lp-pill-arrow .lp-arrow-b { transform: translate(-150%, 150%); }

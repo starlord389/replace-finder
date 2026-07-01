@@ -13,7 +13,7 @@ export default function AgentLayout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F4F2EE]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
@@ -34,7 +34,7 @@ export default function AgentLayout() {
   if (isSuspendedAgent && !hasRole("admin")) {
     const ui = getAgentVerificationUiState(agentVerificationStatus);
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F4F2EE] px-4">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
             <ShieldAlert className="h-6 w-6 text-red-600" />
@@ -55,10 +55,10 @@ export default function AgentLayout() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#F4F2EE]">
+    <div className="flex min-h-screen flex-col bg-background">
       <AgentTopNav />
       {isDemo && (
-        <div className="bg-amber-500 px-4 py-1.5 text-center text-xs font-semibold text-white">
+        <div className="bg-[#43a047] px-4 py-1.5 text-center text-xs font-semibold text-white">
           Demo workspace — sample data, kept completely separate from your live account.
         </div>
       )}

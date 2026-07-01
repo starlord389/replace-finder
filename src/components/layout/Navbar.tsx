@@ -49,7 +49,7 @@ function NavDropdown({ group }: { group: PublicNavGroup }) {
         aria-expanded={open}
         aria-haspopup="true"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 whitespace-nowrap px-2 py-1 text-[14px] font-medium tracking-[-0.02em] text-[#5d5d5d] transition-colors hover:text-[#1d1d1d]"
+        className="flex items-center gap-1 whitespace-nowrap px-2 py-1 text-[14px] font-medium tracking-[-0.02em] text-[#56657a] transition-colors hover:text-[#16284a]"
       >
         {group.label}
         <ChevronDown
@@ -62,7 +62,7 @@ function NavDropdown({ group }: { group: PublicNavGroup }) {
         <div
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
-          className="absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 rounded-2xl border border-[#e7e3db] bg-white p-2 shadow-[0_16px_40px_rgba(40,35,28,0.14)]"
+          className="absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 rounded-2xl border border-[#e8edf3] bg-white p-2 shadow-[0_16px_40px_rgba(14,42,77,0.14)]"
         >
           {group.items.map((it) => {
             const Icon = it.icon;
@@ -70,16 +70,16 @@ function NavDropdown({ group }: { group: PublicNavGroup }) {
               <Link
                 key={it.label}
                 to={it.to}
-                className="group/item flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-[#f7f5f0]"
+                className="group/item flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-[#eef3fb]"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#f6f1e8] text-[#1d1d1d] transition-colors group-hover/item:bg-[#fadc6a]">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#eef3fb] text-[#16284a] transition-colors group-hover/item:bg-[#e3f1e4]">
                   <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} aria-hidden="true" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-[14px] font-semibold tracking-[-0.02em] text-[#1d1d1d]">
+                  <span className="block text-[14px] font-semibold tracking-[-0.02em] text-[#16284a]">
                     {it.label}
                   </span>
-                  <span className="mt-0.5 block text-[12.5px] leading-snug text-[#5f5a53]">
+                  <span className="mt-0.5 block text-[12.5px] leading-snug text-[#56657a]">
                     {it.description}
                   </span>
                 </span>
@@ -98,7 +98,7 @@ function NavDropdown({ group }: { group: PublicNavGroup }) {
 function CtaArrow() {
   const path = "M7 17 17 7M9 7h8v8";
   const base =
-    "absolute inset-0 m-auto h-3 w-3 text-[#1d1d1d] transition-transform duration-300 ease-out";
+    "absolute inset-0 m-auto h-3 w-3 text-[#16284a] transition-transform duration-300 ease-out";
   const svg = (extra: string) => (
     <svg
       viewBox="0 0 24 24"
@@ -129,14 +129,14 @@ export default function Navbar({ overlay = false }: NavbarProps) {
 
   const desktopLinkClass =
     "whitespace-nowrap px-1.5 py-1 text-[14px] font-medium tracking-[-0.02em] transition-colors";
-  const secondaryDesktopText = "text-[#5d5d5d] hover:text-[#1d1d1d]";
+  const secondaryDesktopText = "text-[#56657a] hover:text-[#16284a]";
   const primaryDesktopButton =
-    "group flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#1d1d1d] py-2 pl-4 pr-2 text-[14px] font-semibold tracking-[-0.02em] text-white transition-all duration-200 hover:bg-black hover:shadow-[0_0_0_5px_rgba(29,29,29,0.08)]";
+    "group flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#43a047] py-2 pl-4 pr-2 text-[14px] font-semibold tracking-[-0.02em] text-white transition-all duration-200 hover:bg-[#3a8c3e] hover:shadow-[0_0_0_5px_rgba(67,160,71,0.15)]";
   const mobileNavLinkClass = (active: boolean) =>
     `flex min-h-[42px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold tracking-[-0.02em] ${
       active
-        ? "bg-[#1d1d1d] text-white"
-        : "bg-[#f7f5f0] text-[#4f4a43] hover:bg-[#f0ede7] hover:text-[#1d1d1d]"
+        ? "bg-[#43a047] text-white"
+        : "bg-[#eef3fb] text-[#56657a] hover:bg-[#e8edf3] hover:text-[#16284a]"
     }`;
 
   const dashboardLink = getDefaultRouteForRole(profileRole);
@@ -152,15 +152,15 @@ export default function Navbar({ overlay = false }: NavbarProps) {
       {!overlay && <div className="h-20" />}
 
       <nav
-        className={`fixed left-1/2 top-3 z-50 w-[calc(100%-1.5rem)] max-w-[752px] -translate-x-1/2 border border-[#e7e3db] bg-white shadow-[0_8px_30px_rgba(40,35,28,0.10)] sm:w-[calc(100%-2rem)] ${
+        className={`fixed left-1/2 top-3 z-50 w-[calc(100%-1.5rem)] max-w-[752px] -translate-x-1/2 border border-[#e8edf3] bg-white shadow-[0_8px_30px_rgba(14,42,77,0.10)] sm:w-[calc(100%-2rem)] ${
           mobileOpen ? "rounded-[28px]" : "rounded-full"
         }`}
         aria-label="Main navigation"
       >
         <div className="flex h-[58px] items-center justify-between pl-4 pr-2 sm:pl-5 sm:pr-2.5">
           {/* Logo */}
-          <Link to={ROUTES.home} className="flex shrink-0 items-center gap-2">
-            <ExchangeLogoLockup markClassName="h-8" textClassName="text-[14px] tracking-[-0.02em]" />
+          <Link to={ROUTES.home} className="flex shrink-0 items-center gap-2 text-[#16284a]">
+            <ExchangeLogoLockup textClassName="text-[17px] tracking-[-0.02em]" />
           </Link>
 
           {/* Center group — category dropdowns */}
@@ -180,17 +180,17 @@ export default function Navbar({ overlay = false }: NavbarProps) {
                 <button onClick={signOut} className={primaryDesktopButton}>
                   Sign Out
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white">
-                    <X className="h-3 w-3 text-[#1d1d1d]" />
+                    <X className="h-3 w-3 text-[#16284a]" />
                   </span>
                 </button>
               </>
             ) : (
               <>
-                <span className="mr-1 h-5 w-px bg-[#e0ddd6]" aria-hidden="true" />
+                <span className="mr-1 h-5 w-px bg-[#e8edf3]" aria-hidden="true" />
                 <Link
                   to={ROUTES.forLandlords}
                   className={`${desktopLinkClass} ${
-                    location.pathname === ROUTES.forLandlords ? "text-[#1d1d1d]" : secondaryDesktopText
+                    location.pathname === ROUTES.forLandlords ? "text-[#16284a]" : secondaryDesktopText
                   }`}
                 >
                   For Landlords
@@ -208,7 +208,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
 
           {/* Mobile toggle */}
           <button
-            className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#1d1d1d] px-3 text-[13px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-black md:hidden"
+            className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#43a047] px-3 text-[13px] font-semibold tracking-[-0.02em] text-white transition-colors hover:bg-[#3a8c3e] md:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-expanded={mobileOpen}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
@@ -221,17 +221,17 @@ export default function Navbar({ overlay = false }: NavbarProps) {
         {/* Mobile menu */}
         {mobileOpen && (
           <div className="px-2 pb-2 pt-1 md:hidden">
-            <div className="flex flex-col gap-2 border-t border-[#e8e5de] pt-3">
+            <div className="flex flex-col gap-2 border-t border-[#e8edf3] pt-3">
               {/* Category groups as accordions */}
               {PUBLIC_NAV_GROUPS.map((group) => {
                 const expanded = openGroup === group.label;
                 return (
-                  <div key={group.label} className="rounded-[18px] bg-[#f7f5f0]">
+                  <div key={group.label} className="rounded-[18px] bg-[#eef3fb]">
                     <button
                       type="button"
                       aria-expanded={expanded}
                       onClick={() => setOpenGroup(expanded ? null : group.label)}
-                      className="flex min-h-[42px] w-full items-center justify-between px-4 text-sm font-semibold tracking-[-0.02em] text-[#4f4a43]"
+                      className="flex min-h-[42px] w-full items-center justify-between px-4 text-sm font-semibold tracking-[-0.02em] text-[#56657a]"
                     >
                       {group.label}
                       <ChevronDown
@@ -245,7 +245,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
                           <Link
                             key={it.label}
                             to={it.to}
-                            className="flex min-h-[38px] items-center rounded-[14px] px-3 text-[13.5px] font-medium tracking-[-0.02em] text-[#5f5a53] hover:bg-white hover:text-[#1d1d1d]"
+                            className="flex min-h-[38px] items-center rounded-[14px] px-3 text-[13.5px] font-medium tracking-[-0.02em] text-[#56657a] hover:bg-white hover:text-[#16284a]"
                           >
                             {it.label}
                           </Link>
@@ -257,7 +257,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
               })}
 
               {/* Divider between sections and destinations */}
-              <div className="my-1 h-px bg-[#e8e5de]" />
+              <div className="my-1 h-px bg-[#e8edf3]" />
 
               {user ? (
                 <>
@@ -266,7 +266,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
                   </Link>
                   <button
                     onClick={signOut}
-                    className="min-h-[42px] w-full rounded-full bg-[#1d1d1d] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black"
+                    className="min-h-[42px] w-full rounded-full bg-[#43a047] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a8c3e]"
                   >
                     Sign Out
                   </button>
@@ -284,7 +284,7 @@ export default function Navbar({ overlay = false }: NavbarProps) {
                   </Link>
                   <Link
                     to={ROUTES.signup}
-                    className="flex min-h-[42px] w-full items-center justify-center rounded-full bg-[#1d1d1d] px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-black"
+                    className="flex min-h-[42px] w-full items-center justify-center rounded-full bg-[#43a047] px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-[#3a8c3e]"
                   >
                     Get Started
                   </Link>

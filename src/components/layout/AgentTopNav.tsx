@@ -160,7 +160,7 @@ export default function AgentTopNav() {
   }, [location.pathname]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e4dcd0] bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-[#e8edf3] bg-white/80 backdrop-blur-md">
       <div className="flex h-14 items-center gap-4 px-4 sm:px-6">
         {/* Brand */}
         <Link to="/agent/dashboard" className="flex shrink-0 items-center gap-2">
@@ -168,7 +168,7 @@ export default function AgentTopNav() {
             markClassName="h-8"
             textClassName="text-[15px] tracking-[-0.03em] text-foreground"
             suffix="Agent"
-            suffixClassName="rounded bg-[#FADC6A]/25 px-1.5 py-0.5 text-[10px] font-semibold text-[#1d1d1d]"
+            suffixClassName="rounded bg-[#43a047]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#2f7a33]"
           />
         </Link>
 
