@@ -68,11 +68,12 @@ const NB_STYLE = `
   [data-nb] .nb-hub-ex { margin-top: 1px; font-size: 16px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.01em; display: inline-flex; align-items: center; }
   [data-nb] .nb-hub-ex .up { color: #43a047; text-transform: uppercase; }
   [data-nb] .nb-hub-arrow { width: 10px; height: 10px; margin-left: 1px; transform: translateY(-2px); }
-  [data-nb] .nb-cap { position: absolute; transform: translate(-50%,-50%); z-index: 3; display: inline-flex; align-items: center; gap: 11px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.5); border-radius: 999px; padding: 6px 18px 6px 6px; box-shadow: 0 12px 26px rgba(4,14,30,.4); }
+  [data-nb] .nb-cap { position: absolute; transform: translate(-50%,-50%); z-index: 3; width: max-content; display: inline-flex; align-items: center; gap: 11px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.5); border-radius: 999px; padding: 6px 18px 6px 6px; box-shadow: 0 12px 26px rgba(4,14,30,.4); }
+  [data-nb] .nb-cap-desc { white-space: nowrap; }
   [data-nb] .nb-cap.rev { flex-direction: row-reverse; padding: 6px 6px 6px 18px; }
   [data-nb] .nb-cap-ico { width: 46px; height: 46px; border-radius: 999px; background: #16284a; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
   [data-nb] .nb-cap-ico svg { width: 23px; height: 23px; stroke: #5cc15f; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  [data-nb] .nb-cap-txt { width: 126px; flex: 0 0 auto; }
+  [data-nb] .nb-cap-txt { max-width: 132px; }
   [data-nb] .nb-cap.rev .nb-cap-txt { text-align: right; }
   [data-nb] .nb-cap-role { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .09em; color: #16284a; line-height: 1.1; }
   [data-nb] .nb-cap-desc { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; line-height: 1.25; color: #56657a; }
