@@ -461,12 +461,16 @@ const DASHBOARD_CSS = `
   [data-nb] .pb-meta-item { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 500; color: #8794a6; }
   [data-nb] .pb-meta-item svg { width: 11px; height: 11px; }
 
-  @media (min-width: 980px) { [data-nb] .nb-diff-wrap { grid-template-columns: 1.32fr 1fr; } }
-  @media (max-width: 720px) { [data-nb] .pb-side { display: none; } [data-nb] .pb { height: 430px; } [data-nb] .pb-board { padding: 14px 14px 0; gap: 10px; } }
+  @media (min-width: 980px) { [data-nb] .nb-diff-wrap { grid-template-columns: 1fr 1.05fr; } }
 
-  /* Mobile phone (same app, mobile view) */
-  [data-nb] .nb-devwrap { position: relative; }
-  [data-nb] .nb-phone { position: absolute; right: -16px; bottom: -34px; width: 208px; z-index: 5; border-radius: 30px; background: #0e1f38; padding: 7px; box-shadow: 0 34px 66px rgba(4,14,30,.44); border: 1px solid #24406a; }
+  /* compact device composition (original sizing), detailed board scaled to fit */
+  [data-nb] .nb-diff-devices .nb-diff-laptop-screen { padding: 11px; overflow: hidden; }
+  [data-nb] .nb-diff-devices .nb-diff-laptop-bar { margin-bottom: 8px; }
+  [data-nb] .nb-lapscale { width: 100%; height: 292px; overflow: hidden; border-radius: 5px; }
+  [data-nb] .nb-lapscale .pb { width: 166.7%; transform: scale(.6); transform-origin: top left; }
+
+  /* Mobile phone — same app, mobile view, scaled into the composition */
+  [data-nb] .nb-phone { position: absolute; right: -3%; bottom: -5%; width: 200px; z-index: 5; border-radius: 30px; background: #0e1f38; padding: 7px; box-shadow: 0 30px 60px rgba(4,14,30,.44); border: 1px solid #24406a; transform: scale(.76); transform-origin: bottom right; }
   [data-nb] .nb-phone-screen { border-radius: 24px; overflow: hidden; background: #f5f8fc; }
   [data-nb] .nb-ph-status { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px 5px; font-size: 8px; font-weight: 700; color: #16284a; }
   [data-nb] .nb-ph-sig { width: 16px; height: 8px; border-radius: 2px; background: #16284a; opacity: .5; }
@@ -484,7 +488,7 @@ const DASHBOARD_CSS = `
   [data-nb] .nb-ph-nav { display: flex; align-items: center; justify-content: space-around; padding: 10px 8px; border-top: 1px solid #e8edf3; background: #fff; }
   [data-nb] .nb-ph-nav-item { width: 18px; height: 18px; color: #9fb0c8; stroke-width: 2; }
   [data-nb] .nb-ph-nav-item.active { color: #43a047; }
-  @media (max-width: 720px) { [data-nb] .nb-phone { width: 156px; right: -6px; bottom: -18px; border-radius: 24px; } [data-nb] .nb-phone-screen { border-radius: 19px; } }
+  @media (max-width: 640px) { [data-nb] .nb-phone { transform: scale(.62); } }
 `;
 
 const PB_NAV = [
@@ -677,16 +681,17 @@ function Sec_diff() {
     </div>
 
     <div className="nb-diff-wrap">
-      {/* LEFT — product dashboard + mobile */}
-      <div className="nb-devwrap" aria-hidden="true">
-        <div className="nb-dash">
-          <div className="nb-dash-bar">
-            <i /><i /><i />
-            <span className="nb-dash-url">app.1031exchangeup.com/pipeline</span>
+      {/* LEFT — product dashboard + mobile (compact device composition) */}
+      <div className="nb-diff-devices" aria-hidden="true">
+        <div className="nb-diff-glow" />
+        <div className="nb-diff-laptop">
+          <div className="nb-diff-laptop-screen">
+            <div className="nb-diff-laptop-bar">
+              <span className="nb-diff-dot" /><span className="nb-diff-dot" /><span className="nb-diff-dot g" />
+            </div>
+            <div className="nb-lapscale"><PipelineBoard /></div>
           </div>
-          <div className="nb-dash-screen">
-            <PipelineBoard />
-          </div>
+          <div className="nb-diff-laptop-base" />
         </div>
         <PhonePreview />
       </div>
