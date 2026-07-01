@@ -103,6 +103,7 @@ const NB_STYLE = `
   [data-nb] .nb-eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #43a047; }
   [data-nb] .nb-h2 { font-size: clamp(26px, 2.8vw, 34px); font-weight: 800; color: #16284a; line-height: 1.15; }
   [data-nb] .nb-lead { font-size: 16.5px; line-height: 1.6; color: #56657a; }
+  [data-nb] section[id] { scroll-margin-top: 84px; }
 
   /* ===== logo marquee ===== */
   [data-nb] .nb-mq { background: #fff; padding: 46px 20px 42px; }

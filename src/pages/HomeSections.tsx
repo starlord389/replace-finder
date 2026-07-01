@@ -941,18 +941,18 @@ function Sec_faqcta() {
           <ul>
             <li><a href="#how">How It Works</a></li>
             <li><a href="#who">Who It's For</a></li>
+            <li><a href="#why">Why Join</a></li>
             <li><a href="#resources">Resources</a></li>
-            <li><a href="/signup">Pricing</a></li>
           </ul>
         </div>
 
         <div className="nb-fct-fcol">
-          <h4>Company</h4>
+          <h4>Get Started</h4>
           <ul>
-            <li><a href="#meet">About Us</a></li>
-            <li><a href="#meet">Our Mission</a></li>
-            <li><a href="mailto:support@1031exchangeup.com">Contact Us</a></li>
-            <li><a href="mailto:support@1031exchangeup.com">Careers</a></li>
+            <li><a href="/signup">Join Free</a></li>
+            <li><a href="/book-demo">Book a Demo</a></li>
+            <li><a href="/landlords">For Landlords</a></li>
+            <li><a href="/login">Log In</a></li>
           </ul>
         </div>
 
@@ -960,7 +960,7 @@ function Sec_faqcta() {
           <h4>Support</h4>
           <ul>
             <li><a href="#faq">FAQ</a></li>
-            <li><a href="mailto:support@1031exchangeup.com">Help Center</a></li>
+            <li><a href="mailto:support@1031exchangeup.com">Contact Us</a></li>
             <li><a href="/terms">Terms of Service</a></li>
             <li><a href="/privacy">Privacy Policy</a></li>
           </ul>
