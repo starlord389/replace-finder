@@ -789,21 +789,18 @@ function Sec_resources() {
           <h3 className="nb-res-title">Learn From Trusted Experts</h3>
           <div className="nb-res-experts">
             <div className="nb-res-expert">
-              <img className="nb-res-avatar" src="/expert-1.jpg" alt="Joe Bonavita" />
               <div>
                 <div className="nb-res-ename">Joe Bonavita</div>
                 <div className="nb-res-erole">Qualified Intermediary</div>
               </div>
             </div>
             <div className="nb-res-expert">
-              <img className="nb-res-avatar" src="/expert-2.jpg" alt="Emily Yormak" />
               <div>
                 <div className="nb-res-ename">Emily Yormak</div>
                 <div className="nb-res-erole">Cost Segregation Expert</div>
               </div>
             </div>
             <div className="nb-res-expert">
-              <img className="nb-res-avatar" src="/expert-3.jpg" alt="Wolfgang Suess" />
               <div>
                 <div className="nb-res-ename">Wolfgang Suess</div>
                 <div className="nb-res-erole">DST Specialist</div>
