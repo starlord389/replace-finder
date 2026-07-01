@@ -463,6 +463,28 @@ const DASHBOARD_CSS = `
 
   @media (min-width: 980px) { [data-nb] .nb-diff-wrap { grid-template-columns: 1.32fr 1fr; } }
   @media (max-width: 720px) { [data-nb] .pb-side { display: none; } [data-nb] .pb { height: 430px; } [data-nb] .pb-board { padding: 14px 14px 0; gap: 10px; } }
+
+  /* Mobile phone (same app, mobile view) */
+  [data-nb] .nb-devwrap { position: relative; }
+  [data-nb] .nb-phone { position: absolute; right: -16px; bottom: -34px; width: 208px; z-index: 5; border-radius: 30px; background: #0e1f38; padding: 7px; box-shadow: 0 34px 66px rgba(4,14,30,.44); border: 1px solid #24406a; }
+  [data-nb] .nb-phone-screen { border-radius: 24px; overflow: hidden; background: #f5f8fc; }
+  [data-nb] .nb-ph-status { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px 5px; font-size: 8px; font-weight: 700; color: #16284a; }
+  [data-nb] .nb-ph-sig { width: 16px; height: 8px; border-radius: 2px; background: #16284a; opacity: .5; }
+  [data-nb] .nb-ph-top { display: flex; align-items: center; gap: 8px; padding: 4px 13px 9px; }
+  [data-nb] .nb-ph-logo { width: 24px; height: 24px; flex: none; border-radius: 7px; background: #16284a; color: #fff; display: flex; align-items: center; justify-content: center; }
+  [data-nb] .nb-ph-logo svg { width: 13px; height: 13px; }
+  [data-nb] .nb-ph-title { font-size: 13px; font-weight: 800; letter-spacing: -.02em; color: #16284a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  [data-nb] .nb-ph-av { margin-left: auto; width: 24px; height: 24px; flex: none; border-radius: 999px; background: linear-gradient(135deg, #5b7cc0, #4a9e6a); }
+  [data-nb] .nb-ph-chips { display: flex; gap: 6px; padding: 0 13px 11px; }
+  [data-nb] .nb-ph-chip { font-size: 8px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: #fff; border: 1px solid #e8edf3; color: #56657a; white-space: nowrap; }
+  [data-nb] .nb-ph-chip.active { background: #16284a; color: #fff; border-color: #16284a; }
+  [data-nb] .nb-ph-cards { display: flex; flex-direction: column; gap: 10px; padding: 0 12px 12px; }
+  [data-nb] .nb-ph-cards .pb-deal { padding: 11px; border-radius: 13px; }
+  [data-nb] .nb-ph-cards .pb-deal-photo { height: 74px; }
+  [data-nb] .nb-ph-nav { display: flex; align-items: center; justify-content: space-around; padding: 10px 8px; border-top: 1px solid #e8edf3; background: #fff; }
+  [data-nb] .nb-ph-nav-item { width: 18px; height: 18px; color: #9fb0c8; stroke-width: 2; }
+  [data-nb] .nb-ph-nav-item.active { color: #43a047; }
+  @media (max-width: 720px) { [data-nb] .nb-phone { width: 156px; right: -6px; bottom: -18px; border-radius: 24px; } [data-nb] .nb-phone-screen { border-radius: 19px; } }
 `;
 
 const PB_NAV = [
@@ -609,6 +631,42 @@ function PipelineBoard() {
   );
 }
 
+const PH_DEALS: PbDealData[] = [
+  { tag: "Hot match", tone: "teal", title: "Harbor Point Office", photo: "/landing-prop-office.jpg", matches: 8, docs: 4, avatars: ["AK", "TS"] },
+  { tag: "New", tone: "blue", title: "Kendall Square Lab", text: "$6.8M · Cambridge · 6.2% cap. Stabilized lab/office steps from MIT.", matches: 5, docs: 2, avatars: ["RC", "MJ"] },
+];
+
+/** Mobile view of the same pipeline app — a phone showing the deals stacked. */
+function PhonePreview() {
+  return (
+    <div className="nb-phone">
+      <div className="nb-phone-screen">
+        <div className="nb-ph-status"><span>9:41</span><span className="nb-ph-sig" /></div>
+        <div className="nb-ph-top">
+          <span className="nb-ph-logo"><Sparkles /></span>
+          <span className="nb-ph-title">Boston Office Park</span>
+          <span className="nb-ph-av" />
+        </div>
+        <div className="nb-ph-chips">
+          <span className="nb-ph-chip active">New matches</span>
+          <span className="nb-ph-chip">In review</span>
+          <span className="nb-ph-chip">Offers</span>
+        </div>
+        <div className="nb-ph-cards">
+          {PH_DEALS.map((d) => <PbDeal key={d.title} d={d} />)}
+        </div>
+        <div className="nb-ph-nav">
+          <LayoutDashboard className="nb-ph-nav-item" />
+          <Users className="nb-ph-nav-item" />
+          <Sparkles className="nb-ph-nav-item active" />
+          <MessageSquare className="nb-ph-nav-item" />
+          <Settings className="nb-ph-nav-item" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Sec_diff() {
   return (
 <section id="different" className="w-full py-20 sm:py-24" data-nb style={{ background: "#eef3fb" }}>
@@ -619,15 +677,18 @@ function Sec_diff() {
     </div>
 
     <div className="nb-diff-wrap">
-      {/* LEFT — product dashboard */}
-      <div className="nb-dash" aria-hidden="true">
-        <div className="nb-dash-bar">
-          <i /><i /><i />
-          <span className="nb-dash-url">app.1031exchangeup.com/pipeline</span>
+      {/* LEFT — product dashboard + mobile */}
+      <div className="nb-devwrap" aria-hidden="true">
+        <div className="nb-dash">
+          <div className="nb-dash-bar">
+            <i /><i /><i />
+            <span className="nb-dash-url">app.1031exchangeup.com/pipeline</span>
+          </div>
+          <div className="nb-dash-screen">
+            <PipelineBoard />
+          </div>
         </div>
-        <div className="nb-dash-screen">
-          <PipelineBoard />
-        </div>
+        <PhonePreview />
       </div>
 
       {/* RIGHT — comparison table */}
