@@ -278,6 +278,33 @@ export type Database = {
         }
         Relationships: []
       }
+      event_registrations: {
+        Row: {
+          created_at: string
+          email: string
+          event: string
+          full_name: string
+          id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event?: string
+          full_name: string
+          id?: string
+          role: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event?: string
+          full_name?: string
+          id?: string
+          role?: string
+        }
+        Relationships: []
+      }
       exchange_connections: {
         Row: {
           accepted_at: string | null
