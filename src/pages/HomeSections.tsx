@@ -934,7 +934,7 @@ function Sec_resources() {
             {/* Placeholder initials avatars — swap each for the real headshot
                 (drop photos in /public and replace the div with an <img>). */}
             <div className="nb-res-expert">
-              <div className="nb-res-avatar">JB</div>
+              <img className="nb-res-avatar" src="/expert-joe.webp" alt="Joe Bonavita" />
               <div>
                 <div className="nb-res-ename">Joe Bonavita</div>
                 <div className="nb-res-erole">Qualified Intermediary</div>
