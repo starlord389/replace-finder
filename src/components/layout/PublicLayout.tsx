@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
-import Footer from "./Footer";
 import LandingFooter from "./LandingFooter";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { cn } from "@/lib/utils";
@@ -22,15 +21,6 @@ export default function PublicLayout() {
     pathname === ROUTES.forLandlords ||
     pathname === ROUTES.privacy ||
     pathname === ROUTES.terms;
-  const usesLandingFooter =
-    isHome ||
-    pathname === ROUTES.signup ||
-    pathname === ROUTES.login ||
-    pathname === ROUTES.bookDemo ||
-    pathname === ROUTES.forLandlords ||
-    pathname === ROUTES.privacy ||
-    pathname === ROUTES.terms;
-
   return (
     <div
       className={cn(
@@ -46,7 +36,8 @@ export default function PublicLayout() {
       <main id="main-content" className="flex-1">
         <Outlet />
       </main>
-      {!isHome && (usesLandingFooter ? <LandingFooter /> : <Footer />)}
+      {/* One unified navy footer on every public page (home renders its own). */}
+      {!isHome && <LandingFooter />}
     </div>
   );
 }
