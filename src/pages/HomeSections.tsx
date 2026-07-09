@@ -948,7 +948,7 @@ function Sec_resources() {
               </div>
             </div>
             <div className="nb-res-expert">
-              <div className="nb-res-avatar">WS</div>
+              <img className="nb-res-avatar" src="/expert-wolfgang.jpg" alt="Wolfgang Suess" />
               <div>
                 <div className="nb-res-ename">Wolfgang Suess</div>
                 <div className="nb-res-erole">DST Specialist</div>
