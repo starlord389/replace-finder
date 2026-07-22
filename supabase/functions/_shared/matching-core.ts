@@ -720,7 +720,7 @@ function round4(n: number): number {
   return Math.round(n * 10000) / 10000;
 }
 
-function calculateBoot(
+export function calculateBoot(
   buyerExchange: any,
   buyerFin: any,
   _sellerProp: any,
