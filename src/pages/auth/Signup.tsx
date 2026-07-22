@@ -328,12 +328,28 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
       status: "pending",
     });
 
+    if (!error) {
+      // Fire-and-forget acknowledgement email — never block the UI on it.
+      const firstName = form.name.trim().split(/\s+/)[0] || undefined;
+      supabase.functions
+        .invoke("send-transactional-email", {
+          body: {
+            templateName: "referral-acknowledgement",
+            recipientEmail: form.email.trim(),
+            idempotencyKey: `referral-ack-${form.email.trim().toLowerCase()}-${Date.now()}`,
+            templateData: { firstName, location: form.location.trim() },
+          },
+        })
+        .catch((err) => console.warn("referral ack email failed", err));
+    }
+
     setLoading(false);
     if (error) {
       toast({ title: "Something went wrong", description: error.message, variant: "destructive" });
     } else {
       setSubmitted(true);
     }
+
   };
 
   if (submitted) {
