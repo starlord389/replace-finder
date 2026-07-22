@@ -93,7 +93,7 @@ export default function LaunchpadChecklistCard({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 pt-0.5">
-          {status ? <StatusChip status={status} /> : null}
+          {status ? <StatusChip status={status} progressLabel={progressLabel} /> : null}
           <ChevronRight className="h-5 w-5 text-muted-foreground/50" />
         </div>
       </button>
