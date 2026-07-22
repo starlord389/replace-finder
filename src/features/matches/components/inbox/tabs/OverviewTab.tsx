@@ -2,9 +2,8 @@ import { Building2, Sparkles } from "lucide-react";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 
 export function OverviewTab({ rel }: { rel: Relationship }) {
-  // The hard facts (type, size, year, units, lot, cap, NOI) live in the
-  // price/stat header right above the tabs — this tab is the narrative only,
-  // so we don't repeat the same numbers twice on one screen.
+  // The price and any real facts live in the header above; this tab is the
+  // agent-written narrative only.
   const description = rel.propertyDescription?.trim();
   const renovations = rel.propertyRenovations?.trim();
 

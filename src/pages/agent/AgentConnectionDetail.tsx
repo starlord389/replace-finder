@@ -370,7 +370,7 @@ export default function AgentConnectionDetail() {
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span>{fmt(relinquishedFin?.asking_price)}</span>
               {relinquishedFin?.cap_rate && <span>{formatCapRate(Number(relinquishedFin.cap_rate))} cap</span>}
-              {relinquishedProp?.units && <span>{relinquishedProp.units} units</span>}
+              
             </div>
           </div>
         </div>
@@ -382,7 +382,7 @@ export default function AgentConnectionDetail() {
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span>{fmt(sellerFin?.asking_price)}</span>
               {sellerFin?.cap_rate && <span>{formatCapRate(Number(sellerFin.cap_rate))} cap</span>}
-              {sellerProp?.units && <span>{sellerProp.units} units</span>}
+              
             </div>
           </div>
         </div>

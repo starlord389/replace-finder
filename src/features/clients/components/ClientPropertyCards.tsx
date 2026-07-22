@@ -57,18 +57,14 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
       city: null,
       state: null,
       assetType: null,
-      units: null,
-      yearBuilt: null,
       askingPrice: null,
-      capRate: null,
-      coverUrl: null,
     }));
   }
 
   const [propsRes, finsRes, imgsRes] = await Promise.all([
     supabase
       .from("pledged_properties")
-      .select("id, property_name, address, city, state, asset_type, units, year_built")
+      .select("id, property_name, address, city, state, asset_type")
       .in("id", propIds),
     supabase
       .from("property_financials")
@@ -104,8 +100,6 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
       city: prop?.city ?? null,
       state: prop?.state ?? null,
       assetType: prop?.asset_type ?? null,
-      units: prop?.units ?? null,
-      yearBuilt: prop?.year_built ?? null,
       askingPrice: fin?.asking_price ?? null,
       capRate: fin?.cap_rate ? Number(fin.cap_rate) : null,
       coverUrl: e.relinquished_property_id ? coverByProp.get(e.relinquished_property_id) ?? null : null,
@@ -219,12 +213,7 @@ export function ClientPropertyCards({ clientId, clientName }: Props) {
                 </p>
                 <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                   {l.capRate != null && <span>{l.capRate.toFixed(1)}% cap</span>}
-                  {l.capRate != null && l.units && <span className="text-border">·</span>}
-                  {l.units && <span>{l.units} units</span>}
-                  {(l.capRate != null || l.units) && l.yearBuilt && (
-                    <span className="text-border">·</span>
-                  )}
-                  {l.yearBuilt && <span>Built {l.yearBuilt}</span>}
+                </div>
                 </div>
                 <p className="mt-2 truncate font-semibold text-foreground">
                   {l.propertyName ||

@@ -124,9 +124,9 @@ Deno.serve(async (req) => {
         city: stringOrNull(payload.property.city),
         state: stringOrNull(payload.property.state),
         asset_type: valueOrNull(payload.property.asset_type),
-        year_built: numberOrNull(payload.property.year_built),
-        units: numberOrNull(payload.property.units),
-        building_square_footage: numberOrNull(payload.property.building_square_footage),
+        year_built: null,
+        units: null,
+        building_square_footage: null,
         description: stringOrNull(payload.property.description),
         // Compliance: agent attests they have authorization to market the property.
         owner_authorization_confirmed: boolOrFalse(payload.property.owner_authorization_confirmed),
