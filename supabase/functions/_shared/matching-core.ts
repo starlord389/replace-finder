@@ -529,7 +529,7 @@ function scorePair(
   return r.ok ? r.score : null;
 }
 
-function scorePairExplained(
+export function scorePairExplained(
   buyerExchange: any,
   relinquishedFin: any,
   candidateProp: any,
