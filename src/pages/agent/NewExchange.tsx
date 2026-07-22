@@ -134,6 +134,25 @@ export default function NewExchange() {
           onBack={() => setStep(2)} onSubmit={handleSubmit} saving={saving}
           onOwnerAuthorizationChange={v => setData(d => ({ ...d, property: { ...d.property, owner_authorization_confirmed: v } }))} />
       )}
+
+      <ActivateResultDialog
+        open={resultOpen}
+        state={result}
+        onClose={() => setResultOpen(false)}
+        onViewListing={() => {
+          setResultOpen(false);
+          navigate(lastExchangeId ? `/agent/listings` : "/agent/listings");
+        }}
+        onGoToMatches={() => {
+          setResultOpen(false);
+          navigate(lastExchangeId ? `/agent/matches?listing=${lastExchangeId}` : "/agent/matches");
+        }}
+        onRetry={() => setResultOpen(false)}
+        onSaveAsDraft={() => {
+          setResultOpen(false);
+          handleSubmit(false);
+        }}
+      />
     </div>
   );
 }
