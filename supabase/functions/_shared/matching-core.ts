@@ -337,7 +337,7 @@ export async function persistMatchesAndNotifications(
       .select("id, buyer_exchange_id, seller_property_id")
       .in("buyer_exchange_id", buyerExIds)
       .in("seller_property_id", sellerPropIds);
-    const matchIdByPair = new Map(
+    const matchIdByPair = new Map<string, string>(
       (insertedMatchRows ?? []).map((r: any) => [
         `${r.buyer_exchange_id}:${r.seller_property_id}`,
         r.id,
