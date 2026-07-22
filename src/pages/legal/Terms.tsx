@@ -221,8 +221,8 @@ export default function Terms() {
       <h2>17. Contact us</h2>
       <p>
         Questions about these Terms? Contact us at{" "}
-        <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a> or{" "}
-        <Fill>[business mailing address]</Fill>.
+        <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a> or 15 North St,
+        Manchester, MA 01944.
       </p>
     </LegalDoc>
   );
