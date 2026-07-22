@@ -42,9 +42,9 @@ export default function PrivacyPolicy() {
         1031 Exchange Up operates an agent-to-agent network that helps licensed real estate agents
         source and discover 1031 exchange replacement properties and connect with one another. The
         Service is intended for business use by real estate professionals and, where applicable,
-        property owners who ask to be referred to an agent. The data controller is{" "}
-        <Fill>[full legal entity name]</Fill>, located at <Fill>[business mailing address]</Fill>. You
-        can reach us at <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a>.
+        property owners who ask to be referred to an agent. The data controller is MFPX LLC, d/b/a 1031
+        Exchange Up, located at 15 North St, Manchester, MA 01944. You can reach us at{" "}
+        <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a>.
       </p>
 
       <h2>2. Information we collect</h2>
@@ -222,9 +222,8 @@ export default function PrivacyPolicy() {
       <h2>14. Contact us</h2>
       <p>
         If you have questions about this Privacy Policy or our data practices, contact us at{" "}
-        <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a> or{" "}
-        <Fill>[business mailing address]</Fill>. See also our{" "}
-        <Link to={ROUTES.terms}>Terms &amp; Conditions</Link>.
+        <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a> or 15 North St,
+        Manchester, MA 01944. See also our <Link to={ROUTES.terms}>Terms &amp; Conditions</Link>.
       </p>
     </LegalDoc>
   );
