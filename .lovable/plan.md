@@ -1,56 +1,54 @@
+# Verify & Harden the Matching Engine
 
-## Goal
+Goal: guarantee that every new listing (buyer exchange or seller property) runs the matching algorithm immediately, produces correct scored matches, and notifies both sides by email — reliably, in production.
 
-Two connected improvements to the "Activate Exchange" flow:
+## 1. Audit current behavior (no code changes yet)
 
-1. Give agents a clear success (or error) result after clicking **Activate Exchange**, and tell them what happens next (email on every new match).
-2. Send an actual email whenever they get a new match, with a button that opens that specific match inside the Matches tab.
+Trace each entry point and confirm what actually runs today:
 
----
+- `create-exchange` / `update-exchange` → calls `run-auto-matching` for the buyer exchange? Verify `sendNewMatchEmails` fires.
+- `create-property` / `update-property` (seller side pledged_properties) → does it trigger matching against all active buyer exchanges? This is the most likely gap.
+- `run-auto-matching` core in `matching-core.ts` — confirm the 6-dimension scoring (price 25 / geo 20 / asset 20 / strategy 15 / financial 10 / timing 10) matches the spec, filters demo rows, applies "upgrades only" rule, and dedupes existing matches.
+- Email pipeline: `new-match-notification` template, `send-transactional-email`, queue processor, `email_send_log` results for recent test runs.
 
-## 1. Success / error UI after Activate
+Deliverable: short findings note listing any gap (missing seller-side trigger, missing email, mis-scored dimension, etc.).
 
-Today `NewExchange.tsx` only shows a `toast.success("Exchange activated and matching queued.")` and immediately navigates to `/agent/listings`, so if the toast is missed there is no feedback at all, and errors only show the raw exception message.
+## 2. Fix the gaps found
 
-Change:
+Likely fixes (confirmed after audit):
 
-- Replace the immediate navigate with a **result dialog** that shows one of three states:
-  - **Success — Exchange is live.** Green check, headline "Exchange activated", subcopy: "Your listing is now in the matching network. We'll email you the moment a match comes in — the email opens the match directly inside your Matches tab." Primary button "View listing", secondary "Go to matches".
-  - **Success but no matches queued yet** (activate succeeded, `run-auto-matching` returned 0) — same layout, subcopy adjusted to "No matches yet — we'll notify you by email as soon as one shows up."
-  - **Error.** Red icon, headline "Activation failed", body shows the human message plus a monospace error code line: `Error <STATUS or CODE>: <message>`. Primary button "Try again" (closes dialog, leaves wizard on Review so they can retry), secondary "Save as draft".
-- Keep the toast for quick confirmation but the dialog is the source of truth.
-- Surface the status code/name from the edge-function error (Supabase FunctionsHttpError exposes `context.response.status`; fall back to `err.name` / `err.code` / generic `UNKNOWN`).
+- **Seller-side trigger**: when a `pledged_properties` row is created/activated, run matching for that property against all active buyer exchanges and insert new `matches` rows.
+- **Bilateral notifications**: send `new-match-notification` to BOTH the buyer-side agent and seller-side agent for each genuinely new, non-demo match (today only buyer-side may fire).
+- **Idempotency**: use a stable idempotency key like `match-notify-<matchId>-<recipientRole>` so re-runs don't double-send.
+- **Deep links**: verify `/agent/matches?listing=…&match=…` opens the correct match for each recipient (buyer vs seller perspective).
+- **Filters**: enforce `is_demo = false`, active status, and upgrades-only in one shared helper so both entry points behave identically.
 
-Files touched:
-- `src/pages/agent/NewExchange.tsx` — add dialog state, capture `activate` result + error, render new component.
-- New `src/components/exchange/ActivateResultDialog.tsx` — presentational only.
+## 3. Admin QA surface (small, admin-only)
 
-## 2. "New match" email that deep-links into the Matches tab
+Add a lightweight "Matching QA" panel under the admin area:
 
-`persistMatchesAndNotifications` in `supabase/functions/_shared/matching-core.ts` already inserts an in-app notification for each new match with `link_to: "/agent/matches"`. We extend that path to also fire a transactional email per new match to the agent who owns the receiving side.
+- Show last N matching runs (trigger source, listing id, candidates evaluated, new matches created, emails queued).
+- "Re-run matching" button for a specific exchange or property (admin only).
+- Link into `email_send_log` filtered to `new-match-notification`.
 
-Backend:
-- New template `supabase/functions/_shared/transactional-email-templates/new-match-notification.tsx` registered in `registry.ts`. Props: agent first name, own listing label (client name + city/state), matched property label, match score, and the deep-link URL. Big CTA button "Open this match" pointing at `{APP_URL}/agent/matches?listing={buyer_exchange_id}&match={match_id}` (the exact deep-link `AgentMatches.tsx` already reads via `useSearchParams`, so it lands directly on the selected match). Small secondary link to `/agent/matches`.
-- In `persistMatchesAndNotifications`, after inserting notifications, look up each recipient's `profiles.email` + `first_name`, resolve the counterpart listing/property labels (already available in the `match` object or via a lightweight query), and for every new match invoke `send-transactional-email` with `templateName: "new-match-notification"`, `idempotencyKey: \`new-match-${match.id}\``, and the template data. Skip demo matches (`isDemo === true`) so demo runs don't blast real inboxes. Wrap the send loop in `Promise.allSettled` so a single failure doesn't roll back the match write.
-- Respect existing suppression — `send-transactional-email` already checks `suppressed_emails`, so nothing extra needed.
+## 4. Automated verification
 
-Frontend/routing:
-- No route changes required — `/agent/matches?listing=…&match=…` already selects the correct listing + match. Verify by loading the URL after wiring.
+- Deno tests for `matching-core.ts`: score math per dimension, upgrades-only rule, demo exclusion, dedupe.
+- End-to-end check via Playwright against the running preview:
+  1. Create a buyer exchange as one seeded agent → assert matches row + email log row.
+  2. Create a seller property as another agent that fits → assert new match + emails to both sides.
+  3. Re-run same creation → assert no duplicate match, no duplicate email.
 
-Deploy afterwards: `run-auto-matching`, `create-exchange`, `update-exchange` (they all call the shared matching-core), plus `send-transactional-email` (template registry change).
+## 5. Deploy & monitor
 
-## 3. Prerequisites we already have
+Redeploy affected functions (`create-exchange`, `update-exchange`, `create-property`/`update-property` equivalents, `run-auto-matching`, `send-transactional-email`). Watch `email_send_log` and edge function logs for the first real runs.
 
-- Email domain `notify.1031exchangeup.com` is provisioned; app-email infra + `send-transactional-email` already scaffolded and in use by the referral acknowledgement. If DNS is still pending verification, sends will queue and start delivering once verified — no code change needed later.
+## Technical notes
 
-## Out of scope
+- Files likely touched: `supabase/functions/_shared/matching-core.ts`, `create-exchange/index.ts`, `update-exchange/index.ts`, the property create/update function(s), `run-auto-matching/index.ts`, `send-transactional-email` template registry, new admin page under `src/pages/admin/`.
+- No schema change expected unless the audit uncovers a missing column (e.g. a `last_matched_at` on `pledged_properties`).
+- All new writes must respect existing RLS; admin QA panel gated by `has_role(auth.uid(), 'admin')`.
 
-- Digesting/batching match emails (one email per new match for now — matches an agent workflow where each match matters).
-- Per-user email preferences / unsubscribe UI beyond the standard footer already appended by the send function.
-- Changing the in-app notification schema.
+## Question before I start
 
-## Verification
-
-- Activate an exchange with a valid client → dialog shows the success state, closing routes to listings or matches.
-- Force an error (e.g. missing required financial) → dialog shows red state with `Error <code>: <message>`.
-- Trigger a new match against a non-demo exchange → row appears in `email_send_log` with `template_name = new-match-notification`, and the emailed link opens `/agent/matches` with the correct match pre-selected.
+Do you want me to (a) just audit + fix real gaps I find, or (b) also build the admin "Matching QA" panel in step 3? It's useful long-term but adds ~1 extra round of work.
