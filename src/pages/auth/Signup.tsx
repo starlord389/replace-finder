@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { ASSET_TYPE_LABELS, US_STATES } from "@/lib/constants";
-import { Briefcase, Home, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Briefcase, Home, ArrowLeft, CheckCircle2, Mail, Phone, Search, Handshake, Clock, Shield } from "lucide-react";
 
 type Step = "choose" | "agent" | "referral";
 
@@ -337,20 +337,102 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
   };
 
   if (submitted) {
+    const firstName = form.name.split(" ")[0];
     return (
-      <div className="space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e3f1e4] text-[#43a047]">
-          <CheckCircle2 className="h-8 w-8" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Thanks, {form.name.split(" ")[0]}!</h1>
-          <p className="mt-2 text-muted-foreground">
-            We'll connect you with a qualified agent in your area within 24 hours. Check your email for next steps.
+      <div className="space-y-8">
+        {/* Hero confirmation */}
+        <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-[#e8edf3]">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e3f1e4] text-[#43a047]">
+            <CheckCircle2 className="h-9 w-9" />
+          </div>
+          <h1 className="mt-5 text-3xl font-bold tracking-tight text-[#16284a]">
+            You're in, {firstName}.
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-muted-foreground">
+            Your request has been received. A member of our concierge team is already reviewing your
+            property details to hand-pick a qualified 1031 exchange specialist in your area.
           </p>
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#eef3fb] px-4 py-1.5 text-sm font-medium text-[#16284a]">
+            <Mail className="h-4 w-4" />
+            Confirmation sent to <span className="font-semibold">{form.email}</span>
+          </div>
         </div>
-        <Link to="/">
-          <Button variant="outline" className="border-[#e8edf3] text-[#16284a] hover:bg-[#eef3fb] hover:text-[#16284a]">Back to Home</Button>
-        </Link>
+
+        {/* What happens next */}
+        <div className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-[#e8edf3]">
+          <h2 className="text-lg font-semibold text-[#16284a]">What happens next</h2>
+          <ol className="mt-5 space-y-5">
+            {[
+              {
+                icon: Search,
+                title: "We match you (within 24 hours)",
+                desc: "Our team reviews your goals, location, and timeline to identify the best-fit specialist from our vetted network.",
+              },
+              {
+                icon: Phone,
+                title: "Your agent reaches out",
+                desc: "Expect a call or email introducing your dedicated 1031 exchange advisor — no pressure, no obligation.",
+              },
+              {
+                icon: Handshake,
+                title: "You start your exchange with confidence",
+                desc: "Your advisor guides you through identifying replacement properties, timelines, and qualified intermediaries.",
+              },
+            ].map((step, i) => (
+              <li key={i} className="flex gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eef3fb] text-[#16284a]">
+                  <step.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-[#16284a]">{step.title}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.desc}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* About the platform */}
+        <div className="rounded-2xl bg-gradient-to-br from-[#16284a] to-[#1e3a6a] p-8 text-white shadow-sm">
+          <h2 className="text-lg font-semibold">About 1031ExchangeUP</h2>
+          <p className="mt-2 text-sm leading-relaxed text-white/80">
+            We're a private matching platform connecting property owners with elite 1031 exchange
+            specialists. Unlike public marketplaces, every match is hand-vetted so your details stay
+            confidential and your options stay high-quality.
+          </p>
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {[
+              { icon: Shield, label: "Confidential" },
+              { icon: Clock, label: "24-hour match" },
+              { icon: Handshake, label: "Vetted network" },
+            ].map((b, i) => (
+              <div key={i} className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm">
+                <b.icon className="h-4 w-4" />
+                {b.label}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Helpful tip */}
+        <div className="rounded-xl bg-[#fff8e6] p-4 text-sm text-[#7a5a00] ring-1 ring-[#f5e3a8]">
+          <strong>Heads up:</strong> Check your spam folder for our confirmation email from{" "}
+          <span className="font-medium">1031exchangeup.com</span> and add us to your contacts so you
+          don't miss your agent introduction.
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link to="/" className="flex-1">
+            <Button variant="outline" className="w-full border-[#e8edf3] text-[#16284a] hover:bg-[#eef3fb] hover:text-[#16284a]">
+              Back to Home
+            </Button>
+          </Link>
+          <a href="mailto:hello@1031exchangeup.com" className="flex-1">
+            <Button className="w-full bg-[#16284a] text-white hover:bg-[#1e3a6a]">
+              Contact our team
+            </Button>
+          </a>
+        </div>
       </div>
     );
   }
