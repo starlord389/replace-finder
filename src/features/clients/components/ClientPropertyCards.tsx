@@ -28,8 +28,6 @@ interface ListingRow {
   city: string | null;
   state: string | null;
   assetType: string | null;
-  units: number | null;
-  yearBuilt: number | null;
   askingPrice: number | null;
   capRate: number | null;
   coverUrl: string | null;
