@@ -58,6 +58,8 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
       state: null,
       assetType: null,
       askingPrice: null,
+      capRate: null,
+      coverUrl: null,
     }));
   }
 
