@@ -1,54 +1,73 @@
-# Verify & Harden the Matching Engine
 
-Goal: guarantee that every new listing (buyer exchange or seller property) runs the matching algorithm immediately, produces correct scored matches, and notifies both sides by email — reliably, in production.
+## Goal
 
-## 1. Audit current behavior (no code changes yet)
+Give the matching pipeline a repeatable, hands-off way to prove it works: a fixed staging dataset that can be re-seeded any time, plus automated tests that run against it and cover matching math, approval/persistence, and the notification email path.
 
-Trace each entry point and confirm what actually runs today:
+## What to build
 
-- `create-exchange` / `update-exchange` → calls `run-auto-matching` for the buyer exchange? Verify `sendNewMatchEmails` fires.
-- `create-property` / `update-property` (seller side pledged_properties) → does it trigger matching against all active buyer exchanges? This is the most likely gap.
-- `run-auto-matching` core in `matching-core.ts` — confirm the 6-dimension scoring (price 25 / geo 20 / asset 20 / strategy 15 / financial 10 / timing 10) matches the spec, filters demo rows, applies "upgrades only" rule, and dedupes existing matches.
-- Email pipeline: `new-match-notification` template, `send-transactional-email`, queue processor, `email_send_log` results for recent test runs.
+### 1. Repeatable staging dataset
 
-Deliverable: short findings note listing any gap (missing seller-side trigger, missing email, mis-scored dimension, etc.).
+New edge function `seed-staging-dataset` (admin-only, `verify_jwt=false` with in-code admin check via `has_role`) that:
 
-## 2. Fix the gaps found
+- Wipes any existing rows tagged `is_demo=true` for the staging agents (idempotent).
+- Creates 2 fixed staging agents (`staging-buyer@1031exchangeup.test`, `staging-seller@1031exchangeup.test`) via `auth.admin.createUser` if missing; stores their ids in `app_settings` under key `staging_dataset` so re-runs are deterministic.
+- Inserts a curated set of `pledged_properties` + `property_financials` + `exchanges` + `replacement_criteria`, all `is_demo=true`, chosen to exercise:
+  - one clean match (ROE upgrade, in-budget, geo+asset fit)
+  - one affordability rejection (candidate price > equity ceiling)
+  - one no-ROE-upgrade rejection
+  - one seller-side match (buyer exchange from other agent matches staging listing)
+  - one missing-financials skip
+- Returns a JSON manifest (ids of everything created) that tests can consume.
 
-Likely fixes (confirmed after audit):
+Admin trigger: add a "Re-seed staging data" button on the existing admin QA area (Deal Oversight page header) that calls the function and toasts the manifest summary.
 
-- **Seller-side trigger**: when a `pledged_properties` row is created/activated, run matching for that property against all active buyer exchanges and insert new `matches` rows.
-- **Bilateral notifications**: send `new-match-notification` to BOTH the buyer-side agent and seller-side agent for each genuinely new, non-demo match (today only buyer-side may fire).
-- **Idempotency**: use a stable idempotency key like `match-notify-<matchId>-<recipientRole>` so re-runs don't double-send.
-- **Deep links**: verify `/agent/matches?listing=…&match=…` opens the correct match for each recipient (buyer vs seller perspective).
-- **Filters**: enforce `is_demo = false`, active status, and upgrades-only in one shared helper so both entry points behave identically.
+### 2. Deno unit tests for `matching-core.ts`
 
-## 3. Admin QA surface (small, admin-only)
+`supabase/functions/_shared/matching-core.test.ts` — pure-logic tests, no DB, no network:
 
-Add a lightweight "Matching QA" panel under the admin area:
+- `scorePairExplained` returns `ok:true` with expected `roe_improvement_pp` and total for a clean upgrade.
+- Returns `ok:false` with `reason` starting `candidate price` when price exceeds affordability ceiling.
+- Returns `ok:false` with `reason` starting `no ROE upgrade` when candidate ROE ≤ buyer ROE.
+- Returns `ok:false` when required financials are missing.
+- `blendFit` returns 100 when buyer has no criteria (pure-ROE ranking).
+- Boot calculation returns `cash_boot > 0` when candidate price < proceeds.
 
-- Show last N matching runs (trigger source, listing id, candidates evaluated, new matches created, emails queued).
-- "Re-run matching" button for a specific exchange or property (admin only).
-- Link into `email_send_log` filtered to `new-match-notification`.
+Run via `supabase--test_edge_functions` with `functions: ["_shared"]` pattern (or a dedicated wrapper function that re-exports).
 
-## 4. Automated verification
+### 3. Deno integration test for `run-auto-matching`
 
-- Deno tests for `matching-core.ts`: score math per dimension, upgrades-only rule, demo exclusion, dedupe.
-- End-to-end check via Playwright against the running preview:
-  1. Create a buyer exchange as one seeded agent → assert matches row + email log row.
-  2. Create a seller property as another agent that fits → assert new match + emails to both sides.
-  3. Re-run same creation → assert no duplicate match, no duplicate email.
+`supabase/functions/run-auto-matching/index.test.ts`:
 
-## 5. Deploy & monitor
+- Loads env via `deno.land/std/dotenv/load.ts`.
+- Calls `seed-staging-dataset` to establish known state.
+- Signs in as the staging buyer, invokes `run-auto-matching` with `{explain:true, dry_run:true}`, asserts:
+  - buyer-side eligible count = 1
+  - diagnostics contain one "candidate price ... exceeds affordability" skip
+  - diagnostics contain one "no ROE upgrade" skip
+- Invokes again with `dry_run:false`, asserts `total_new_matches ≥ 1` and that a row now exists in `public.matches` with the expected buyer/seller pair.
+- Asserts a row exists in `email_send_log` with `template_name='new-match-notification'` for the buyer agent within the last minute.
 
-Redeploy affected functions (`create-exchange`, `update-exchange`, `create-property`/`update-property` equivalents, `run-auto-matching`, `send-transactional-email`). Watch `email_send_log` and edge function logs for the first real runs.
+### 4. Approval-path assertion
 
-## Technical notes
+The current "approval" step is the `matches` row being persisted and surfaced through `matched_property_access`. The integration test also asserts that after the persist run the staging seller can read the buyer's exchange summary through the standard client APIs (proves RLS + view wiring end-to-end).
 
-- Files likely touched: `supabase/functions/_shared/matching-core.ts`, `create-exchange/index.ts`, `update-exchange/index.ts`, the property create/update function(s), `run-auto-matching/index.ts`, `send-transactional-email` template registry, new admin page under `src/pages/admin/`.
-- No schema change expected unless the audit uncovers a missing column (e.g. a `last_matched_at` on `pledged_properties`).
-- All new writes must respect existing RLS; admin QA panel gated by `has_role(auth.uid(), 'admin')`.
+### 5. Wiring
 
-## Question before I start
+- Add `supabase/functions/seed-staging-dataset/index.ts` with corsHeaders, admin gate, and idempotent seed logic.
+- Add tests as above; no `deno.lock` changes.
+- Add a small admin button in `src/pages/admin/AdminDealOversight.tsx` (or nearest admin index) that calls the seeder and shows a toast.
+- No changes to production tables/schemas; everything piggybacks on the existing `is_demo` flag.
 
-Do you want me to (a) just audit + fix real gaps I find, or (b) also build the admin "Matching QA" panel in step 3? It's useful long-term but adds ~1 extra round of work.
+## Not in scope
+
+- No frontend Vitest suite — the interesting logic lives in edge functions; a React test would only cover the QA card render.
+- No CI config changes — tests are invoked via the `test_edge_functions` tool on demand.
+- No new email templates; reuses existing `new-match-notification`.
+
+## Deliverables
+
+1. `supabase/functions/seed-staging-dataset/index.ts`
+2. `supabase/functions/_shared/matching-core.test.ts`
+3. `supabase/functions/run-auto-matching/index.test.ts`
+4. Small admin button + handler in the deal oversight page.
+5. One green run of both test files against a freshly seeded dataset.
