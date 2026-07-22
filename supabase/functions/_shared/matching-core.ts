@@ -230,18 +230,170 @@ export async function persistMatchesAndNotifications(
     (m) => !existingSet.has(`${m.buyer_exchange_id}:${m.seller_property_id}`),
   );
   if (newMatches.length) {
-    const notifications = newMatches.map((match) => ({
-      user_id: match.direction === "buyer" ? userId : match.other_agent_id,
-      type: "new_match",
-      title: "New Match Found",
-      message: "A new property/exchange match is available for review.",
-      link_to: "/agent/matches",
-      metadata: { demo: isDemo },
-    }));
+    // Pull inserted match ids so email deep-links can target a specific match row.
+    const { data: insertedMatchRows } = await db
+      .from("matches")
+      .select("id, buyer_exchange_id, seller_property_id")
+      .in("buyer_exchange_id", buyerExIds)
+      .in("seller_property_id", sellerPropIds);
+    const matchIdByPair = new Map(
+      (insertedMatchRows ?? []).map((r: any) => [
+        `${r.buyer_exchange_id}:${r.seller_property_id}`,
+        r.id,
+      ]),
+    );
+
+    const notifications = newMatches.map((match) => {
+      const matchId = matchIdByPair.get(
+        `${match.buyer_exchange_id}:${match.seller_property_id}`,
+      );
+      const linkTo = matchId
+        ? `/agent/matches?listing=${match.buyer_exchange_id}&match=${matchId}`
+        : "/agent/matches";
+      return {
+        user_id: match.direction === "buyer" ? userId : match.other_agent_id,
+        type: "new_match",
+        title: "New Match Found",
+        message: "A new property/exchange match is available for review.",
+        link_to: linkTo,
+        metadata: { demo: isDemo, match_id: matchId ?? null },
+      };
+    });
     await db.from("notifications").insert(notifications);
+
+    // Fire new-match emails (skip demo runs so sandbox activity never hits real inboxes).
+    if (!isDemo) {
+      await sendNewMatchEmails(db, newMatches, matchIdByPair);
+    }
   }
 
   return newMatches.length;
+}
+
+async function sendNewMatchEmails(
+  db: any,
+  newMatches: ScoredMatch[],
+  matchIdByPair: Map<string, string>,
+) {
+  try {
+    const APP_URL =
+      Deno.env.get("APP_PUBLIC_URL") ??
+      Deno.env.get("SITE_URL") ??
+      "https://1031exchangeup.com";
+
+    // Collect the ids we need to hydrate labels + recipient info.
+    const recipientIds = Array.from(
+      new Set(
+        newMatches.map((m) =>
+          m.direction === "buyer" ? "__SELF__" : m.other_agent_id,
+        ).filter((id) => id && id !== "__SELF__"),
+      ),
+    );
+    // The buyer-direction recipient is the caller (userId is not in this scope);
+    // callers pass it via matches[].direction === "buyer" → we resolve at map time.
+    const buyerExchangeIds = Array.from(
+      new Set(newMatches.map((m) => m.buyer_exchange_id)),
+    );
+    const sellerPropertyIds = Array.from(
+      new Set(newMatches.map((m) => m.seller_property_id)),
+    );
+    const allUserIds = Array.from(
+      new Set(newMatches.map((m) => m.other_agent_id).concat(recipientIds)),
+    ).filter(Boolean);
+
+    // Also need to know the caller (buyer-side recipient). We infer from
+    // exchanges.agent_id for the buyer_exchange_id.
+    const [profilesRes, exchangesRes, propertiesRes, clientsRes] = await Promise.all([
+      allUserIds.length
+        ? db.from("profiles").select("id, email, first_name").in("id", allUserIds)
+        : Promise.resolve({ data: [] }),
+      db.from("exchanges").select("id, agent_id, client_id").in("id", buyerExchangeIds),
+      db.from("pledged_properties").select("id, agent_id, city, state, asset_type").in("id", sellerPropertyIds),
+      Promise.resolve({ data: [] }),
+    ]);
+
+    // Now we know all agent_ids referenced (buyer-side + seller-side); fetch any missing profiles.
+    const allReferenced = new Set<string>();
+    (exchangesRes.data ?? []).forEach((e: any) => e.agent_id && allReferenced.add(e.agent_id));
+    (propertiesRes.data ?? []).forEach((p: any) => p.agent_id && allReferenced.add(p.agent_id));
+    const missing = [...allReferenced].filter(
+      (id) => !(profilesRes.data ?? []).some((p: any) => p.id === id),
+    );
+    let profiles = profilesRes.data ?? [];
+    if (missing.length) {
+      const { data: extra } = await db
+        .from("profiles")
+        .select("id, email, first_name")
+        .in("id", missing);
+      profiles = profiles.concat(extra ?? []);
+    }
+
+    // Optional: pull client names for buyer-side listings.
+    const clientIds = Array.from(
+      new Set((exchangesRes.data ?? []).map((e: any) => e.client_id).filter(Boolean)),
+    );
+    let clients: any[] = [];
+    if (clientIds.length) {
+      const { data: cs } = await db
+        .from("agent_clients")
+        .select("id, client_name")
+        .in("id", clientIds);
+      clients = cs ?? [];
+    }
+
+    const profileById = new Map(profiles.map((p: any) => [p.id, p]));
+    const exchangeById = new Map((exchangesRes.data ?? []).map((e: any) => [e.id, e]));
+    const propertyById = new Map((propertiesRes.data ?? []).map((p: any) => [p.id, p]));
+    const clientById = new Map(clients.map((c: any) => [c.id, c]));
+
+    const labelForProperty = (p: any) =>
+      p ? `${p.asset_type ? p.asset_type + " · " : ""}${[p.city, p.state].filter(Boolean).join(", ") || "Property"}` : "Property";
+
+    const sends = newMatches.map((m) => {
+      const buyerExchange = exchangeById.get(m.buyer_exchange_id);
+      const sellerProperty = propertyById.get(m.seller_property_id);
+      const buyerAgentId = buyerExchange?.agent_id;
+      const sellerAgentId = sellerProperty?.agent_id;
+      const recipientId = m.direction === "buyer" ? buyerAgentId : sellerAgentId;
+      const recipient = recipientId ? profileById.get(recipientId) : null;
+      if (!recipient?.email) return Promise.resolve();
+
+      const matchId = matchIdByPair.get(`${m.buyer_exchange_id}:${m.seller_property_id}`);
+      const matchUrl = matchId
+        ? `${APP_URL}/agent/matches?listing=${m.buyer_exchange_id}&match=${matchId}`
+        : `${APP_URL}/agent/matches?listing=${m.buyer_exchange_id}`;
+
+      const client = buyerExchange?.client_id ? clientById.get(buyerExchange.client_id) : null;
+      const yourListingLabel = m.direction === "buyer"
+        ? (client?.client_name ? `${client.client_name} — buyer exchange` : "Your buyer exchange")
+        : labelForProperty(sellerProperty);
+      const matchedPropertyLabel = m.direction === "buyer"
+        ? labelForProperty(sellerProperty)
+        : (client?.client_name ? `${client.client_name} — buyer exchange` : "Buyer exchange");
+
+      return db.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "new-match-notification",
+          recipientEmail: recipient.email,
+          idempotencyKey: matchId ? `new-match-${matchId}-${recipientId}` : undefined,
+          templateData: {
+            firstName: recipient.first_name || undefined,
+            yourListingLabel,
+            matchedPropertyLabel,
+            matchScore: m.total,
+            matchUrl,
+            matchesUrl: `${APP_URL}/agent/matches`,
+          },
+        },
+      }).catch((err: any) => {
+        console.error("[matching] new-match email send failed", err);
+      });
+    });
+
+    await Promise.allSettled(sends);
+  } catch (err) {
+    console.error("[matching] sendNewMatchEmails failed", err);
+  }
 }
 
 // ─── ROE-based scoring ──────────────────────────────────────────────────────
