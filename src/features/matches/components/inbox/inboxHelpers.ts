@@ -100,12 +100,16 @@ export function nextActionsFor(status: UiStatus): {
     case "new":
       return {
         primary: { id: "send_to_client", label: "Send to Client" },
-        secondary: [{ id: "not_a_fit", label: "Not a Fit", tone: "destructive" }],
+        secondary: [
+          { id: "message_listing_agent", label: "Message Listing Agent" },
+          { id: "not_a_fit", label: "Not a Fit", tone: "destructive" },
+        ],
       };
     case "sent_to_client":
       return {
         primary: { id: "mark_interested", label: "Mark Client Interested" },
         secondary: [
+          { id: "message_listing_agent", label: "Message Listing Agent" },
           { id: "follow_up_client", label: "Follow Up With Client" },
           { id: "client_passed", label: "Client Passed", tone: "destructive" },
         ],
