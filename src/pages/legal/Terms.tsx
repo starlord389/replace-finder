@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
-import { LegalDoc, Fill } from "./LegalDoc";
+import { LegalDoc } from "./LegalDoc";
 
 export default function Terms() {
   useEffect(() => {
@@ -9,14 +9,13 @@ export default function Terms() {
   }, []);
 
   return (
-    <LegalDoc title="Terms & Conditions" lastUpdated="June 22, 2026">
+    <LegalDoc title="Terms & Conditions" lastUpdated="July 22, 2026">
       <p className="legal-intro">
         These Terms &amp; Conditions (the “Terms”) are a binding agreement between you and{" "}
-        <Fill>[full legal entity name, e.g. 1031 Exchange Up LLC]</Fill> (“1031 Exchange Up,” “we,”
-        “us,” or “our”) and govern your access to and use of our website, platform, and related
-        services (together, the “Service”). By accessing or using the Service, you agree to these Terms
-        and to our <Link to={ROUTES.privacy}>Privacy Policy</Link>. If you do not agree, do not use the
-        Service.
+        MFPX LLC, d/b/a 1031 Exchange Up (“1031 Exchange Up,” “we,” “us,” or “our”) and govern your
+        access to and use of our website, platform, and related services (together, the “Service”). By
+        accessing or using the Service, you agree to these Terms and to our{" "}
+        <Link to={ROUTES.privacy}>Privacy Policy</Link>. If you do not agree, do not use the Service.
       </p>
 
       <div className="legal-toc">
@@ -196,12 +195,10 @@ export default function Terms() {
 
       <h2>14. Governing law and disputes</h2>
       <p>
-        These Terms are governed by the laws of the State of <Fill>[State]</Fill>, without regard to its
-        conflict-of-laws rules. <Fill>[Choose one and delete the other: (a) Any dispute will be resolved
-        exclusively in the state and federal courts located in [County, State], and you consent to their
-        jurisdiction; or (b) Any dispute will be resolved by binding individual arbitration administered
-        by [AAA/JAMS] in [County, State], and you and we waive any right to a jury trial and to
-        participate in a class action.]</Fill>
+        These Terms are governed by the laws of the Commonwealth of Massachusetts, without regard to its
+        conflict-of-laws rules. Any dispute arising out of or relating to these Terms or the Service will
+        be resolved exclusively in the state and federal courts located in Massachusetts, and you consent
+        to the personal jurisdiction and venue of those courts.
       </p>
 
       <h2>15. Changes to these Terms</h2>
@@ -224,8 +221,8 @@ export default function Terms() {
       <h2>17. Contact us</h2>
       <p>
         Questions about these Terms? Contact us at{" "}
-        <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a> or{" "}
-        <Fill>[business mailing address]</Fill>.
+        <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a> or 15 North St,
+        Manchester, MA 01944.
       </p>
     </LegalDoc>
   );
