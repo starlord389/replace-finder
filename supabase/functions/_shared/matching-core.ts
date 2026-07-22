@@ -60,11 +60,23 @@ async function loadMatchSettings(db: any): Promise<MatchSettings> {
   };
 }
 
+export interface MatchDiagnosticRow {
+  direction: "buyer" | "seller";
+  candidate_property_id: string;
+  candidate_exchange_id: string | null;
+  candidate_label: string;
+  status: "matched" | "skipped";
+  reason: string;
+  total?: number;
+  roe_improvement_pp?: number | null;
+}
+
 export async function computeMatchesForExchange(
   db: any,
   userId: string,
   exchangeId: string,
   propertyId: string,
+  diagnostics?: MatchDiagnosticRow[],
 ): Promise<ScoredMatch[]> {
   const [exchangeRes, propertyRes, settings] = await Promise.all([
     db.from("exchanges").select("*").eq("id", exchangeId).single(),
@@ -76,9 +88,6 @@ export async function computeMatchesForExchange(
 
   const exchange = exchangeRes.data;
   const property = propertyRes.data;
-  // Workspace isolation: a listing only ever matches candidates in the same
-  // workspace (demo↔demo, live↔live). This keeps demo sandbox data out of every
-  // real agent's matches, and vice versa.
   const isDemo = Boolean(property?.is_demo);
 
   const [criteriaRes, propertyFinRes, relinquishedFinRes] = await Promise.all([
@@ -96,7 +105,20 @@ export async function computeMatchesForExchange(
   const relinquishedFin = relinquishedFinRes.data;
   const allMatches: ScoredMatch[] = [];
 
+  const propertyLabel = (p: any) =>
+    p ? `${p.asset_type ? prettyLabel(p.asset_type) + " · " : ""}${[p.city, p.state].filter(Boolean).join(", ") || p.property_name || p.id}` : "Property";
+
   // Buyer side: this exchange × other people's active properties
+  if (!criteria && diagnostics) {
+    diagnostics.push({
+      direction: "buyer",
+      candidate_property_id: propertyId,
+      candidate_exchange_id: exchangeId,
+      candidate_label: "buyer-side scan",
+      status: "skipped",
+      reason: "no replacement criteria on this exchange",
+    });
+  }
   if (criteria) {
     const { data: activeProperties } = await db
       .from("pledged_properties")
@@ -105,6 +127,16 @@ export async function computeMatchesForExchange(
       .eq("is_demo", isDemo)
       .neq("agent_id", userId);
 
+    if (!activeProperties?.length && diagnostics) {
+      diagnostics.push({
+        direction: "buyer",
+        candidate_property_id: propertyId,
+        candidate_exchange_id: exchangeId,
+        candidate_label: "buyer-side scan",
+        status: "skipped",
+        reason: "no active properties from other agents in this workspace",
+      });
+    }
     if (activeProperties?.length) {
       const propIds = activeProperties.map((p: any) => p.id);
       const { data: allFinancials } = await db
@@ -115,8 +147,20 @@ export async function computeMatchesForExchange(
 
       for (const candidateProperty of activeProperties) {
         const candidateFinancials = financialMap.get(candidateProperty.id);
-        const scored = scorePair(exchange, relinquishedFin, candidateProperty, candidateFinancials, criteria, settings);
-        if (!scored) continue; // failed eligibility
+        const result = scorePairExplained(exchange, relinquishedFin, candidateProperty, candidateFinancials, criteria, settings);
+        if (!result.ok) {
+          diagnostics?.push({
+            direction: "buyer",
+            candidate_property_id: candidateProperty.id,
+            candidate_exchange_id: exchangeId,
+            candidate_label: propertyLabel(candidateProperty),
+            status: "skipped",
+            reason: result.reason,
+            roe_improvement_pp: result.roe_improvement_pp ?? null,
+          });
+          continue;
+        }
+        const scored = result.score;
         const boot = calculateBoot(exchange, propertyFin, candidateProperty, candidateFinancials);
         allMatches.push({
           buyer_exchange_id: exchangeId,
@@ -126,6 +170,16 @@ export async function computeMatchesForExchange(
           direction: "buyer",
           other_agent_id: candidateProperty.agent_id,
         } as ScoredMatch);
+        diagnostics?.push({
+          direction: "buyer",
+          candidate_property_id: candidateProperty.id,
+          candidate_exchange_id: exchangeId,
+          candidate_label: propertyLabel(candidateProperty),
+          status: "matched",
+          reason: "eligible",
+          total: scored.total,
+          roe_improvement_pp: scored.roe_improvement_pp,
+        });
       }
     }
   }
@@ -138,6 +192,16 @@ export async function computeMatchesForExchange(
     .eq("is_demo", isDemo)
     .neq("agent_id", userId);
 
+  if (!otherExchanges?.length && diagnostics) {
+    diagnostics.push({
+      direction: "seller",
+      candidate_property_id: propertyId,
+      candidate_exchange_id: null,
+      candidate_label: "seller-side scan",
+      status: "skipped",
+      reason: "no other agents have active buyer exchanges in this workspace",
+    });
+  }
   if (otherExchanges?.length) {
     const relinquishedPropertyIds = otherExchanges
       .map((row: any) => row.relinquished_property_id)
@@ -151,14 +215,36 @@ export async function computeMatchesForExchange(
       const otherCriteria = Array.isArray(otherExchange.replacement_criteria)
         ? otherExchange.replacement_criteria[0]
         : otherExchange.replacement_criteria;
-      if (!otherCriteria) continue;
+      if (!otherCriteria) {
+        diagnostics?.push({
+          direction: "seller",
+          candidate_property_id: propertyId,
+          candidate_exchange_id: otherExchange.id,
+          candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
+          status: "skipped",
+          reason: "counterparty exchange has no replacement criteria",
+        });
+        continue;
+      }
 
       const buyerRelinquishedFinancials = otherExchange.relinquished_property_id
         ? otherFinancialMap.get(otherExchange.relinquished_property_id)
         : null;
 
-      const scored = scorePair(otherExchange, buyerRelinquishedFinancials, property, propertyFin, otherCriteria, settings);
-      if (!scored) continue;
+      const result = scorePairExplained(otherExchange, buyerRelinquishedFinancials, property, propertyFin, otherCriteria, settings);
+      if (!result.ok) {
+        diagnostics?.push({
+          direction: "seller",
+          candidate_property_id: propertyId,
+          candidate_exchange_id: otherExchange.id,
+          candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
+          status: "skipped",
+          reason: result.reason,
+          roe_improvement_pp: result.roe_improvement_pp ?? null,
+        });
+        continue;
+      }
+      const scored = result.score;
 
       const boot = calculateBoot(otherExchange, buyerRelinquishedFinancials, property, propertyFin);
       allMatches.push({
@@ -169,11 +255,26 @@ export async function computeMatchesForExchange(
         direction: "seller",
         other_agent_id: otherExchange.agent_id,
       } as ScoredMatch);
+      diagnostics?.push({
+        direction: "seller",
+        candidate_property_id: propertyId,
+        candidate_exchange_id: otherExchange.id,
+        candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
+        status: "matched",
+        reason: "eligible",
+        total: scored.total,
+        roe_improvement_pp: scored.roe_improvement_pp,
+      });
     }
   }
 
   return allMatches;
 }
+
+function prettyLabel(s: string): string {
+  return s.replace(/_/g, " ");
+}
+
 
 export async function persistMatchesAndNotifications(
   db: any,
