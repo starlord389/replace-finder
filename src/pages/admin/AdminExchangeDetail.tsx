@@ -160,6 +160,30 @@ export default function AdminExchangeDetail() {
     load(exchange.id);
   }
 
+  async function runMatching(dryRun: boolean) {
+    if (!exchange?.relinquished_property_id) {
+      toast({ title: "Cannot run matching", description: "This exchange has no relinquished property linked.", variant: "destructive" });
+      return;
+    }
+    setRunningMatch(true);
+    setMatchResult(null);
+    const { data, error } = await supabase.functions.invoke("run-auto-matching", {
+      body: {
+        exchange_id: exchange.id,
+        property_id: exchange.relinquished_property_id,
+        explain: true,
+        dry_run: dryRun,
+      },
+    });
+    setRunningMatch(false);
+    if (error) {
+      toast({ title: "Matching run failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setMatchResult(data as DiagResult);
+    if (!dryRun) load(exchange.id);
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
