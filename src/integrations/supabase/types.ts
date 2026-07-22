@@ -1059,6 +1059,9 @@ export type Database = {
           full_name: string | null
           id: string
           launchpad_completed_at: string | null
+          launchpad_matches_ack_at: string | null
+          launchpad_matching_ack_at: string | null
+          launchpad_pipeline_ack_at: string | null
           launchpad_version: string | null
           license_number: string | null
           license_state: string | null
@@ -1082,6 +1085,9 @@ export type Database = {
           full_name?: string | null
           id: string
           launchpad_completed_at?: string | null
+          launchpad_matches_ack_at?: string | null
+          launchpad_matching_ack_at?: string | null
+          launchpad_pipeline_ack_at?: string | null
           launchpad_version?: string | null
           license_number?: string | null
           license_state?: string | null
@@ -1105,6 +1111,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           launchpad_completed_at?: string | null
+          launchpad_matches_ack_at?: string | null
+          launchpad_matching_ack_at?: string | null
+          launchpad_pipeline_ack_at?: string | null
           launchpad_version?: string | null
           license_number?: string | null
           license_state?: string | null
