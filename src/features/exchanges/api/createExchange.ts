@@ -15,6 +15,7 @@ export interface CreateExchangeResponse {
   property_id: string;
   criteria_id: string;
   matching_queued: boolean;
+  matching?: { ok: boolean; new_matches?: number; error?: string } | null;
 }
 
 function normalizeWizardData(data: WizardState) {
