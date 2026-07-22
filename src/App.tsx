@@ -49,7 +49,9 @@ const AgentSettings = lazy(() => import("@/pages/agent/AgentSettings"));
 const AgentHelp = lazy(() => import("@/pages/agent/AgentHelp"));
 const AgentNotifications = lazy(() => import("@/pages/agent/AgentNotifications"));
 const AcceptInvite = lazy(() => import("@/pages/auth/AcceptInvite"));
+const Unsubscribe = lazy(() => import("@/pages/Unsubscribe"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+
 
 const RouteFallback = () => (
   <div className="flex min-h-[60vh] items-center justify-center">
@@ -100,6 +102,9 @@ const App = () => (
             {/* Auth callback — handles email-confirmation redirect, routes to dashboard */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/accept-invite" element={<AcceptInvite />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
+
+
 
             {/* Agent (agent role required) */}
             <Route element={<AgentLayout />}>
