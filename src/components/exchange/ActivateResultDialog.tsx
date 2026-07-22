@@ -44,14 +44,27 @@ export default function ActivateResultDialog({
         </DialogHeader>
 
         {isSuccess ? (
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
-            <div className="flex items-start gap-2">
-              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <div>
-                <div className="font-medium">You'll get an email for every new match.</div>
-                <p className="mt-1 text-muted-foreground">
-                  Each email includes a direct link that opens the match inside your Matches tab — no digging required.
-                </p>
+          <div className="space-y-3">
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
+              <div className="flex items-start gap-2">
+                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <div>
+                  <div className="font-medium">You'll get an email for every new match.</div>
+                  <p className="mt-1 text-muted-foreground">
+                    Each email includes a direct link that opens the match inside your Matches tab — no digging required.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
+              <div className="flex items-start gap-2">
+                <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <div>
+                  <div className="font-medium">Only upgrades, never downgrades.</div>
+                  <p className="mt-1 text-muted-foreground">
+                    We only match your client with replacement properties that are true upgrades — never lateral moves or downgrades.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
