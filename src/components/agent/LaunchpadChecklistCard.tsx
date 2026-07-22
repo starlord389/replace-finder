@@ -57,6 +57,7 @@ export default function LaunchpadChecklistCard({
   isLast = false,
   tip,
   status,
+  progressLabel,
 }: LaunchpadChecklistCardProps) {
   return (
     <div>
