@@ -12,6 +12,7 @@ import {
   parseCurrency,
 } from "@/lib/exchangeWizardTypes";
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
+import ReviewMatchPreview from "./ReviewMatchPreview";
 
 type ReviewMode = "create" | "edit-draft" | "edit-active";
 
@@ -136,6 +137,8 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
           </p>
         </CardContent>
       </Card>
+
+      <ReviewMatchPreview property={p} financials={f} images={data.images} />
 
       {/* Compliance attestation — required before a property can go into the network */}
       <div className="rounded-lg border border-amber-300 bg-amber-50/60 p-4">
