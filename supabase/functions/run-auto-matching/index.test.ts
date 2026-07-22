@@ -31,7 +31,7 @@ async function signInAs(email: string) {
   return { client, accessToken: data.session!.access_token };
 }
 
-Deno.test({ ignore: !canRunIntegration, name: "staging: dry-run diagnostics classify each candidate correctly", async () => {
+Deno.test({ ignore: !canRunIntegration, name: "staging: dry-run diagnostics classify each candidate correctly", fn: async () => {
   const manifest = await seed();
   const { accessToken } = await signInAs(manifest.buyer.email);
 
@@ -62,9 +62,9 @@ Deno.test({ ignore: !canRunIntegration, name: "staging: dry-run diagnostics clas
   assert(missingFin, "expected a missing-financials skip");
 
   assertEquals(body.total_new_matches, 0); // dry-run does not persist
-});
+} });
 
-Deno.test({ ignore: !canRunIntegration, name: "staging: persist run writes matches and logs a new-match email", async () => {
+Deno.test({ ignore: !canRunIntegration, name: "staging: persist run writes matches and logs a new-match email", fn: async () => {
   const manifest = await seed();
   const { accessToken } = await signInAs(manifest.buyer.email);
   const admin = createClient(SUPABASE_URL, SERVICE);
@@ -115,4 +115,4 @@ Deno.test({ ignore: !canRunIntegration, name: "staging: persist run writes match
     .order("created_at", { ascending: false })
     .limit(5);
   assert(logRows && logRows.length > 0, "expected new-match-notification email log for buyer");
-});
+} });
