@@ -17,7 +17,7 @@ Deno.test("scorePairExplained: clean upgrade returns ok with positive ROE improv
   const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
   assert(r.ok, `expected ok, got: ${!r.ok && r.reason}`);
   if (r.ok) {
-    assert(r.score.roe_improvement_pp > 0, "expected positive ROE improvement");
+    assert((r.score.roe_improvement_pp ?? 0) > 0, "expected positive ROE improvement");
     assert(r.score.total > 0 && r.score.total <= 100);
     assertEquals(r.score.geo, 70); // state match, no metros
     assertEquals(r.score.asset, 100); // asset type match
