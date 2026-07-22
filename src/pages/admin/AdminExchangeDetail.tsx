@@ -69,6 +69,8 @@ export default function AdminExchangeDetail() {
   const [timeline, setTimeline] = useState<Tables<"exchange_timeline">[]>([]);
   const [savingStatus, setSavingStatus] = useState(false);
   const [savingStage, setSavingStage] = useState(false);
+  const [runningMatch, setRunningMatch] = useState(false);
+  const [matchResult, setMatchResult] = useState<DiagResult | null>(null);
 
   useEffect(() => {
     if (id) load(id);
