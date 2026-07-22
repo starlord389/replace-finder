@@ -8,7 +8,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { resolveListingName } from "@/lib/listingDisplay";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Database } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type Exchange = Tables<"exchanges">;
 type Property = Tables<"pledged_properties">;
