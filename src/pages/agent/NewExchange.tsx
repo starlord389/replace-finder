@@ -56,7 +56,7 @@ export default function NewExchange() {
       const res = await createExchange.mutateAsync({ data, activate, clientName, isDemo });
       setLastExchangeId(res.exchange_id ?? null);
       if (activate) {
-        const newMatches = Number(res?.matching?.total_new_matches ?? 0);
+        const newMatches = Number(res?.matching?.new_matches ?? 0);
         toast.success("Exchange activated.");
         trackEvent("matching_invoked", { exchangeId: res.exchange_id, source: "create-exchange" });
         setResult({ kind: "success", newMatches });
