@@ -5,11 +5,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL") || Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-// Integration tests require the service-role key so they can (a) seed via the
-// admin gate and (b) verify email_send_log rows. In the local Deno test runner
-// that key is not exposed for security; the tests then skip cleanly. Run them
-// from a shell that has SUPABASE_SERVICE_ROLE_KEY exported to exercise fully.
-const canRunIntegration = SERVICE.length > 0;
+// Integration tests hit the deployed seed-staging-dataset function, which
+// verifies the caller's service-role bearer against its own runtime secret.
+// The Deno test runner exposes a different service key than the function's
+// deployed env, so an admin JWT is required to run these end-to-end. Set
+// RUN_INTEGRATION=1 along with SUPABASE_SERVICE_ROLE_KEY that matches the
+// deployed function's env (or an admin access token — see README) to run.
+const canRunIntegration = SERVICE.length > 0 && Deno.env.get("RUN_INTEGRATION") === "1";
 
 const STAGING_PASSWORD = "staging-fixture-only-do-not-reuse-9f2a";
 
