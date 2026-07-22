@@ -31,7 +31,7 @@ async function signInAs(email: string) {
   return { client, accessToken: data.session!.access_token };
 }
 
-Deno.test("staging: dry-run diagnostics classify each candidate correctly", async () => {
+Deno.test({ ignore: !canRunIntegration, name: "staging: dry-run diagnostics classify each candidate correctly", async () => {
   const manifest = await seed();
   const { accessToken } = await signInAs(manifest.buyer.email);
 
@@ -64,7 +64,7 @@ Deno.test("staging: dry-run diagnostics classify each candidate correctly", asyn
   assertEquals(body.total_new_matches, 0); // dry-run does not persist
 });
 
-Deno.test("staging: persist run writes matches and logs a new-match email", async () => {
+Deno.test({ ignore: !canRunIntegration, name: "staging: persist run writes matches and logs a new-match email", async () => {
   const manifest = await seed();
   const { accessToken } = await signInAs(manifest.buyer.email);
   const admin = createClient(SUPABASE_URL, SERVICE);
