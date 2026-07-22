@@ -214,7 +214,6 @@ export function ClientPropertyCards({ clientId, clientName }: Props) {
                 <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                   {l.capRate != null && <span>{l.capRate.toFixed(1)}% cap</span>}
                 </div>
-                </div>
                 <p className="mt-2 truncate font-semibold text-foreground">
                   {l.propertyName ||
                     l.address ||
