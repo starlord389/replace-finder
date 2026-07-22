@@ -8,7 +8,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
 import { STAGE_DEFS, type StageKey } from "@/features/pipeline/lib/pipelineStages";
-import { Loader2, ArrowLeft, Clock } from "lucide-react";
+import { Loader2, ArrowLeft, Clock, Sparkles, CheckCircle2, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+interface DiagRow {
+  direction: "buyer" | "seller";
+  candidate_property_id: string;
+  candidate_exchange_id: string | null;
+  candidate_label: string;
+  status: "matched" | "skipped";
+  reason: string;
+  total?: number;
+  roe_improvement_pp?: number | null;
+}
+interface DiagResult {
+  matches_for_exchange: number;
+  matches_from_property: number;
+  total_new_matches: number;
+  dry_run: boolean;
+  top_matches: Array<{ property_id: string; exchange_id: string; direction: string; score: number; roe_improvement_pp?: number | null }>;
+  diagnostics: DiagRow[] | null;
+}
 
 const EXCHANGE_STATUSES = ["draft", "active", "in_identification", "in_closing", "completed", "failed", "cancelled"];
 
@@ -49,6 +69,8 @@ export default function AdminExchangeDetail() {
   const [timeline, setTimeline] = useState<Tables<"exchange_timeline">[]>([]);
   const [savingStatus, setSavingStatus] = useState(false);
   const [savingStage, setSavingStage] = useState(false);
+  const [runningMatch, setRunningMatch] = useState(false);
+  const [matchResult, setMatchResult] = useState<DiagResult | null>(null);
 
   useEffect(() => {
     if (id) load(id);
@@ -138,6 +160,30 @@ export default function AdminExchangeDetail() {
     load(exchange.id);
   }
 
+  async function runMatching(dryRun: boolean) {
+    if (!exchange?.relinquished_property_id) {
+      toast({ title: "Cannot run matching", description: "This exchange has no relinquished property linked.", variant: "destructive" });
+      return;
+    }
+    setRunningMatch(true);
+    setMatchResult(null);
+    const { data, error } = await supabase.functions.invoke("run-auto-matching", {
+      body: {
+        exchange_id: exchange.id,
+        property_id: exchange.relinquished_property_id,
+        explain: true,
+        dry_run: dryRun,
+      },
+    });
+    setRunningMatch(false);
+    if (error) {
+      toast({ title: "Matching run failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setMatchResult(data as DiagResult);
+    if (!dryRun) load(exchange.id);
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
@@ -197,6 +243,83 @@ export default function AdminExchangeDetail() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Matching QA */}
+      <Card className="border-primary/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Sparkles className="h-4 w-4 text-primary" /> Matching QA
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => runMatching(true)} disabled={runningMatch}>
+              {runningMatch && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              Dry-run with diagnostics
+            </Button>
+            <Button size="sm" onClick={() => runMatching(false)} disabled={runningMatch}>
+              {runningMatch && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              Re-run &amp; persist matches
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Dry-run shows why each candidate did or didn't match without writing to the database.
+            </p>
+          </div>
+
+          {matchResult && (
+            <div className="space-y-3 rounded-md border bg-muted/30 p-3 text-sm">
+              <div className="flex flex-wrap gap-4">
+                <div><span className="font-medium">{matchResult.matches_for_exchange}</span> buyer-side eligible</div>
+                <div><span className="font-medium">{matchResult.matches_from_property}</span> seller-side eligible</div>
+                {!matchResult.dry_run && (
+                  <div><span className="font-medium">{matchResult.total_new_matches}</span> new matches persisted</div>
+                )}
+                {matchResult.dry_run && <Badge variant="secondary">dry run</Badge>}
+              </div>
+
+              {matchResult.diagnostics && matchResult.diagnostics.length > 0 ? (
+                <div className="max-h-96 overflow-auto rounded border bg-background">
+                  <table className="w-full text-xs">
+                    <thead className="sticky top-0 bg-muted/60 text-left">
+                      <tr>
+                        <th className="p-2 font-medium">Side</th>
+                        <th className="p-2 font-medium">Candidate</th>
+                        <th className="p-2 font-medium">Result</th>
+                        <th className="p-2 font-medium">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matchResult.diagnostics.map((d, i) => (
+                        <tr key={i} className="border-t align-top">
+                          <td className="p-2 capitalize text-muted-foreground">{d.direction}</td>
+                          <td className="p-2">{d.candidate_label}</td>
+                          <td className="p-2">
+                            {d.status === "matched" ? (
+                              <span className="inline-flex items-center gap-1 text-green-700">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> matched
+                                {d.total != null && <span className="text-muted-foreground">· score {d.total}</span>}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                                <XCircle className="h-3.5 w-3.5" /> skipped
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-2 text-muted-foreground">{d.reason}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No candidates evaluated.</p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Financials */}

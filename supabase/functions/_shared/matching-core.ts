@@ -60,11 +60,23 @@ async function loadMatchSettings(db: any): Promise<MatchSettings> {
   };
 }
 
+export interface MatchDiagnosticRow {
+  direction: "buyer" | "seller";
+  candidate_property_id: string;
+  candidate_exchange_id: string | null;
+  candidate_label: string;
+  status: "matched" | "skipped";
+  reason: string;
+  total?: number;
+  roe_improvement_pp?: number | null;
+}
+
 export async function computeMatchesForExchange(
   db: any,
   userId: string,
   exchangeId: string,
   propertyId: string,
+  diagnostics?: MatchDiagnosticRow[],
 ): Promise<ScoredMatch[]> {
   const [exchangeRes, propertyRes, settings] = await Promise.all([
     db.from("exchanges").select("*").eq("id", exchangeId).single(),
@@ -76,9 +88,6 @@ export async function computeMatchesForExchange(
 
   const exchange = exchangeRes.data;
   const property = propertyRes.data;
-  // Workspace isolation: a listing only ever matches candidates in the same
-  // workspace (demo↔demo, live↔live). This keeps demo sandbox data out of every
-  // real agent's matches, and vice versa.
   const isDemo = Boolean(property?.is_demo);
 
   const [criteriaRes, propertyFinRes, relinquishedFinRes] = await Promise.all([
@@ -96,7 +105,20 @@ export async function computeMatchesForExchange(
   const relinquishedFin = relinquishedFinRes.data;
   const allMatches: ScoredMatch[] = [];
 
+  const propertyLabel = (p: any) =>
+    p ? `${p.asset_type ? prettyLabel(p.asset_type) + " · " : ""}${[p.city, p.state].filter(Boolean).join(", ") || p.property_name || p.id}` : "Property";
+
   // Buyer side: this exchange × other people's active properties
+  if (!criteria && diagnostics) {
+    diagnostics.push({
+      direction: "buyer",
+      candidate_property_id: propertyId,
+      candidate_exchange_id: exchangeId,
+      candidate_label: "buyer-side scan",
+      status: "skipped",
+      reason: "no replacement criteria on this exchange",
+    });
+  }
   if (criteria) {
     const { data: activeProperties } = await db
       .from("pledged_properties")
@@ -105,6 +127,16 @@ export async function computeMatchesForExchange(
       .eq("is_demo", isDemo)
       .neq("agent_id", userId);
 
+    if (!activeProperties?.length && diagnostics) {
+      diagnostics.push({
+        direction: "buyer",
+        candidate_property_id: propertyId,
+        candidate_exchange_id: exchangeId,
+        candidate_label: "buyer-side scan",
+        status: "skipped",
+        reason: "no active properties from other agents in this workspace",
+      });
+    }
     if (activeProperties?.length) {
       const propIds = activeProperties.map((p: any) => p.id);
       const { data: allFinancials } = await db
@@ -115,8 +147,20 @@ export async function computeMatchesForExchange(
 
       for (const candidateProperty of activeProperties) {
         const candidateFinancials = financialMap.get(candidateProperty.id);
-        const scored = scorePair(exchange, relinquishedFin, candidateProperty, candidateFinancials, criteria, settings);
-        if (!scored) continue; // failed eligibility
+        const result = scorePairExplained(exchange, relinquishedFin, candidateProperty, candidateFinancials, criteria, settings);
+        if (!result.ok) {
+          diagnostics?.push({
+            direction: "buyer",
+            candidate_property_id: candidateProperty.id,
+            candidate_exchange_id: exchangeId,
+            candidate_label: propertyLabel(candidateProperty),
+            status: "skipped",
+            reason: result.reason,
+            roe_improvement_pp: result.roe_improvement_pp ?? null,
+          });
+          continue;
+        }
+        const scored = result.score;
         const boot = calculateBoot(exchange, propertyFin, candidateProperty, candidateFinancials);
         allMatches.push({
           buyer_exchange_id: exchangeId,
@@ -126,6 +170,16 @@ export async function computeMatchesForExchange(
           direction: "buyer",
           other_agent_id: candidateProperty.agent_id,
         } as ScoredMatch);
+        diagnostics?.push({
+          direction: "buyer",
+          candidate_property_id: candidateProperty.id,
+          candidate_exchange_id: exchangeId,
+          candidate_label: propertyLabel(candidateProperty),
+          status: "matched",
+          reason: "eligible",
+          total: scored.total,
+          roe_improvement_pp: scored.roe_improvement_pp,
+        });
       }
     }
   }
@@ -138,6 +192,16 @@ export async function computeMatchesForExchange(
     .eq("is_demo", isDemo)
     .neq("agent_id", userId);
 
+  if (!otherExchanges?.length && diagnostics) {
+    diagnostics.push({
+      direction: "seller",
+      candidate_property_id: propertyId,
+      candidate_exchange_id: null,
+      candidate_label: "seller-side scan",
+      status: "skipped",
+      reason: "no other agents have active buyer exchanges in this workspace",
+    });
+  }
   if (otherExchanges?.length) {
     const relinquishedPropertyIds = otherExchanges
       .map((row: any) => row.relinquished_property_id)
@@ -151,14 +215,36 @@ export async function computeMatchesForExchange(
       const otherCriteria = Array.isArray(otherExchange.replacement_criteria)
         ? otherExchange.replacement_criteria[0]
         : otherExchange.replacement_criteria;
-      if (!otherCriteria) continue;
+      if (!otherCriteria) {
+        diagnostics?.push({
+          direction: "seller",
+          candidate_property_id: propertyId,
+          candidate_exchange_id: otherExchange.id,
+          candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
+          status: "skipped",
+          reason: "counterparty exchange has no replacement criteria",
+        });
+        continue;
+      }
 
       const buyerRelinquishedFinancials = otherExchange.relinquished_property_id
         ? otherFinancialMap.get(otherExchange.relinquished_property_id)
         : null;
 
-      const scored = scorePair(otherExchange, buyerRelinquishedFinancials, property, propertyFin, otherCriteria, settings);
-      if (!scored) continue;
+      const result = scorePairExplained(otherExchange, buyerRelinquishedFinancials, property, propertyFin, otherCriteria, settings);
+      if (!result.ok) {
+        diagnostics?.push({
+          direction: "seller",
+          candidate_property_id: propertyId,
+          candidate_exchange_id: otherExchange.id,
+          candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
+          status: "skipped",
+          reason: result.reason,
+          roe_improvement_pp: result.roe_improvement_pp ?? null,
+        });
+        continue;
+      }
+      const scored = result.score;
 
       const boot = calculateBoot(otherExchange, buyerRelinquishedFinancials, property, propertyFin);
       allMatches.push({
@@ -169,11 +255,26 @@ export async function computeMatchesForExchange(
         direction: "seller",
         other_agent_id: otherExchange.agent_id,
       } as ScoredMatch);
+      diagnostics?.push({
+        direction: "seller",
+        candidate_property_id: propertyId,
+        candidate_exchange_id: otherExchange.id,
+        candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
+        status: "matched",
+        reason: "eligible",
+        total: scored.total,
+        roe_improvement_pp: scored.roe_improvement_pp,
+      });
     }
   }
 
   return allMatches;
 }
+
+function prettyLabel(s: string): string {
+  return s.replace(/_/g, " ");
+}
+
 
 export async function persistMatchesAndNotifications(
   db: any,
@@ -412,6 +513,10 @@ interface RoePairScore {
   candidate_annual_debt_service: number | null;
 }
 
+type ScoreResult =
+  | { ok: true; score: RoePairScore }
+  | { ok: false; reason: string; roe_improvement_pp?: number | null };
+
 function scorePair(
   buyerExchange: any,
   relinquishedFin: any,
@@ -420,79 +525,88 @@ function scorePair(
   criteria: any,
   settings: MatchSettings,
 ): RoePairScore | null {
-  // 1. Buyer baseline ROE — requires NOI, price, loan_balance on relinquished.
-  //    LEVERED return: subtract the client's existing annual debt service so the
-  //    current property is measured the same way as the candidate below (both
-  //    after financing). Debt service uses the mortgage the agent entered, or an
-  //    amortized estimate on the loan balance; free-and-clear means zero.
+  const r = scorePairExplained(buyerExchange, relinquishedFin, candidateProp, candidateFin, criteria, settings);
+  return r.ok ? r.score : null;
+}
+
+function scorePairExplained(
+  buyerExchange: any,
+  relinquishedFin: any,
+  candidateProp: any,
+  candidateFin: any,
+  criteria: any,
+  settings: MatchSettings,
+): ScoreResult {
   const rNoi = numOrNull(relinquishedFin?.noi);
   const rPrice = numOrNull(relinquishedFin?.asking_price);
   const rLoan = numOrNull(relinquishedFin?.loan_balance);
-  if (rNoi == null || rPrice == null || rLoan == null) return null;
+  if (rNoi == null || rPrice == null || rLoan == null) {
+    return { ok: false, reason: "buyer relinquished property missing NOI, asking price, or loan balance" };
+  }
   const buyerEquity = rPrice - rLoan;
-  if (buyerEquity <= 0) return null;
+  if (buyerEquity <= 0) return { ok: false, reason: `buyer has no positive equity (equity = ${Math.round(buyerEquity).toLocaleString()})` };
   const buyerDebtService = relinquishedAnnualDebtService(relinquishedFin, settings);
-  const buyerCurrentROE = (rNoi - buyerDebtService) / buyerEquity; // levered cash-on-cash on equity
+  const buyerCurrentROE = (rNoi - buyerDebtService) / buyerEquity;
 
-  // 2. Candidate ROE — requires candidate NOI + asking price
   const cNoi = numOrNull(candidateFin?.noi);
   const cPrice = numOrNull(candidateFin?.asking_price);
-  if (cNoi == null || cPrice == null || cPrice <= 0) return null;
+  if (cNoi == null || cPrice == null || cPrice <= 0) {
+    return { ok: false, reason: "candidate property missing NOI or asking price" };
+  }
 
-  // 3. Affordability sanity: buyer's equity needs to cover the down payment
   const maxAffordable = buyerEquity / (1 - MAX_COMMERCIAL_LTV);
-  if (cPrice > maxAffordable) return null;
+  if (cPrice > maxAffordable) {
+    return {
+      ok: false,
+      reason: `candidate price $${Math.round(cPrice).toLocaleString()} exceeds affordability ceiling $${Math.round(maxAffordable).toLocaleString()} (buyer equity × ${1 / (1 - MAX_COMMERCIAL_LTV)}× at ${MAX_COMMERCIAL_LTV * 100}% LTV)`,
+    };
+  }
 
-  // 4. Amortized annual payment on a 75%-LTV loan at admin assumptions
   const loanAmount = MAX_COMMERCIAL_LTV * cPrice;
-  const annualPmt = amortizedAnnualPayment(
-    loanAmount,
-    settings.mortgage_interest_rate,
-    settings.mortgage_amortization_years,
-  );
+  const annualPmt = amortizedAnnualPayment(loanAmount, settings.mortgage_interest_rate, settings.mortgage_amortization_years);
 
   const candidateROE = (cNoi - annualPmt) / buyerEquity;
   const improvementPP = (candidateROE - buyerCurrentROE) * 100;
-  // Relative improvement only makes sense against a positive baseline (a negative
-  // or zero current return would make the ratio meaningless).
   const improvementRel = buyerCurrentROE > 0 ? candidateROE / buyerCurrentROE - 1 : null;
 
-  // 5. Eligibility gate
-  if (improvementPP <= ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP) return null;
+  if (improvementPP <= ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP) {
+    return {
+      ok: false,
+      reason: `no ROE upgrade: current ${(buyerCurrentROE * 100).toFixed(2)}% → candidate ${(candidateROE * 100).toFixed(2)}% (Δ ${improvementPP.toFixed(2)}pp, need > ${ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP}pp)`,
+      roe_improvement_pp: round(improvementPP),
+    };
+  }
 
-  // 6. ROE component score (0..100)
   const roeScore = clamp01(improvementPP / ROE_IMPROVEMENT_FULL_SCORE_PP) * 100;
-
-  // 7. Fit components — neutral (no penalty) when buyer left criteria blank
   const geoScore = scoreGeo(candidateProp, criteria);
   const assetScore = scoreAsset(candidateProp, criteria);
   const strategyScore = scoreStrategy(candidateProp, criteria);
   const fitScore = blendFit(geoScore, assetScore, strategyScore, criteria);
 
-  // 8. Weighted total + quality tiebreaker
-  const base =
-    roeScore * MATCH_WEIGHTS.roe +
-    fitScore * MATCH_WEIGHTS.fit;
+  const base = roeScore * MATCH_WEIGHTS.roe + fitScore * MATCH_WEIGHTS.fit;
   const qualityScore = scoreQuality(candidateProp, candidateFin);
-  // qualityScore is 0..100; map to -MAX..+MAX (centered on 50)
   const qualityAdj = ((qualityScore - 50) / 50) * QUALITY_TIEBREAKER_MAX_POINTS;
 
   const total = Math.max(0, Math.min(100, base + qualityAdj));
 
   return {
-    total: round(total),
-    price: round(roeScore),
-    geo: round(geoScore),
-    asset: round(assetScore),
-    strategy: round(strategyScore),
-    financial: round(qualityScore),
-    buyer_current_roe: round4(buyerCurrentROE),
-    candidate_roe: round4(candidateROE),
-    roe_improvement_pp: round(improvementPP),
-    roe_improvement_rel: improvementRel != null ? round4(improvementRel) : null,
-    candidate_annual_debt_service: Math.round(annualPmt),
+    ok: true,
+    score: {
+      total: round(total),
+      price: round(roeScore),
+      geo: round(geoScore),
+      asset: round(assetScore),
+      strategy: round(strategyScore),
+      financial: round(qualityScore),
+      buyer_current_roe: round4(buyerCurrentROE),
+      candidate_roe: round4(candidateROE),
+      roe_improvement_pp: round(improvementPP),
+      roe_improvement_rel: improvementRel != null ? round4(improvementRel) : null,
+      candidate_annual_debt_service: Math.round(annualPmt),
+    },
   };
 }
+
 
 function blendFit(geo: number, asset: number, strategy: number, criteria: any): number {
   // Only count dimensions the buyer actually expressed. Blank = no signal.
