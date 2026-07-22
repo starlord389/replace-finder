@@ -60,9 +60,6 @@ export interface Relationship {
   propertyZip: string | null;
   // Real property facts (null when the listing agent hasn't entered them — never fabricated).
   propertyAssetType: string | null;
-  propertyUnits: number | null;
-  propertyYearBuilt: number | null;
-  propertyBuildingSqft: number | null;
   propertyLotAcres: number | null;
   propertyDescription: string | null;
   propertyRenovations: string | null;
