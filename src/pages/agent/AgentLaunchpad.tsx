@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles, Target } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp, ShieldCheck, Sparkles, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import {
   AGENT_LAUNCHPAD_GROUPS,
   AGENT_LAUNCHPAD_STEPS,
@@ -16,24 +17,33 @@ import LaunchpadChecklistCard, {
   type LaunchpadStepStatus,
 } from "@/components/agent/LaunchpadChecklistCard";
 
-const LAUNCHPAD_VERSION = "v2";
+const LAUNCHPAD_VERSION = "v3";
 
 export default function AgentLaunchpad() {
   const { user, profileName } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isDemo } = useWorkspaceMode();
   const [matchingExpanded, setMatchingExpanded] = useState(false);
   const [savingCompletion, setSavingCompletion] = useState(false);
+  const [showChecklistWhenDone, setShowChecklistWhenDone] = useState(false);
 
   const { data, isLoading, refetch } = useAgentLaunchpadProgress(user?.id);
+
+  // Auto-expand explainer if already acknowledged so the "done" state is visible.
+  useEffect(() => {
+    if (data?.profile.launchpad_matching_ack_at && !matchingExpanded) {
+      // no-op — don't auto-open, but the step will already show done
+    }
+  }, [data?.profile.launchpad_matching_ack_at, matchingExpanded]);
 
   const completionMap = useMemo(() => {
     const profileComplete = data?.profileComplete ?? false;
     const clientComplete = (data?.clientCount ?? 0) > 0;
     const exchangeComplete = (data?.exchangeCount ?? 0) > 0;
-    const matchingComplete = matchingExpanded || Boolean(data?.profile.launchpad_completed_at);
-    const matchesComplete = (data?.matchCount ?? 0) > 0;
-    const pipelineComplete = (data?.pipelineActivity ?? 0) > 0;
+    const matchingComplete = Boolean(data?.profile.launchpad_matching_ack_at) || matchingExpanded;
+    const matchesComplete = data?.matchesTouched ?? false;
+    const pipelineComplete = data?.pipelineTouched ?? false;
 
     return {
       profile: profileComplete,
@@ -59,8 +69,16 @@ export default function AgentLaunchpad() {
 
   const statusFor = (id: AgentLaunchpadStepId): LaunchpadStepStatus => {
     if (completionMap[id]) return "done";
+    if (id === "profile" && (data?.profileFilledCount ?? 0) > 0) return "in_progress";
     if (firstIncompleteId === id) return "attention";
     return "todo";
+  };
+
+  const progressLabelFor = (id: AgentLaunchpadStepId): string | undefined => {
+    if (id === "profile" && data && !completionMap.profile && data.profileFilledCount > 0) {
+      return `${data.profileFilledCount} of ${data.profileTotalCount}`;
+    }
+    return undefined;
   };
 
   const handleCompleteLaunchpad = async () => {
@@ -94,7 +112,17 @@ export default function AgentLaunchpad() {
 
   const handleStepClick = (step: (typeof AGENT_LAUNCHPAD_STEPS)[number]) => {
     if (step.isInline) {
-      setMatchingExpanded((prev) => !prev);
+      const nextExpanded = !matchingExpanded;
+      setMatchingExpanded(nextExpanded);
+      // Persist the ack the first time they open it (Live workspace only).
+      if (nextExpanded && !isDemo && user && !data?.profile.launchpad_matching_ack_at) {
+        supabase
+          .from("profiles")
+          .update({ launchpad_matching_ack_at: new Date().toISOString() })
+          .eq("id", user.id)
+          .is("launchpad_matching_ack_at", null)
+          .then(() => refetch());
+      }
     } else if (step.href) {
       navigate(step.href);
     }
@@ -109,6 +137,45 @@ export default function AgentLaunchpad() {
   }
 
   const firstName = profileName?.split(" ")[0] || "there";
+
+  // Compact "you're set" state
+  if (allStepsComplete && !showChecklistWhenDone) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-green-200 bg-green-50 p-8">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-100">
+                <CheckCircle2 className="h-6 w-6 text-green-700" />
+              </div>
+              <div className="flex-1">
+                <h1 className="text-xl font-semibold text-green-950">
+                  You're all set, {firstName}.
+                </h1>
+                <p className="mt-1 text-sm text-green-800/90">
+                  Your workspace is configured and your pipeline is live. Manage everything from the dashboard.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Button onClick={handleCompleteLaunchpad} disabled={savingCompletion}>
+                    {savingCompletion ? "Saving..." : "Go to dashboard"}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowChecklistWhenDone(true)}
+                    className="bg-white"
+                  >
+                    Show checklist
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -135,7 +202,7 @@ export default function AgentLaunchpad() {
         </div>
       </div>
 
-      {/* Completion banner */}
+      {/* Completion banner when checklist is manually opened */}
       {allStepsComplete && (
         <div className="mb-6 flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-6 py-5">
           <div className="flex items-center gap-3">
@@ -143,14 +210,24 @@ export default function AgentLaunchpad() {
             <div>
               <p className="font-semibold text-green-900">You&apos;re all set!</p>
               <p className="text-sm text-green-700">
-                Your workspace is configured and your pipeline is live.
+                Every step is done. Collapse the checklist or head to your dashboard.
               </p>
             </div>
           </div>
-          <Button onClick={handleCompleteLaunchpad} disabled={savingCompletion} className="shrink-0">
-            {savingCompletion ? "Saving..." : "Go to dashboard"}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="flex shrink-0 gap-2">
+            <Button
+              variant="outline"
+              className="bg-white"
+              onClick={() => setShowChecklistWhenDone(false)}
+            >
+              <ChevronUp className="mr-2 h-4 w-4" />
+              Collapse
+            </Button>
+            <Button onClick={handleCompleteLaunchpad} disabled={savingCompletion}>
+              {savingCompletion ? "Saving..." : "Go to dashboard"}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
 
@@ -194,6 +271,7 @@ export default function AgentLaunchpad() {
                       tip={step.tip}
                       complete={complete}
                       status={statusFor(step.id)}
+                      progressLabel={progressLabelFor(step.id)}
                       icon={step.icon}
                       isLast={isLast && !expanded}
                       onClick={() => handleStepClick(step)}
@@ -244,7 +322,7 @@ function MatchingExplainer() {
         </div>
       </div>
       <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-        Pipeline gives you one board to move every client's matches from new to closed — so the next property is lined up early.
+        Pipeline gives you one board to move every client&apos;s matches from new to closed — so the next property is lined up early.
       </div>
     </div>
   );
