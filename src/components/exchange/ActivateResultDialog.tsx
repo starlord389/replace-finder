@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, Mail, ArrowRight } from "lucide-react";
+import { CheckCircle2, XCircle, Mail, TrendingUp, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
