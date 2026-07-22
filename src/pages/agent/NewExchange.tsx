@@ -8,13 +8,11 @@ import { WizardState, initialWizardState } from "@/lib/exchangeWizardTypes";
 import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
 import StepReview from "@/components/exchange/StepReview";
+import ActivateResultDialog, { ActivateResultState } from "@/components/exchange/ActivateResultDialog";
 import { useCreateExchange } from "@/features/exchanges/hooks/useCreateExchange";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { trackEvent } from "@/lib/telemetry";
 
-// The Criteria step was removed — the platform now matches automatically on the
-// client's equity/ROE, so we no longer ask agents for replacement preferences.
-// An empty criteria record is still saved server-side so matching keeps working.
 const STEPS = ["Select Client", "Property & Financials", "Review"];
 const MOBILE_STEP_LABELS = ["Client", "Property", "Review"];
 
@@ -32,34 +30,55 @@ export default function NewExchange() {
   });
   const [saving, setSaving] = useState(false);
   const [clientName, setClientName] = useState("");
+  const [lastExchangeId, setLastExchangeId] = useState<string | null>(null);
+  const [result, setResult] = useState<ActivateResultState | null>(null);
+  const [resultOpen, setResultOpen] = useState(false);
   const clientLocked = Boolean(preselectedClientId);
 
-  // resolve client name when selected
   useEffect(() => {
     if (!data.selectedClientId) { setClientName(""); return; }
     supabase.from("agent_clients").select("client_name").eq("id", data.selectedClientId).single()
       .then(({ data: c }) => setClientName(c?.client_name || ""));
   }, [data.selectedClientId]);
 
+  const extractErrorCode = (err: any): string => {
+    if (err?.context?.response?.status) return String(err.context.response.status);
+    if (err?.status) return String(err.status);
+    if (err?.code) return String(err.code);
+    if (err?.name) return String(err.name);
+    return "UNKNOWN";
+  };
+
   const handleSubmit = async (activate: boolean) => {
     if (!user) return;
     setSaving(true);
     try {
-      const result = await createExchange.mutateAsync({ data, activate, clientName, isDemo });
+      const res = await createExchange.mutateAsync({ data, activate, clientName, isDemo });
+      setLastExchangeId(res.exchange_id ?? null);
       if (activate) {
-        toast.success("Exchange activated and matching queued.");
-        trackEvent("matching_invoked", { exchangeId: result.exchange_id, source: "create-exchange" });
+        const newMatches = Number(res?.matching?.new_matches ?? 0);
+        toast.success("Exchange activated.");
+        trackEvent("matching_invoked", { exchangeId: res.exchange_id, source: "create-exchange" });
+        setResult({ kind: "success", newMatches });
+        setResultOpen(true);
       } else {
         toast.success("Exchange saved as draft.");
+        navigate("/agent/listings");
       }
-      navigate("/agent/listings");
     } catch (err: any) {
       console.error("Save error:", err);
-      toast.error("Failed to save exchange: " + (err.message || "Unknown error"));
+      const message = err?.message || "Unknown error";
+      if (activate) {
+        setResult({ kind: "error", code: extractErrorCode(err), message });
+        setResultOpen(true);
+      } else {
+        toast.error("Failed to save exchange: " + message);
+      }
     } finally {
       setSaving(false);
     }
   };
+
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -115,6 +134,25 @@ export default function NewExchange() {
           onBack={() => setStep(2)} onSubmit={handleSubmit} saving={saving}
           onOwnerAuthorizationChange={v => setData(d => ({ ...d, property: { ...d.property, owner_authorization_confirmed: v } }))} />
       )}
+
+      <ActivateResultDialog
+        open={resultOpen}
+        state={result}
+        onClose={() => setResultOpen(false)}
+        onViewListing={() => {
+          setResultOpen(false);
+          navigate(lastExchangeId ? `/agent/listings` : "/agent/listings");
+        }}
+        onGoToMatches={() => {
+          setResultOpen(false);
+          navigate(lastExchangeId ? `/agent/matches?listing=${lastExchangeId}` : "/agent/matches");
+        }}
+        onRetry={() => setResultOpen(false)}
+        onSaveAsDraft={() => {
+          setResultOpen(false);
+          handleSubmit(false);
+        }}
+      />
     </div>
   );
 }

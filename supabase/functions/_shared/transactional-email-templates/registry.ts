@@ -1,4 +1,5 @@
 import { template as referralAcknowledgement } from './referral-acknowledgement.tsx'
+import { template as newMatchNotification } from './new-match-notification.tsx'
 
 export interface TemplateEntry {
   component: (props: any) => any
@@ -10,4 +11,5 @@ export interface TemplateEntry {
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'referral-acknowledgement': referralAcknowledgement,
+  'new-match-notification': newMatchNotification,
 }
