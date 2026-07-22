@@ -195,12 +195,10 @@ export default function Terms() {
 
       <h2>14. Governing law and disputes</h2>
       <p>
-        These Terms are governed by the laws of the State of <Fill>[State]</Fill>, without regard to its
-        conflict-of-laws rules. <Fill>[Choose one and delete the other: (a) Any dispute will be resolved
-        exclusively in the state and federal courts located in [County, State], and you consent to their
-        jurisdiction; or (b) Any dispute will be resolved by binding individual arbitration administered
-        by [AAA/JAMS] in [County, State], and you and we waive any right to a jury trial and to
-        participate in a class action.]</Fill>
+        These Terms are governed by the laws of the Commonwealth of Massachusetts, without regard to its
+        conflict-of-laws rules. Any dispute arising out of or relating to these Terms or the Service will
+        be resolved exclusively in the state and federal courts located in Massachusetts, and you consent
+        to the personal jurisdiction and venue of those courts.
       </p>
 
       <h2>15. Changes to these Terms</h2>
