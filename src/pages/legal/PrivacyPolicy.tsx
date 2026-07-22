@@ -133,8 +133,8 @@ export default function PrivacyPolicy() {
       <p>
         We use cookies and similar technologies to keep you signed in, remember preferences, and
         understand how the Service is used. You can control cookies through your browser settings;
-        disabling some cookies may affect functionality. <Fill>[If you use a named analytics tool such
-        as Google Analytics, disclose it here.]</Fill>
+        disabling some cookies may affect functionality. We do not currently use third-party analytics
+        tools.
       </p>
 
       <h2>6. Email and communications</h2>
