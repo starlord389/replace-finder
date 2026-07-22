@@ -9,14 +9,13 @@ export default function Terms() {
   }, []);
 
   return (
-    <LegalDoc title="Terms & Conditions" lastUpdated="June 22, 2026">
+    <LegalDoc title="Terms & Conditions" lastUpdated="July 22, 2026">
       <p className="legal-intro">
         These Terms &amp; Conditions (the “Terms”) are a binding agreement between you and{" "}
-        <Fill>[full legal entity name, e.g. 1031 Exchange Up LLC]</Fill> (“1031 Exchange Up,” “we,”
-        “us,” or “our”) and govern your access to and use of our website, platform, and related
-        services (together, the “Service”). By accessing or using the Service, you agree to these Terms
-        and to our <Link to={ROUTES.privacy}>Privacy Policy</Link>. If you do not agree, do not use the
-        Service.
+        MFPX LLC, d/b/a 1031 Exchange Up (“1031 Exchange Up,” “we,” “us,” or “our”) and govern your
+        access to and use of our website, platform, and related services (together, the “Service”). By
+        accessing or using the Service, you agree to these Terms and to our{" "}
+        <Link to={ROUTES.privacy}>Privacy Policy</Link>. If you do not agree, do not use the Service.
       </p>
 
       <div className="legal-toc">
