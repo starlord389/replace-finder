@@ -1,48 +1,30 @@
-## Goal
-On the New Exchange wizard, drop the "Property Snapshot" section (Year Built, Total Units, Building SF). Keep Description (make it explicitly optional) and Property Photos. Then update every place in the app that renders those snapshot fields so nothing shows blanks or dashes.
+## Add "How others will see this" preview to the Review step
 
-## Changes
+Show agents a live preview of what their listing will look like to another agent when it surfaces as a match, right inside the Review step of the new/edit listing wizard.
 
-### 1. Wizard form
-`src/components/exchange/StepPropertyAndFinancials.tsx`
-- Delete the entire "Property Snapshot" `<section>` (year_built, units, building_square_footage inputs).
-- Keep the Description textarea; add "(optional)" to its label and helper copy.
-- Keep Photos section as-is.
+### What it looks like
 
-`src/lib/exchangeWizardTypes.ts`
-- Remove `year_built`, `units`, `building_square_footage` from `PropertyData` type and `initialWizardState`.
+A new card in `StepReview.tsx` (placed above the Compliance attestation, below Exchange Economics) titled **"Preview — how others will see this match"** containing two mini surfaces stacked:
 
-`src/features/exchanges/api/createExchange.ts` & `updateExchange.ts`
-- Remove the three fields from the normalized payload.
+1. **Match inbox card** — the small card another agent sees in their match list (cover photo, property name, city/state · asset type, asking price · cap rate, a placeholder score badge, and a "New" status chip).
+2. **Detail hero row** — the wider header another agent sees after opening the match: cover photo, property name, city/state (or full address if "show exact address" is on), asset type chip, asking price, cap rate, NOI.
 
-`supabase/functions/create-exchange/index.ts` & `update-exchange/index.ts`
-- Stop reading/writing those columns (leave columns in DB nullable — no migration needed; existing rows keep their data).
+Both mini surfaces respect the agent's current form state live — flipping the "Show exact address" toggle, adding photos, or changing the asking price updates the preview immediately.
 
-`src/pages/agent/EditExchange.tsx`
-- Remove the three fields from initial state hydration.
+### Privacy note under the preview
 
-`src/components/exchange/StepReview.tsx`
-- Remove the three `<Field>` rows for Year Built / Units / Building SF.
+A short line reinforces what's masked: *"Financials are hidden until you accept a connection with a matched buyer."* This matches the real behavior of `matches_secure`.
 
-### 2. Marketing / display surfaces
-`src/features/matches/components/inbox/tabs/OverviewTab.tsx`
-- Rework so Description carries the whole story. When no description, show the existing "No description yet" empty state (already handles the case).
+### Technical details
 
-`src/features/matches/hooks/useUnifiedRelationships.ts`
-- Drop `units, year_built, building_square_footage` from the select and from the mapped `propertyUnits / propertyYearBuilt / propertyBuildingSqft` fields (and their type).
+- New component `src/components/exchange/ReviewMatchPreview.tsx` that takes `{ property, financials, images }` from `WizardState` and renders the two mini surfaces using the same tokens/spacing as `PropertyMatchCard` and `ListingHero` so it looks identical to production.
+- Reuses `propertyImage()` fallback for empty photo state and `ASSET_TYPE_LABELS`, `formatCurrency`, `getDerivedFinancials` already imported in the wizard.
+- The score badge is a static "—" with a caption "Score depends on the buyer" so we don't fabricate a number.
+- Address handling mirrors `useUnifiedRelationships`: show street only when `address_is_public` is true; otherwise show city/state.
+- Pure presentational; no new queries, no schema changes, no edge function changes.
 
-`src/pages/agent/AgentConnectionDetail.tsx`
-- Remove the `{units} units` chips on the two property summary rows (lines ~373, ~385).
+### Out of scope
 
-`src/features/clients/components/ClientPropertyCards.tsx`
-- Drop `units` and `year_built` from the select, type, and rendered chips (lines ~224–226).
-
-### 3. Not touching
-- DB schema — columns stay (nullable) so historical rows aren't lost; no migration.
-- Matching engine — none of the removed fields feed scoring today.
-- Photos, address visibility, financials — unchanged.
-
-## Verification
-- `tsgo` clean.
-- Manually walk `/agent/exchanges/new`: snapshot gone, description optional, submit succeeds without those fields.
-- Open a match Overview tab, a connection detail, and a client property card — no broken chips or empty "Year Built: —" rows.
+- No changes to the actual match card/hero components used in production.
+- No new preview for admin/client surfaces.
+- No changes to what other agents actually see — this is a UI mirror only.
