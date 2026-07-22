@@ -1248,6 +1248,7 @@ export type Database = {
           created_at: string
           estimated_value: number | null
           id: string
+          notes: string | null
           owner_email: string
           owner_name: string
           owner_phone: string | null
@@ -1262,6 +1263,7 @@ export type Database = {
           created_at?: string
           estimated_value?: number | null
           id?: string
+          notes?: string | null
           owner_email: string
           owner_name: string
           owner_phone?: string | null
@@ -1276,6 +1278,7 @@ export type Database = {
           created_at?: string
           estimated_value?: number | null
           id?: string
+          notes?: string | null
           owner_email?: string
           owner_name?: string
           owner_phone?: string | null
