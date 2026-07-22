@@ -84,9 +84,6 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
           </p>
           <div className="mt-3 grid grid-cols-2 gap-x-8">
             <Field label="Asset Type" value={p.asset_type ? ASSET_TYPE_LABELS[p.asset_type as keyof typeof ASSET_TYPE_LABELS] : undefined} />
-            <Field label="Year Built" value={p.year_built} />
-            <Field label="Units" value={p.units} />
-            <Field label="Building SF" value={p.building_square_footage ? Number(p.building_square_footage).toLocaleString() : undefined} />
           </div>
           <Field label="Description" value={p.description} />
           {data.images.length > 0 && (
