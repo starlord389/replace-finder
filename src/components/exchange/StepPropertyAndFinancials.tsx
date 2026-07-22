@@ -220,26 +220,13 @@ export default function StepPropertyAndFinancials({
         </div>
       </section>
 
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Property Snapshot</h3>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div>
-            <Label>Year Built</Label>
-            <Input type="number" value={property.year_built} onChange={e => setProperty("year_built", e.target.value)} />
-          </div>
-          <div>
-            <Label>Total Units</Label>
-            <Input type="number" value={property.units} onChange={e => setProperty("units", e.target.value)} />
-          </div>
-          <div>
-            <Label>Building SF</Label>
-            <Input type="number" value={property.building_square_footage} onChange={e => setProperty("building_square_footage", e.target.value)} />
-          </div>
-        </div>
-      </section>
-
       <section className="space-y-3">
-        <Label>Description</Label>
+        <div>
+          <Label>Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            A short narrative helps matched agents understand the property. Skip it if you'd rather add it later.
+          </p>
+        </div>
         <Textarea
           value={property.description}
           onChange={e => setProperty("description", e.target.value)}

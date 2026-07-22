@@ -60,9 +60,6 @@ export interface Relationship {
   propertyZip: string | null;
   // Real property facts (null when the listing agent hasn't entered them — never fabricated).
   propertyAssetType: string | null;
-  propertyUnits: number | null;
-  propertyYearBuilt: number | null;
-  propertyBuildingSqft: number | null;
   propertyLotAcres: number | null;
   propertyDescription: string | null;
   propertyRenovations: string | null;
@@ -201,7 +198,7 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
         // we're an admin, or the owner published it.
         supabase
           .from("pledged_properties_secure")
-          .select("id, agent_id, property_name, city, state, address, address_is_public, zip, asset_type, units, year_built, building_square_footage, land_area_acres, description, recent_renovations")
+          .select("id, agent_id, property_name, city, state, address, address_is_public, zip, asset_type, land_area_acres, description, recent_renovations")
           .in("id", allSellerPropIds),
         supabase
           .from("property_financials")
@@ -422,9 +419,6 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       propertyAddress: (mySide === "seller" || prop?.address_is_public) ? (prop?.address ?? null) : null,
       propertyZip: prop?.zip ?? null,
       propertyAssetType: prop?.asset_type ?? null,
-      propertyUnits: prop?.units ?? null,
-      propertyYearBuilt: prop?.year_built ?? null,
-      propertyBuildingSqft: prop?.building_square_footage ?? null,
       propertyLotAcres: prop?.land_area_acres != null ? Number(prop.land_area_acres) : null,
       propertyDescription: prop?.description ?? null,
       propertyRenovations: prop?.recent_renovations ?? null,

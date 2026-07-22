@@ -29,9 +29,6 @@ function normalizeWizardData(data: WizardState) {
   return {
     property: {
       ...data.property,
-      year_built: data.property.year_built ? parseInt(data.property.year_built, 10) : null,
-      units: data.property.units ? parseInt(data.property.units, 10) : null,
-      building_square_footage: data.property.building_square_footage ? parseFloat(data.property.building_square_footage) : null,
     },
     financials: {
       asking_price: derived.askingPrice,
