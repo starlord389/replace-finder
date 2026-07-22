@@ -8,7 +8,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { resolveListingName } from "@/lib/listingDisplay";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Database } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type Exchange = Tables<"exchanges">;
 type Property = Tables<"pledged_properties">;
@@ -130,12 +131,16 @@ export default function AdminDeals() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Deal Oversight</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Every live exchange, property, match, and connection across all agents (demo data excluded).
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Deal Oversight</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every live exchange, property, match, and connection across all agents (demo data excluded).
+          </p>
+        </div>
+        <ReseedStagingButton />
       </div>
+
 
       <div className="mb-4 relative max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -279,6 +284,36 @@ export default function AdminDeals() {
     </div>
   );
 }
+
+function ReseedStagingButton() {
+  const [busy, setBusy] = useState(false);
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={busy}
+      onClick={async () => {
+        if (!confirm("Re-seed the staging (is_demo) dataset? This wipes prior staging rows for the fixture agents.")) return;
+        setBusy(true);
+        const { data, error } = await supabase.functions.invoke("seed-staging-dataset", { body: {} });
+        setBusy(false);
+        if (error) {
+          toast({ title: "Re-seed failed", description: error.message, variant: "destructive" });
+          return;
+        }
+        toast({
+          title: "Staging dataset ready",
+          description: `Buyer exchange ${(data as any)?.buyer?.exchange_id?.slice(0, 8)} · 4 candidate listings · ${(data as any)?.seller?.exchange_id ? "seller-side exchange included" : ""}`,
+        });
+        console.log("[staging] manifest", data);
+      }}
+    >
+      {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
+      Re-seed staging data
+    </Button>
+  );
+}
+
 
 function TableCard({ empty, emptyLabel, children }: { empty: boolean; emptyLabel: string; children: React.ReactNode }) {
   if (empty) {

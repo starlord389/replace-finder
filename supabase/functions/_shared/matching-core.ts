@@ -337,7 +337,7 @@ export async function persistMatchesAndNotifications(
       .select("id, buyer_exchange_id, seller_property_id")
       .in("buyer_exchange_id", buyerExIds)
       .in("seller_property_id", sellerPropIds);
-    const matchIdByPair = new Map(
+    const matchIdByPair = new Map<string, string>(
       (insertedMatchRows ?? []).map((r: any) => [
         `${r.buyer_exchange_id}:${r.seller_property_id}`,
         r.id,
@@ -442,10 +442,10 @@ async function sendNewMatchEmails(
       clients = cs ?? [];
     }
 
-    const profileById = new Map(profiles.map((p: any) => [p.id, p]));
-    const exchangeById = new Map((exchangesRes.data ?? []).map((e: any) => [e.id, e]));
-    const propertyById = new Map((propertiesRes.data ?? []).map((p: any) => [p.id, p]));
-    const clientById = new Map(clients.map((c: any) => [c.id, c]));
+    const profileById = new Map<string, any>(profiles.map((p: any) => [p.id, p]));
+    const exchangeById = new Map<string, any>((exchangesRes.data ?? []).map((e: any) => [e.id, e]));
+    const propertyById = new Map<string, any>((propertiesRes.data ?? []).map((p: any) => [p.id, p]));
+    const clientById = new Map<string, any>(clients.map((c: any) => [c.id, c]));
 
     const labelForProperty = (p: any) =>
       p ? `${p.asset_type ? p.asset_type + " · " : ""}${[p.city, p.state].filter(Boolean).join(", ") || "Property"}` : "Property";
@@ -529,7 +529,7 @@ function scorePair(
   return r.ok ? r.score : null;
 }
 
-function scorePairExplained(
+export function scorePairExplained(
   buyerExchange: any,
   relinquishedFin: any,
   candidateProp: any,
@@ -608,7 +608,7 @@ function scorePairExplained(
 }
 
 
-function blendFit(geo: number, asset: number, strategy: number, criteria: any): number {
+export function blendFit(geo: number, asset: number, strategy: number, criteria: any): number {
   // Only count dimensions the buyer actually expressed. Blank = no signal.
   const hasGeo = !!(criteria?.target_states?.length || criteria?.target_metros?.length);
   const hasAsset = !!criteria?.target_asset_types?.length;
@@ -720,7 +720,7 @@ function round4(n: number): number {
   return Math.round(n * 10000) / 10000;
 }
 
-function calculateBoot(
+export function calculateBoot(
   buyerExchange: any,
   buyerFin: any,
   _sellerProp: any,
