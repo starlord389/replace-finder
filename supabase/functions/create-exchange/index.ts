@@ -241,8 +241,9 @@ Deno.serve(async (req) => {
       ];
       await db.from("exchange_timeline").insert(timelineRows);
 
+      let matchingResult: { ok: boolean; new_matches?: number; error?: string } | null = null;
       if (payload.activate) {
-        await runMatchingSafe(db, user.id, exchangeId, propertyId, payload.isDemo === true, "create:activate");
+        matchingResult = await runMatchingSafe(db, user.id, exchangeId, propertyId, payload.isDemo === true, "create:activate");
       }
 
       return response({
@@ -250,6 +251,7 @@ Deno.serve(async (req) => {
         property_id: propertyId,
         criteria_id: criteriaId,
         matching_queued: payload.activate,
+        matching: matchingResult,
       });
     } catch (innerError) {
       if (criteriaId) await db.from("replacement_criteria").delete().eq("id", criteriaId);
