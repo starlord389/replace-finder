@@ -9,13 +9,12 @@ export default function PrivacyPolicy() {
   }, []);
 
   return (
-    <LegalDoc title="Privacy Policy" lastUpdated="June 22, 2026">
+    <LegalDoc title="Privacy Policy" lastUpdated="July 22, 2026">
       <p className="legal-intro">
-        This Privacy Policy explains how <Fill>[full legal entity name, e.g. 1031 Exchange Up LLC]</Fill>{" "}
-        (“1031 Exchange Up,” “we,” “us,” or “our”) collects, uses, discloses, and protects information
-        when you visit our website or use our platform and related services (together, the “Service”).
-        By using the Service, you agree to this Privacy Policy. If you do not agree, please do not use
-        the Service.
+        This Privacy Policy explains how MFPX LLC, d/b/a 1031 Exchange Up (“1031 Exchange Up,” “we,”
+        “us,” or “our”) collects, uses, discloses, and protects information when you visit our website or
+        use our platform and related services (together, the “Service”). By using the Service, you agree
+        to this Privacy Policy. If you do not agree, please do not use the Service.
       </p>
 
       <div className="legal-toc">
