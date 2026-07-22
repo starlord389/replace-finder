@@ -442,10 +442,10 @@ async function sendNewMatchEmails(
       clients = cs ?? [];
     }
 
-    const profileById = new Map(profiles.map((p: any) => [p.id, p]));
-    const exchangeById = new Map((exchangesRes.data ?? []).map((e: any) => [e.id, e]));
-    const propertyById = new Map((propertiesRes.data ?? []).map((p: any) => [p.id, p]));
-    const clientById = new Map(clients.map((c: any) => [c.id, c]));
+    const profileById = new Map<string, any>(profiles.map((p: any) => [p.id, p]));
+    const exchangeById = new Map<string, any>((exchangesRes.data ?? []).map((e: any) => [e.id, e]));
+    const propertyById = new Map<string, any>((propertiesRes.data ?? []).map((p: any) => [p.id, p]));
+    const clientById = new Map<string, any>(clients.map((c: any) => [c.id, c]));
 
     const labelForProperty = (p: any) =>
       p ? `${p.asset_type ? p.asset_type + " · " : ""}${[p.city, p.state].filter(Boolean).join(", ") || "Property"}` : "Property";
