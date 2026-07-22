@@ -285,6 +285,36 @@ export default function AdminDeals() {
   );
 }
 
+function ReseedStagingButton() {
+  const [busy, setBusy] = useState(false);
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={busy}
+      onClick={async () => {
+        if (!confirm("Re-seed the staging (is_demo) dataset? This wipes prior staging rows for the fixture agents.")) return;
+        setBusy(true);
+        const { data, error } = await supabase.functions.invoke("seed-staging-dataset", { body: {} });
+        setBusy(false);
+        if (error) {
+          toast({ title: "Re-seed failed", description: error.message, variant: "destructive" });
+          return;
+        }
+        toast({
+          title: "Staging dataset ready",
+          description: `Buyer exchange ${(data as any)?.buyer?.exchange_id?.slice(0, 8)} · 4 candidate listings · ${(data as any)?.seller?.exchange_id ? "seller-side exchange included" : ""}`,
+        });
+        console.log("[staging] manifest", data);
+      }}
+    >
+      {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
+      Re-seed staging data
+    </Button>
+  );
+}
+
+
 function TableCard({ empty, emptyLabel, children }: { empty: boolean; emptyLabel: string; children: React.ReactNode }) {
   if (empty) {
     return <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">{emptyLabel}</CardContent></Card>;
