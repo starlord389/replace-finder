@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { CheckCircle2, ChevronRight, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type LaunchpadStepStatus = "done" | "attention" | "todo";
+export type LaunchpadStepStatus = "done" | "in_progress" | "attention" | "todo";
 
 interface LaunchpadChecklistCardProps {
   title: string;
@@ -14,9 +14,10 @@ interface LaunchpadChecklistCardProps {
   isLast?: boolean;
   tip?: string;
   status?: LaunchpadStepStatus;
+  progressLabel?: string;
 }
 
-function StatusChip({ status }: { status: LaunchpadStepStatus }) {
+function StatusChip({ status, progressLabel }: { status: LaunchpadStepStatus; progressLabel?: string }) {
   if (status === "done") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
@@ -25,10 +26,17 @@ function StatusChip({ status }: { status: LaunchpadStepStatus }) {
       </span>
     );
   }
+  if (status === "in_progress") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-200">
+        {progressLabel ?? "In progress"}
+      </span>
+    );
+  }
   if (status === "attention") {
     return (
       <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
-        Needs attention
+        Next up
       </span>
     );
   }
@@ -49,6 +57,7 @@ export default function LaunchpadChecklistCard({
   isLast = false,
   tip,
   status,
+  progressLabel,
 }: LaunchpadChecklistCardProps) {
   return (
     <div>
@@ -85,7 +94,7 @@ export default function LaunchpadChecklistCard({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 pt-0.5">
-          {status ? <StatusChip status={status} /> : null}
+          {status ? <StatusChip status={status} progressLabel={progressLabel} /> : null}
           <ChevronRight className="h-5 w-5 text-muted-foreground/50" />
         </div>
       </button>

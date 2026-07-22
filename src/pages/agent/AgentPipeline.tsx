@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Inbox as InboxIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRelationships";
 import { useAgentListings } from "@/features/pipeline/hooks/useAgentListings";
 import { PipelineKanban } from "@/features/pipeline/components/PipelineKanban";
@@ -51,8 +53,20 @@ function writeFiltersToParams(
 
 export default function AgentPipeline() {
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   const { data: rels = [], isLoading: relsLoading } = useUnifiedRelationships();
   const { data: listings = [], isLoading: listingsLoading } = useAgentListings(user?.id);
+
+  // Stamp the launchpad "pipeline" ack on first visit (Live workspace only, idempotent).
+  useEffect(() => {
+    if (!user || isDemo) return;
+    supabase
+      .from("profiles")
+      .update({ launchpad_pipeline_ack_at: new Date().toISOString() })
+      .eq("id", user.id)
+      .is("launchpad_pipeline_ack_at", null)
+      .then(() => {});
+  }, [user, isDemo]);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 

@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Inbox as InboxIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import {
   useUnifiedRelationships,
   type Relationship,
@@ -27,8 +29,21 @@ import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/match
 
 export default function AgentMatches() {
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Stamp the launchpad "matches" ack on first visit (Live workspace only, idempotent).
+  useEffect(() => {
+    if (!user || isDemo) return;
+    supabase
+      .from("profiles")
+      .update({ launchpad_matches_ack_at: new Date().toISOString() })
+      .eq("id", user.id)
+      .is("launchpad_matches_ack_at", null)
+      .then(() => {});
+  }, [user, isDemo]);
+
 
   const { data: allRels = [], isLoading } = useUnifiedRelationships();
   const { data: agentListings = [] } = useAgentListings(user?.id);
