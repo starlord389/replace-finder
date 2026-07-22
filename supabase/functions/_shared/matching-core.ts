@@ -608,7 +608,7 @@ export function scorePairExplained(
 }
 
 
-function blendFit(geo: number, asset: number, strategy: number, criteria: any): number {
+export function blendFit(geo: number, asset: number, strategy: number, criteria: any): number {
   // Only count dimensions the buyer actually expressed. Blank = no signal.
   const hasGeo = !!(criteria?.target_states?.length || criteria?.target_metros?.length);
   const hasAsset = !!criteria?.target_asset_types?.length;
