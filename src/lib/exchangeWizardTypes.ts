@@ -55,9 +55,6 @@ export const initialPropertyData: PropertyData = {
   city: "",
   state: "",
   asset_type: "",
-  year_built: "",
-  units: "",
-  building_square_footage: "",
   description: "",
   owner_authorization_confirmed: false,
 };
