@@ -8,7 +8,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
 import { STAGE_DEFS, type StageKey } from "@/features/pipeline/lib/pipelineStages";
-import { Loader2, ArrowLeft, Clock } from "lucide-react";
+import { Loader2, ArrowLeft, Clock, Sparkles, CheckCircle2, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+interface DiagRow {
+  direction: "buyer" | "seller";
+  candidate_property_id: string;
+  candidate_exchange_id: string | null;
+  candidate_label: string;
+  status: "matched" | "skipped";
+  reason: string;
+  total?: number;
+  roe_improvement_pp?: number | null;
+}
+interface DiagResult {
+  matches_for_exchange: number;
+  matches_from_property: number;
+  total_new_matches: number;
+  dry_run: boolean;
+  top_matches: Array<{ property_id: string; exchange_id: string; direction: string; score: number; roe_improvement_pp?: number | null }>;
+  diagnostics: DiagRow[] | null;
+}
 
 const EXCHANGE_STATUSES = ["draft", "active", "in_identification", "in_closing", "completed", "failed", "cancelled"];
 
