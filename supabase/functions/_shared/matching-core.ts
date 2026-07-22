@@ -513,6 +513,10 @@ interface RoePairScore {
   candidate_annual_debt_service: number | null;
 }
 
+type ScoreResult =
+  | { ok: true; score: RoePairScore }
+  | { ok: false; reason: string; roe_improvement_pp?: number | null };
+
 function scorePair(
   buyerExchange: any,
   relinquishedFin: any,
@@ -521,79 +525,88 @@ function scorePair(
   criteria: any,
   settings: MatchSettings,
 ): RoePairScore | null {
-  // 1. Buyer baseline ROE — requires NOI, price, loan_balance on relinquished.
-  //    LEVERED return: subtract the client's existing annual debt service so the
-  //    current property is measured the same way as the candidate below (both
-  //    after financing). Debt service uses the mortgage the agent entered, or an
-  //    amortized estimate on the loan balance; free-and-clear means zero.
+  const r = scorePairExplained(buyerExchange, relinquishedFin, candidateProp, candidateFin, criteria, settings);
+  return r.ok ? r.score : null;
+}
+
+function scorePairExplained(
+  buyerExchange: any,
+  relinquishedFin: any,
+  candidateProp: any,
+  candidateFin: any,
+  criteria: any,
+  settings: MatchSettings,
+): ScoreResult {
   const rNoi = numOrNull(relinquishedFin?.noi);
   const rPrice = numOrNull(relinquishedFin?.asking_price);
   const rLoan = numOrNull(relinquishedFin?.loan_balance);
-  if (rNoi == null || rPrice == null || rLoan == null) return null;
+  if (rNoi == null || rPrice == null || rLoan == null) {
+    return { ok: false, reason: "buyer relinquished property missing NOI, asking price, or loan balance" };
+  }
   const buyerEquity = rPrice - rLoan;
-  if (buyerEquity <= 0) return null;
+  if (buyerEquity <= 0) return { ok: false, reason: `buyer has no positive equity (equity = ${Math.round(buyerEquity).toLocaleString()})` };
   const buyerDebtService = relinquishedAnnualDebtService(relinquishedFin, settings);
-  const buyerCurrentROE = (rNoi - buyerDebtService) / buyerEquity; // levered cash-on-cash on equity
+  const buyerCurrentROE = (rNoi - buyerDebtService) / buyerEquity;
 
-  // 2. Candidate ROE — requires candidate NOI + asking price
   const cNoi = numOrNull(candidateFin?.noi);
   const cPrice = numOrNull(candidateFin?.asking_price);
-  if (cNoi == null || cPrice == null || cPrice <= 0) return null;
+  if (cNoi == null || cPrice == null || cPrice <= 0) {
+    return { ok: false, reason: "candidate property missing NOI or asking price" };
+  }
 
-  // 3. Affordability sanity: buyer's equity needs to cover the down payment
   const maxAffordable = buyerEquity / (1 - MAX_COMMERCIAL_LTV);
-  if (cPrice > maxAffordable) return null;
+  if (cPrice > maxAffordable) {
+    return {
+      ok: false,
+      reason: `candidate price $${Math.round(cPrice).toLocaleString()} exceeds affordability ceiling $${Math.round(maxAffordable).toLocaleString()} (buyer equity × ${1 / (1 - MAX_COMMERCIAL_LTV)}× at ${MAX_COMMERCIAL_LTV * 100}% LTV)`,
+    };
+  }
 
-  // 4. Amortized annual payment on a 75%-LTV loan at admin assumptions
   const loanAmount = MAX_COMMERCIAL_LTV * cPrice;
-  const annualPmt = amortizedAnnualPayment(
-    loanAmount,
-    settings.mortgage_interest_rate,
-    settings.mortgage_amortization_years,
-  );
+  const annualPmt = amortizedAnnualPayment(loanAmount, settings.mortgage_interest_rate, settings.mortgage_amortization_years);
 
   const candidateROE = (cNoi - annualPmt) / buyerEquity;
   const improvementPP = (candidateROE - buyerCurrentROE) * 100;
-  // Relative improvement only makes sense against a positive baseline (a negative
-  // or zero current return would make the ratio meaningless).
   const improvementRel = buyerCurrentROE > 0 ? candidateROE / buyerCurrentROE - 1 : null;
 
-  // 5. Eligibility gate
-  if (improvementPP <= ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP) return null;
+  if (improvementPP <= ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP) {
+    return {
+      ok: false,
+      reason: `no ROE upgrade: current ${(buyerCurrentROE * 100).toFixed(2)}% → candidate ${(candidateROE * 100).toFixed(2)}% (Δ ${improvementPP.toFixed(2)}pp, need > ${ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP}pp)`,
+      roe_improvement_pp: round(improvementPP),
+    };
+  }
 
-  // 6. ROE component score (0..100)
   const roeScore = clamp01(improvementPP / ROE_IMPROVEMENT_FULL_SCORE_PP) * 100;
-
-  // 7. Fit components — neutral (no penalty) when buyer left criteria blank
   const geoScore = scoreGeo(candidateProp, criteria);
   const assetScore = scoreAsset(candidateProp, criteria);
   const strategyScore = scoreStrategy(candidateProp, criteria);
   const fitScore = blendFit(geoScore, assetScore, strategyScore, criteria);
 
-  // 8. Weighted total + quality tiebreaker
-  const base =
-    roeScore * MATCH_WEIGHTS.roe +
-    fitScore * MATCH_WEIGHTS.fit;
+  const base = roeScore * MATCH_WEIGHTS.roe + fitScore * MATCH_WEIGHTS.fit;
   const qualityScore = scoreQuality(candidateProp, candidateFin);
-  // qualityScore is 0..100; map to -MAX..+MAX (centered on 50)
   const qualityAdj = ((qualityScore - 50) / 50) * QUALITY_TIEBREAKER_MAX_POINTS;
 
   const total = Math.max(0, Math.min(100, base + qualityAdj));
 
   return {
-    total: round(total),
-    price: round(roeScore),
-    geo: round(geoScore),
-    asset: round(assetScore),
-    strategy: round(strategyScore),
-    financial: round(qualityScore),
-    buyer_current_roe: round4(buyerCurrentROE),
-    candidate_roe: round4(candidateROE),
-    roe_improvement_pp: round(improvementPP),
-    roe_improvement_rel: improvementRel != null ? round4(improvementRel) : null,
-    candidate_annual_debt_service: Math.round(annualPmt),
+    ok: true,
+    score: {
+      total: round(total),
+      price: round(roeScore),
+      geo: round(geoScore),
+      asset: round(assetScore),
+      strategy: round(strategyScore),
+      financial: round(qualityScore),
+      buyer_current_roe: round4(buyerCurrentROE),
+      candidate_roe: round4(candidateROE),
+      roe_improvement_pp: round(improvementPP),
+      roe_improvement_rel: improvementRel != null ? round4(improvementRel) : null,
+      candidate_annual_debt_service: Math.round(annualPmt),
+    },
   };
 }
+
 
 function blendFit(geo: number, asset: number, strategy: number, criteria: any): number {
   // Only count dimensions the buyer actually expressed. Blank = no signal.
