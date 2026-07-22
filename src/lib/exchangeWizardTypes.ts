@@ -12,9 +12,6 @@ export interface PropertyData {
   city: string;
   state: string;
   asset_type: Enums<"asset_type"> | "";
-  year_built: string;
-  units: string;
-  building_square_footage: string;
   description: string;
   // Compliance: the agent attests they have a listing/representation agreement
   // or written authorization from the owner to market this property.
