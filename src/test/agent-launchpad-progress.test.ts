@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { isAgentProfileComplete } from "@/features/agent/hooks/useAgentLaunchpadProgress";
+import {
+  countFilledProfileFields,
+  isAgentProfileComplete,
+} from "@/features/agent/hooks/useAgentLaunchpadProgress";
 
 describe("agent launchpad profile completion", () => {
   it("requires brokerage details, bio, and specializations", () => {
@@ -40,5 +43,25 @@ describe("agent launchpad profile completion", () => {
         specializations: [],
       }),
     ).toBe(false);
+  });
+
+  it("counts partially filled profiles for in-progress state", () => {
+    expect(
+      countFilledProfileFields({
+        brokerage_name: "Acme",
+        brokerage_address: null,
+        bio: null,
+        specializations: null,
+      }),
+    ).toBe(1);
+
+    expect(
+      countFilledProfileFields({
+        brokerage_name: "Acme",
+        brokerage_address: "123 Main",
+        bio: "Bio",
+        specializations: ["mf"],
+      }),
+    ).toBe(4);
   });
 });
