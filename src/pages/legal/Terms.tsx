@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
-import { LegalDoc, Fill } from "./LegalDoc";
+import { LegalDoc } from "./LegalDoc";
 
 export default function Terms() {
   useEffect(() => {
