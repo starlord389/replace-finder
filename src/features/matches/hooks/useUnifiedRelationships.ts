@@ -198,7 +198,7 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
         // we're an admin, or the owner published it.
         supabase
           .from("pledged_properties_secure")
-          .select("id, agent_id, property_name, city, state, address, address_is_public, zip, asset_type, units, year_built, building_square_footage, land_area_acres, description, recent_renovations")
+          .select("id, agent_id, property_name, city, state, address, address_is_public, zip, asset_type, land_area_acres, description, recent_renovations")
           .in("id", allSellerPropIds),
         supabase
           .from("property_financials")
