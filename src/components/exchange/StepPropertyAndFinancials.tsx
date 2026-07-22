@@ -236,9 +236,11 @@ export default function StepPropertyAndFinancials({
 
       <section className="space-y-3">
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Property Photos</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Property Photos <span className="ml-1 normal-case tracking-normal text-muted-foreground/70">(optional)</span>
+          </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Add photos so matched agents can see the property at a glance. First photo is used as the cover.
+            Optional — add photos so matched agents can see the property at a glance. First photo is used as the cover. If you skip this, we'll show a clean placeholder.
           </p>
         </div>
         <PropertyPhotoUploader images={images} onChange={onChangeImages} />
