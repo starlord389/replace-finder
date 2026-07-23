@@ -359,6 +359,24 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
           },
         })
         .catch((err) => console.warn("referral ack email failed", err));
+
+      // Internal notification to platform operators.
+      supabase.functions
+        .invoke("notify-admin-signup", {
+          body: {
+            kind: "landlord_referral",
+            idempotencySuffix: `${form.email.trim().toLowerCase()}-${Date.now()}`,
+            data: {
+              name: form.name.trim(),
+              email: form.email.trim(),
+              phone: form.phone.trim(),
+              location: form.location.trim(),
+              propertyType: form.propertyType,
+              estimatedValue: form.estimatedValue,
+            },
+          },
+        })
+        .catch((err) => console.warn("admin referral notify failed", err));
     }
 
     setLoading(false);
