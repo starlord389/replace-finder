@@ -1068,6 +1068,24 @@ export default function ForLandlords() {
       return;
     }
 
+    // Fire-and-forget internal notification to platform operators.
+    supabase.functions
+      .invoke("notify-admin-signup", {
+        body: {
+          kind: "landlord_referral",
+          idempotencySuffix: `${ownerEmail.toLowerCase()}-${Date.now()}`,
+          data: {
+            name: ownerName,
+            email: ownerEmail,
+            phone: ownerPhone,
+            location: propertyLocation,
+            propertyType,
+            estimatedValue: estimatedValue != null ? `$${estimatedValue.toLocaleString()}` : "",
+          },
+        },
+      })
+      .catch((err) => console.warn("admin referral notify failed", err));
+
     setSubmitted(true);
     setFormState(INITIAL_FORM_STATE);
   }

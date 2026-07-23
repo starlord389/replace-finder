@@ -3,6 +3,7 @@ import { runMatchingSafe } from "../_shared/matching-core.ts";
 import { validateFinancials } from "../_shared/validate-financials.ts";
 import { deriveFinancialColumns } from "../_shared/derive-financials.ts";
 import { validatePublish } from "../_shared/validate-publish.ts";
+import { notifyAdmins } from "../_shared/admin-notify.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -352,6 +353,32 @@ async function handleStatusChange(
     });
     if (propertyId) {
       await runMatchingSafe(db, userId, exchange.id, propertyId, !!exchange.is_demo, fromWizard ? "update:publish-wizard" : "update:publish-inline");
+
+      // Notify platform operators about the newly-published listing (non-demo only).
+      if (!exchange.is_demo) {
+        try {
+          const [{ data: prop }, { data: fin }] = await Promise.all([
+            db.from("pledged_properties").select("address, city, state, asset_type").eq("id", propertyId).maybeSingle(),
+            db.from("property_financials").select("asking_price").eq("property_id", propertyId).maybeSingle(),
+          ]);
+          const cityState = [prop?.city, prop?.state].filter(Boolean).join(", ") || "—";
+          const priceFmt = typeof fin?.asking_price === "number" ? `$${fin.asking_price.toLocaleString()}` : "—";
+          notifyAdmins({
+            eventType: "Listing published",
+            title: `Listing published: ${cityState}`,
+            summary: "An existing draft was just published as an active listing.",
+            details: [
+              { label: "Address", value: prop?.address || "—" },
+              { label: "City / State", value: cityState },
+              { label: "Asset type", value: prop?.asset_type || "—" },
+              { label: "Asking price", value: priceFmt },
+            ],
+            idempotencySuffix: `listing-${exchange.id}`,
+          }).catch((err) => console.warn("admin notify failed", err));
+        } catch (err) {
+          console.warn("admin notify lookup failed", err);
+        }
+      }
     }
   } else {
     // move_to_draft. The accepted/completed-connection guard already ran before

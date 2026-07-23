@@ -1,73 +1,31 @@
 
 ## Goal
+Notify you (eamon.t.mckenna123@gmail.com) and Steve (steve@multifamilyproperties.com) automatically whenever:
+1. A new **agent** signs up
+2. A new **landlord** requests an agent (referral submission)
+3. An agent **activates a new listing**
 
-Give the matching pipeline a repeatable, hands-off way to prove it works: a fixed staging dataset that can be re-seeded any time, plus automated tests that run against it and cover matching math, approval/persistence, and the notification email path.
+## Approach
+Use the existing Lovable Emails transactional pipeline (`send-transactional-email` + `notify.1031exchangeup.com`) — no new infrastructure needed.
 
-## What to build
+### 1. New email template
+Create one flexible internal template `internal-admin-notification` in `supabase/functions/_shared/transactional-email-templates/` with props: `eventType`, `title`, `summary`, `detailsList` (label/value pairs), and optional `link`. Register it in `registry.ts`. Styled minimally in brand colors — this is an internal ops email, not customer-facing.
 
-### 1. Repeatable staging dataset
+### 2. Shared recipient constant
+Add `ADMIN_NOTIFY_EMAILS = ["eamon.t.mckenna123@gmail.com", "steve@multifamilyproperties.com"]` inside the trigger sites (edge functions). Send one invocation per recipient so each gets their own idempotency key and unsubscribe token.
 
-New edge function `seed-staging-dataset` (admin-only, `verify_jwt=false` with in-code admin check via `has_role`) that:
+### 3. Trigger wiring
+- **Agent signup**: hook into `handle_new_user` path. Since that's a DB trigger, the cleanest place is a lightweight edge function `notify-admin-signup` invoked from the client right after successful signup in `src/pages/auth/Signup.tsx` (role=agent). Fire-and-forget; failures logged, never block signup.
+- **Landlord referral**: in the referral submission flow (the same code path that inserts into `public.referrals`), after successful insert, invoke `send-transactional-email` with the referral details. Locate the exact submission handler during build.
+- **New listing activation**: in `supabase/functions/create-exchange/index.ts` (on `activate: true`) and in `supabase/functions/update-exchange/index.ts` (on `intent: "publish"` / `save_active` where status transitions to active), after the exchange is created/published, send admin notifications with property address, agent name, asking price, and a link to the admin exchange detail page.
 
-- Wipes any existing rows tagged `is_demo=true` for the staging agents (idempotent).
-- Creates 2 fixed staging agents (`staging-buyer@1031exchangeup.test`, `staging-seller@1031exchangeup.test`) via `auth.admin.createUser` if missing; stores their ids in `app_settings` under key `staging_dataset` so re-runs are deterministic.
-- Inserts a curated set of `pledged_properties` + `property_financials` + `exchanges` + `replacement_criteria`, all `is_demo=true`, chosen to exercise:
-  - one clean match (ROE upgrade, in-budget, geo+asset fit)
-  - one affordability rejection (candidate price > equity ceiling)
-  - one no-ROE-upgrade rejection
-  - one seller-side match (buyer exchange from other agent matches staging listing)
-  - one missing-financials skip
-- Returns a JSON manifest (ids of everything created) that tests can consume.
+### 4. Idempotency
+Each send uses a key like `admin-signup-{userId}-{recipientEmail}`, `admin-referral-{referralId}-{recipientEmail}`, `admin-listing-{exchangeId}-{recipientEmail}` so retries never double-send.
 
-Admin trigger: add a "Re-seed staging data" button on the existing admin QA area (Deal Oversight page header) that calls the function and toasts the manifest summary.
+### 5. Deploy
+Deploy `send-transactional-email`, `create-exchange`, `update-exchange`, and the new `notify-admin-signup` function.
 
-### 2. Deno unit tests for `matching-core.ts`
-
-`supabase/functions/_shared/matching-core.test.ts` — pure-logic tests, no DB, no network:
-
-- `scorePairExplained` returns `ok:true` with expected `roe_improvement_pp` and total for a clean upgrade.
-- Returns `ok:false` with `reason` starting `candidate price` when price exceeds affordability ceiling.
-- Returns `ok:false` with `reason` starting `no ROE upgrade` when candidate ROE ≤ buyer ROE.
-- Returns `ok:false` when required financials are missing.
-- `blendFit` returns 100 when buyer has no criteria (pure-ROE ranking).
-- Boot calculation returns `cash_boot > 0` when candidate price < proceeds.
-
-Run via `supabase--test_edge_functions` with `functions: ["_shared"]` pattern (or a dedicated wrapper function that re-exports).
-
-### 3. Deno integration test for `run-auto-matching`
-
-`supabase/functions/run-auto-matching/index.test.ts`:
-
-- Loads env via `deno.land/std/dotenv/load.ts`.
-- Calls `seed-staging-dataset` to establish known state.
-- Signs in as the staging buyer, invokes `run-auto-matching` with `{explain:true, dry_run:true}`, asserts:
-  - buyer-side eligible count = 1
-  - diagnostics contain one "candidate price ... exceeds affordability" skip
-  - diagnostics contain one "no ROE upgrade" skip
-- Invokes again with `dry_run:false`, asserts `total_new_matches ≥ 1` and that a row now exists in `public.matches` with the expected buyer/seller pair.
-- Asserts a row exists in `email_send_log` with `template_name='new-match-notification'` for the buyer agent within the last minute.
-
-### 4. Approval-path assertion
-
-The current "approval" step is the `matches` row being persisted and surfaced through `matched_property_access`. The integration test also asserts that after the persist run the staging seller can read the buyer's exchange summary through the standard client APIs (proves RLS + view wiring end-to-end).
-
-### 5. Wiring
-
-- Add `supabase/functions/seed-staging-dataset/index.ts` with corsHeaders, admin gate, and idempotent seed logic.
-- Add tests as above; no `deno.lock` changes.
-- Add a small admin button in `src/pages/admin/AdminDealOversight.tsx` (or nearest admin index) that calls the seeder and shows a toast.
-- No changes to production tables/schemas; everything piggybacks on the existing `is_demo` flag.
-
-## Not in scope
-
-- No frontend Vitest suite — the interesting logic lives in edge functions; a React test would only cover the QA card render.
-- No CI config changes — tests are invoked via the `test_edge_functions` tool on demand.
-- No new email templates; reuses existing `new-match-notification`.
-
-## Deliverables
-
-1. `supabase/functions/seed-staging-dataset/index.ts`
-2. `supabase/functions/_shared/matching-core.test.ts`
-3. `supabase/functions/run-auto-matching/index.test.ts`
-4. Small admin button + handler in the deal oversight page.
-5. One green run of both test files against a freshly seeded dataset.
+## Out of scope
+- No admin UI setting to change recipients — hardcoded per your request. Can move to `app_settings` later if you want to manage from the admin panel.
+- No email on drafts, only on activation/publish.
+- No email on agent-invited client signups (only self-serve agent signups and landlord referrals).

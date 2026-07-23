@@ -153,6 +153,24 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
 
     setLoading(false);
     if (data.user) {
+      // Fire-and-forget internal notification to platform operators.
+      supabase.functions
+        .invoke("notify-admin-signup", {
+          body: {
+            kind: "agent_signup",
+            idempotencySuffix: data.user.id,
+            data: {
+              name: form.fullName.trim(),
+              email: form.email.trim(),
+              phone: form.phone.trim(),
+              brokerage: form.brokerageName.trim(),
+              licenseState: form.licenseState,
+              mlsNumber: form.professionalId.trim(),
+            },
+          },
+        })
+        .catch((err) => console.warn("admin signup notify failed", err));
+
       setSubmittedEmail(form.email.trim());
       toast({
         title: "Check your email",
@@ -341,6 +359,24 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
           },
         })
         .catch((err) => console.warn("referral ack email failed", err));
+
+      // Internal notification to platform operators.
+      supabase.functions
+        .invoke("notify-admin-signup", {
+          body: {
+            kind: "landlord_referral",
+            idempotencySuffix: `${form.email.trim().toLowerCase()}-${Date.now()}`,
+            data: {
+              name: form.name.trim(),
+              email: form.email.trim(),
+              phone: form.phone.trim(),
+              location: form.location.trim(),
+              propertyType: form.propertyType,
+              estimatedValue: form.estimatedValue,
+            },
+          },
+        })
+        .catch((err) => console.warn("admin referral notify failed", err));
     }
 
     setLoading(false);

@@ -3,6 +3,7 @@ import { runMatchingSafe } from "../_shared/matching-core.ts";
 import { validateFinancials } from "../_shared/validate-financials.ts";
 import { deriveFinancialColumns } from "../_shared/derive-financials.ts";
 import { validatePublish } from "../_shared/validate-publish.ts";
+import { notifyAdmins } from "../_shared/admin-notify.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -244,6 +245,37 @@ Deno.serve(async (req) => {
       let matchingResult: { ok: boolean; new_matches?: number; error?: string } | null = null;
       if (payload.activate) {
         matchingResult = await runMatchingSafe(db, user.id, exchangeId, propertyId, payload.isDemo === true, "create:activate");
+
+        // Notify platform operators about the new active listing (non-demo only).
+        if (payload.isDemo !== true) {
+          const priceNum = typeof derived.asking_price === "number" ? derived.asking_price : null;
+          const priceFmt = priceNum != null ? `$${priceNum.toLocaleString()}` : "—";
+          const cityState = [payload.property.city, payload.property.state]
+            .filter((v) => typeof v === "string" && v)
+            .join(", ") || "—";
+          const addr = typeof payload.property.address === "string" && payload.property.address
+            ? String(payload.property.address)
+            : "—";
+          const assetType = typeof payload.property.asset_type === "string"
+            ? String(payload.property.asset_type)
+            : "—";
+          notifyAdmins({
+            eventType: "New listing activated",
+            title: `New listing: ${cityState}`,
+            summary: payload.clientName
+              ? `${payload.clientName}'s listing was just activated by their agent.`
+              : "An agent just activated a new listing on 1031ExchangeUp.",
+            details: [
+              { label: "Address", value: addr },
+              { label: "City / State", value: cityState },
+              { label: "Asset type", value: assetType },
+              { label: "Asking price", value: priceFmt },
+              { label: "Client", value: payload.clientName || "—" },
+              { label: "New matches", value: String(matchingResult?.new_matches ?? 0) },
+            ],
+            idempotencySuffix: `listing-${exchangeId}`,
+          }).catch((err) => console.warn("admin notify failed", err));
+        }
       }
 
       return response({
