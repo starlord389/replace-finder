@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,9 +40,10 @@ function fmtDateTime(iso: string) {
 type Draft = { scheduled_at: string; meeting_link: string; internal_notes: string };
 
 export default function AdminDemos() {
+  const [searchParams] = useSearchParams();
   const [demos, setDemos] = useState<Demo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [statusFilter, setStatusFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -50,6 +52,10 @@ export default function AdminDemos() {
   useEffect(() => {
     loadDemos();
   }, []);
+
+  useEffect(() => {
+    setSearch(searchParams.get("q") ?? "");
+  }, [searchParams]);
 
   async function loadDemos() {
     setLoading(true);

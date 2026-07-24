@@ -1,19 +1,36 @@
-import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
-  ShieldCheck, Handshake, LifeBuoy, ArrowLeftRight, Activity, ArrowRight,
-  Users, Building2, Inbox, CalendarClock, TrendingUp, Briefcase,
+  Activity,
+  AlertTriangle,
+  ArrowLeftRight,
+  ArrowRight,
+  Building2,
+  CalendarClock,
+  CheckCircle2,
+  Clock3,
+  Handshake,
+  Inbox,
+  LifeBuoy,
+  RefreshCw,
+  ShieldCheck,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  formatAdminRelativeTime,
+  type AdminAttentionPriority,
+  useAdminCommandCenter,
+} from "@/features/admin/hooks/useAdminCommandCenter";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Draft",
   active: "Active",
-  in_identification: "In Identification",
-  in_closing: "In Closing",
+  in_identification: "Identification",
+  in_closing: "Closing",
   completed: "Completed",
   failed: "Failed",
   cancelled: "Cancelled",
@@ -23,228 +40,333 @@ const STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   active: "bg-primary/15 text-primary",
   in_identification: "bg-amber-100 text-amber-800",
-  in_closing: "bg-purple-100 text-purple-800",
+  in_closing: "bg-blue-100 text-blue-800",
   completed: "bg-green-100 text-green-800",
   failed: "bg-red-100 text-red-800",
   cancelled: "bg-muted text-muted-foreground",
 };
 
-function relativeTime(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const mins = Math.floor((now - then) / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const priorityStyles: Record<AdminAttentionPriority, string> = {
+  critical: "border-red-200 bg-red-50 text-red-700",
+  high: "border-amber-200 bg-amber-50 text-amber-700",
+  medium: "border-blue-200 bg-blue-50 text-blue-700",
+};
+
+function formatUpdatedAt(iso: string | undefined) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-interface KPI { label: string; value: number | null; icon: React.ElementType; color: string; }
-interface ActivityItem { id: string; text: string; timestamp: string; linkTo?: string; }
-
 export default function AdminDashboard() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin-monitoring-dashboard"],
-    queryFn: async () => {
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const head = { count: "exact" as const, head: true };
+  const { data, isLoading, error, refetch, isFetching } = useAdminCommandCenter();
 
-      // The admin dashboard reflects LIVE data only. exchanges / pledged_properties
-      // carry is_demo, so filter them directly. matches / exchange_connections /
-      // exchange_timeline have no is_demo column, so scope them to the set of live
-      // (is_demo = false) exchange ids they each reference.
-      const { data: liveExRows } = await supabase
-        .from("exchanges")
-        .select("id")
-        .eq("is_demo", false);
-      const liveExchangeIds = (liveExRows ?? []).map((r) => r.id as string);
-      // Guard the .in() filters: a non-empty array with an impossible id matches
-      // nothing when there are no live exchanges (instead of relying on empty-IN).
-      const scopeIds = liveExchangeIds.length
-        ? liveExchangeIds
-        : ["00000000-0000-0000-0000-000000000000"];
+  if (isLoading) return <CommandCenterSkeleton />;
 
-      // Demo counterparty agents are real auth users seeded with @replacefinder.test
-      // emails (no is_demo column on profiles/user_roles), so subtract them from the
-      // user/agent counts. All demo profiles are given the agent role.
-      const DEMO_EMAIL = "%@replacefinder.test";
-
-      const [
-        activeExchanges, activeMatches, openConnections, openTickets,
-        totalUsers, totalAgents, totalProperties, newDemos, newContact,
-        newUsersWeek, newExchangesWeek, newDemosWeek,
-        allExchanges, timelineEvents, demoUsers, demoUsersWeek,
-      ] = await Promise.all([
-        supabase.from("exchanges").select("id", head).eq("is_demo", false).in("status", ["active", "in_identification", "in_closing"]),
-        supabase.from("matches").select("id", head).eq("status", "active").in("buyer_exchange_id", scopeIds),
-        supabase.from("exchange_connections").select("id", head).in("status", ["pending", "accepted"]).in("buyer_exchange_id", scopeIds),
-        supabase.from("support_tickets").select("id", head).eq("status", "open"),
-        supabase.from("profiles").select("id", head),
-        supabase.from("user_roles").select("user_id", head).eq("role", "agent"),
-        supabase.from("pledged_properties").select("id", head).eq("is_demo", false),
-        supabase.from("demo_requests").select("id", head).eq("status", "new"),
-        supabase.from("contact_submissions").select("id", head).eq("status", "new"),
-        supabase.from("profiles").select("id", head).gte("created_at", weekAgo),
-        supabase.from("exchanges").select("id", head).eq("is_demo", false).gte("created_at", weekAgo),
-        supabase.from("demo_requests").select("id", head).gte("created_at", weekAgo),
-        supabase.from("exchanges").select("status").eq("is_demo", false),
-        supabase.from("exchange_timeline").select("id, exchange_id, event_type, description, created_at").in("exchange_id", scopeIds).order("created_at", { ascending: false }).limit(10),
-        supabase.from("profiles").select("id", head).ilike("email", DEMO_EMAIL),
-        supabase.from("profiles").select("id", head).ilike("email", DEMO_EMAIL).gte("created_at", weekAgo),
-      ]);
-
-      const demoUserCount = demoUsers.count ?? 0;
-
-      return {
-        kpis: [
-          { label: "Active Exchanges", value: activeExchanges.count, icon: ArrowLeftRight, color: "bg-primary/10 text-primary" },
-          { label: "Active Matches", value: activeMatches.count, icon: Handshake, color: "bg-green-50 text-green-600" },
-          { label: "Open Connections", value: openConnections.count, icon: Activity, color: "bg-amber-50 text-amber-600" },
-          { label: "Properties", value: totalProperties.count, icon: Building2, color: "bg-blue-50 text-blue-600" },
-          { label: "Total Users", value: Math.max(0, (totalUsers.count ?? 0) - demoUserCount), icon: Users, color: "bg-indigo-50 text-indigo-600" },
-          { label: "Agents", value: Math.max(0, (totalAgents.count ?? 0) - demoUserCount), icon: ShieldCheck, color: "bg-teal-50 text-teal-600" },
-          { label: "New Leads", value: (newDemos.count ?? 0) + (newContact.count ?? 0), icon: Inbox, color: "bg-rose-50 text-rose-600" },
-          { label: "Open Tickets", value: openTickets.count, icon: LifeBuoy, color: "bg-purple-50 text-purple-600" },
-        ] satisfies KPI[],
-        growth: [
-          { label: "New users", value: Math.max(0, (newUsersWeek.count ?? 0) - (demoUsersWeek.count ?? 0)), icon: Users },
-          { label: "New exchanges", value: newExchangesWeek.count ?? 0, icon: ArrowLeftRight },
-          { label: "New demo requests", value: newDemosWeek.count ?? 0, icon: CalendarClock },
-        ],
-        allExchanges: allExchanges.data ?? [],
-        activity: (timelineEvents.data ?? []).map((event) => ({
-          id: event.id,
-          text: event.description,
-          timestamp: event.created_at,
-          linkTo: `/admin/deals/exchanges/${event.exchange_id}`,
-        })) satisfies ActivityItem[],
-      };
-    },
-  });
-
-  const pipeline = useMemo(() => {
-    const counts: Record<string, number> = { draft: 0, active: 0, in_identification: 0, in_closing: 0, completed: 0, failed: 0, cancelled: 0 };
-    data?.allExchanges.forEach((exchange: { status: string }) => {
-      if (exchange.status in counts) counts[exchange.status]++;
-    });
-    return counts;
-  }, [data?.allExchanges]);
-
-  if (isLoading) {
+  if (error || !data) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="mx-auto max-w-7xl space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Command Center</h1>
+          <p className="text-muted-foreground">Run the business from one place.</p>
+        </div>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="flex flex-col items-start gap-3 p-6 sm:flex-row sm:items-center">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <div className="flex-1">
+              <p className="font-semibold text-red-900">The command center could not load live data.</p>
+              <p className="text-sm text-red-700">{error instanceof Error ? error.message : "Please try again."}</p>
+            </div>
+            <Button variant="outline" onClick={() => refetch()}>Try again</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
+  const kpis = [
+    { label: "Active Exchanges", value: data.kpis.activeExchanges, icon: ArrowLeftRight, color: "bg-primary/10 text-primary" },
+    { label: "Active Matches", value: data.kpis.activeMatches, icon: Handshake, color: "bg-green-50 text-green-700" },
+    { label: "Open Connections", value: data.kpis.openConnections, icon: Activity, color: "bg-amber-50 text-amber-700" },
+    { label: "Properties", value: data.kpis.properties, icon: Building2, color: "bg-blue-50 text-blue-700" },
+    { label: "Total Users", value: data.kpis.users, icon: Users, color: "bg-indigo-50 text-indigo-700" },
+    { label: "Agents", value: data.kpis.agents, icon: ShieldCheck, color: "bg-teal-50 text-teal-700" },
+    { label: "New Leads", value: data.kpis.newLeads, icon: Inbox, color: "bg-rose-50 text-rose-700" },
+    { label: "Open Tickets", value: data.kpis.openTickets, icon: LifeBuoy, color: "bg-purple-50 text-purple-700" },
+  ];
+
+  const criticalCount = data.attentionItems.filter((item) => item.priority === "critical").length;
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Platform health, growth, and activity at a glance.</p>
+    <div className="mx-auto max-w-7xl space-y-6" data-testid="admin-command-center">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight">Command Center</h1>
+            <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">
+              <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-green-500" />
+              Live
+            </Badge>
+          </div>
+          <p className="mt-1 text-muted-foreground">What needs attention across the business right now.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <p className="hidden text-xs text-muted-foreground sm:block">
+            Updated {formatUpdatedAt(data.lastUpdatedAt)}
+          </p>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {data?.kpis.map((kpi) => (
-          <Card key={kpi.label}>
-            <CardContent className="p-4">
-              <div className={`mb-2 inline-flex rounded-lg p-2 ${kpi.color}`}>
-                <kpi.icon className="h-4 w-4" />
+      <Card className="overflow-hidden border-slate-800 bg-slate-950 text-white shadow-sm">
+        <CardContent className="grid gap-6 p-6 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Today’s operating picture</p>
+            <div className="mt-3 flex flex-wrap items-baseline gap-x-8 gap-y-3">
+              <div>
+                <p className="text-4xl font-semibold tracking-tight">{data.attentionItems.length}</p>
+                <p className="text-sm text-slate-400">items need attention</p>
               </div>
-              <p className="text-2xl font-bold">{kpi.value ?? 0}</p>
-              <p className="text-xs text-muted-foreground">{kpi.label}</p>
+              <div>
+                <p className="text-2xl font-semibold text-red-300">{criticalCount}</p>
+                <p className="text-sm text-slate-400">critical</p>
+              </div>
+              <div>
+                <p className="text-2xl font-semibold text-amber-200">{data.overdueDeadlineCount}</p>
+                <p className="text-sm text-slate-400">overdue deadlines</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 md:max-w-[360px] md:justify-end">
+            <Button asChild size="sm" className="bg-white text-slate-950 hover:bg-slate-100">
+              <Link to="/admin/intake"><Inbox className="mr-1.5 h-3.5 w-3.5" />Review leads</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="border-slate-700 bg-slate-900 text-white hover:bg-slate-800 hover:text-white">
+              <Link to="/admin/deals"><ArrowLeftRight className="mr-1.5 h-3.5 w-3.5" />Review deals</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="border-slate-700 bg-slate-900 text-white hover:bg-slate-800 hover:text-white">
+              <Link to="/admin/support"><LifeBuoy className="mr-1.5 h-3.5 w-3.5" />Open support</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+        {kpis.map((kpi) => (
+          <Card key={kpi.label} className="shadow-none">
+            <CardContent className="p-3.5">
+              <div className={`mb-2 inline-flex rounded-lg p-1.5 ${kpi.color}`}>
+                <kpi.icon className="h-3.5 w-3.5" />
+              </div>
+              <p className="text-xl font-bold">{kpi.value}</p>
+              <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{kpi.label}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Growth this week */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <TrendingUp className="h-4 w-4 text-primary" /> Last 7 days
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            {data?.growth.map((g) => (
-              <div key={g.label} className="flex items-center gap-3 rounded-lg border px-4 py-3">
-                <g.icon className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-xl font-bold leading-none">{g.value}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{g.label}</p>
-                </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.55fr)]">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base">Needs attention</CardTitle>
+              <p className="mt-1 text-xs text-muted-foreground">Deadlines and unresolved operational work, prioritized for you.</p>
+            </div>
+            <Badge variant="secondary">{data.attentionItems.length}</Badge>
+          </CardHeader>
+          <CardContent className="p-0">
+            {data.attentionItems.length === 0 ? (
+              <div className="flex flex-col items-center px-6 py-12 text-center">
+                <CheckCircle2 className="mb-3 h-9 w-9 text-green-600" />
+                <p className="font-semibold">You’re all caught up</p>
+                <p className="text-sm text-muted-foreground">No active items need attention.</p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            ) : (
+              <div>
+                {data.attentionItems.slice(0, 10).map((item) => (
+                  <Link
+                    key={item.id}
+                    to={item.href}
+                    className="group flex items-start gap-3 border-t px-5 py-3.5 transition-colors hover:bg-muted/50"
+                  >
+                    <Badge variant="outline" className={`mt-0.5 shrink-0 capitalize ${priorityStyles[item.priority]}`}>
+                      {item.priority}
+                    </Badge>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium group-hover:text-primary">{item.title}</p>
+                      <p className="truncate text-xs text-muted-foreground">{item.detail}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="hidden text-[11px] text-muted-foreground sm:inline">
+                        {formatAdminRelativeTime(item.timestamp)}
+                      </span>
+                      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-3">
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/admin/deals"><Briefcase className="mr-1.5 h-3.5 w-3.5" />Deal Oversight</Link>
-        </Button>
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/admin/users"><Users className="mr-1.5 h-3.5 w-3.5" />Manage Users</Link>
-        </Button>
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/admin/demos"><CalendarClock className="mr-1.5 h-3.5 w-3.5" />Demos</Link>
-        </Button>
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/admin/support"><LifeBuoy className="mr-1.5 h-3.5 w-3.5" />Support</Link>
-        </Button>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CalendarClock className="h-4 w-4 text-primary" />
+                Upcoming demos
+              </CardTitle>
+              <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                <Link to="/admin/demos">View all</Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {data.upcomingDemos.length === 0 ? (
+                <p className="py-4 text-center text-sm text-muted-foreground">No demos scheduled.</p>
+              ) : (
+                <div className="space-y-3">
+                  {data.upcomingDemos.map((demo) => (
+                    <Link key={demo.id} to={`/admin/demos?q=${encodeURIComponent(demo.work_email)}`} className="flex gap-3 rounded-lg border p-3 hover:bg-muted/50">
+                      <div className="rounded-md bg-primary/10 p-2 text-primary"><Clock3 className="h-4 w-4" /></div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{demo.full_name}</p>
+                        <p className="truncate text-xs text-muted-foreground">{demo.company}</p>
+                        <p className="mt-1 text-[11px] font-medium text-primary">
+                          {new Date(demo.scheduled_at!).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Platform pulse</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <HealthRow label="Supabase data" status="Connected" healthy />
+              <HealthRow
+                label="Operational queue"
+                status={data.attentionItems.length ? `${data.attentionItems.length} active` : "Clear"}
+                healthy={data.attentionItems.length === 0}
+              />
+              <HealthRow
+                label="Deadlines"
+                status={data.overdueDeadlineCount ? `${data.overdueDeadlineCount} overdue` : "On track"}
+                healthy={data.overdueDeadlineCount === 0}
+              />
+              <p className="border-t pt-3 text-[11px] leading-relaxed text-muted-foreground">
+                Worker, email, and audit-log health will appear here after the Phase 1 database foundation is applied.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Pipeline Summary */}
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Exchange Pipeline</CardTitle></CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(STATUS_LABELS).map(([status, label]) => (
-              <div key={status} className="flex items-center gap-2 rounded-lg border px-4 py-3">
-                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[status]}`}>
-                  {pipeline[status] ?? 0}
-                </span>
-                <span className="text-sm font-medium">{label}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              Growth in the last 7 days
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <GrowthMetric label="New users" value={data.growth.users} />
+            <GrowthMetric label="New exchanges" value={data.growth.exchanges} />
+            <GrowthMetric label="Demo requests" value={data.growth.demos} />
+            <GrowthMetric label="Event signups" value={data.growth.events} />
+          </CardContent>
+        </Card>
 
-      {/* Recent Activity */}
+        <Card>
+          <CardHeader className="pb-3"><CardTitle className="text-base">Exchange pipeline</CardTitle></CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {Object.entries(STATUS_LABELS).map(([status, label]) => (
+              <Link
+                key={status}
+                to={`/admin/deals?q=${encodeURIComponent(status)}`}
+                className="flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors hover:bg-muted/50"
+              >
+                <span className={`inline-flex min-w-7 justify-center rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_COLORS[status]}`}>
+                  {data.pipeline[status] ?? 0}
+                </span>
+                <span className="text-xs font-medium">{label}</span>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">Recent Activity</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Recent marketplace activity</CardTitle></CardHeader>
         <CardContent>
-          {(data?.activity.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground">No recent activity.</p>
+          {data.recentActivity.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">No recent marketplace activity.</p>
           ) : (
-            <div className="space-y-3">
-              {data?.activity.map((item) => (
-                <div key={item.id} className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
+            <div className="divide-y">
+              {data.recentActivity.map((event) => (
+                <Link
+                  key={event.id}
+                  to={`/admin/deals/exchanges/${event.exchange_id}`}
+                  className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0"
+                >
+                  <div className="flex min-w-0 items-start gap-3">
                     <div className="mt-0.5 rounded-full bg-muted p-1.5"><ArrowRight className="h-3 w-3 text-muted-foreground" /></div>
-                    <div>
-                      {item.linkTo ? (
-                        <Link to={item.linkTo} className="text-sm transition-colors hover:text-primary">{item.text}</Link>
-                      ) : (
-                        <p className="text-sm">{item.text}</p>
-                      )}
-                    </div>
+                    <p className="truncate text-sm hover:text-primary">{event.description}</p>
                   </div>
-                  <span className="shrink-0 text-xs text-muted-foreground">{relativeTime(item.timestamp)}</span>
-                </div>
+                  <span className="shrink-0 text-xs text-muted-foreground">{formatAdminRelativeTime(event.created_at)}</span>
+                </Link>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function HealthRow({ label, status, healthy }: { label: string; status: string; healthy: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2 text-sm">
+        <span className={`h-2 w-2 rounded-full ${healthy ? "bg-green-500" : "bg-amber-500"}`} />
+        {label}
+      </div>
+      <span className="text-xs font-medium text-muted-foreground">{status}</span>
+    </div>
+  );
+}
+
+function GrowthMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border p-3">
+      <p className="text-2xl font-bold">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+function CommandCenterSkeleton() {
+  return (
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-52" />
+        <Skeleton className="h-4 w-80" />
+      </div>
+      <Skeleton className="h-40 w-full" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+        {Array.from({ length: 8 }).map((_, index) => <Skeleton key={index} className="h-24" />)}
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[1.45fr_0.55fr]">
+        <Skeleton className="h-[420px]" />
+        <Skeleton className="h-[420px]" />
+      </div>
     </div>
   );
 }

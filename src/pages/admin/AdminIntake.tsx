@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 
 type StatusTable = "contact_submissions" | "referrals";
 
@@ -72,32 +74,44 @@ function StatusBadge({ value }: { value: string }) {
 }
 
 export default function AdminIntake() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [contact, setContact] = useState<Tables<"contact_submissions">[]>([]);
   const [referrals, setReferrals] = useState<Tables<"referrals">[]>([]);
   const [brokerage, setBrokerage] = useState<Tables<"brokerage_waitlist_signups">[]>([]);
   const [team, setTeam] = useState<Tables<"team_waitlist_signups">[]>([]);
   const [newsletter, setNewsletter] = useState<Tables<"newsletter_subscribers">[]>([]);
+  const [events, setEvents] = useState<Tables<"event_registrations">[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const validTabs = new Set(["contact", "referrals", "waitlists", "newsletter", "events"]);
+  const requestedTab = searchParams.get("tab") ?? "contact";
+  const activeTab = validTabs.has(requestedTab) ? requestedTab : "contact";
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [c, r, b, t, n] = await Promise.all([
+      const [c, r, b, t, n, e] = await Promise.all([
         supabase.from("contact_submissions").select("*").order("created_at", { ascending: false }),
         supabase.from("referrals").select("*").order("created_at", { ascending: false }),
         supabase.from("brokerage_waitlist_signups").select("*").order("created_at", { ascending: false }),
         supabase.from("team_waitlist_signups").select("*").order("created_at", { ascending: false }),
         supabase.from("newsletter_subscribers").select("*").order("created_at", { ascending: false }),
+        supabase.from("event_registrations").select("*").order("created_at", { ascending: false }),
       ]);
       setContact(c.data ?? []);
       setReferrals(r.data ?? []);
       setBrokerage(b.data ?? []);
       setTeam(t.data ?? []);
       setNewsletter(n.data ?? []);
+      setEvents(e.data ?? []);
       setLoading(false);
     })();
   }, []);
+
+  useEffect(() => {
+    setSearch(searchParams.get("q") ?? "");
+  }, [searchParams]);
 
   async function setStatus(table: StatusTable, id: string, status: string) {
     setBusyId(id);
@@ -129,9 +143,26 @@ export default function AdminIntake() {
   const contactOpen = contact.filter((x) => OPEN_STATUSES.has(x.status)).length;
   const referralsOpen = referrals.filter((x) => OPEN_STATUSES.has(x.status)).length;
   const waitlistCount = brokerage.length + team.length;
+  const term = search.trim().toLowerCase();
+  const includesTerm = (...values: Array<string | null | undefined>) =>
+    !term || values.some((value) => value?.toLowerCase().includes(term));
+  const filteredContact = contact.filter((row) => includesTerm(row.name, row.email, row.message, row.status));
+  const filteredReferrals = referrals.filter((row) =>
+    includesTerm(row.owner_name, row.owner_email, row.owner_phone, row.property_location, row.property_type, row.status),
+  );
+  const filteredBrokerage = brokerage.filter((row) => includesTerm(row.name, row.email, row.company, row.phone));
+  const filteredTeam = team.filter((row) => includesTerm(row.name, row.email, row.company, row.phone));
+  const filteredNewsletter = newsletter.filter((row) => includesTerm(row.email, row.source));
+  const filteredEvents = events.filter((row) => includesTerm(row.full_name, row.email, row.role, row.event));
 
   const tabBadge = (n: number) =>
     n > 0 ? <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">{n}</Badge> : null;
+
+  const setActiveTab = (tab: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", tab);
+    setSearchParams(next, { replace: true });
+  };
 
   return (
     <div>
@@ -142,17 +173,29 @@ export default function AdminIntake() {
         </p>
       </div>
 
-      <Tabs defaultValue="contact">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+      <div className="relative mb-4 max-w-xl">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search leads, signups, subscribers, and event registrations…"
+          className="pl-9"
+          aria-label="Search growth and intake"
+        />
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-5">
           <TabsTrigger value="contact">Contact{tabBadge(contactOpen)}</TabsTrigger>
           <TabsTrigger value="referrals">Referrals{tabBadge(referralsOpen)}</TabsTrigger>
           <TabsTrigger value="waitlists">Waitlists{tabBadge(waitlistCount)}</TabsTrigger>
           <TabsTrigger value="newsletter">Newsletter</TabsTrigger>
+          <TabsTrigger value="events">Events{tabBadge(events.length)}</TabsTrigger>
         </TabsList>
 
         {/* Contact */}
         <TabsContent value="contact" className="mt-4">
-          <ListCard count={contact.length} noun="submission">
+          <ListCard count={filteredContact.length} noun="submission">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -163,7 +206,7 @@ export default function AdminIntake() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contact.map((row) => (
+                {filteredContact.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(row.created_at)}</TableCell>
                     <TableCell>
@@ -186,7 +229,7 @@ export default function AdminIntake() {
 
         {/* Referrals */}
         <TabsContent value="referrals" className="mt-4">
-          <ListCard count={referrals.length} noun="referral">
+          <ListCard count={filteredReferrals.length} noun="referral">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -199,7 +242,7 @@ export default function AdminIntake() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {referrals.map((row) => (
+                {filteredReferrals.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(row.created_at)}</TableCell>
                     <TableCell>
@@ -232,13 +275,13 @@ export default function AdminIntake() {
 
         {/* Waitlists */}
         <TabsContent value="waitlists" className="mt-4 space-y-6">
-          <WaitlistTable title="Brokerage waitlist" rows={brokerage} />
-          <WaitlistTable title="Team waitlist" rows={team} />
+          <WaitlistTable title="Brokerage waitlist" rows={filteredBrokerage} />
+          <WaitlistTable title="Team waitlist" rows={filteredTeam} />
         </TabsContent>
 
         {/* Newsletter */}
         <TabsContent value="newsletter" className="mt-4">
-          <ListCard count={newsletter.length} noun="subscriber">
+          <ListCard count={filteredNewsletter.length} noun="subscriber">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -248,11 +291,40 @@ export default function AdminIntake() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {newsletter.map((row) => (
+                {filteredNewsletter.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(row.created_at)}</TableCell>
                     <TableCell className="text-sm">{row.email}</TableCell>
                     <TableCell><StatusBadge value={row.source} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ListCard>
+        </TabsContent>
+
+        {/* Events */}
+        <TabsContent value="events" className="mt-4">
+          <ListCard count={filteredEvents.length} noun="registration">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[140px]">Date</TableHead>
+                  <TableHead>Registrant</TableHead>
+                  <TableHead className="w-[140px]">Role</TableHead>
+                  <TableHead>Event</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEvents.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className="text-xs text-muted-foreground">{fmtDate(row.created_at)}</TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium">{row.full_name}</div>
+                      <div className="text-xs text-muted-foreground">{row.email}</div>
+                    </TableCell>
+                    <TableCell><StatusBadge value={row.role} /></TableCell>
+                    <TableCell className="text-sm capitalize">{row.event.replace(/-/g, " ")}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

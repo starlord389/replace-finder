@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +15,10 @@ type Exchange = Tables<"exchanges">;
 type Property = Tables<"pledged_properties">;
 type Match = Tables<"matches">;
 type Connection = Tables<"exchange_connections">;
+type StagingDatasetManifest = {
+  buyer?: { exchange_id?: string };
+  seller?: { exchange_id?: string };
+};
 
 function fmtDate(d: string | null) {
   return d ? new Date(d).toLocaleDateString() : "—";
@@ -53,6 +57,7 @@ function StatusPill({ value }: { value: string }) {
 
 export default function AdminDeals() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
@@ -60,7 +65,7 @@ export default function AdminDeals() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [agentName, setAgentName] = useState<Map<string, string>>(new Map());
   const [clientName, setClientName] = useState<Map<string, string>>(new Map());
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
 
   useEffect(() => {
     (async () => {
@@ -97,6 +102,10 @@ export default function AdminDeals() {
       setLoading(false);
     })();
   }, []);
+
+  useEffect(() => {
+    setSearch(searchParams.get("q") ?? "");
+  }, [searchParams]);
 
   const agent = useCallback(
     (id: string | null) => (id ? agentName.get(id) ?? "Unknown" : "—"),
@@ -301,9 +310,10 @@ function ReseedStagingButton() {
           toast({ title: "Re-seed failed", description: error.message, variant: "destructive" });
           return;
         }
+        const manifest = data as StagingDatasetManifest | null;
         toast({
           title: "Staging dataset ready",
-          description: `Buyer exchange ${(data as any)?.buyer?.exchange_id?.slice(0, 8)} · 4 candidate listings · ${(data as any)?.seller?.exchange_id ? "seller-side exchange included" : ""}`,
+          description: `Buyer exchange ${manifest?.buyer?.exchange_id?.slice(0, 8)} · 4 candidate listings${manifest?.seller?.exchange_id ? " · seller-side exchange included" : ""}`,
         });
         console.log("[staging] manifest", data);
       }}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, Fragment } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,10 +50,11 @@ const verificationBadgeClass: Record<string, string> = {
 };
 
 export default function AdminUsers() {
+  const [searchParams] = useSearchParams();
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [roleFilter, setRoleFilter] = useState("all");
   const [verificationFilter, setVerificationFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -64,6 +66,10 @@ export default function AdminUsers() {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  useEffect(() => {
+    setSearch(searchParams.get("q") ?? "");
+  }, [searchParams]);
 
   async function loadUsers() {
     setLoading(true);

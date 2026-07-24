@@ -1,4 +1,5 @@
 import { Fragment, useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { Loader2, ChevronDown, ChevronUp, Save } from "lucide-react";
 
 const statusOptions = [
@@ -38,6 +40,7 @@ type Ticket = {
 };
 
 export default function SupportTickets() {
+  const [searchParams] = useSearchParams();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -48,6 +51,11 @@ export default function SupportTickets() {
   useEffect(() => {
     loadTickets();
   }, []);
+
+  useEffect(() => {
+    const requestedTicket = searchParams.get("ticket");
+    if (requestedTicket) setExpandedId(requestedTicket);
+  }, [searchParams]);
 
   async function loadTickets() {
     setLoading(true);
@@ -64,18 +72,18 @@ export default function SupportTickets() {
     }
 
     // Fetch profiles for user emails
-    const userIds = [...new Set(ticketData.map((t: any) => t.user_id))];
+    const userIds = [...new Set(ticketData.map((ticket) => ticket.user_id))];
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, email, full_name")
       .in("id", userIds);
 
-    const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+    const profileMap = new Map((profiles || []).map((profile) => [profile.id, profile]));
 
-    const enriched = ticketData.map((t: any) => {
-      const profile = profileMap.get(t.user_id);
+    const enriched = ticketData.map((ticket) => {
+      const profile = profileMap.get(ticket.user_id);
       return {
-        ...t,
+        ...ticket,
         user_email: profile?.email || "Unknown",
         user_name: profile?.full_name || "",
       };
@@ -89,7 +97,7 @@ export default function SupportTickets() {
     setSaving((p) => ({ ...p, [ticketId]: true }));
     const { error } = await supabase
       .from("support_tickets")
-      .update({ status: newStatus as any })
+      .update({ status: newStatus as Tables<"support_tickets">["status"] })
       .eq("id", ticketId);
     setSaving((p) => ({ ...p, [ticketId]: false }));
     if (error) {

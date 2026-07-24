@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const operationsItems = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
+  { title: "Command Center", url: "/admin", icon: LayoutDashboard, end: true },
   { title: "Deal Oversight", url: "/admin/deals", icon: Briefcase },
 ];
 
