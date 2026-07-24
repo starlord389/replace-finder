@@ -47,29 +47,98 @@ export type Database = {
         }
         Relationships: []
       }
-      admin_notify_dispatch_log: {
+      admin_messages: {
         Row: {
           created_at: string
+          created_by: string | null
           id: string
           idempotency_key: string
-          kind: string
-          requester_ip: string | null
-          subject_id: string | null
+          message_text: string
+          provider_message_id: string | null
+          recipient_email: string
+          recipient_id: string
+          recipient_name: string | null
+          recipient_type: string
+          sanitized_error_code: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          updated_at: string
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           id?: string
           idempotency_key: string
-          kind: string
-          requester_ip?: string | null
-          subject_id?: string | null
+          message_text: string
+          provider_message_id?: string | null
+          recipient_email: string
+          recipient_id: string
+          recipient_name?: string | null
+          recipient_type: string
+          sanitized_error_code?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
+          created_by?: string | null
+          id?: string
+          idempotency_key?: string
+          message_text?: string
+          provider_message_id?: string | null
+          recipient_email?: string
+          recipient_id?: string
+          recipient_name?: string | null
+          recipient_type?: string
+          sanitized_error_code?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      admin_notify_dispatch_log: {
+        Row: {
+          attempt_count: number
+          completed_at: string | null
+          created_at: string
+          error_code: string | null
+          id: string
+          idempotency_key: string
+          kind: string
+          requester_fingerprint: string | null
+          requester_ip: string | null
+          status: string
+          subject_id: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          idempotency_key: string
+          kind: string
+          requester_fingerprint?: string | null
+          requester_ip?: string | null
+          status?: string
+          subject_id?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          error_code?: string | null
           id?: string
           idempotency_key?: string
           kind?: string
+          requester_fingerprint?: string | null
           requester_ip?: string | null
+          status?: string
           subject_id?: string | null
         }
         Relationships: []
@@ -1917,7 +1986,31 @@ export type Database = {
     }
     Functions: {
       accept_client_invite: { Args: { p_token: string }; Returns: string }
+      admin_email_activity: {
+        Args: { p_limit?: number; p_offset?: number; p_status?: string }
+        Returns: {
+          created_at: string
+          has_error: boolean
+          id: string
+          recipient_email: string
+          status: string
+          template_name: string
+        }[]
+      }
       admin_system_health: { Args: never; Returns: Json }
+      claim_admin_dispatch: {
+        Args: {
+          p_fingerprint: string
+          p_key: string
+          p_kind: string
+          p_subject_id: string
+        }
+        Returns: {
+          attempts: number
+          claimed: boolean
+          current_status: string
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -1926,6 +2019,10 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      finalize_admin_dispatch: {
+        Args: { p_error_code?: string; p_key: string; p_success: boolean }
+        Returns: undefined
       }
       get_invite_by_token: {
         Args: { _token: string }
