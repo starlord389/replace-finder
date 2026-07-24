@@ -362,9 +362,9 @@ export default function AgentDashboard() {
           <div className="flex items-center gap-3">
             <Compass className="h-5 w-5 shrink-0 text-amber-600" />
             <div>
-              <p className="font-medium">Finish setting up your workspace</p>
+              <p className="font-medium">Finish your Launchpad</p>
               <p className="text-amber-800">
-                You have a few launchpad steps left. Complete them to unlock the full match pipeline.
+                A few Launchpad steps are still open. Complete them to unlock your full match pipeline.
               </p>
             </div>
           </div>
