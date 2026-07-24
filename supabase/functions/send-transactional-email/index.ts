@@ -25,14 +25,47 @@ function generateToken(): string {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+// Auth: gateway verifies the JWT (verify_jwt=true). We additionally require
+// the JWT to carry role === "service_role" so this generic dispatcher stays
+// internal-only. Anon or normal authenticated-user tokens are rejected with 403.
+// The gateway already validated the signature, so we only need to decode the
+// payload to read the role claim.
+function decodeJwtRole(authHeader: string | null): string | null {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null
+  const token = authHeader.slice(7).trim()
+  const parts = token.split('.')
+  if (parts.length < 2) return null
+  try {
+    // base64url -> base64
+    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4)
+    const json = atob(padded)
+    const claims = JSON.parse(json)
+    return typeof claims?.role === 'string' ? claims.role : null
+  } catch {
+    return null
+  }
+}
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json', Allow: 'POST, OPTIONS' },
+    })
+  }
+
+  const callerRole = decodeJwtRole(req.headers.get('Authorization'))
+  if (callerRole !== 'service_role') {
+    return new Response(JSON.stringify({ error: 'forbidden' }), {
+      status: 403,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
