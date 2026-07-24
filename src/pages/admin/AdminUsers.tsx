@@ -223,15 +223,6 @@ export default function AdminUsers() {
             <SelectItem value="client">Client</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={verificationFilter} onValueChange={setVerificationFilter}>
-          <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="Verification" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Verification</SelectItem>
-            {verificationValues.map((v) => (
-              <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {filtered.length === 0 ? (
@@ -248,7 +239,6 @@ export default function AdminUsers() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead className="w-[180px]">Roles</TableHead>
-                  <TableHead className="w-[120px]">Verification</TableHead>
                   <TableHead className="w-[120px]">Joined</TableHead>
                   <TableHead className="w-[50px]" />
                 </TableRow>
@@ -282,11 +272,6 @@ export default function AdminUsers() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${verificationBadgeClass[u.verification_status] || "bg-muted text-muted-foreground"}`}>
-                            {u.verification_status || "—"}
-                          </span>
-                        </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {new Date(u.created_at).toLocaleDateString()}
                         </TableCell>
@@ -296,7 +281,7 @@ export default function AdminUsers() {
                       </TableRow>
                       {isExpanded && (
                         <TableRow key={`${u.id}-detail`}>
-                          <TableCell colSpan={5} className="bg-muted/30 p-4">
+                          <TableCell colSpan={4} className="bg-muted/30 p-4">
                             <div className="grid gap-6 md:grid-cols-2">
                               <div className="space-y-3">
                                 <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Details</h4>
