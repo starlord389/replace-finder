@@ -47,6 +47,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notify_dispatch_log: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string
+          kind: string
+          requester_ip: string | null
+          subject_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          kind: string
+          requester_ip?: string | null
+          subject_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          kind?: string
+          requester_ip?: string | null
+          subject_id?: string | null
+        }
+        Relationships: []
+      }
       agent_clients: {
         Row: {
           agent_id: string
