@@ -25,6 +25,10 @@ import {
   type AdminAttentionPriority,
   useAdminCommandCenter,
 } from "@/features/admin/hooks/useAdminCommandCenter";
+import {
+  getAdminEmailIssueCount,
+  useAdminSystemHealth,
+} from "@/features/admin/hooks/useAdminOperations";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Draft",
@@ -59,6 +63,7 @@ function formatUpdatedAt(iso: string | undefined) {
 
 export default function AdminDashboard() {
   const { data, isLoading, error, refetch, isFetching } = useAdminCommandCenter();
+  const systemHealth = useAdminSystemHealth();
 
   if (isLoading) return <CommandCenterSkeleton />;
 
@@ -245,8 +250,11 @@ export default function AdminDashboard() {
           </Card>
 
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-base">Platform pulse</CardTitle>
+              <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                <Link to="/admin/system">Details</Link>
+              </Button>
             </CardHeader>
             <CardContent className="space-y-3">
               <HealthRow label="Supabase data" status="Connected" healthy />
@@ -260,9 +268,30 @@ export default function AdminDashboard() {
                 status={data.overdueDeadlineCount ? `${data.overdueDeadlineCount} overdue` : "On track"}
                 healthy={data.overdueDeadlineCount === 0}
               />
-              <p className="border-t pt-3 text-[11px] leading-relaxed text-muted-foreground">
-                Worker, email, and audit-log health will appear here after the Phase 1 database foundation is applied.
-              </p>
+              {systemHealth.isLoading ? (
+                <Skeleton className="h-14 w-full" />
+              ) : systemHealth.error || !systemHealth.data ? (
+                <div className="flex items-start gap-2 border-t pt-3 text-[11px] text-red-700">
+                  <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+                  Background-system health is unavailable.
+                </div>
+              ) : (
+                <>
+                  <HealthRow
+                    label="Matching worker"
+                    status={systemHealth.data.matching.failed ? `${systemHealth.data.matching.failed} failed` : `${systemHealth.data.matching.pending} pending`}
+                    healthy={systemHealth.data.matching.failed === 0}
+                  />
+                  <HealthRow
+                    label="Email delivery"
+                    status={getAdminEmailIssueCount(systemHealth.data) ? `${getAdminEmailIssueCount(systemHealth.data)} issues` : `${systemHealth.data.email.sentLast24h} sent (24h)`}
+                    healthy={getAdminEmailIssueCount(systemHealth.data) === 0}
+                  />
+                  <p className="border-t pt-3 text-[11px] leading-relaxed text-muted-foreground">
+                    Worker, email, and audit health refresh automatically every minute.
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

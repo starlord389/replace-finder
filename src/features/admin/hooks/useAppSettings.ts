@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 
 export interface AppSettings {
   id: string;
@@ -48,6 +49,16 @@ export function useUpdateAppSettings() {
         .select()
         .single();
       if (error) throw error;
+      await recordAdminAction({
+        action: "settings.updated",
+        entityType: "app_settings",
+        entityId: input.id,
+        summary: "Updated global mortgage assumptions",
+        metadata: {
+          mortgage_interest_rate: input.mortgage_interest_rate,
+          mortgage_amortization_years: input.mortgage_amortization_years,
+        },
+      });
       return data;
     },
     onSuccess: () => {

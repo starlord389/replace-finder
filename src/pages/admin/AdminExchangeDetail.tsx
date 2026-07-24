@@ -10,6 +10,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { STAGE_DEFS, type StageKey } from "@/features/pipeline/lib/pipelineStages";
 import { Loader2, ArrowLeft, Clock, Sparkles, CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 
 interface DiagRow {
   direction: "buyer" | "seller";
@@ -129,6 +130,7 @@ export default function AdminExchangeDetail() {
 
   async function changeStatus(status: string) {
     if (!exchange) return;
+    const previousStatus = exchange.status;
     setSavingStatus(true);
     const { error } = await supabase.from("exchanges").update({ status: status as Tables<"exchanges">["status"] }).eq("id", exchange.id);
     if (error) {
@@ -137,6 +139,13 @@ export default function AdminExchangeDetail() {
       return;
     }
     await logEvent(`Admin changed exchange status to "${pretty(status)}".`);
+    await recordAdminAction({
+      action: "exchange.status_changed",
+      entityType: "exchange",
+      entityId: exchange.id,
+      summary: `Changed exchange status from ${pretty(previousStatus)} to ${pretty(status)}`,
+      metadata: { previous_status: previousStatus, new_status: status },
+    });
     setExchange({ ...exchange, status: status as Tables<"exchanges">["status"] });
     setSavingStatus(false);
     toast({ title: "Status updated." });
@@ -146,6 +155,7 @@ export default function AdminExchangeDetail() {
   async function changeStage(value: string) {
     if (!exchange) return;
     const stage = value === "__auto__" ? null : (value as StageKey);
+    const previousStage = exchange.pipeline_stage_override;
     setSavingStage(true);
     const { error } = await supabase.from("exchanges").update({ pipeline_stage_override: stage }).eq("id", exchange.id);
     if (error) {
@@ -154,6 +164,13 @@ export default function AdminExchangeDetail() {
       return;
     }
     await logEvent(stage ? `Admin overrode pipeline stage to "${stage}".` : "Admin cleared the pipeline stage override.");
+    await recordAdminAction({
+      action: stage ? "exchange.stage_overridden" : "exchange.stage_override_cleared",
+      entityType: "exchange",
+      entityId: exchange.id,
+      summary: stage ? `Overrode exchange pipeline stage to ${pretty(stage)}` : "Cleared exchange pipeline stage override",
+      metadata: { previous_stage: previousStage, new_stage: stage },
+    });
     setExchange({ ...exchange, pipeline_stage_override: stage });
     setSavingStage(false);
     toast({ title: "Stage updated." });
@@ -180,8 +197,18 @@ export default function AdminExchangeDetail() {
       toast({ title: "Matching run failed", description: error.message, variant: "destructive" });
       return;
     }
-    setMatchResult(data as DiagResult);
-    if (!dryRun) load(exchange.id);
+    const result = data as DiagResult;
+    setMatchResult(result);
+    if (!dryRun) {
+      await recordAdminAction({
+        action: "matching.run",
+        entityType: "exchange",
+        entityId: exchange.id,
+        summary: `Ran matching and created ${result.total_new_matches} new match${result.total_new_matches === 1 ? "" : "es"}`,
+        metadata: { total_new_matches: result.total_new_matches },
+      });
+      load(exchange.id);
+    }
   }
 
   if (loading) {

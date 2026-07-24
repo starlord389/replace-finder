@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 import { Loader2, ChevronDown, ChevronUp, Save } from "lucide-react";
 
 const statusOptions = [
@@ -94,6 +95,7 @@ export default function SupportTickets() {
   }
 
   async function updateStatus(ticketId: string, newStatus: string) {
+    const previousStatus = tickets.find((ticket) => ticket.id === ticketId)?.status ?? "unknown";
     setSaving((p) => ({ ...p, [ticketId]: true }));
     const { error } = await supabase
       .from("support_tickets")
@@ -103,6 +105,13 @@ export default function SupportTickets() {
     if (error) {
       toast({ title: "Failed to update status.", variant: "destructive" });
     } else {
+      await recordAdminAction({
+        action: "support.status_changed",
+        entityType: "support_ticket",
+        entityId: ticketId,
+        summary: `Changed support ticket status from ${previousStatus} to ${newStatus}`,
+        metadata: { previous_status: previousStatus, new_status: newStatus },
+      });
       setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, status: newStatus } : t)));
       toast({ title: "Status updated." });
     }
@@ -119,6 +128,13 @@ export default function SupportTickets() {
     if (error) {
       toast({ title: "Failed to save notes.", variant: "destructive" });
     } else {
+      await recordAdminAction({
+        action: "support.notes_updated",
+        entityType: "support_ticket",
+        entityId: ticketId,
+        summary: "Updated internal support notes",
+        metadata: { has_notes: Boolean(notes.trim()) },
+      });
       setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, admin_notes: notes } : t)));
       toast({ title: "Notes saved." });
     }

@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { Loader2, Search } from "lucide-react";
+import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 
 type StatusTable = "contact_submissions" | "referrals";
 
@@ -114,6 +115,8 @@ export default function AdminIntake() {
   }, [searchParams]);
 
   async function setStatus(table: StatusTable, id: string, status: string) {
+    const rows = table === "contact_submissions" ? contact : referrals;
+    const previousStatus = rows.find((row) => row.id === id)?.status ?? "unknown";
     setBusyId(id);
     const res =
       table === "contact_submissions"
@@ -125,6 +128,13 @@ export default function AdminIntake() {
       toast({ title: "Failed to update status.", description: res.error.message, variant: "destructive" });
       return;
     }
+    await recordAdminAction({
+      action: "intake.status_changed",
+      entityType: table === "contact_submissions" ? "contact_submission" : "referral",
+      entityId: id,
+      summary: `Changed ${table === "contact_submissions" ? "contact" : "referral"} status from ${previousStatus} to ${status}`,
+      metadata: { previous_status: previousStatus, new_status: status },
+    });
     const apply = <T extends { id: string }>(rows: T[]) =>
       rows.map((row) => (row.id === id ? { ...row, status } : row));
     if (table === "contact_submissions") setContact(apply);

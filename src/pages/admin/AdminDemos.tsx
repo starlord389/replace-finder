@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 import { Loader2, ChevronDown, ChevronUp, Search, CalendarClock, Save, ExternalLink } from "lucide-react";
 
 type Demo = Tables<"demo_requests">;
@@ -88,10 +89,18 @@ export default function AdminDemos() {
   }
 
   async function updateStatus(id: string, status: string) {
+    const previousStatus = demos.find((demo) => demo.id === id)?.status ?? "unknown";
     setBusy((b) => ({ ...b, [`s-${id}`]: true }));
     const { error } = await supabase.from("demo_requests").update({ status }).eq("id", id);
     setBusy((b) => ({ ...b, [`s-${id}`]: false }));
     if (error) return toast({ title: "Failed to update status.", description: error.message, variant: "destructive" });
+    await recordAdminAction({
+      action: "demo.status_changed",
+      entityType: "demo_request",
+      entityId: id,
+      summary: `Changed demo status from ${previousStatus} to ${status}`,
+      metadata: { previous_status: previousStatus, new_status: status },
+    });
     setDemos((prev) => prev.map((d) => (d.id === id ? { ...d, status } : d)));
     toast({ title: "Status updated." });
   }
@@ -108,6 +117,17 @@ export default function AdminDemos() {
     const { error } = await supabase.from("demo_requests").update(patch).eq("id", id);
     setBusy((b) => ({ ...b, [`d-${id}`]: false }));
     if (error) return toast({ title: "Failed to save.", description: error.message, variant: "destructive" });
+    await recordAdminAction({
+      action: "demo.details_updated",
+      entityType: "demo_request",
+      entityId: id,
+      summary: "Updated demo scheduling details",
+      metadata: {
+        has_schedule: Boolean(patch.scheduled_at),
+        has_meeting_link: Boolean(patch.meeting_link),
+        has_internal_notes: Boolean(patch.internal_notes),
+      },
+    });
     setDemos((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d)));
     toast({ title: "Demo updated." });
   }

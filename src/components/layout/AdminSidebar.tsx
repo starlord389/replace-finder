@@ -1,4 +1,4 @@
-import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users, Inbox, ThumbsUp, Briefcase, CalendarClock } from "lucide-react";
+import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users, Inbox, ThumbsUp, Briefcase, CalendarClock, ServerCog } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +28,7 @@ const managementItems = [
   { title: "Growth & Intake", url: "/admin/intake", icon: Inbox },
   { title: "Support", url: "/admin/support", icon: HelpCircle },
   { title: "Help Feedback", url: "/admin/feedback", icon: ThumbsUp },
+  { title: "System & Audit", url: "/admin/system", icon: ServerCog },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 

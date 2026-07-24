@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Enums } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
+import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 import { Loader2, ChevronDown, ChevronUp, Search, ShieldCheck, ShieldOff, UserCog, Ban, CircleCheck } from "lucide-react";
 
 type AppRole = Enums<"app_role">;
@@ -122,6 +123,13 @@ export default function AdminUsers() {
       toast({ title: `Failed to ${grant ? "grant" : "revoke"} ${role}.`, description: error.message, variant: "destructive" });
       return;
     }
+    await recordAdminAction({
+      action: grant ? "role.granted" : "role.revoked",
+      entityType: "user",
+      entityId: userId,
+      summary: `${grant ? "Granted" : "Revoked"} ${role} role`,
+      metadata: { role },
+    });
     setUsers((prev) =>
       prev.map((u) =>
         u.id === userId
@@ -140,6 +148,13 @@ export default function AdminUsers() {
       toast({ title: "Failed to update account.", description: error.message, variant: "destructive" });
       return false;
     }
+    await recordAdminAction({
+      action: status === "suspended" ? "account.suspended" : "account.reactivated",
+      entityType: "user",
+      entityId: userId,
+      summary: status === "suspended" ? "Suspended user account" : "Reactivated user account",
+      metadata: { verification_status: status },
+    });
     setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, verification_status: status } : u)));
     toast({ title: status === "suspended" ? "Account suspended." : "Account reactivated." });
     return true;

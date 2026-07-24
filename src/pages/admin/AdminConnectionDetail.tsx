@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const CONNECTION_STATUSES = ["pending", "accepted", "in_progress", "declined", "cancelled", "completed"];
@@ -67,6 +68,7 @@ export default function AdminConnectionDetail() {
 
   async function changeStatus(status: string) {
     if (!conn) return;
+    const previousStatus = conn.status;
     setSaving(true);
     const { error } = await supabase.from("exchange_connections").update({ status }).eq("id", conn.id);
     setSaving(false);
@@ -74,6 +76,13 @@ export default function AdminConnectionDetail() {
       toast({ title: "Failed to update status.", description: error.message, variant: "destructive" });
       return;
     }
+    await recordAdminAction({
+      action: "connection.status_changed",
+      entityType: "exchange_connection",
+      entityId: conn.id,
+      summary: `Changed connection status from ${pretty(previousStatus)} to ${pretty(status)}`,
+      metadata: { previous_status: previousStatus, new_status: status },
+    });
     setConn({ ...conn, status });
     toast({ title: "Connection status updated." });
   }
