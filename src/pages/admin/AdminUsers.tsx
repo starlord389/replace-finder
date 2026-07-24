@@ -239,7 +239,6 @@ export default function AdminUsers() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead className="w-[180px]">Roles</TableHead>
-                  <TableHead className="w-[120px]">Verification</TableHead>
                   <TableHead className="w-[120px]">Joined</TableHead>
                   <TableHead className="w-[50px]" />
                 </TableRow>
