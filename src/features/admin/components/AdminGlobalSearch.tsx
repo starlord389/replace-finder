@@ -12,6 +12,8 @@ import {
   Search,
   TicketCheck,
   Users,
+  ChartNoAxesCombined,
+  ServerCog,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +39,8 @@ const destinations = [
   { title: "Demos", href: "/admin/demos", icon: CalendarClock },
   { title: "Growth & Intake", href: "/admin/intake", icon: Inbox },
   { title: "Support", href: "/admin/support", icon: HelpCircle },
+  { title: "Reports & Exports", href: "/admin/reports", icon: ChartNoAxesCombined },
+  { title: "System & Audit", href: "/admin/system", icon: ServerCog },
 ];
 
 const typeIcons: Record<AdminSearchItem["type"], React.ElementType> = {

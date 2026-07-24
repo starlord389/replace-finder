@@ -32,6 +32,7 @@ const AdminDemos = lazy(() => import("@/pages/admin/AdminDemos"));
 const AdminIntake = lazy(() => import("@/pages/admin/AdminIntake"));
 const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
 const AdminSystem = lazy(() => import("@/pages/admin/AdminSystem"));
+const AdminReports = lazy(() => import("@/pages/admin/AdminReports"));
 const ArticleFeedback = lazy(() => import("@/pages/admin/ArticleFeedback"));
 const AgentDashboard = lazy(() => import("@/pages/agent/AgentDashboard"));
 const AgentLaunchpad = lazy(() => import("@/pages/agent/AgentLaunchpad"));
@@ -158,6 +159,7 @@ const App = () => (
               <Route path="/admin/intake" element={<AdminIntake />} />
               <Route path="/admin/support" element={<SupportTickets />} />
               <Route path="/admin/feedback" element={<ArticleFeedback />} />
+              <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/system" element={<AdminSystem />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
