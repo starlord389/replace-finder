@@ -223,15 +223,6 @@ export default function AdminUsers() {
             <SelectItem value="client">Client</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={verificationFilter} onValueChange={setVerificationFilter}>
-          <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="Verification" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Verification</SelectItem>
-            {verificationValues.map((v) => (
-              <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {filtered.length === 0 ? (
