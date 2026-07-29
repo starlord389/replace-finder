@@ -74,7 +74,8 @@ Deno.serve(async (req) => {
       matches_from_property: allMatches.filter((m) => m.direction === "seller").length,
       total_new_matches: newMatchCount,
       top_matches: topMatches,
-      dry_run: !!dry_run,
+      dry_run: effectiveDryRun,
+      include_same_agent: includeSameAgent,
       diagnostics: diagnostics ?? null,
     });
   } catch (err) {
