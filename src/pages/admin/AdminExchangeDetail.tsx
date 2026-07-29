@@ -371,6 +371,30 @@ export default function AdminExchangeDetail() {
                 {matchResult.dry_run && <Badge variant="secondary">dry run</Badge>}
               </div>
 
+              {matchResult.diagnostics_summary && (
+                <div className="grid gap-2 rounded border bg-background p-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {SUMMARY_ROWS.map(({ key, label }) => (
+                    <div key={key} className="text-xs">
+                      <div className="text-lg font-semibold text-foreground">
+                        {matchResult.diagnostics_summary?.[key] ?? 0}
+                      </div>
+                      <div className="text-muted-foreground">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {matchResult.exchange_chains && matchResult.exchange_chains.length > 0 && (
+                <div className="rounded border bg-background p-3 text-xs">
+                  <div className="mb-1 font-medium text-foreground">Exchange chains detected</div>
+                  <ul className="space-y-1 text-muted-foreground">
+                    {matchResult.exchange_chains.map((chain, i) => (
+                      <li key={i} className="font-mono">{chain.map((id) => id.slice(0, 8)).join(" → ")}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {matchResult.diagnostics && matchResult.diagnostics.length > 0 ? (
                 <div className="max-h-96 overflow-auto rounded border bg-background">
                   <table className="w-full text-xs">
@@ -379,6 +403,8 @@ export default function AdminExchangeDetail() {
                         <th className="p-2 font-medium">Side</th>
                         <th className="p-2 font-medium">Candidate</th>
                         <th className="p-2 font-medium">Result</th>
+                        <th className="p-2 font-medium">Classification</th>
+                        <th className="p-2 font-medium">Exchange Up</th>
                         <th className="p-2 font-medium">Details</th>
                       </tr>
                     </thead>
@@ -399,6 +425,16 @@ export default function AdminExchangeDetail() {
                               </span>
                             )}
                           </td>
+                          <td className="p-2 text-muted-foreground">
+                            {d.classification && d.classification !== "scan"
+                              ? REJECTION_LABELS[d.classification] ?? d.classification
+                              : "—"}
+                          </td>
+                          <td className="p-2 text-muted-foreground">
+                            {d.exchange_up_percentage != null
+                              ? `${d.exchange_up_percentage > 0 ? "+" : ""}${d.exchange_up_percentage.toFixed(1)}%`
+                              : "—"}
+                          </td>
                           <td className="p-2 text-muted-foreground">{d.reason}</td>
                         </tr>
                       ))}
@@ -408,8 +444,13 @@ export default function AdminExchangeDetail() {
               ) : (
                 <p className="text-xs text-muted-foreground">No candidates evaluated.</p>
               )}
+
+              {matchResult.disclaimer && (
+                <p className="text-[11px] leading-relaxed text-muted-foreground">{matchResult.disclaimer}</p>
+              )}
             </div>
           )}
+
         </CardContent>
       </Card>
 
