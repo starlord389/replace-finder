@@ -365,6 +365,7 @@ export async function computeMatchesForExchange(
           candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
           status: "skipped",
           reason: "counterparty exchange has no replacement criteria",
+          classification: MATCH_CLASSIFICATION.EXCHANGE_INCOMPLETE,
         });
         continue;
       }
@@ -382,6 +383,7 @@ export async function computeMatchesForExchange(
           candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
           status: "skipped",
           reason: result.reason,
+          classification: result.classification,
           roe_improvement_pp: result.roe_improvement_pp ?? null,
         });
         continue;
@@ -396,6 +398,11 @@ export async function computeMatchesForExchange(
         ...boot,
         direction: "seller",
         other_agent_id: otherExchange.agent_id,
+        relinquished_property_id: otherExchange.relinquished_property_id ?? null,
+        buyer_agent_id: otherExchange.agent_id ?? null,
+        seller_agent_id: property.agent_id ?? null,
+        buyer_client_id: otherExchange.client_id ?? null,
+        seller_client_id: property.client_id ?? null,
       } as ScoredMatch);
       diagnostics?.push({
         direction: "seller",
@@ -403,10 +410,15 @@ export async function computeMatchesForExchange(
         candidate_exchange_id: otherExchange.id,
         candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
         status: "matched",
-        reason: "eligible",
+        reason: "eligible Exchange Up match",
+        classification: scored.match_classification,
         total: scored.total,
         roe_improvement_pp: scored.roe_improvement_pp,
+        exchange_up_percentage: scored.exchange_up_percentage,
+        relinquished_value: scored.relinquished_value,
+        replacement_value: scored.replacement_value,
       });
+
     }
   }
 
