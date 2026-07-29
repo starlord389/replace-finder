@@ -72,6 +72,7 @@ export default function AdminExchangeDetail() {
   const [savingStage, setSavingStage] = useState(false);
   const [runningMatch, setRunningMatch] = useState(false);
   const [matchResult, setMatchResult] = useState<DiagResult | null>(null);
+  const [includeSameAgent, setIncludeSameAgent] = useState(false);
 
   useEffect(() => {
     if (id) load(id);
