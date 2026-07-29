@@ -19,17 +19,63 @@ interface DiagRow {
   candidate_label: string;
   status: "matched" | "skipped";
   reason: string;
+  classification?: string;
   total?: number;
   roe_improvement_pp?: number | null;
+  exchange_up_percentage?: number | null;
+  relinquished_value?: number | null;
+  replacement_value?: number | null;
+}
+interface DiagSummary {
+  evaluated: number;
+  eligible: number;
+  below_relinquished_value: number;
+  above_purchasing_capacity: number;
+  insufficient_roe_improvement: number;
+  property_preferences_mismatch: number;
+  financing_information_incomplete: number;
+  exchange_information_incomplete: number;
 }
 interface DiagResult {
   matches_for_exchange: number;
   matches_from_property: number;
   total_new_matches: number;
   dry_run: boolean;
-  top_matches: Array<{ property_id: string; exchange_id: string; direction: string; score: number; roe_improvement_pp?: number | null }>;
+  top_matches: Array<{
+    property_id: string;
+    exchange_id: string;
+    direction: string;
+    score: number;
+    roe_improvement_pp?: number | null;
+    exchange_up_percentage?: number | null;
+  }>;
   diagnostics: DiagRow[] | null;
+  diagnostics_summary?: DiagSummary | null;
+  exchange_chains?: string[][];
+  disclaimer?: string;
 }
+
+const REJECTION_LABELS: Record<string, string> = {
+  eligible_exchange_up_match: "Eligible Exchange Up match",
+  below_relinquished_value: "Below relinquished value",
+  above_purchasing_capacity: "Above purchasing capacity",
+  insufficient_roe_improvement: "Insufficient ROE improvement",
+  property_preferences_mismatch: "Property preferences mismatch",
+  financing_information_incomplete: "Financing information incomplete",
+  exchange_information_incomplete: "Exchange information incomplete",
+};
+
+const SUMMARY_ROWS: Array<{ key: keyof DiagSummary; label: string }> = [
+  { key: "evaluated", label: "Candidates evaluated" },
+  { key: "eligible", label: "Eligible Exchange Up matches" },
+  { key: "below_relinquished_value", label: "Below relinquished value" },
+  { key: "above_purchasing_capacity", label: "Above purchasing capacity" },
+  { key: "insufficient_roe_improvement", label: "Insufficient ROE improvement" },
+  { key: "property_preferences_mismatch", label: "Preferences mismatch" },
+  { key: "financing_information_incomplete", label: "Financing info incomplete" },
+  { key: "exchange_information_incomplete", label: "Exchange info incomplete" },
+];
+
 
 const EXCHANGE_STATUSES = ["draft", "active", "in_identification", "in_closing", "completed", "failed", "cancelled"];
 
