@@ -77,12 +77,18 @@ export async function computeMatchesForExchange(
   exchangeId: string,
   propertyId: string,
   diagnostics?: MatchDiagnosticRow[],
+  // QA-only escape hatch: when true, the caller's own inventory is NOT excluded
+  // from the candidate pool. Real runs always leave this false — the product is
+  // a cross-agent network and an agent must never match against themselves.
+  // Only run-auto-matching sets it, admin-gated and forced into dry-run.
+  includeSameAgent = false,
 ): Promise<ScoredMatch[]> {
   const [exchangeRes, propertyRes, settings] = await Promise.all([
     db.from("exchanges").select("*").eq("id", exchangeId).single(),
     db.from("pledged_properties").select("*").eq("id", propertyId).single(),
     loadMatchSettings(db),
   ]);
+
   if (exchangeRes.error || !exchangeRes.data) throw new Error("Exchange not found");
   if (propertyRes.error || !propertyRes.data) throw new Error("Property not found");
 
@@ -120,12 +126,15 @@ export async function computeMatchesForExchange(
     });
   }
   if (criteria) {
-    const { data: activeProperties } = await db
+    let activeQuery = db
       .from("pledged_properties")
       .select("*")
       .eq("status", "active")
-      .eq("is_demo", isDemo)
-      .neq("agent_id", userId);
+      .eq("is_demo", isDemo);
+    if (!includeSameAgent) activeQuery = activeQuery.neq("agent_id", userId);
+    const { data: activePropertiesRaw } = await activeQuery;
+    // Never pair the exchange's own relinquished property with itself.
+    const activeProperties = (activePropertiesRaw ?? []).filter((p: any) => p.id !== propertyId);
 
     if (!activeProperties?.length && diagnostics) {
       diagnostics.push({
@@ -134,10 +143,13 @@ export async function computeMatchesForExchange(
         candidate_exchange_id: exchangeId,
         candidate_label: "buyer-side scan",
         status: "skipped",
-        reason: "no active properties from other agents in this workspace",
+        reason: includeSameAgent
+          ? "no other active properties in this workspace"
+          : "no active properties from other agents in this workspace",
       });
     }
     if (activeProperties?.length) {
+
       const propIds = activeProperties.map((p: any) => p.id);
       const { data: allFinancials } = await db
         .from("property_financials")
