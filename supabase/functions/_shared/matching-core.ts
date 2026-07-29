@@ -90,9 +90,99 @@ export interface MatchDiagnosticRow {
   candidate_label: string;
   status: "matched" | "skipped";
   reason: string;
+  classification?: MatchClassification | "scan";
   total?: number;
   roe_improvement_pp?: number | null;
+  exchange_up_percentage?: number | null;
+  relinquished_value?: number | null;
+  replacement_value?: number | null;
 }
+
+/** Aggregate counts the admin diagnostic panel renders. */
+export interface MatchDiagnosticSummary {
+  evaluated: number;
+  eligible: number;
+  below_relinquished_value: number;
+  above_purchasing_capacity: number;
+  insufficient_roe_improvement: number;
+  property_preferences_mismatch: number;
+  financing_information_incomplete: number;
+  exchange_information_incomplete: number;
+}
+
+export function summarizeDiagnostics(rows: MatchDiagnosticRow[]): MatchDiagnosticSummary {
+  const s: MatchDiagnosticSummary = {
+    evaluated: 0,
+    eligible: 0,
+    below_relinquished_value: 0,
+    above_purchasing_capacity: 0,
+    insufficient_roe_improvement: 0,
+    property_preferences_mismatch: 0,
+    financing_information_incomplete: 0,
+    exchange_information_incomplete: 0,
+  };
+  for (const r of rows) {
+    if (r.classification === "scan") continue;
+    s.evaluated += 1;
+    if (r.status === "matched") { s.eligible += 1; continue; }
+    const key = r.classification as keyof MatchDiagnosticSummary | undefined;
+    if (key && key in s) (s[key] as number) += 1;
+  }
+  return s;
+}
+
+/**
+ * Directional chain detection. A match is A → B (A relinquishes into B). When
+ * B's owner is themselves exchanging out of B into C, A → B → C is a chain.
+ * Chains are traced by linking a match's replacement property to any other
+ * match whose relinquished property is that same property.
+ */
+export interface ExchangeChainLink {
+  relinquished_property_id: string | null;
+  replacement_property_id: string;
+  buyer_exchange_id: string;
+}
+
+export function buildExchangeChains(links: ExchangeChainLink[]): string[][] {
+  const byRelinquished = new Map<string, ExchangeChainLink[]>();
+  for (const l of links) {
+    if (!l.relinquished_property_id) continue;
+    const arr = byRelinquished.get(l.relinquished_property_id) ?? [];
+    arr.push(l);
+    byRelinquished.set(l.relinquished_property_id, arr);
+  }
+
+  const chains: string[][] = [];
+  const walk = (path: string[], seen: Set<string>) => {
+    const tail = path[path.length - 1];
+    const next = byRelinquished.get(tail) ?? [];
+    const onward = next.filter((n) => !seen.has(n.replacement_property_id));
+    if (onward.length === 0) {
+      if (path.length >= 3) chains.push(path);
+      return;
+    }
+    for (const n of onward) {
+      walk([...path, n.replacement_property_id], new Set([...seen, n.replacement_property_id]));
+    }
+  };
+
+  for (const l of links) {
+    if (!l.relinquished_property_id) continue;
+    walk(
+      [l.relinquished_property_id, l.replacement_property_id],
+      new Set([l.relinquished_property_id, l.replacement_property_id]),
+    );
+  }
+  // De-duplicate identical chains
+  const seenKeys = new Set<string>();
+  return chains.filter((c) => {
+    const k = c.join(">");
+    if (seenKeys.has(k)) return false;
+    seenKeys.add(k);
+    return true;
+  });
+}
+
 
 export async function computeMatchesForExchange(
   db: any,
