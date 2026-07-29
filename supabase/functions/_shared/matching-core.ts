@@ -197,12 +197,15 @@ export async function computeMatchesForExchange(
   }
 
   // Seller side: this property × other people's exchanges
-  const { data: otherExchanges } = await db
+  let otherExchangeQuery = db
     .from("exchanges")
     .select("*, replacement_criteria(*)")
     .in("status", ["active", "in_identification", "in_closing"])
-    .eq("is_demo", isDemo)
-    .neq("agent_id", userId);
+    .eq("is_demo", isDemo);
+  if (!includeSameAgent) otherExchangeQuery = otherExchangeQuery.neq("agent_id", userId);
+  const { data: otherExchangesRaw } = await otherExchangeQuery;
+  // Never pair this exchange with itself.
+  const otherExchanges = (otherExchangesRaw ?? []).filter((e: any) => e.id !== exchangeId);
 
   if (!otherExchanges?.length && diagnostics) {
     diagnostics.push({
@@ -211,8 +214,11 @@ export async function computeMatchesForExchange(
       candidate_exchange_id: null,
       candidate_label: "seller-side scan",
       status: "skipped",
-      reason: "no other agents have active buyer exchanges in this workspace",
+      reason: includeSameAgent
+        ? "no other active buyer exchanges in this workspace"
+        : "no other agents have active buyer exchanges in this workspace",
     });
+
   }
   if (otherExchanges?.length) {
     const relinquishedPropertyIds = otherExchanges
