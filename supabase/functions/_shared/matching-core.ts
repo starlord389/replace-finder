@@ -236,6 +236,7 @@ export async function computeMatchesForExchange(
       candidate_label: "buyer-side scan",
       status: "skipped",
       reason: "no replacement criteria on this exchange",
+      classification: "scan",
     });
   }
   if (criteria) {
@@ -259,6 +260,7 @@ export async function computeMatchesForExchange(
         reason: includeSameAgent
           ? "no other active properties in this workspace"
           : "no active properties from other agents in this workspace",
+        classification: "scan",
       });
     }
     if (activeProperties?.length) {
@@ -341,6 +343,7 @@ export async function computeMatchesForExchange(
       reason: includeSameAgent
         ? "no other active buyer exchanges in this workspace"
         : "no other agents have active buyer exchanges in this workspace",
+      classification: "scan",
     });
 
   }
