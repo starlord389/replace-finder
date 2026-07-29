@@ -83,7 +83,7 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
 
       {/* Property */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Pledged Property</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Relinquished Property</CardTitle></CardHeader>
         <CardContent className="space-y-1">
           {p.address && <p className="font-medium">{p.address}</p>}
           <p className="text-sm text-muted-foreground">{[p.city, p.state].filter(Boolean).join(", ")}</p>

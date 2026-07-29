@@ -134,7 +134,7 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     if (e.relinquished_property_id) exRelMap.set(e.id, e.relinquished_property_id);
   });
 
-  // 2. My pledged properties (for seller-side matches) — scoped to the workspace.
+  // 2. My registered properties (for seller-side matches) — scoped to the workspace.
   //    Keep each listing's own exchange so seller-side rows can route to a page
   //    the agent can actually open (their own listing workspace), not the
   //    counterparty's exchange.
