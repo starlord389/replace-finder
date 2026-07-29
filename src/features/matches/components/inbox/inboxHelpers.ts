@@ -180,7 +180,26 @@ export function projectedRoe(rel: Relationship): { pct: number | null; fromEngin
 
 /** Bullets explaining why this property matched — derived heuristically */
 export function whyThisMatched(rel: Relationship): string[] {
+  // The engine writes its own plain-language eligibility reasons at match time
+  // (Exchange Up value, ROE lift, purchasing capacity). Prefer them — they are
+  // the exact rules the match had to clear.
+  if (rel.eligibilityReasons?.length) {
+    const extra: string[] = [];
+    if (rel.bootStatus === "no_boot") extra.push("No boot exposure — full equity replacement looks achievable.");
+    else if (rel.bootStatus === "minor_boot") extra.push("Minor boot expected — manageable equity gap.");
+    else if (rel.bootStatus === "significant_boot") extra.push("Significant boot expected — a meaningful taxable gap; structure the exchange carefully.");
+    if (rel.capRate) extra.push(`Projected cap rate of ${formatCapRate(rel.capRate)}.`);
+    return [...rel.eligibilityReasons, ...extra];
+  }
+
   const out: string[] = [];
+  if (rel.exchangeUpPercentage != null && rel.valueIncrease != null) {
+    out.push(
+      rel.valueIncrease > 0
+        ? `Exchange Up: moves the client up ${formatMoney(rel.valueIncrease)} in property value (+${rel.exchangeUpPercentage.toFixed(1)}%).`
+        : "Equal-value exchange — the replacement matches the relinquished property's value.",
+    );
+  }
   if (rel.score >= 85) out.push("Strong overall fit across price, geography, and asset type.");
   else if (rel.score >= 70) out.push("Solid fit with minor trade-offs across scoring dimensions.");
   else out.push("Partial fit — worth a closer look on the weaker dimensions.");

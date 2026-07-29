@@ -1,6 +1,6 @@
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
 
-// Centralized display-name logic for a pledged property / listing.
+// Centralized display-name logic for a registered property / listing.
 //
 // A property's street address is sensitive: it is only revealed to OTHER agents
 // when the listing agent flips `address_is_public` on. The owner of the listing

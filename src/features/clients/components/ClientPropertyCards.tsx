@@ -161,7 +161,7 @@ export function ClientPropertyCards({ clientId, clientName }: Props) {
           <Building2 className="mb-3 h-10 w-10 text-muted-foreground/40" />
           <p className="text-sm font-semibold text-foreground">No listings yet</p>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Create a listing to pledge a relinquished property for this client.
+            Create a listing to register a relinquished property for this client.
           </p>
           <Button asChild size="sm" className="mt-4">
             <Link to={`/agent/exchanges/new?client=${clientId}`}>
