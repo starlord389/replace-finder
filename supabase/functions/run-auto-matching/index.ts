@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
 
     const db = createClient(supabaseUrl, serviceRoleKey);
 
-    const { exchange_id, property_id, explain, dry_run } = await req.json();
+    const { exchange_id, property_id, explain, dry_run, include_same_agent } = await req.json();
     if (!exchange_id || !property_id) {
       return jsonResponse({ error: "exchange_id and property_id are required" }, 400);
     }
@@ -51,11 +51,18 @@ Deno.serve(async (req) => {
     // For admin diagnostics we need a userId "as whom" we're matching. Use the exchange owner.
     const effectiveUserId = ownsBoth ? userId : exRow.agent_id;
 
+    // QA-only: admins may score the owner's own inventory against itself to
+    // sanity-check the algorithm. It is always a dry run — same-agent pairs must
+    // never be persisted or notified on.
+    const includeSameAgent = include_same_agent === true && isAdmin;
+    const effectiveDryRun = !!dry_run || includeSameAgent;
+
     const diagnostics: MatchDiagnosticRow[] = explain ? [] : undefined as any;
-    const allMatches = await computeMatchesForExchange(db, effectiveUserId, exchange_id, property_id, diagnostics);
-    const newMatchCount = dry_run
+    const allMatches = await computeMatchesForExchange(db, effectiveUserId, exchange_id, property_id, diagnostics, includeSameAgent);
+    const newMatchCount = effectiveDryRun
       ? 0
       : await persistMatchesAndNotifications(db, allMatches, effectiveUserId, !!exRow.is_demo);
+
 
     const topMatches = allMatches
       .sort((a, b) => b.total - a.total)
