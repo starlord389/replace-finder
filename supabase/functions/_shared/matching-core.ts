@@ -301,7 +301,9 @@ export async function computeMatchesForExchange(
           buyer_agent_id: exchange.agent_id ?? null,
           seller_agent_id: candidateProperty.agent_id ?? null,
           buyer_client_id: exchange.client_id ?? null,
-          seller_client_id: candidateProperty.client_id ?? null,
+          // Registered properties are owned by an agent; the seller-side client is
+          // resolved from that property's own exchange when one exists.
+          seller_client_id: null,
         } as ScoredMatch);
         diagnostics?.push({
           direction: "buyer",
@@ -405,7 +407,7 @@ export async function computeMatchesForExchange(
         buyer_agent_id: otherExchange.agent_id ?? null,
         seller_agent_id: property.agent_id ?? null,
         buyer_client_id: otherExchange.client_id ?? null,
-        seller_client_id: property.client_id ?? null,
+        seller_client_id: null,
       } as ScoredMatch);
       diagnostics?.push({
         direction: "seller",
