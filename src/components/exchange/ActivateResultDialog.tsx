@@ -45,6 +45,17 @@ export default function ActivateResultDialog({
 
         {isSuccess ? (
           <div className="space-y-3">
+            {state.newMatches === 0 && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4 text-sm text-foreground">
+                <div className="font-medium">No matches right now — that's normal.</div>
+                <p className="mt-1 text-muted-foreground">
+                  Matches are made against listings from <span className="font-medium">other agents</span> in the
+                  network, so your own listings never match each other. Nothing else in the network currently clears
+                  your client's criteria and return-on-equity bar. Your listing stays live and is re-scanned
+                  automatically every time a new property is added.
+                </p>
+              </div>
+            )}
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
               <div className="flex items-start gap-2">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -56,6 +67,7 @@ export default function ActivateResultDialog({
                 </div>
               </div>
             </div>
+
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
               <div className="flex items-start gap-2">
                 <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-primary" />

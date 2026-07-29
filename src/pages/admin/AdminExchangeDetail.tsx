@@ -72,6 +72,7 @@ export default function AdminExchangeDetail() {
   const [savingStage, setSavingStage] = useState(false);
   const [runningMatch, setRunningMatch] = useState(false);
   const [matchResult, setMatchResult] = useState<DiagResult | null>(null);
+  const [includeSameAgent, setIncludeSameAgent] = useState(false);
 
   useEffect(() => {
     if (id) load(id);
@@ -189,7 +190,9 @@ export default function AdminExchangeDetail() {
         exchange_id: exchange.id,
         property_id: exchange.relinquished_property_id,
         explain: true,
-        dry_run: dryRun,
+        // Same-agent scoring is diagnostics-only; the function forces dry-run for it.
+        dry_run: dryRun || includeSameAgent,
+        include_same_agent: includeSameAgent,
       },
     });
     setRunningMatch(false);
@@ -284,7 +287,7 @@ export default function AdminExchangeDetail() {
               {runningMatch && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               Dry-run with diagnostics
             </Button>
-            <Button size="sm" onClick={() => runMatching(false)} disabled={runningMatch}>
+            <Button size="sm" onClick={() => runMatching(false)} disabled={runningMatch || includeSameAgent}>
               {runningMatch && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               Re-run &amp; persist matches
             </Button>
@@ -292,6 +295,24 @@ export default function AdminExchangeDetail() {
               Dry-run shows why each candidate did or didn't match without writing to the database.
             </p>
           </div>
+
+          <label className="flex items-start gap-2 rounded-md border border-dashed p-3 text-xs">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={includeSameAgent}
+              onChange={(e) => setIncludeSameAgent(e.target.checked)}
+              disabled={runningMatch}
+            />
+            <span>
+              <span className="font-medium text-foreground">Match as if cross-agent (test only)</span>
+              <span className="block text-muted-foreground">
+                Scores this agent's own listings against each other so you can verify the algorithm.
+                Always a dry run — same-agent pairs are never saved or notified on.
+              </span>
+            </span>
+          </label>
+
 
           {matchResult && (
             <div className="space-y-3 rounded-md border bg-muted/30 p-3 text-sm">

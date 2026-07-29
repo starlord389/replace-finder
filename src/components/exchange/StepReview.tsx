@@ -39,11 +39,20 @@ function Field({ label, value, recommended }: { label: string; value?: string | 
 }
 
 export default function StepReview({ data, clientName, onBack, onSubmit, saving, mode = "create", onCancel, onOwnerAuthorizationChange }: Props) {
-  const { property: p, financials: f } = data;
+  const { property: p, financials: f, criteria: c } = data;
   const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(f);
   const derived = getDerivedFinancials(f);
   const sellerCostRatePercent = Math.round(DEFAULT_SELLER_COST_ESTIMATE_RATE * 100);
   const ownerAuthConfirmed = p.owner_authorization_confirmed;
+
+  // Empty replacement criteria makes the listing effectively unmatchable — the
+  // engine has nothing to score candidates against. Warn before activating.
+  const criteriaGaps = [
+    c.target_asset_types.length === 0 ? "target asset types" : null,
+    c.target_states.length === 0 ? "target states" : null,
+    !parseCurrency(c.target_price_max) ? "target price range" : null,
+  ].filter(Boolean) as string[];
+
 
   // Recurring financials are stored/entered monthly — show them with a "/ mo" suffix.
   const perMonth = (v: string) => {
@@ -139,6 +148,18 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
       </Card>
 
       <ReviewMatchPreview property={p} financials={f} images={data.images} />
+
+      {criteriaGaps.length > 0 && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50/60 p-4 text-sm">
+          <div className="font-medium text-foreground">Replacement criteria are incomplete</div>
+          <p className="mt-1 text-muted-foreground">
+            Missing {criteriaGaps.join(", ")}. Without these, the matching engine has nothing to score replacement
+            properties against and this exchange will rarely — if ever — return matches. Go back and fill them in for
+            the best results.
+          </p>
+        </div>
+      )}
+
 
       {/* Compliance attestation — required before a property can go into the network */}
       <div className="rounded-lg border border-amber-300 bg-amber-50/60 p-4">
