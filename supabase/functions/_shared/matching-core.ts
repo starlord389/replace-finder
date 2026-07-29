@@ -1,12 +1,18 @@
 import {
   ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP,
+  EXCHANGE_UP_ENFORCED,
+  EXCHANGE_UP_FULL_SCORE_PCT,
+  EXCHANGE_UP_VALUE_TOLERANCE,
+  EXCHANGE_UP_WEIGHT,
   FALLBACK_AMORTIZATION_YEARS,
   FALLBACK_MORTGAGE_RATE,
   FIT_SUBWEIGHTS,
+  MATCH_CLASSIFICATION,
   MATCH_WEIGHTS,
   MAX_COMMERCIAL_LTV,
   QUALITY_TIEBREAKER_MAX_POINTS,
   ROE_IMPROVEMENT_FULL_SCORE_PP,
+  type MatchClassification,
 } from "./match-config.ts";
 
 export interface ScoredMatch {
@@ -31,7 +37,24 @@ export interface ScoredMatch {
   roe_improvement_pp: number | null;
   roe_improvement_rel: number | null;
   candidate_annual_debt_service: number | null;
+  // Exchange Up columns persisted to matches table
+  relinquished_value: number | null;
+  replacement_value: number | null;
+  value_increase: number | null;
+  exchange_up_percentage: number | null;
+  estimated_replacement_loan: number | null;
+  estimated_ltv: number | null;
+  estimated_purchasing_capacity: number | null;
+  match_classification: MatchClassification;
+  eligibility_reasons: string[];
+  // Directional identifiers (who relinquishes into what, and who represents them)
+  relinquished_property_id: string | null;
+  buyer_agent_id: string | null;
+  seller_agent_id: string | null;
+  buyer_client_id: string | null;
+  seller_client_id: string | null;
 }
+
 
 interface MatchSettings {
   mortgage_interest_rate: number; // percent, e.g. 7.25
