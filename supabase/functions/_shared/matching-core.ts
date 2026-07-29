@@ -281,6 +281,7 @@ export async function computeMatchesForExchange(
             candidate_label: propertyLabel(candidateProperty),
             status: "skipped",
             reason: result.reason,
+            classification: result.classification,
             roe_improvement_pp: result.roe_improvement_pp ?? null,
           });
           continue;
@@ -294,6 +295,11 @@ export async function computeMatchesForExchange(
           ...boot,
           direction: "buyer",
           other_agent_id: candidateProperty.agent_id,
+          relinquished_property_id: exchange.relinquished_property_id ?? propertyId,
+          buyer_agent_id: exchange.agent_id ?? null,
+          seller_agent_id: candidateProperty.agent_id ?? null,
+          buyer_client_id: exchange.client_id ?? null,
+          seller_client_id: candidateProperty.client_id ?? null,
         } as ScoredMatch);
         diagnostics?.push({
           direction: "buyer",
@@ -301,10 +307,15 @@ export async function computeMatchesForExchange(
           candidate_exchange_id: exchangeId,
           candidate_label: propertyLabel(candidateProperty),
           status: "matched",
-          reason: "eligible",
+          reason: "eligible Exchange Up match",
+          classification: scored.match_classification,
           total: scored.total,
           roe_improvement_pp: scored.roe_improvement_pp,
+          exchange_up_percentage: scored.exchange_up_percentage,
+          relinquished_value: scored.relinquished_value,
+          replacement_value: scored.replacement_value,
         });
+
       }
     }
   }
