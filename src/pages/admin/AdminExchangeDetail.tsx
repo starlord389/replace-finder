@@ -19,63 +19,17 @@ interface DiagRow {
   candidate_label: string;
   status: "matched" | "skipped";
   reason: string;
-  classification?: string;
   total?: number;
   roe_improvement_pp?: number | null;
-  exchange_up_percentage?: number | null;
-  relinquished_value?: number | null;
-  replacement_value?: number | null;
-}
-interface DiagSummary {
-  evaluated: number;
-  eligible: number;
-  below_relinquished_value: number;
-  above_purchasing_capacity: number;
-  insufficient_roe_improvement: number;
-  property_preferences_mismatch: number;
-  financing_information_incomplete: number;
-  exchange_information_incomplete: number;
 }
 interface DiagResult {
   matches_for_exchange: number;
   matches_from_property: number;
   total_new_matches: number;
   dry_run: boolean;
-  top_matches: Array<{
-    property_id: string;
-    exchange_id: string;
-    direction: string;
-    score: number;
-    roe_improvement_pp?: number | null;
-    exchange_up_percentage?: number | null;
-  }>;
+  top_matches: Array<{ property_id: string; exchange_id: string; direction: string; score: number; roe_improvement_pp?: number | null }>;
   diagnostics: DiagRow[] | null;
-  diagnostics_summary?: DiagSummary | null;
-  exchange_chains?: string[][];
-  disclaimer?: string;
 }
-
-const REJECTION_LABELS: Record<string, string> = {
-  eligible_exchange_up_match: "Eligible Exchange Up match",
-  below_relinquished_value: "Below relinquished value",
-  above_purchasing_capacity: "Above purchasing capacity",
-  insufficient_roe_improvement: "Insufficient ROE improvement",
-  property_preferences_mismatch: "Property preferences mismatch",
-  financing_information_incomplete: "Financing information incomplete",
-  exchange_information_incomplete: "Exchange information incomplete",
-};
-
-const SUMMARY_ROWS: Array<{ key: keyof DiagSummary; label: string }> = [
-  { key: "evaluated", label: "Candidates evaluated" },
-  { key: "eligible", label: "Eligible Exchange Up matches" },
-  { key: "below_relinquished_value", label: "Below relinquished value" },
-  { key: "above_purchasing_capacity", label: "Above purchasing capacity" },
-  { key: "insufficient_roe_improvement", label: "Insufficient ROE improvement" },
-  { key: "property_preferences_mismatch", label: "Preferences mismatch" },
-  { key: "financing_information_incomplete", label: "Financing info incomplete" },
-  { key: "exchange_information_incomplete", label: "Exchange info incomplete" },
-];
-
 
 const EXCHANGE_STATUSES = ["draft", "active", "in_identification", "in_closing", "completed", "failed", "cancelled"];
 
@@ -371,30 +325,6 @@ export default function AdminExchangeDetail() {
                 {matchResult.dry_run && <Badge variant="secondary">dry run</Badge>}
               </div>
 
-              {matchResult.diagnostics_summary && (
-                <div className="grid gap-2 rounded border bg-background p-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {SUMMARY_ROWS.map(({ key, label }) => (
-                    <div key={key} className="text-xs">
-                      <div className="text-lg font-semibold text-foreground">
-                        {matchResult.diagnostics_summary?.[key] ?? 0}
-                      </div>
-                      <div className="text-muted-foreground">{label}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {matchResult.exchange_chains && matchResult.exchange_chains.length > 0 && (
-                <div className="rounded border bg-background p-3 text-xs">
-                  <div className="mb-1 font-medium text-foreground">Exchange chains detected</div>
-                  <ul className="space-y-1 text-muted-foreground">
-                    {matchResult.exchange_chains.map((chain, i) => (
-                      <li key={i} className="font-mono">{chain.map((id) => id.slice(0, 8)).join(" → ")}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               {matchResult.diagnostics && matchResult.diagnostics.length > 0 ? (
                 <div className="max-h-96 overflow-auto rounded border bg-background">
                   <table className="w-full text-xs">
@@ -403,8 +333,6 @@ export default function AdminExchangeDetail() {
                         <th className="p-2 font-medium">Side</th>
                         <th className="p-2 font-medium">Candidate</th>
                         <th className="p-2 font-medium">Result</th>
-                        <th className="p-2 font-medium">Classification</th>
-                        <th className="p-2 font-medium">Exchange Up</th>
                         <th className="p-2 font-medium">Details</th>
                       </tr>
                     </thead>
@@ -425,16 +353,6 @@ export default function AdminExchangeDetail() {
                               </span>
                             )}
                           </td>
-                          <td className="p-2 text-muted-foreground">
-                            {d.classification && d.classification !== "scan"
-                              ? REJECTION_LABELS[d.classification] ?? d.classification
-                              : "—"}
-                          </td>
-                          <td className="p-2 text-muted-foreground">
-                            {d.exchange_up_percentage != null
-                              ? `${d.exchange_up_percentage > 0 ? "+" : ""}${d.exchange_up_percentage.toFixed(1)}%`
-                              : "—"}
-                          </td>
                           <td className="p-2 text-muted-foreground">{d.reason}</td>
                         </tr>
                       ))}
@@ -444,13 +362,8 @@ export default function AdminExchangeDetail() {
               ) : (
                 <p className="text-xs text-muted-foreground">No candidates evaluated.</p>
               )}
-
-              {matchResult.disclaimer && (
-                <p className="text-[11px] leading-relaxed text-muted-foreground">{matchResult.disclaimer}</p>
-              )}
             </div>
           )}
-
         </CardContent>
       </Card>
 

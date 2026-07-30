@@ -41,18 +41,8 @@ export interface Relationship {
   assetScore: number | null;
   strategyScore: number | null;
   qualityScore: number | null;        // quality tiebreaker (financial_score, re-purposed)
-  candidateAnnualDebtService: number | null; // engine's amortized replacement-loan payment
+  candidateAnnualDebtService: number | null; // engine's amortized 75%-LTV payment
   occupancy: number | null;           // candidate property occupancy %
-  // Exchange Up — the directional value story behind the match
-  relinquishedValue: number | null;
-  replacementValue: number | null;
-  valueIncrease: number | null;
-  exchangeUpPercentage: number | null;      // % above the relinquished value
-  estimatedReplacementLoan: number | null;
-  estimatedLtv: number | null;              // ratio, e.g. 0.62
-  estimatedPurchasingCapacity: number | null;
-  matchClassification: string | null;
-  eligibilityReasons: string[];
 
 
   // counterparty (revealed only when connected)
@@ -144,7 +134,7 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     if (e.relinquished_property_id) exRelMap.set(e.id, e.relinquished_property_id);
   });
 
-  // 2. My registered properties (for seller-side matches) — scoped to the workspace.
+  // 2. My pledged properties (for seller-side matches) — scoped to the workspace.
   //    Keep each listing's own exchange so seller-side rows can route to a page
   //    the agent can actually open (their own listing workspace), not the
   //    counterparty's exchange.
@@ -415,15 +405,6 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       qualityScore: match.financial_score != null ? Number(match.financial_score) : null,
       candidateAnnualDebtService: match.candidate_annual_debt_service != null ? Number(match.candidate_annual_debt_service) : null,
       occupancy: fin?.occupancy_rate != null ? Number(fin.occupancy_rate) : null,
-      relinquishedValue: match.relinquished_value != null ? Number(match.relinquished_value) : null,
-      replacementValue: match.replacement_value != null ? Number(match.replacement_value) : null,
-      valueIncrease: match.value_increase != null ? Number(match.value_increase) : null,
-      exchangeUpPercentage: match.exchange_up_percentage != null ? Number(match.exchange_up_percentage) : null,
-      estimatedReplacementLoan: match.estimated_replacement_loan != null ? Number(match.estimated_replacement_loan) : null,
-      estimatedLtv: match.estimated_ltv != null ? Number(match.estimated_ltv) : null,
-      estimatedPurchasingCapacity: match.estimated_purchasing_capacity != null ? Number(match.estimated_purchasing_capacity) : null,
-      matchClassification: match.match_classification ?? null,
-      eligibilityReasons: Array.isArray(match.eligibility_reasons) ? (match.eligibility_reasons as string[]) : [],
       counterpartyName: cprof?.full_name ?? null,
       counterpartyBrokerage: cprof?.brokerage_name ?? null,
       counterpartyAvatar: cprof?.profile_photo_url ?? null,

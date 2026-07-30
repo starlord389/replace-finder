@@ -1,15 +1,5 @@
 import { assertEquals, assert, assertMatch } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import {
-  scorePairExplained,
-  blendFit,
-  calculateBoot,
-  estimatePurchasingCapacity,
-  minimumReplacementValue,
-  exchangeUpPercentage,
-  buildExchangeChains,
-  summarizeDiagnostics,
-} from "./matching-core.ts";
-import { MATCH_CLASSIFICATION } from "./match-config.ts";
+import { scorePairExplained, blendFit, calculateBoot } from "./matching-core.ts";
 
 const settings = { mortgage_interest_rate: 7.25, mortgage_amortization_years: 30 };
 
@@ -40,10 +30,7 @@ Deno.test("scorePairExplained: affordability rejection", () => {
   const candidateFin = { asking_price: 3_000_000, noi: 250_000 };
   const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
   assert(!r.ok);
-  if (!r.ok) {
-    assertMatch(r.reason, /exceeds estimated purchasing capacity/);
-    assertEquals(r.classification, MATCH_CLASSIFICATION.ABOVE_CAPACITY);
-  }
+  if (!r.ok) assertMatch(r.reason, /candidate price .* exceeds affordability/);
 });
 
 Deno.test("scorePairExplained: no ROE upgrade rejection", () => {
@@ -98,142 +85,4 @@ Deno.test("calculateBoot: no data → insufficient_data", () => {
   const b = calculateBoot({}, {}, {}, {});
   assertEquals(b.boot_status, "insufficient_data");
   assertEquals(b.estimated_cash_boot, null);
-});
-
-
-// ─── Exchange Up directional rules ─────────────────────────────────────────
-
-Deno.test("exchange up: replacement below relinquished value is rejected", () => {
-  const candidate = { state: "MA", asset_type: "multifamily" };
-  // $800k candidate vs $1M relinquished — great ROE but a downward move.
-  const candidateFin = { asking_price: 800_000, noi: 120_000 };
-  const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
-  assert(!r.ok, "a lower-value replacement must never match");
-  if (!r.ok) {
-    assertEquals(r.classification, MATCH_CLASSIFICATION.BELOW_VALUE);
-    assertMatch(r.reason, /below the Exchange Up minimum/);
-  }
-});
-
-Deno.test("exchange up: equal-value replacement is allowed", () => {
-  const candidate = { state: "MA", asset_type: "multifamily" };
-  const candidateFin = { asking_price: 1_000_000, noi: 120_000 };
-  const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
-  assert(r.ok, `equal value should pass the gate, got: ${!r.ok && r.reason}`);
-  if (r.ok) {
-    assertEquals(r.score.exchange_up_percentage, 0);
-    assertEquals(r.score.match_classification, MATCH_CLASSIFICATION.ELIGIBLE);
-  }
-});
-
-Deno.test("exchange up: min_value_increase raises the floor", () => {
-  const candidate = { state: "MA", asset_type: "multifamily" };
-  const candidateFin = { asking_price: 1_200_000, noi: 140_000 };
-  const strict = { ...criteria, min_value_increase: 500_000 };
-  const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, strict, settings);
-  assert(!r.ok);
-  if (!r.ok) assertEquals(r.classification, MATCH_CLASSIFICATION.BELOW_VALUE);
-});
-
-Deno.test("exchange up: percentage and value increase are reported", () => {
-  const candidate = { state: "MA", asset_type: "multifamily" };
-  const candidateFin = { asking_price: 1_500_000, noi: 140_000 };
-  const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
-  assert(r.ok);
-  if (r.ok) {
-    assertEquals(r.score.relinquished_value, 1_000_000);
-    assertEquals(r.score.replacement_value, 1_500_000);
-    assertEquals(r.score.value_increase, 500_000);
-    assertEquals(r.score.exchange_up_percentage, 50);
-    assert(r.score.eligibility_reasons.length >= 3);
-  }
-});
-
-Deno.test("capacity: additional cash and custom max LTV expand buying power", () => {
-  const base = estimatePurchasingCapacity(buyerExchange, buyerFin, {});
-  assertEquals(Math.round(base.capacity), 2_400_000); // 600k / 0.25
-
-  const withCash = estimatePurchasingCapacity(buyerExchange, buyerFin, { additional_cash_available: 200_000 });
-  assertEquals(Math.round(withCash.capacity), 3_200_000); // 800k / 0.25
-
-  const lowLtv = estimatePurchasingCapacity(buyerExchange, buyerFin, { max_ltv: 0.5 });
-  assertEquals(Math.round(lowLtv.capacity), 1_200_000);
-});
-
-Deno.test("capacity: explicit desired loan amount overrides the LTV implication", () => {
-  const c = estimatePurchasingCapacity(buyerExchange, buyerFin, { desired_loan_amount: 400_000 });
-  assertEquals(Math.round(c.capacity), 1_000_000);
-});
-
-Deno.test("capacity: a candidate above capacity is rejected before ROE is considered", () => {
-  const candidate = { state: "MA", asset_type: "multifamily" };
-  const candidateFin = { asking_price: 2_000_000, noi: 400_000 };
-  const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, { ...criteria, max_ltv: 0.5 }, settings);
-  assert(!r.ok);
-  if (!r.ok) assertEquals(r.classification, MATCH_CLASSIFICATION.ABOVE_CAPACITY);
-});
-
-Deno.test("preferences: asset type outside the client's targets is rejected", () => {
-  const candidate = { state: "MA", asset_type: "retail" };
-  const candidateFin = { asking_price: 1_500_000, noi: 140_000 };
-  const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
-  assert(!r.ok);
-  if (!r.ok) assertEquals(r.classification, MATCH_CLASSIFICATION.PREFERENCES);
-});
-
-Deno.test("preferences: max_replacement_value caps the upper end", () => {
-  const candidate = { state: "MA", asset_type: "multifamily" };
-  const candidateFin = { asking_price: 1_800_000, noi: 200_000 };
-  const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, { ...criteria, max_replacement_value: 1_500_000 }, settings);
-  assert(!r.ok);
-  if (!r.ok) assertEquals(r.classification, MATCH_CLASSIFICATION.PREFERENCES);
-});
-
-Deno.test("preferences: min_projected_roe below target is rejected", () => {
-  const candidate = { state: "MA", asset_type: "multifamily" };
-  const candidateFin = { asking_price: 1_500_000, noi: 130_000 };
-  const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, { ...criteria, min_projected_roe: 25 }, settings);
-  assert(!r.ok);
-  if (!r.ok) assertEquals(r.classification, MATCH_CLASSIFICATION.LOW_ROE);
-});
-
-Deno.test("minimumReplacementValue never drops below the relinquished value", () => {
-  assertEquals(minimumReplacementValue(1_000_000, { min_replacement_value: 500_000 }), 1_000_000);
-  assertEquals(minimumReplacementValue(1_000_000, { min_replacement_value: 1_400_000 }), 1_400_000);
-  assertEquals(minimumReplacementValue(1_000_000, { min_value_increase: 250_000 }), 1_250_000);
-});
-
-Deno.test("exchangeUpPercentage handles zero and negative deltas", () => {
-  assertEquals(exchangeUpPercentage(1_000_000, 1_500_000), 50);
-  assertEquals(exchangeUpPercentage(1_000_000, 1_000_000), 0);
-  assertEquals(exchangeUpPercentage(0, 1_000_000), null);
-});
-
-Deno.test("buildExchangeChains: A → B → C is detected", () => {
-  const chains = buildExchangeChains([
-    { relinquished_property_id: "A", replacement_property_id: "B", buyer_exchange_id: "ex1" },
-    { relinquished_property_id: "B", replacement_property_id: "C", buyer_exchange_id: "ex2" },
-  ]);
-  assertEquals(chains, [["A", "B", "C"]]);
-});
-
-Deno.test("buildExchangeChains: unlinked pairs produce no chain", () => {
-  const chains = buildExchangeChains([
-    { relinquished_property_id: "A", replacement_property_id: "B", buyer_exchange_id: "ex1" },
-    { relinquished_property_id: "X", replacement_property_id: "Y", buyer_exchange_id: "ex2" },
-  ]);
-  assertEquals(chains, []);
-});
-
-Deno.test("summarizeDiagnostics counts classifications and ignores scan rows", () => {
-  const s = summarizeDiagnostics([
-    { direction: "buyer", candidate_property_id: "p", candidate_exchange_id: null, candidate_label: "scan", status: "skipped", reason: "", classification: "scan" },
-    { direction: "buyer", candidate_property_id: "p1", candidate_exchange_id: null, candidate_label: "a", status: "matched", reason: "", classification: MATCH_CLASSIFICATION.ELIGIBLE },
-    { direction: "buyer", candidate_property_id: "p2", candidate_exchange_id: null, candidate_label: "b", status: "skipped", reason: "", classification: MATCH_CLASSIFICATION.BELOW_VALUE },
-    { direction: "buyer", candidate_property_id: "p3", candidate_exchange_id: null, candidate_label: "c", status: "skipped", reason: "", classification: MATCH_CLASSIFICATION.ABOVE_CAPACITY },
-  ]);
-  assertEquals(s.evaluated, 3);
-  assertEquals(s.eligible, 1);
-  assertEquals(s.below_relinquished_value, 1);
-  assertEquals(s.above_purchasing_capacity, 1);
 });

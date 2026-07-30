@@ -32,7 +32,7 @@ export const AGENT_FAQS: FaqCategory[] = [
     items: [
       { q: "How does the match score work?", a: "Six weighted dimensions: price (25%), geography (20%), asset type (20%), strategy (15%), financial fit (10%), timing (10%). See Documentation → Match Score Explained for the full breakdown." },
       { q: "Why did a property score low even though it looks like a good fit?", a: "Most often it's the price band or geography weighting. Tightening or loosening your replacement criteria changes scores immediately on the next match run." },
-      { q: "How often do new matches appear?", a: "Matches refresh automatically when you publish or edit an exchange, when a counter-party agent registers a new property, and on a daily schedule." },
+      { q: "How often do new matches appear?", a: "Matches refresh automatically when you publish or edit an exchange, when a counter-party agent pledges a new property, and on a daily schedule." },
       { q: "What is boot and how is it calculated?", a: "Boot is the taxable portion of an exchange — cash boot (leftover proceeds) plus mortgage boot (debt reduction). The platform estimates both from your exchange financials and the candidate property's price/debt. Marked 'insufficient data' if either side is missing key fields." },
       { q: "Can I hide matches I'm not interested in?", a: "Open the match detail page and use Pass. Passed matches stay visible but are filtered out of the default view." },
     ],

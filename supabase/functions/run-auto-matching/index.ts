@@ -1,12 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import {
-  buildExchangeChains,
-  computeMatchesForExchange,
-  persistMatchesAndNotifications,
-  summarizeDiagnostics,
-  type MatchDiagnosticRow,
-} from "../_shared/matching-core.ts";
-import { EXCHANGE_DISCLAIMER } from "../_shared/match-config.ts";
+import { computeMatchesForExchange, persistMatchesAndNotifications, type MatchDiagnosticRow } from "../_shared/matching-core.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,31 +67,7 @@ Deno.serve(async (req) => {
     const topMatches = allMatches
       .sort((a, b) => b.total - a.total)
       .slice(0, 10)
-      .map((m) => ({
-        property_id: m.seller_property_id,
-        exchange_id: m.buyer_exchange_id,
-        direction: m.direction,
-        score: m.total,
-        roe_improvement_pp: m.roe_improvement_pp,
-        relinquished_value: m.relinquished_value,
-        replacement_value: m.replacement_value,
-        value_increase: m.value_increase,
-        exchange_up_percentage: m.exchange_up_percentage,
-        estimated_replacement_loan: m.estimated_replacement_loan,
-        estimated_ltv: m.estimated_ltv,
-        estimated_purchasing_capacity: m.estimated_purchasing_capacity,
-        match_classification: m.match_classification,
-        eligibility_reasons: m.eligibility_reasons,
-      }));
-
-    // Exchange chains: A relinquishes into B, B's owner relinquishes into C.
-    const chains = buildExchangeChains(
-      allMatches.map((m) => ({
-        relinquished_property_id: m.relinquished_property_id,
-        replacement_property_id: m.seller_property_id,
-        buyer_exchange_id: m.buyer_exchange_id,
-      })),
-    );
+      .map((m) => ({ property_id: m.seller_property_id, exchange_id: m.buyer_exchange_id, direction: m.direction, score: m.total, roe_improvement_pp: (m as any).roe_improvement_pp }));
 
     return jsonResponse({
       matches_for_exchange: allMatches.filter((m) => m.direction === "buyer").length,
@@ -108,9 +77,6 @@ Deno.serve(async (req) => {
       dry_run: effectiveDryRun,
       include_same_agent: includeSameAgent,
       diagnostics: diagnostics ?? null,
-      diagnostics_summary: diagnostics ? summarizeDiagnostics(diagnostics) : null,
-      exchange_chains: chains,
-      disclaimer: EXCHANGE_DISCLAIMER,
     });
   } catch (err) {
     console.error("run-auto-matching error:", err);

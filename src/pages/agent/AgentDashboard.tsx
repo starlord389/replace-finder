@@ -652,7 +652,7 @@ export default function AgentDashboard() {
               <CardHeader>
                 <CardTitle className="text-lg">Start your first 1031 exchange</CardTitle>
                 <CardDescription>
-                  Add a client, register their property to the network, and the dashboard will start
+                  Add a client, pledge their property to the network, and the dashboard will start
                   filling up with replacement-property matches you can act on.
                 </CardDescription>
               </CardHeader>

@@ -12,7 +12,7 @@ export const AGENT_DOCS: DocSection[] = [
 
 **Draft** — You're still gathering property details, financials, or replacement criteria. Drafts are private to you and don't appear to the matching engine. Save freely; nothing is shared yet.
 
-**Active** — The exchange is queued for matching. Within minutes, the platform scores it against every registered property in the network and surfaces the best fits. You and your client can review matches and start connections.
+**Active** — The exchange is queued for matching. Within minutes, the platform scores it against every pledged property in the network and surfaces the best fits. You and your client can review matches and start connections.
 
 **In Identification** — The relinquished sale has closed and your client is choosing which matched replacement properties to pursue. Use the Identification List to note the properties they're moving forward on.
 
@@ -52,12 +52,12 @@ Adjust your replacement criteria to shift these weights — looser bands surface
 
 **How we estimate**: We use your exchange's exchange_proceeds and current debt against the candidate property's asking_price and typical debt ratios. Federal tax is estimated at the long-term capital gains + depreciation recapture rate.
 
-**Insufficient data** appears when key fields (proceeds, current debt, or property price) are missing. Fill them in on the exchange detail page or registered property to get an estimate.`,
+**Insufficient data** appears when key fields (proceeds, current debt, or property price) are missing. Fill them in on the exchange detail page or pledged property to get an estimate.`,
   },
   {
-    id: "register-property-best-practices",
-    title: "Registered Property Best Practices",
-    body: `Properties you register are the supply side of the network. Higher-quality listings get more matches and better counter-party engagement.
+    id: "pledge-best-practices",
+    title: "Pledged Property Best Practices",
+    body: `Properties you pledge are the supply side of the network. Higher-quality listings get more matches and better counter-party engagement.
 
 **Fill every field you can.** The matching engine scores on asset type, strategy, cap rate, occupancy, and location — missing fields default to neutral and lower the score.
 
@@ -84,7 +84,7 @@ Adjust your replacement criteria to shift these weights — looser bands surface
   {
     id: "security-privacy",
     title: "Security & Privacy",
-    body: `**Your data is yours.** Clients, exchanges, and registered properties are scoped to your agent ID. Other agents see only what's exposed through accepted connections.
+    body: `**Your data is yours.** Clients, exchanges, and pledged properties are scoped to your agent ID. Other agents see only what's exposed through accepted connections.
 
 **Row-level security.** Every database read is enforced server-side based on your authenticated identity. Even if a client-side bug exposed an ID, the database would reject the read.
 

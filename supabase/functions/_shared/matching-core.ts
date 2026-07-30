@@ -1,18 +1,12 @@
 import {
   ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP,
-  EXCHANGE_UP_ENFORCED,
-  EXCHANGE_UP_FULL_SCORE_PCT,
-  EXCHANGE_UP_VALUE_TOLERANCE,
-  EXCHANGE_UP_WEIGHT,
   FALLBACK_AMORTIZATION_YEARS,
   FALLBACK_MORTGAGE_RATE,
   FIT_SUBWEIGHTS,
-  MATCH_CLASSIFICATION,
   MATCH_WEIGHTS,
   MAX_COMMERCIAL_LTV,
   QUALITY_TIEBREAKER_MAX_POINTS,
   ROE_IMPROVEMENT_FULL_SCORE_PP,
-  type MatchClassification,
 } from "./match-config.ts";
 
 export interface ScoredMatch {
@@ -37,24 +31,7 @@ export interface ScoredMatch {
   roe_improvement_pp: number | null;
   roe_improvement_rel: number | null;
   candidate_annual_debt_service: number | null;
-  // Exchange Up columns persisted to matches table
-  relinquished_value: number | null;
-  replacement_value: number | null;
-  value_increase: number | null;
-  exchange_up_percentage: number | null;
-  estimated_replacement_loan: number | null;
-  estimated_ltv: number | null;
-  estimated_purchasing_capacity: number | null;
-  match_classification: MatchClassification;
-  eligibility_reasons: string[];
-  // Directional identifiers (who relinquishes into what, and who represents them)
-  relinquished_property_id: string | null;
-  buyer_agent_id: string | null;
-  seller_agent_id: string | null;
-  buyer_client_id: string | null;
-  seller_client_id: string | null;
 }
-
 
 interface MatchSettings {
   mortgage_interest_rate: number; // percent, e.g. 7.25
@@ -90,99 +67,9 @@ export interface MatchDiagnosticRow {
   candidate_label: string;
   status: "matched" | "skipped";
   reason: string;
-  classification?: MatchClassification | "scan";
   total?: number;
   roe_improvement_pp?: number | null;
-  exchange_up_percentage?: number | null;
-  relinquished_value?: number | null;
-  replacement_value?: number | null;
 }
-
-/** Aggregate counts the admin diagnostic panel renders. */
-export interface MatchDiagnosticSummary {
-  evaluated: number;
-  eligible: number;
-  below_relinquished_value: number;
-  above_purchasing_capacity: number;
-  insufficient_roe_improvement: number;
-  property_preferences_mismatch: number;
-  financing_information_incomplete: number;
-  exchange_information_incomplete: number;
-}
-
-export function summarizeDiagnostics(rows: MatchDiagnosticRow[]): MatchDiagnosticSummary {
-  const s: MatchDiagnosticSummary = {
-    evaluated: 0,
-    eligible: 0,
-    below_relinquished_value: 0,
-    above_purchasing_capacity: 0,
-    insufficient_roe_improvement: 0,
-    property_preferences_mismatch: 0,
-    financing_information_incomplete: 0,
-    exchange_information_incomplete: 0,
-  };
-  for (const r of rows) {
-    if (r.classification === "scan") continue;
-    s.evaluated += 1;
-    if (r.status === "matched") { s.eligible += 1; continue; }
-    const key = r.classification as keyof MatchDiagnosticSummary | undefined;
-    if (key && key in s) (s[key] as number) += 1;
-  }
-  return s;
-}
-
-/**
- * Directional chain detection. A match is A → B (A relinquishes into B). When
- * B's owner is themselves exchanging out of B into C, A → B → C is a chain.
- * Chains are traced by linking a match's replacement property to any other
- * match whose relinquished property is that same property.
- */
-export interface ExchangeChainLink {
-  relinquished_property_id: string | null;
-  replacement_property_id: string;
-  buyer_exchange_id: string;
-}
-
-export function buildExchangeChains(links: ExchangeChainLink[]): string[][] {
-  const byRelinquished = new Map<string, ExchangeChainLink[]>();
-  for (const l of links) {
-    if (!l.relinquished_property_id) continue;
-    const arr = byRelinquished.get(l.relinquished_property_id) ?? [];
-    arr.push(l);
-    byRelinquished.set(l.relinquished_property_id, arr);
-  }
-
-  const chains: string[][] = [];
-  const walk = (path: string[], seen: Set<string>) => {
-    const tail = path[path.length - 1];
-    const next = byRelinquished.get(tail) ?? [];
-    const onward = next.filter((n) => !seen.has(n.replacement_property_id));
-    if (onward.length === 0) {
-      if (path.length >= 3) chains.push(path);
-      return;
-    }
-    for (const n of onward) {
-      walk([...path, n.replacement_property_id], new Set([...seen, n.replacement_property_id]));
-    }
-  };
-
-  for (const l of links) {
-    if (!l.relinquished_property_id) continue;
-    walk(
-      [l.relinquished_property_id, l.replacement_property_id],
-      new Set([l.relinquished_property_id, l.replacement_property_id]),
-    );
-  }
-  // De-duplicate identical chains
-  const seenKeys = new Set<string>();
-  return chains.filter((c) => {
-    const k = c.join(">");
-    if (seenKeys.has(k)) return false;
-    seenKeys.add(k);
-    return true;
-  });
-}
-
 
 export async function computeMatchesForExchange(
   db: any,
@@ -236,7 +123,6 @@ export async function computeMatchesForExchange(
       candidate_label: "buyer-side scan",
       status: "skipped",
       reason: "no replacement criteria on this exchange",
-      classification: "scan",
     });
   }
   if (criteria) {
@@ -260,7 +146,6 @@ export async function computeMatchesForExchange(
         reason: includeSameAgent
           ? "no other active properties in this workspace"
           : "no active properties from other agents in this workspace",
-        classification: "scan",
       });
     }
     if (activeProperties?.length) {
@@ -283,7 +168,6 @@ export async function computeMatchesForExchange(
             candidate_label: propertyLabel(candidateProperty),
             status: "skipped",
             reason: result.reason,
-            classification: result.classification,
             roe_improvement_pp: result.roe_improvement_pp ?? null,
           });
           continue;
@@ -297,13 +181,6 @@ export async function computeMatchesForExchange(
           ...boot,
           direction: "buyer",
           other_agent_id: candidateProperty.agent_id,
-          relinquished_property_id: exchange.relinquished_property_id ?? propertyId,
-          buyer_agent_id: exchange.agent_id ?? null,
-          seller_agent_id: candidateProperty.agent_id ?? null,
-          buyer_client_id: exchange.client_id ?? null,
-          // Registered properties are owned by an agent; the seller-side client is
-          // resolved from that property's own exchange when one exists.
-          seller_client_id: null,
         } as ScoredMatch);
         diagnostics?.push({
           direction: "buyer",
@@ -311,15 +188,10 @@ export async function computeMatchesForExchange(
           candidate_exchange_id: exchangeId,
           candidate_label: propertyLabel(candidateProperty),
           status: "matched",
-          reason: "eligible Exchange Up match",
-          classification: scored.match_classification,
+          reason: "eligible",
           total: scored.total,
           roe_improvement_pp: scored.roe_improvement_pp,
-          exchange_up_percentage: scored.exchange_up_percentage,
-          relinquished_value: scored.relinquished_value,
-          replacement_value: scored.replacement_value,
         });
-
       }
     }
   }
@@ -345,7 +217,6 @@ export async function computeMatchesForExchange(
       reason: includeSameAgent
         ? "no other active buyer exchanges in this workspace"
         : "no other agents have active buyer exchanges in this workspace",
-      classification: "scan",
     });
 
   }
@@ -370,7 +241,6 @@ export async function computeMatchesForExchange(
           candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
           status: "skipped",
           reason: "counterparty exchange has no replacement criteria",
-          classification: MATCH_CLASSIFICATION.EXCHANGE_INCOMPLETE,
         });
         continue;
       }
@@ -388,7 +258,6 @@ export async function computeMatchesForExchange(
           candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
           status: "skipped",
           reason: result.reason,
-          classification: result.classification,
           roe_improvement_pp: result.roe_improvement_pp ?? null,
         });
         continue;
@@ -403,11 +272,6 @@ export async function computeMatchesForExchange(
         ...boot,
         direction: "seller",
         other_agent_id: otherExchange.agent_id,
-        relinquished_property_id: otherExchange.relinquished_property_id ?? null,
-        buyer_agent_id: otherExchange.agent_id ?? null,
-        seller_agent_id: property.agent_id ?? null,
-        buyer_client_id: otherExchange.client_id ?? null,
-        seller_client_id: null,
       } as ScoredMatch);
       diagnostics?.push({
         direction: "seller",
@@ -415,15 +279,10 @@ export async function computeMatchesForExchange(
         candidate_exchange_id: otherExchange.id,
         candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
         status: "matched",
-        reason: "eligible Exchange Up match",
-        classification: scored.match_classification,
+        reason: "eligible",
         total: scored.total,
         roe_improvement_pp: scored.roe_improvement_pp,
-        exchange_up_percentage: scored.exchange_up_percentage,
-        relinquished_value: scored.relinquished_value,
-        replacement_value: scored.replacement_value,
       });
-
     }
   }
 
@@ -476,20 +335,6 @@ export async function persistMatchesAndNotifications(
     roe_improvement_pp: m.roe_improvement_pp,
     roe_improvement_rel: m.roe_improvement_rel,
     candidate_annual_debt_service: m.candidate_annual_debt_service,
-    relinquished_value: m.relinquished_value,
-    replacement_value: m.replacement_value,
-    value_increase: m.value_increase,
-    exchange_up_percentage: m.exchange_up_percentage,
-    estimated_replacement_loan: m.estimated_replacement_loan,
-    estimated_ltv: m.estimated_ltv,
-    estimated_purchasing_capacity: m.estimated_purchasing_capacity,
-    match_classification: m.match_classification,
-    eligibility_reasons: m.eligibility_reasons,
-    relinquished_property_id: m.relinquished_property_id,
-    buyer_agent_id: m.buyer_agent_id,
-    seller_agent_id: m.seller_agent_id,
-    buyer_client_id: m.buyer_client_id,
-    seller_client_id: m.seller_client_id,
     status: "active",
   }));
 
@@ -670,16 +515,7 @@ async function sendNewMatchEmails(
   }
 }
 
-// ─── Exchange Up scoring ────────────────────────────────────────────────────
-// Rule order (never reordered — a high score must never override a gate):
-//   1. Validate required property + exchange data
-//   2. Self-match exclusion (handled by the callers' agent filters)
-//   3. Replacement value >= minimum replacement value (Exchange Up hard gate)
-//   4. Replacement value <= estimated purchasing capacity
-//   5. Projected ROE improvement
-//   6. Geography / asset type / strategy preferences
-//   7. Final score
-//   8. Chain participation (computed after scoring, see buildExchangeChains)
+// ─── ROE-based scoring ──────────────────────────────────────────────────────
 
 interface RoePairScore {
   total: number;
@@ -693,26 +529,11 @@ interface RoePairScore {
   roe_improvement_pp: number | null;
   roe_improvement_rel: number | null;
   candidate_annual_debt_service: number | null;
-  // Exchange Up
-  relinquished_value: number | null;
-  replacement_value: number | null;
-  value_increase: number | null;
-  exchange_up_percentage: number | null;
-  estimated_replacement_loan: number | null;
-  estimated_ltv: number | null;
-  estimated_purchasing_capacity: number | null;
-  match_classification: MatchClassification;
-  eligibility_reasons: string[];
 }
 
 type ScoreResult =
   | { ok: true; score: RoePairScore }
-  | {
-      ok: false;
-      reason: string;
-      classification: MatchClassification;
-      roe_improvement_pp?: number | null;
-    };
+  | { ok: false; reason: string; roe_improvement_pp?: number | null };
 
 function scorePair(
   buyerExchange: any,
@@ -726,58 +547,6 @@ function scorePair(
   return r.ok ? r.score : null;
 }
 
-/** Exchange equity available to the buyer, plus any additional cash they told us about. */
-export function availableExchangeEquity(
-  buyerExchange: any,
-  relinquishedFin: any,
-  criteria: any,
-): { equity: number; additionalCash: number; cashBasis: number } {
-  const price = numOrNull(relinquishedFin?.asking_price) ?? 0;
-  const loan = numOrNull(relinquishedFin?.loan_balance) ?? 0;
-  // Prefer the exchange's own proceeds figure when the agent supplied one.
-  const proceeds = numOrNull(buyerExchange?.exchange_proceeds);
-  const equity = proceeds != null && proceeds > 0 ? proceeds : price - loan;
-  const additionalCash = numOrNull(criteria?.additional_cash_available) ?? 0;
-  return { equity, additionalCash, cashBasis: equity + additionalCash };
-}
-
-/**
- * Estimated maximum purchasing capacity:
- *   exchange equity + additional cash + estimated replacement debt
- * Debt comes from the client's own desired loan amount when set; otherwise it's
- * implied by their maximum acceptable LTV (which defaults to the platform's
- * MAX_COMMERCIAL_LTV but is fully overridable per exchange).
- */
-export function estimatePurchasingCapacity(
-  buyerExchange: any,
-  relinquishedFin: any,
-  criteria: any,
-): { capacity: number; cashBasis: number; maxLtv: number; estimatedDebt: number } {
-  const { cashBasis } = availableExchangeEquity(buyerExchange, relinquishedFin, criteria);
-  const rawLtv = numOrNull(criteria?.max_ltv);
-  const maxLtv = rawLtv != null && rawLtv > 0 && rawLtv < 1 ? rawLtv : MAX_COMMERCIAL_LTV;
-  const desiredLoan = numOrNull(criteria?.desired_loan_amount);
-  const impliedDebt = (cashBasis * maxLtv) / (1 - maxLtv);
-  const estimatedDebt = desiredLoan != null && desiredLoan >= 0 ? desiredLoan : impliedDebt;
-  return { capacity: cashBasis + estimatedDebt, cashBasis, maxLtv, estimatedDebt };
-}
-
-/**
- * The Exchange Up floor. Defaults to the relinquished property value and can
- * only ever be raised — never lowered below it — by the client's preferences.
- */
-export function minimumReplacementValue(relinquishedValue: number, criteria: any): number {
-  const requested = numOrNull(criteria?.min_replacement_value);
-  const increase = numOrNull(criteria?.min_value_increase) ?? 0;
-  const floor = relinquishedValue + Math.max(0, increase);
-  return Math.max(floor, requested ?? 0, EXCHANGE_UP_ENFORCED ? relinquishedValue : 0);
-}
-
-export function exchangeUpPercentage(relinquishedValue: number, replacementValue: number): number | null {
-  if (!relinquishedValue || relinquishedValue <= 0) return null;
-  return ((replacementValue - relinquishedValue) / relinquishedValue) * 100;
-}
-
 export function scorePairExplained(
   buyerExchange: any,
   relinquishedFin: any,
@@ -786,84 +555,35 @@ export function scorePairExplained(
   criteria: any,
   settings: MatchSettings,
 ): ScoreResult {
-  // ── Step 1: required data ────────────────────────────────────────────────
-  if (!criteria) {
-    return {
-      ok: false,
-      reason: "exchange has no replacement criteria",
-      classification: MATCH_CLASSIFICATION.EXCHANGE_INCOMPLETE,
-    };
-  }
-
   const rNoi = numOrNull(relinquishedFin?.noi);
   const rPrice = numOrNull(relinquishedFin?.asking_price);
   const rLoan = numOrNull(relinquishedFin?.loan_balance);
   if (rNoi == null || rPrice == null || rLoan == null) {
-    return {
-      ok: false,
-      reason: "buyer relinquished property missing NOI, asking price, or loan balance",
-      classification: MATCH_CLASSIFICATION.FINANCING_INCOMPLETE,
-    };
+    return { ok: false, reason: "buyer relinquished property missing NOI, asking price, or loan balance" };
   }
+  const buyerEquity = rPrice - rLoan;
+  if (buyerEquity <= 0) return { ok: false, reason: `buyer has no positive equity (equity = ${Math.round(buyerEquity).toLocaleString()})` };
+  const buyerDebtService = relinquishedAnnualDebtService(relinquishedFin, settings);
+  const buyerCurrentROE = (rNoi - buyerDebtService) / buyerEquity;
 
   const cNoi = numOrNull(candidateFin?.noi);
   const cPrice = numOrNull(candidateFin?.asking_price);
   if (cNoi == null || cPrice == null || cPrice <= 0) {
+    return { ok: false, reason: "candidate property missing NOI or asking price" };
+  }
+
+  const maxAffordable = buyerEquity / (1 - MAX_COMMERCIAL_LTV);
+  if (cPrice > maxAffordable) {
     return {
       ok: false,
-      reason: "candidate property missing NOI or asking price",
-      classification: MATCH_CLASSIFICATION.FINANCING_INCOMPLETE,
+      reason: `candidate price $${Math.round(cPrice).toLocaleString()} exceeds affordability ceiling $${Math.round(maxAffordable).toLocaleString()} (buyer equity × ${1 / (1 - MAX_COMMERCIAL_LTV)}× at ${MAX_COMMERCIAL_LTV * 100}% LTV)`,
     };
   }
 
-  const relinquishedValue = rPrice;
-  const replacementValue = cPrice;
+  const loanAmount = MAX_COMMERCIAL_LTV * cPrice;
+  const annualPmt = amortizedAnnualPayment(loanAmount, settings.mortgage_interest_rate, settings.mortgage_amortization_years);
 
-  const { capacity, cashBasis, maxLtv } = estimatePurchasingCapacity(buyerExchange, relinquishedFin, criteria);
-  if (cashBasis <= 0) {
-    return {
-      ok: false,
-      reason: `buyer has no positive exchange equity (equity = ${money(cashBasis)})`,
-      classification: MATCH_CLASSIFICATION.FINANCING_INCOMPLETE,
-    };
-  }
-
-  // ── Step 3: Exchange Up hard gate ────────────────────────────────────────
-  const minValue = minimumReplacementValue(relinquishedValue, criteria);
-  if (replacementValue < minValue - EXCHANGE_UP_VALUE_TOLERANCE) {
-    return {
-      ok: false,
-      reason: `replacement value ${money(replacementValue)} is below the Exchange Up minimum ${money(minValue)} (relinquished ${money(relinquishedValue)})`,
-      classification: MATCH_CLASSIFICATION.BELOW_VALUE,
-    };
-  }
-
-  const maxValuePref = numOrNull(criteria?.max_replacement_value);
-  if (maxValuePref != null && maxValuePref > 0 && replacementValue > maxValuePref) {
-    return {
-      ok: false,
-      reason: `replacement value ${money(replacementValue)} exceeds the client's maximum replacement value ${money(maxValuePref)}`,
-      classification: MATCH_CLASSIFICATION.PREFERENCES,
-    };
-  }
-
-  // ── Step 4: purchasing capacity ──────────────────────────────────────────
-  if (replacementValue > capacity) {
-    return {
-      ok: false,
-      reason: `replacement value ${money(replacementValue)} exceeds estimated purchasing capacity ${money(capacity)} (equity + cash ${money(cashBasis)} at ${(maxLtv * 100).toFixed(0)}% max LTV)`,
-      classification: MATCH_CLASSIFICATION.ABOVE_CAPACITY,
-    };
-  }
-
-  const estimatedLoan = Math.max(0, replacementValue - cashBasis);
-  const estimatedLtv = replacementValue > 0 ? estimatedLoan / replacementValue : 0;
-
-  // ── Step 5: ROE improvement ──────────────────────────────────────────────
-  const buyerDebtService = relinquishedAnnualDebtService(relinquishedFin, settings);
-  const buyerCurrentROE = (rNoi - buyerDebtService) / cashBasis;
-  const annualPmt = amortizedAnnualPayment(estimatedLoan, settings.mortgage_interest_rate, settings.mortgage_amortization_years);
-  const candidateROE = (cNoi - annualPmt) / cashBasis;
+  const candidateROE = (cNoi - annualPmt) / buyerEquity;
   const improvementPP = (candidateROE - buyerCurrentROE) * 100;
   const improvementRel = buyerCurrentROE > 0 ? candidateROE / buyerCurrentROE - 1 : null;
 
@@ -871,66 +591,21 @@ export function scorePairExplained(
     return {
       ok: false,
       reason: `no ROE upgrade: current ${(buyerCurrentROE * 100).toFixed(2)}% → candidate ${(candidateROE * 100).toFixed(2)}% (Δ ${improvementPP.toFixed(2)}pp, need > ${ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP}pp)`,
-      classification: MATCH_CLASSIFICATION.LOW_ROE,
       roe_improvement_pp: round(improvementPP),
     };
   }
 
-  const minRoePref = numOrNull(criteria?.min_projected_roe);
-  if (minRoePref != null && candidateROE * 100 < minRoePref) {
-    return {
-      ok: false,
-      reason: `projected ROE ${(candidateROE * 100).toFixed(2)}% is below the client's minimum ${minRoePref}%`,
-      classification: MATCH_CLASSIFICATION.LOW_ROE,
-      roe_improvement_pp: round(improvementPP),
-    };
-  }
-
-  // ── Step 6: property preferences ─────────────────────────────────────────
-  if (
-    criteria?.target_asset_types?.length &&
-    candidateProp?.asset_type &&
-    !criteria.target_asset_types.includes(candidateProp.asset_type)
-  ) {
-    return {
-      ok: false,
-      reason: `asset type "${candidateProp.asset_type}" is not in the client's target asset types`,
-      classification: MATCH_CLASSIFICATION.PREFERENCES,
-      roe_improvement_pp: round(improvementPP),
-    };
-  }
-
+  const roeScore = clamp01(improvementPP / ROE_IMPROVEMENT_FULL_SCORE_PP) * 100;
   const geoScore = scoreGeo(candidateProp, criteria);
   const assetScore = scoreAsset(candidateProp, criteria);
   const strategyScore = scoreStrategy(candidateProp, criteria);
   const fitScore = blendFit(geoScore, assetScore, strategyScore, criteria);
 
-  // ── Step 7: final score ──────────────────────────────────────────────────
-  const roeScore = clamp01(improvementPP / ROE_IMPROVEMENT_FULL_SCORE_PP) * 100;
-  const valueIncrease = replacementValue - relinquishedValue;
-  const upPct = exchangeUpPercentage(relinquishedValue, replacementValue);
-  const upScore = clamp01((upPct ?? 0) / EXCHANGE_UP_FULL_SCORE_PCT) * 100;
-
-  const remaining = 1 - EXCHANGE_UP_WEIGHT;
-  const base =
-    roeScore * MATCH_WEIGHTS.roe * remaining +
-    fitScore * MATCH_WEIGHTS.fit * remaining +
-    upScore * EXCHANGE_UP_WEIGHT;
+  const base = roeScore * MATCH_WEIGHTS.roe + fitScore * MATCH_WEIGHTS.fit;
   const qualityScore = scoreQuality(candidateProp, candidateFin);
   const qualityAdj = ((qualityScore - 50) / 50) * QUALITY_TIEBREAKER_MAX_POINTS;
-  const total = Math.max(0, Math.min(100, base + qualityAdj));
 
-  const reasons: string[] = [];
-  if (valueIncrease > EXCHANGE_UP_VALUE_TOLERANCE) {
-    reasons.push(`Moves the client up ${money(valueIncrease)} in property value (Exchange Up +${(upPct ?? 0).toFixed(1)}%)`);
-  } else {
-    reasons.push(`Equal-value exchange — replacement matches the ${money(relinquishedValue)} relinquished value`);
-  }
-  reasons.push(`Improves projected ROE by ${improvementPP.toFixed(1)} percentage points (${(buyerCurrentROE * 100).toFixed(1)}% → ${(candidateROE * 100).toFixed(1)}%)`);
-  reasons.push(`Falls within estimated purchasing capacity of ${money(capacity)} (est. loan ${money(estimatedLoan)}, ${(estimatedLtv * 100).toFixed(1)}% LTV)`);
-  if (geoScore >= 70) reasons.push("Matches preferred geography");
-  if (assetScore >= 100) reasons.push("Matches preferred property type");
-  if (strategyScore >= 100) reasons.push("Matches the client's investment strategy");
+  const total = Math.max(0, Math.min(100, base + qualityAdj));
 
   return {
     ok: true,
@@ -946,23 +621,9 @@ export function scorePairExplained(
       roe_improvement_pp: round(improvementPP),
       roe_improvement_rel: improvementRel != null ? round4(improvementRel) : null,
       candidate_annual_debt_service: Math.round(annualPmt),
-      relinquished_value: round(relinquishedValue),
-      replacement_value: round(replacementValue),
-      value_increase: round(valueIncrease),
-      exchange_up_percentage: upPct != null ? round(upPct) : null,
-      estimated_replacement_loan: Math.round(estimatedLoan),
-      estimated_ltv: round4(estimatedLtv),
-      estimated_purchasing_capacity: Math.round(capacity),
-      match_classification: MATCH_CLASSIFICATION.ELIGIBLE,
-      eligibility_reasons: reasons,
     },
   };
 }
-
-function money(v: number): string {
-  return `$${Math.round(v).toLocaleString("en-US")}`;
-}
-
 
 
 export function blendFit(geo: number, asset: number, strategy: number, criteria: any): number {

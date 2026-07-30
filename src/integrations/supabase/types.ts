@@ -834,137 +834,95 @@ export type Database = {
         Row: {
           asset_score: number
           boot_status: Database["public"]["Enums"]["boot_status"]
-          buyer_agent_id: string | null
           buyer_agent_viewed: boolean
           buyer_agent_viewed_at: string | null
-          buyer_client_id: string | null
           buyer_current_roe: number | null
           buyer_exchange_id: string
           candidate_annual_debt_service: number | null
           candidate_roe: number | null
           created_at: string
           debt_fit_score: number
-          eligibility_reasons: Json
           estimated_boot_tax: number | null
           estimated_cash_boot: number | null
-          estimated_ltv: number | null
           estimated_mortgage_boot: number | null
-          estimated_purchasing_capacity: number | null
-          estimated_replacement_loan: number | null
           estimated_total_boot: number | null
-          exchange_up_percentage: number | null
           financial_score: number
           geo_score: number
           id: string
-          match_classification: string
           price_score: number
-          relinquished_property_id: string | null
-          relinquished_value: number | null
-          replacement_value: number | null
           roe_improvement_pp: number | null
           roe_improvement_rel: number | null
           scale_fit_score: number
-          seller_agent_id: string | null
           seller_agent_viewed: boolean
           seller_agent_viewed_at: string | null
-          seller_client_id: string | null
           seller_property_id: string
           status: string
           strategy_score: number
           timing_score: number
           total_score: number
           updated_at: string
-          value_increase: number | null
         }
         Insert: {
           asset_score?: number
           boot_status?: Database["public"]["Enums"]["boot_status"]
-          buyer_agent_id?: string | null
           buyer_agent_viewed?: boolean
           buyer_agent_viewed_at?: string | null
-          buyer_client_id?: string | null
           buyer_current_roe?: number | null
           buyer_exchange_id: string
           candidate_annual_debt_service?: number | null
           candidate_roe?: number | null
           created_at?: string
           debt_fit_score?: number
-          eligibility_reasons?: Json
           estimated_boot_tax?: number | null
           estimated_cash_boot?: number | null
-          estimated_ltv?: number | null
           estimated_mortgage_boot?: number | null
-          estimated_purchasing_capacity?: number | null
-          estimated_replacement_loan?: number | null
           estimated_total_boot?: number | null
-          exchange_up_percentage?: number | null
           financial_score?: number
           geo_score?: number
           id?: string
-          match_classification?: string
           price_score?: number
-          relinquished_property_id?: string | null
-          relinquished_value?: number | null
-          replacement_value?: number | null
           roe_improvement_pp?: number | null
           roe_improvement_rel?: number | null
           scale_fit_score?: number
-          seller_agent_id?: string | null
           seller_agent_viewed?: boolean
           seller_agent_viewed_at?: string | null
-          seller_client_id?: string | null
           seller_property_id: string
           status?: string
           strategy_score?: number
           timing_score?: number
           total_score?: number
           updated_at?: string
-          value_increase?: number | null
         }
         Update: {
           asset_score?: number
           boot_status?: Database["public"]["Enums"]["boot_status"]
-          buyer_agent_id?: string | null
           buyer_agent_viewed?: boolean
           buyer_agent_viewed_at?: string | null
-          buyer_client_id?: string | null
           buyer_current_roe?: number | null
           buyer_exchange_id?: string
           candidate_annual_debt_service?: number | null
           candidate_roe?: number | null
           created_at?: string
           debt_fit_score?: number
-          eligibility_reasons?: Json
           estimated_boot_tax?: number | null
           estimated_cash_boot?: number | null
-          estimated_ltv?: number | null
           estimated_mortgage_boot?: number | null
-          estimated_purchasing_capacity?: number | null
-          estimated_replacement_loan?: number | null
           estimated_total_boot?: number | null
-          exchange_up_percentage?: number | null
           financial_score?: number
           geo_score?: number
           id?: string
-          match_classification?: string
           price_score?: number
-          relinquished_property_id?: string | null
-          relinquished_value?: number | null
-          replacement_value?: number | null
           roe_improvement_pp?: number | null
           roe_improvement_rel?: number | null
           scale_fit_score?: number
-          seller_agent_id?: string | null
           seller_agent_viewed?: boolean
           seller_agent_viewed_at?: string | null
-          seller_client_id?: string | null
           seller_property_id?: string
           status?: string
           strategy_score?: number
           timing_score?: number
           total_score?: number
           updated_at?: string
-          value_increase?: number | null
         }
         Relationships: [
           {
@@ -1557,23 +1515,14 @@ export type Database = {
       }
       replacement_criteria: {
         Row: {
-          additional_cash_available: number | null
           additional_notes: string | null
           created_at: string
-          desired_loan_amount: number | null
           exchange_id: string
           id: string
-          max_ltv: number | null
-          max_replacement_value: number | null
           min_debt_replacement: number | null
-          min_projected_roe: number | null
-          min_replacement_value: number | null
-          min_value_increase: number | null
           must_replace_debt: boolean | null
           open_to_dsts: boolean | null
           open_to_tics: boolean | null
-          preferred_monthly_cash_flow: number | null
-          preferred_replacement_value: number | null
           target_asset_types: Database["public"]["Enums"]["asset_type"][]
           target_cap_rate_max: number | null
           target_cap_rate_min: number | null
@@ -1595,23 +1544,14 @@ export type Database = {
           urgency: string | null
         }
         Insert: {
-          additional_cash_available?: number | null
           additional_notes?: string | null
           created_at?: string
-          desired_loan_amount?: number | null
           exchange_id: string
           id?: string
-          max_ltv?: number | null
-          max_replacement_value?: number | null
           min_debt_replacement?: number | null
-          min_projected_roe?: number | null
-          min_replacement_value?: number | null
-          min_value_increase?: number | null
           must_replace_debt?: boolean | null
           open_to_dsts?: boolean | null
           open_to_tics?: boolean | null
-          preferred_monthly_cash_flow?: number | null
-          preferred_replacement_value?: number | null
           target_asset_types: Database["public"]["Enums"]["asset_type"][]
           target_cap_rate_max?: number | null
           target_cap_rate_min?: number | null
@@ -1633,23 +1573,14 @@ export type Database = {
           urgency?: string | null
         }
         Update: {
-          additional_cash_available?: number | null
           additional_notes?: string | null
           created_at?: string
-          desired_loan_amount?: number | null
           exchange_id?: string
           id?: string
-          max_ltv?: number | null
-          max_replacement_value?: number | null
           min_debt_replacement?: number | null
-          min_projected_roe?: number | null
-          min_replacement_value?: number | null
-          min_value_increase?: number | null
           must_replace_debt?: boolean | null
           open_to_dsts?: boolean | null
           open_to_tics?: boolean | null
-          preferred_monthly_cash_flow?: number | null
-          preferred_replacement_value?: number | null
           target_asset_types?: Database["public"]["Enums"]["asset_type"][]
           target_cap_rate_max?: number | null
           target_cap_rate_min?: number | null
