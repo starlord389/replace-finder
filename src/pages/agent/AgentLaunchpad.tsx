@@ -308,7 +308,7 @@ function MatchingExplainer() {
             Rules-based scoring
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Every potential property is ranked across those dimensions. No AI guesswork, no public MLS — just fit.
+            Every potential property is ranked across those dimensions. No black-box guesswork, no public MLS — our proprietary engine scores pure fit.
           </p>
         </div>
         <div className="rounded-lg border bg-background p-3">
