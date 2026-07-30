@@ -74,7 +74,7 @@ function Sec_meet() {
 
       <div className="max-w-xl">
         <h2 className="nb-h2">Meet 1031Exchange<span style={{ color: '#43a047' }}>Up</span></h2>
-        <p className="nb-lead mt-5">The first AI-powered matchmaking platform designed specifically to streamline the 1031 exchange process.</p>
+        <p className="nb-lead mt-5">The first matchmaking platform built on our own proprietary AI, designed specifically to streamline the 1031 exchange process.</p>
         <a href="#how" className="nb-meet-btn mt-8">
           <span className="nb-meet-play" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
@@ -105,7 +105,7 @@ function Sec_meet() {
               <path d="M9 9.5h1.5M15 9.5h-1.5M9 13h1.5" />
             </svg>
           </div>
-          <div className="nb-meet-label">AI Finds Matches</div>
+          <div className="nb-meet-label">Our AI Finds Matches</div>
         </div>
 
         <div className="nb-meet-arrow" aria-hidden="true">&rarr;</div>
@@ -172,8 +172,8 @@ function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M9.5 11h5M9.5 13.5h5"/><path d="M9 3v2M12 3v2M15 3v2M9 19v2M12 19v2M15 19v2M3 9h2M3 12h2M3 15h2M19 9h2M19 12h2M19 15h2"/></svg>
         </div>
-        <h3 className="nb-how-title">AI Searches the Network</h3>
-        <p className="nb-how-desc">Our AI matches against thousands of opportunities</p>
+        <h3 className="nb-how-title">Our AI Searches the Network</h3>
+        <p className="nb-how-desc">Our proprietary engine matches against thousands of opportunities</p>
       </div>
 
       <div className="nb-how-card">
@@ -358,7 +358,7 @@ function Sec_why() {
           </h2>
           <div className="nb-why-list">
             {[
-              "AI-Powered Matchmaking",
+              "Proprietary AI Matchmaking",
               "Off-Market Opportunities",
               "Investor-Focused Network",
               "Educational Webinars & Events",
@@ -734,7 +734,7 @@ function Sec_diff() {
         </div>
 
         {[
-          ["Spreadsheets & email chains", "AI-powered matching"],
+          ["Spreadsheets & email chains", "Our proprietary AI matching"],
           ["Countless phone calls", "Instant notifications"],
           ["Searching everywhere", "One focused network"],
           ["Waiting & hoping", "Real-time opportunities"],
@@ -1011,8 +1011,8 @@ function Sec_faqcta() {
             a: 'No — you can keep specifics private and share only the high-level details needed for the platform to surface relevant matches.',
           },
           {
-            q: 'How does AI matching work?',
-            a: 'Our model reads the shape of each deal and each investor goal, then quietly connects the two sides when there is real overlap.',
+            q: 'How does your proprietary AI matching work?',
+            a: 'Our in-house model — built by us, not licensed from a third party — reads the shape of each deal and each investor goal, then quietly connects the two sides when there is real overlap.',
           },
           {
             q: "What if I don't have a 1031 client today?",
@@ -1044,7 +1044,7 @@ function Sec_faqcta() {
       {/* RIGHT — CTA card */}
       <div className="nb-fct-cta">
         <h3 className="nb-fct-cta-h">Ready to Exchange Up?</h3>
-        <p className="nb-fct-cta-sub">Join the AI-powered network that's revolutionizing the 1031 exchange process.</p>
+        <p className="nb-fct-cta-sub">Join the network powered by our proprietary AI that's revolutionizing the 1031 exchange process.</p>
         <div className="nb-fct-cta-btns">
           <a href="/signup" className="nb-fct-btn nb-fct-btn-green">Join the Network (Free)</a>
           <a href="/book-demo" className="nb-fct-btn nb-fct-btn-out">
@@ -1072,7 +1072,7 @@ function Sec_faqcta() {
       <div className="nb-fct-fgrid">
         <div>
           <div className="nb-fct-flogo">1031Exchange<b>UP</b></div>
-          <p className="nb-fct-ftag">The AI-powered matchmaking platform for 1031 exchange success.</p>
+          <p className="nb-fct-ftag">Proprietary AI matchmaking, built for 1031 exchange success.</p>
         </div>
 
         <div className="nb-fct-fcol">

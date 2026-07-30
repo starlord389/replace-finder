@@ -4,7 +4,7 @@ import { ROUTES } from "@/app/routes/routeManifest";
 import { SECTIONS_CSS, LandingSections } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
-   NEW BRAND — navy + green "AI-powered matchmaking" landing page.
+   NEW BRAND — navy + green proprietary-AI matchmaking landing page.
    Hero matched to the boss mockup: real dusk skyline photo, grey-backdrop
    headshots, multifamily property web, green-UP logo, outline demo button,
    four-badge row, grey role pills. Scoped under [data-nb].
@@ -327,7 +327,7 @@ function HeroNetwork() {
 }
 
 const BADGES = [
-  { txt: ["AI Powered"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
+  { txt: ["Proprietary AI"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["Free for", "Founding Members"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="5" stroke="currentColor" strokeWidth="1.8" /><path d="M9 13.2 7.5 21l4.5-2.6L16.5 21 15 13.2" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>) },
   { txt: ["Built by", "Investor-Friendly Agents"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><circle cx="17" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.8" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["Takes Less Than", "5 Minutes"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
@@ -340,7 +340,7 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[600px]">
-            The AI-Powered Matchmaking Platform for 1031 Exchange Buyers, Sellers &amp; Investor-Friendly Real Estate Agents.
+            The Matchmaking Platform Powered by Our Proprietary AI for 1031 Exchange Buyers, Sellers &amp; Investor-Friendly Real Estate Agents.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[510px]">
             Finally, a better way to connect exchange buyers, replacement properties, and investor-friendly
@@ -398,7 +398,7 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUP — AI-Powered 1031 Exchange Matchmaking";
+    document.title = "1031ExchangeUP — Proprietary AI 1031 Exchange Matchmaking";
   }, []);
 
   return (
