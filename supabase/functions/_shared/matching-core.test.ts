@@ -86,3 +86,12 @@ Deno.test("calculateBoot: no data → insufficient_data", () => {
   assertEquals(b.boot_status, "insufficient_data");
   assertEquals(b.estimated_cash_boot, null);
 });
+
+Deno.test("scorePairExplained: replacement cheaper than relinquished → trade-up rejection", () => {
+  const candidate = { state: "MA", asset_type: "multifamily" };
+  // $900k < $1M relinquished value → violates the 1031 equal-or-greater rule
+  const candidateFin = { asking_price: 900_000, noi: 120_000 };
+  const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
+  assert(!r.ok);
+  if (!r.ok) assertMatch(r.reason, /1031 trade-up rule/);
+});
