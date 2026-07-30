@@ -572,6 +572,17 @@ export function scorePairExplained(
     return { ok: false, reason: "candidate property missing NOI or asking price" };
   }
 
+  // IRC §1031 "trade up" rule: to fully defer gain, the replacement property's
+  // value must be equal to or greater than the relinquished property's value.
+  // Anything cheaper creates boot, so it is never a valid Exchange Up match.
+  if (cPrice < rPrice) {
+    return {
+      ok: false,
+      reason: `1031 trade-up rule: candidate price $${Math.round(cPrice).toLocaleString()} is below relinquished value $${Math.round(rPrice).toLocaleString()} — replacement must be equal or greater value`,
+    };
+  }
+
+
   const maxAffordable = buyerEquity / (1 - MAX_COMMERCIAL_LTV);
   if (cPrice > maxAffordable) {
     return {
