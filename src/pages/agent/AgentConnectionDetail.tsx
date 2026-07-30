@@ -199,7 +199,7 @@ export default function AgentConnectionDetail() {
       updates.facilitation_fee_status = "invoiced";
     }
 
-    const { error: updateErr } = await supabase.from("exchange_connections").update(updates).eq("id", conn.id);
+    const { error: updateErr } = await supabase.from("exchange_connections").update(updates as any).eq("id", conn.id);
     if (updateErr) {
       toast({ title: "Couldn't save stage", description: updateErr.message, variant: "destructive" });
       setActing(false);
@@ -246,7 +246,7 @@ export default function AgentConnectionDetail() {
     const updates: Record<string, any> = { [key]: null };
     if (key === "closed_at") updates.status = "in_progress";
     if (key === "under_contract_at") updates.status = "accepted";
-    const { error: updateErr } = await supabase.from("exchange_connections").update(updates).eq("id", conn.id);
+    const { error: updateErr } = await supabase.from("exchange_connections").update(updates as any).eq("id", conn.id);
     if (updateErr) {
       toast({ title: "Couldn't clear stage", description: updateErr.message, variant: "destructive" });
       setActing(false);
