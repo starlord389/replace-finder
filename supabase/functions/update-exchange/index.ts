@@ -305,7 +305,7 @@ Deno.serve(async (req) => {
         description: "Exchange details updated",
         actor_id: user.id,
       });
-      if (exchange.status !== "draft" && (payload.criteria || payload.financials) && propertyId) {
+      if (exchange.status !== "draft" && (payload.property || payload.criteria || payload.financials) && propertyId) {
         await runMatchingSafe(db, user.id, exchange.id, propertyId, !!exchange.is_demo, "update:rescore");
       }
     } else {
@@ -317,7 +317,7 @@ Deno.serve(async (req) => {
         actor_id: user.id,
       });
       // If published & criteria/financials changed, re-run matching inline
-      if (exchange.status !== "draft" && (payload.criteria || payload.financials) && propertyId) {
+      if (exchange.status !== "draft" && (payload.property || payload.criteria || payload.financials) && propertyId) {
         await runMatchingSafe(db, user.id, exchange.id, propertyId, !!exchange.is_demo, "update:rescore");
       }
     }

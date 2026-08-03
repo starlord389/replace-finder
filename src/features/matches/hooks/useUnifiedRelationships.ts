@@ -41,7 +41,10 @@ export interface Relationship {
   assetScore: number | null;
   strategyScore: number | null;
   qualityScore: number | null;        // quality tiebreaker (financial_score, re-purposed)
-  candidateAnnualDebtService: number | null; // engine's amortized 75%-LTV payment
+  candidateAnnualDebtService: number | null; // engine's amortized modeled-loan payment
+  estimatedPurchasingCapacity?: number | null;
+  estimatedReplacementLoan?: number | null;
+  estimatedLtv?: number | null;               // ratio, e.g. 0.75
   occupancy: number | null;           // candidate property occupancy %
 
 
@@ -421,6 +424,9 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
       strategyScore: match.strategy_score != null ? Number(match.strategy_score) : null,
       qualityScore: match.financial_score != null ? Number(match.financial_score) : null,
       candidateAnnualDebtService: match.candidate_annual_debt_service != null ? Number(match.candidate_annual_debt_service) : null,
+      estimatedPurchasingCapacity: match.estimated_purchasing_capacity != null ? Number(match.estimated_purchasing_capacity) : null,
+      estimatedReplacementLoan: match.estimated_replacement_loan != null ? Number(match.estimated_replacement_loan) : null,
+      estimatedLtv: match.estimated_ltv != null ? Number(match.estimated_ltv) : null,
       occupancy: fin?.occupancy_rate != null ? Number(fin.occupancy_rate) : null,
       counterpartyName: cprof?.full_name ?? null,
       counterpartyBrokerage: cprof?.brokerage_name ?? null,

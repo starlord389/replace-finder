@@ -90,13 +90,16 @@ Deno.test({ ignore: !canRunIntegration, name: "staging: persist run writes match
   // Verify the match row exists for the expected buyer/seller pair.
   const { data: matchRow } = await admin
     .from("matches")
-    .select("id,total_score,roe_improvement_pp,buyer_exchange_id,seller_property_id")
+    .select("id,total_score,roe_improvement_pp,buyer_exchange_id,seller_property_id,estimated_purchasing_capacity,estimated_replacement_loan,estimated_ltv")
     .eq("buyer_exchange_id", manifest.buyer.exchange_id)
     .eq("seller_property_id", manifest.candidates.clean_match)
     .maybeSingle();
   assert(matchRow, "expected a matches row for buyer × clean-match candidate");
   assert(matchRow!.total_score > 0);
   assert((matchRow!.roe_improvement_pp ?? 0) > 0);
+  assertEquals(matchRow!.estimated_purchasing_capacity, 2_400_000);
+  assertEquals(matchRow!.estimated_replacement_loan, 900_000);
+  assertEquals(matchRow!.estimated_ltv, 0.6);
 
   // RLS approval path: seller agent should be able to read the same match row.
   const { accessToken: sellerToken } = await signInAs(manifest.seller.email);
@@ -117,4 +120,43 @@ Deno.test({ ignore: !canRunIntegration, name: "staging: persist run writes match
     .order("created_at", { ascending: false })
     .limit(5);
   assert(logRows && logRows.length > 0, "expected new-match-notification email log for buyer");
+} });
+
+Deno.test({ ignore: !canRunIntegration, name: "staging: rescore archives a recommendation that no longer improves ROE", fn: async () => {
+  const manifest = await seed();
+  const { accessToken } = await signInAs(manifest.buyer.email);
+  const admin = createClient(SUPABASE_URL, SERVICE);
+
+  const run = () => fetch(`${SUPABASE_URL}/functions/v1/run-auto-matching`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, apikey: ANON, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      exchange_id: manifest.buyer.exchange_id,
+      property_id: manifest.buyer.relinquished_id,
+      explain: true,
+      dry_run: false,
+    }),
+  });
+
+  const first = await run();
+  assertEquals(first.status, 200, `initial run failed: ${await first.text()}`);
+
+  const { error: weakenError } = await admin
+    .from("property_financials")
+    .update({ noi: 1 })
+    .eq("property_id", manifest.candidates.clean_match);
+  if (weakenError) throw weakenError;
+
+  const second = await run();
+  const body = await second.json();
+  assertEquals(second.status, 200, `rescore failed: ${JSON.stringify(body)}`);
+  assert(body.total_archived_matches >= 1, `expected stale archival: ${JSON.stringify(body)}`);
+
+  const { data: stale } = await admin
+    .from("matches")
+    .select("status")
+    .eq("buyer_exchange_id", manifest.buyer.exchange_id)
+    .eq("seller_property_id", manifest.candidates.clean_match)
+    .single();
+  assertEquals(stale!.status, "archived");
 } });

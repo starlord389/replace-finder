@@ -33,15 +33,15 @@ Deno.serve(async (req) => {
 
     const db = createClient(supabaseUrl, serviceRoleKey);
 
-    const { exchange_id, property_id, explain, dry_run, include_same_agent } = await req.json();
+    const { exchange_id, property_id, explain, dry_run } = await req.json();
     if (!exchange_id || !property_id) {
       return jsonResponse({ error: "exchange_id and property_id are required" }, 400);
     }
 
     // Ownership check: caller owns both, OR caller is an admin (for QA/diagnostics).
     const [{ data: exRow }, { data: propRow }, { data: isAdminData }] = await Promise.all([
-      db.from("exchanges").select("agent_id, relinquished_property_id, is_demo").eq("id", exchange_id).maybeSingle(),
-      db.from("pledged_properties").select("agent_id").eq("id", property_id).maybeSingle(),
+      db.from("exchanges").select("agent_id, relinquished_property_id, is_demo, status").eq("id", exchange_id).maybeSingle(),
+      db.from("pledged_properties").select("agent_id, status").eq("id", property_id).maybeSingle(),
       db.rpc("has_role", { _user_id: userId, _role: "admin" }),
     ]);
     const isAdmin = isAdminData === true;
@@ -58,9 +58,15 @@ Deno.serve(async (req) => {
 
     const diagnostics: MatchDiagnosticRow[] = explain ? [] : undefined as any;
     const allMatches = await computeMatchesForExchange(db, effectiveUserId, exchange_id, property_id, diagnostics);
-    const newMatchCount = effectiveDryRun
-      ? 0
-      : await persistMatchesAndNotifications(db, allMatches, effectiveUserId, !!exRow.is_demo);
+    const persistence = effectiveDryRun
+      ? { new_matches: 0, archived_matches: 0, active_matches: allMatches.length }
+      : await persistMatchesAndNotifications(
+          db,
+          allMatches,
+          effectiveUserId,
+          !!exRow.is_demo,
+          { exchangeId: exchange_id, propertyId: property_id },
+        );
 
 
 
@@ -72,7 +78,9 @@ Deno.serve(async (req) => {
     return jsonResponse({
       matches_for_exchange: allMatches.filter((m) => m.direction === "buyer").length,
       matches_from_property: allMatches.filter((m) => m.direction === "seller").length,
-      total_new_matches: newMatchCount,
+      total_new_matches: persistence.new_matches,
+      total_archived_matches: persistence.archived_matches,
+      total_active_matches: persistence.active_matches,
       top_matches: topMatches,
       dry_run: effectiveDryRun,
       include_same_agent: includeSameAgent,

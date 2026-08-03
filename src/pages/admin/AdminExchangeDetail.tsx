@@ -26,6 +26,8 @@ interface DiagResult {
   matches_for_exchange: number;
   matches_from_property: number;
   total_new_matches: number;
+  total_archived_matches: number;
+  total_active_matches: number;
   dry_run: boolean;
   top_matches: Array<{ property_id: string; exchange_id: string; direction: string; score: number; roe_improvement_pp?: number | null }>;
   diagnostics: DiagRow[] | null;
@@ -204,8 +206,12 @@ export default function AdminExchangeDetail() {
         action: "matching.run",
         entityType: "exchange",
         entityId: exchange.id,
-        summary: `Ran matching and created ${result.total_new_matches} new match${result.total_new_matches === 1 ? "" : "es"}`,
-        metadata: { total_new_matches: result.total_new_matches },
+        summary: `Ran matching: ${result.total_new_matches} new, ${result.total_archived_matches ?? 0} archived`,
+        metadata: {
+          total_new_matches: result.total_new_matches,
+          total_archived_matches: result.total_archived_matches ?? 0,
+          total_active_matches: result.total_active_matches,
+        },
       });
       load(exchange.id);
     }
@@ -294,20 +300,32 @@ export default function AdminExchangeDetail() {
           </div>
 
           <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">Same-agent matches are enabled.</span>{" "}
-            Listings and exchanges belonging to the same agent, brokerage or account are scored
-            like any other candidate — only self-pairings and same-client records are skipped.
+            <span className="font-medium text-foreground">Ownership safety is enabled.</span>{" "}
+            Agents can match different clients inside their own book of business. Self-managed
+            investors are never matched to another property in their own account.
           </p>
 
 
 
           {matchResult && (
             <div className="space-y-3 rounded-md border bg-muted/30 p-3 text-sm">
+              <div className="flex items-start gap-2 rounded-md border border-green-200 bg-green-50 p-2.5 text-xs text-green-900">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>
+                  <span className="font-medium">The matching engine completed successfully.</span>{" "}
+                  {matchResult.matches_for_exchange + matchResult.matches_from_property === 0
+                    ? "Zero eligible matches is a valid result: the table below shows which rule rejected each available candidate."
+                    : "The eligible recommendations and every rejected candidate are shown below."}
+                </p>
+              </div>
               <div className="flex flex-wrap gap-4">
                 <div><span className="font-medium">{matchResult.matches_for_exchange}</span> buyer-side eligible</div>
                 <div><span className="font-medium">{matchResult.matches_from_property}</span> seller-side eligible</div>
                 {!matchResult.dry_run && (
                   <div><span className="font-medium">{matchResult.total_new_matches}</span> new matches persisted</div>
+                )}
+                {!matchResult.dry_run && (
+                  <div><span className="font-medium">{matchResult.total_archived_matches ?? 0}</span> stale matches archived</div>
                 )}
                 {matchResult.dry_run && <Badge variant="secondary">dry run</Badge>}
               </div>

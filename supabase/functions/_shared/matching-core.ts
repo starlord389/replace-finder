@@ -31,6 +31,15 @@ export interface ScoredMatch {
   roe_improvement_pp: number | null;
   roe_improvement_rel: number | null;
   candidate_annual_debt_service: number | null;
+  estimated_purchasing_capacity: number | null;
+  estimated_replacement_loan: number | null;
+  estimated_ltv: number | null;
+  relinquished_value: number | null;
+  replacement_value: number | null;
+  value_increase: number | null;
+  exchange_up_percentage: number | null;
+  match_classification: string;
+  eligibility_reasons: string[];
 }
 
 interface MatchSettings {
@@ -77,10 +86,9 @@ export async function computeMatchesForExchange(
   exchangeId: string,
   propertyId: string,
   diagnostics?: MatchDiagnosticRow[],
-  // Deprecated / no-op. Same-agent, same-brokerage and same-account candidates
-  // are always eligible: identifying Exchange Up opportunities inside one
-  // agent's own book of business is a core product feature. Kept only so older
-  // callers passing the flag keep compiling.
+  // Deprecated / no-op. Agents may match different clients inside one book of
+  // business; self-managed investors are always protected from self-matching.
+  // Kept only so older callers passing the flag keep compiling.
   _deprecatedIncludeSameAgent = true,
 ): Promise<ScoredMatch[]> {
 
@@ -96,6 +104,24 @@ export async function computeMatchesForExchange(
   const exchange = exchangeRes.data;
   const property = propertyRes.data;
   const isDemo = Boolean(property?.is_demo);
+
+  if (exchange.relinquished_property_id !== propertyId) {
+    throw new Error("Property is not the relinquished property linked to this exchange");
+  }
+
+  const matchableExchangeStatuses = ["active", "in_identification", "in_closing"];
+  const matchableRelinquishedStatuses = ["active", "sold"];
+  if (!matchableExchangeStatuses.includes(exchange.status) || !matchableRelinquishedStatuses.includes(property.status)) {
+    diagnostics?.push({
+      direction: "buyer",
+      candidate_property_id: propertyId,
+      candidate_exchange_id: exchangeId,
+      candidate_label: "matching eligibility",
+      status: "skipped",
+      reason: `matching is paused while exchange is ${exchange.status} and property is ${property.status}`,
+    });
+    return [];
+  }
 
   const [criteriaRes, propertyFinRes, relinquishedFinRes] = await Promise.all([
     exchange.criteria_id
@@ -119,10 +145,8 @@ export async function computeMatchesForExchange(
   // Criteria are intentionally optional for the current product. When blank,
   // affordability and improved return on equity are the only match gates.
   {
-    // Same-agent / same-account candidates are FULLY eligible: 1031 Exchange Up
-    // is built to surface exchange opportunities inside an agent's own book of
-    // business. The only records excluded are the ones that would pair a record
-    // with itself or with the very same client.
+    // Same-agent candidates remain eligible for agents serving different
+    // clients. Self-managed investors are handled as a single beneficial owner.
     const { data: activePropertiesRaw } = await db
       .from("pledged_properties")
       .select("*")
@@ -135,18 +159,24 @@ export async function computeMatchesForExchange(
       new Set((activePropertiesRaw ?? []).map((p: any) => p.exchange_id).filter(Boolean)),
     );
     const { data: candidateExchanges } = candidateExchangeIds.length
-      ? await db.from("exchanges").select("id, client_id").in("id", candidateExchangeIds)
+      ? await db.from("exchanges").select("id, client_id, agent_id, owner_type, status").in("id", candidateExchangeIds)
       : { data: [] };
-    const clientByExchange = new Map(
-      (candidateExchanges ?? []).map((e: any) => [e.id, e.client_id]),
+    const candidateExchangeById = new Map<string, any>(
+      (candidateExchanges ?? []).map((e: any) => [e.id, e]),
     );
 
     const activeProperties = (activePropertiesRaw ?? []).filter((p: any) => {
       if (p.id === propertyId) return false;                       // itself
       if (p.id === exchange.relinquished_property_id) return false; // this exchange's own relinquished asset
       if (p.exchange_id && p.exchange_id === exchangeId) return false;
-      const candidateClient = p.exchange_id ? clientByExchange.get(p.exchange_id) : null;
+      const candidateExchange = p.exchange_id ? candidateExchangeById.get(p.exchange_id) : null;
+      if (candidateExchange && !matchableExchangeStatuses.includes(candidateExchange.status)) return false;
+      const candidateClient = candidateExchange?.client_id ?? null;
       if (candidateClient && exchange.client_id && candidateClient === exchange.client_id) return false;
+      // Agents may surface opportunities across different clients in their own
+      // book. A self-managed investor, however, is the same beneficial owner on
+      // every exchange in the account and must never be matched to themself.
+      if (isInvestorSelfMatch(exchange, p)) return false;
       return true;
     });
 
@@ -173,7 +203,7 @@ export async function computeMatchesForExchange(
       for (const candidateProperty of activeProperties) {
         const candidateFinancials = financialMap.get(candidateProperty.id);
         const result = scorePairExplained(exchange, relinquishedFin, candidateProperty, candidateFinancials, criteria ?? {}, settings);
-        if (!result.ok) {
+        if ("reason" in result) {
           diagnostics?.push({
             direction: "buyer",
             candidate_property_id: candidateProperty.id,
@@ -209,8 +239,23 @@ export async function computeMatchesForExchange(
     }
   }
 
-  // Seller side: this property × every other active buyer exchange, including
-  // exchanges owned by the same agent / account (in-network opportunities).
+  // A sold relinquished property can still power the buyer side of an active
+  // 1031 exchange, but it must never be offered as a replacement candidate to
+  // somebody else.
+  if (property.status !== "active") {
+    diagnostics?.push({
+      direction: "seller",
+      candidate_property_id: propertyId,
+      candidate_exchange_id: exchangeId,
+      candidate_label: propertyLabel(property),
+      status: "skipped",
+      reason: `seller-side scan skipped because property is ${property.status}`,
+    });
+    return allMatches;
+  }
+
+  // Seller side: this property × every other active buyer exchange. Agents may
+  // see in-network opportunities across clients; investors never self-match.
   const { data: otherExchangesRaw } = await db
     .from("exchanges")
     .select("*, replacement_criteria(*)")
@@ -222,6 +267,7 @@ export async function computeMatchesForExchange(
     if (e.id === exchangeId) return false;
     if (e.relinquished_property_id && e.relinquished_property_id === propertyId) return false;
     if (e.client_id && exchange.client_id && e.client_id === exchange.client_id) return false;
+    if (isInvestorSelfMatch(e, property)) return false;
     return true;
   });
 
@@ -255,7 +301,7 @@ export async function computeMatchesForExchange(
         : null;
 
       const result = scorePairExplained(otherExchange, buyerRelinquishedFinancials, property, propertyFin, otherCriteria ?? {}, settings);
-      if (!result.ok) {
+      if ("reason" in result) {
         diagnostics?.push({
           direction: "seller",
           candidate_property_id: propertyId,
@@ -298,28 +344,79 @@ function prettyLabel(s: string): string {
   return s.replace(/_/g, " ");
 }
 
+export function isInvestorSelfMatch(buyerExchange: any, candidateProperty: any): boolean {
+  return buyerExchange?.owner_type === "investor" &&
+    !!buyerExchange?.agent_id &&
+    buyerExchange.agent_id === candidateProperty?.agent_id;
+}
+
+export function findStaleActiveMatchIds(
+  existing: Array<{ id: string; buyer_exchange_id: string; seller_property_id: string; status: string }>,
+  qualified: Array<{ buyer_exchange_id: string; seller_property_id: string }>,
+): string[] {
+  const qualifiedSet = new Set(
+    qualified.map((m) => `${m.buyer_exchange_id}:${m.seller_property_id}`),
+  );
+  return existing
+    .filter((r) => r.status === "active" && !qualifiedSet.has(`${r.buyer_exchange_id}:${r.seller_property_id}`))
+    .map((r) => r.id);
+}
+
 
 export async function persistMatchesAndNotifications(
   db: any,
   matches: ScoredMatch[],
   userId: string,
   isDemo = false,
-) {
-  if (matches.length === 0) return 0;
+  scope?: { exchangeId: string; propertyId: string },
+): Promise<{ new_matches: number; archived_matches: number; active_matches: number }> {
+  if (!scope) {
+    throw new Error("Matching persistence requires an exchange/property reconciliation scope");
+  }
 
-  // Which (buyer_exchange_id, seller_property_id) pairs already exist? Only the
-  // genuinely new ones should fire a "New Match" notification — otherwise every
-  // re-run / criteria edit re-notifies for matches the agent has already seen.
+  // Reconcile the complete scope on every run. Previously this function only
+  // upserted qualifying pairs, leaving old recommendations visible forever after
+  // their financials or listing status stopped qualifying.
   const buyerExIds = [...new Set(matches.map((m) => m.buyer_exchange_id))];
   const sellerPropIds = [...new Set(matches.map((m) => m.seller_property_id))];
-  const { data: existing } = await db
+  const { data: existing, error: existingError } = await db
     .from("matches")
-    .select("buyer_exchange_id, seller_property_id")
-    .in("buyer_exchange_id", buyerExIds)
-    .in("seller_property_id", sellerPropIds);
+    .select("id, buyer_exchange_id, seller_property_id, status")
+    .or(`buyer_exchange_id.eq.${scope.exchangeId},seller_property_id.eq.${scope.propertyId}`);
+  if (existingError) throw existingError;
   const existingSet = new Set(
     (existing ?? []).map((r: any) => `${r.buyer_exchange_id}:${r.seller_property_id}`),
   );
+  const staleActiveIds = findStaleActiveMatchIds(existing ?? [], matches);
+
+  let archivedCount = 0;
+  if (staleActiveIds.length) {
+    // Preserve deal history once either party has started a connection or the
+    // buyer has formally identified the candidate.
+    const [connectedResult, identifiedResult] = await Promise.all([
+      db.from("exchange_connections").select("match_id").in("match_id", staleActiveIds)
+        .in("status", ["pending", "accepted", "in_progress", "completed"]),
+      db.from("identification_list").select("match_id").in("match_id", staleActiveIds)
+        .neq("status", "removed"),
+    ]);
+    if (connectedResult.error) throw connectedResult.error;
+    if (identifiedResult.error) throw identifiedResult.error;
+    const connected = connectedResult.data;
+    const identified = identifiedResult.data;
+    const protectedIds = new Set<string>([
+      ...(connected ?? []).map((r: any) => r.match_id),
+      ...(identified ?? []).map((r: any) => r.match_id),
+    ]);
+    const archiveIds = staleActiveIds.filter((id: string) => !protectedIds.has(id));
+    if (archiveIds.length) {
+      const { error: archiveError } = await db
+        .from("matches")
+        .update({ status: "archived" })
+        .in("id", archiveIds);
+      if (archiveError) throw archiveError;
+      archivedCount = archiveIds.length;
+    }
+  }
 
   const rows = matches.map((m) => ({
     buyer_exchange_id: m.buyer_exchange_id,
@@ -340,13 +437,24 @@ export async function persistMatchesAndNotifications(
     roe_improvement_pp: m.roe_improvement_pp,
     roe_improvement_rel: m.roe_improvement_rel,
     candidate_annual_debt_service: m.candidate_annual_debt_service,
+    estimated_purchasing_capacity: m.estimated_purchasing_capacity,
+    estimated_replacement_loan: m.estimated_replacement_loan,
+    estimated_ltv: m.estimated_ltv,
+    relinquished_value: m.relinquished_value,
+    replacement_value: m.replacement_value,
+    value_increase: m.value_increase,
+    exchange_up_percentage: m.exchange_up_percentage,
+    match_classification: m.match_classification,
+    eligibility_reasons: m.eligibility_reasons,
     status: "active",
   }));
 
-  const { error } = await db
-    .from("matches")
-    .upsert(rows, { onConflict: "buyer_exchange_id,seller_property_id" });
-  if (error) throw error;
+  if (rows.length) {
+    const { error } = await db
+      .from("matches")
+      .upsert(rows, { onConflict: "buyer_exchange_id,seller_property_id" });
+    if (error) throw error;
+  }
 
   // Notify only for genuinely new matches, tagged with the workspace so demo
   // matching stays out of the live feed and is cleaned up on demo reset.
@@ -421,7 +529,11 @@ export async function persistMatchesAndNotifications(
     }
   }
 
-  return newMatches.length;
+  return {
+    new_matches: newMatches.length,
+    archived_matches: archivedCount,
+    active_matches: matches.length,
+  };
 }
 
 async function sendNewMatchEmails(
@@ -430,9 +542,12 @@ async function sendNewMatchEmails(
   matchIdByPair: Map<string, string>,
 ) {
   try {
+    const denoRuntime = (globalThis as unknown as {
+      Deno?: { env: { get: (name: string) => string | undefined } };
+    }).Deno;
     const APP_URL =
-      Deno.env.get("APP_PUBLIC_URL") ??
-      Deno.env.get("SITE_URL") ??
+      denoRuntime?.env.get("APP_PUBLIC_URL") ??
+      denoRuntime?.env.get("SITE_URL") ??
       "https://1031exchangeup.com";
 
     // Collect the ids we need to hydrate labels + recipient info.
@@ -467,8 +582,8 @@ async function sendNewMatchEmails(
 
     // Seller-side recipients may also be self-managed property owners. Hydrate
     // their exchanges so email links return them to the correct workspace.
-    const sellerExchangeIds = Array.from(
-      new Set((propertiesRes.data ?? []).map((p: any) => p.exchange_id).filter(Boolean)),
+    const sellerExchangeIds: string[] = Array.from(
+      new Set<string>((propertiesRes.data ?? []).map((p: any) => p.exchange_id).filter((id: unknown): id is string => typeof id === "string")),
     );
     const missingSellerExchangeIds = sellerExchangeIds.filter((id) => !buyerExchangeIds.includes(id));
     let exchanges = exchangesRes.data ?? [];
@@ -586,6 +701,15 @@ interface RoePairScore {
   roe_improvement_pp: number | null;
   roe_improvement_rel: number | null;
   candidate_annual_debt_service: number | null;
+  estimated_purchasing_capacity: number | null;
+  estimated_replacement_loan: number | null;
+  estimated_ltv: number | null;
+  relinquished_value: number | null;
+  replacement_value: number | null;
+  value_increase: number | null;
+  exchange_up_percentage: number | null;
+  match_classification: string;
+  eligibility_reasons: string[];
 }
 
 type ScoreResult =
@@ -648,7 +772,18 @@ export function scorePairExplained(
     };
   }
 
-  const loanAmount = MAX_COMMERCIAL_LTV * cPrice;
+  // Reinvest the buyer's full equity and finance only the remaining purchase
+  // price. The former formula always borrowed 75% of every candidate price,
+  // which double-counted cash whenever the candidate was below the maximum
+  // purchasing capacity and could turn a good property into a false rejection.
+  const loanAmount = Math.max(0, cPrice - buyerEquity);
+  const candidateLtv = loanAmount / cPrice;
+  if (candidateLtv > MAX_COMMERCIAL_LTV + 1e-9) {
+    return {
+      ok: false,
+      reason: `modeled loan-to-value ${(candidateLtv * 100).toFixed(2)}% exceeds the ${MAX_COMMERCIAL_LTV * 100}% maximum`,
+    };
+  }
   const annualPmt = amortizedAnnualPayment(loanAmount, settings.mortgage_interest_rate, settings.mortgage_amortization_years);
 
   const candidateROE = (cNoi - annualPmt) / buyerEquity;
@@ -689,6 +824,19 @@ export function scorePairExplained(
       roe_improvement_pp: round(improvementPP),
       roe_improvement_rel: improvementRel != null ? round4(improvementRel) : null,
       candidate_annual_debt_service: Math.round(annualPmt),
+      estimated_purchasing_capacity: Math.round(maxAffordable),
+      estimated_replacement_loan: Math.round(loanAmount),
+      estimated_ltv: round4(candidateLtv),
+      relinquished_value: Math.round(rPrice),
+      replacement_value: Math.round(cPrice),
+      value_increase: Math.round(cPrice - rPrice),
+      exchange_up_percentage: round(((cPrice - rPrice) / rPrice) * 100),
+      match_classification: "exchange_up",
+      eligibility_reasons: [
+        `Replacement value is equal to or above the relinquished value`,
+        `Modeled LTV ${(candidateLtv * 100).toFixed(2)}% is within the ${MAX_COMMERCIAL_LTV * 100}% limit`,
+        `Projected ROE improves by ${improvementPP.toFixed(2)} percentage points`,
+      ],
     },
   };
 }
@@ -807,16 +955,15 @@ function round4(n: number): number {
 }
 
 export function calculateBoot(
-  buyerExchange: any,
+  _buyerExchange: any,
   buyerFin: any,
   _sellerProp: any,
   sellerFin: any,
 ): Record<string, any> {
-  const proceeds = Number(buyerExchange.exchange_proceeds || 0);
-  const askingPrice = Number(sellerFin?.asking_price || 0);
-  const buyerLoanBalance = Number(buyerFin?.loan_balance || 0);
-  const sellerLoanBalance = Number(sellerFin?.loan_balance || 0);
-  if (!proceeds && !askingPrice && !buyerLoanBalance && !sellerLoanBalance) {
+  const relinquishedValue = numOrNull(buyerFin?.asking_price);
+  const askingPrice = numOrNull(sellerFin?.asking_price);
+  const buyerLoanBalance = numOrNull(buyerFin?.loan_balance);
+  if (relinquishedValue == null || askingPrice == null || buyerLoanBalance == null) {
     return {
       estimated_cash_boot: null,
       estimated_mortgage_boot: null,
@@ -826,20 +973,37 @@ export function calculateBoot(
     };
   }
 
-  const cashBoot = Math.max(0, proceeds - askingPrice);
-  const mortgageBoot = Math.max(0, buyerLoanBalance - sellerLoanBalance);
+  const buyerEquity = relinquishedValue - buyerLoanBalance;
+  if (buyerEquity <= 0) {
+    return {
+      estimated_cash_boot: null,
+      estimated_mortgage_boot: null,
+      estimated_total_boot: null,
+      estimated_boot_tax: null,
+      boot_status: "insufficient_data",
+    };
+  }
+
+  // Boot depends on the buyer's modeled replacement financing—not the seller's
+  // existing mortgage, which is irrelevant unless a specific loan assumption is
+  // actually structured. This mirrors the score model: all equity is reinvested
+  // and only the remaining purchase price is financed.
+  const replacementLoan = Math.max(0, askingPrice - buyerEquity);
+  const cashBoot = Math.max(0, buyerEquity - askingPrice);
+  const mortgageBoot = Math.max(0, buyerLoanBalance - replacementLoan);
   const totalBoot = Math.max(0, cashBoot + mortgageBoot);
-  const bootTax = totalBoot * 0.3;
 
   let bootStatus = "significant_boot";
   if (totalBoot === 0) bootStatus = "no_boot";
-  else if (proceeds > 0 && totalBoot < proceeds * 0.05) bootStatus = "minor_boot";
+  else if (buyerEquity > 0 && totalBoot < buyerEquity * 0.05) bootStatus = "minor_boot";
 
   return {
     estimated_cash_boot: cashBoot,
     estimated_mortgage_boot: mortgageBoot,
     estimated_total_boot: totalBoot,
-    estimated_boot_tax: round(bootTax),
+    // Tax treatment depends on basis, gain, entity, jurisdiction, and deal
+    // structure. A universal 30% estimate presented false precision.
+    estimated_boot_tax: null,
     boot_status: bootStatus,
   };
 }
@@ -855,14 +1019,29 @@ export async function runMatchingSafe(
   propertyId: string,
   isDemo: boolean,
   reason: string,
-): Promise<{ ok: boolean; new_matches?: number; error?: string }> {
+): Promise<{ ok: boolean; new_matches?: number; archived_matches?: number; active_matches?: number; error?: string }> {
   try {
     const matches = await computeMatchesForExchange(db, userId, exchangeId, propertyId);
-    const newCount = await persistMatchesAndNotifications(db, matches, userId, isDemo);
-    console.log(`[matching:${reason}] exchange=${exchangeId} new=${newCount}`);
-    return { ok: true, new_matches: newCount };
+    const result = await persistMatchesAndNotifications(
+      db,
+      matches,
+      userId,
+      isDemo,
+      { exchangeId, propertyId },
+    );
+    // Relevant-row triggers enqueue work before this inline run. This run has
+    // consumed that exact work, so remove its pending queue entries rather than
+    // leaving a permanent backlog that implies matching never ran.
+    await db.from("match_job_queue").delete()
+      .eq("exchange_id", exchangeId).eq("property_id", propertyId).eq("status", "pending");
+    console.log(`[matching:${reason}] exchange=${exchangeId} new=${result.new_matches} archived=${result.archived_matches} active=${result.active_matches}`);
+    return { ok: true, ...result };
   } catch (err) {
     console.error(`[matching:${reason}] FAILED exchange=${exchangeId}`, err);
+    await db.from("match_job_queue").update({
+      attempts: 1,
+      last_error: (err as Error).message,
+    }).eq("exchange_id", exchangeId).eq("property_id", propertyId).eq("status", "pending");
     return { ok: false, error: (err as Error).message };
   }
 }

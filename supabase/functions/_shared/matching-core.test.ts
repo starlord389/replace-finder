@@ -1,5 +1,11 @@
 import { assertEquals, assert, assertMatch } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { scorePairExplained, blendFit, calculateBoot } from "./matching-core.ts";
+import {
+  blendFit,
+  calculateBoot,
+  findStaleActiveMatchIds,
+  isInvestorSelfMatch,
+  scorePairExplained,
+} from "./matching-core.ts";
 
 const settings = { mortgage_interest_rate: 7.25, mortgage_amortization_years: 30 };
 
@@ -11,16 +17,18 @@ const criteria = { target_states: ["MA"], target_asset_types: ["multifamily"] };
 
 Deno.test("scorePairExplained: clean upgrade returns ok with positive ROE improvement", () => {
   // Candidate: $1.5M price (within 4x $600k = $2.4M ceiling), $130k NOI
-  // 75% LTV loan on $1.5M = $1.125M at 7.25%/30yr
+  // Full $600k equity is reinvested, so the modeled loan is $900k (60% LTV).
   const candidate = { state: "MA", asset_type: "multifamily", year_built: 2015 };
   const candidateFin = { asking_price: 1_500_000, noi: 130_000, occupancy_rate: 92 };
   const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
-  assert(r.ok, `expected ok, got: ${!r.ok && r.reason}`);
+  assert(r.ok, `expected ok, got: ${"reason" in r ? r.reason : "unknown failure"}`);
   if (r.ok) {
     assert((r.score.roe_improvement_pp ?? 0) > 0, "expected positive ROE improvement");
     assert(r.score.total > 0 && r.score.total <= 100);
     assertEquals(r.score.geo, 70); // state match, no metros
     assertEquals(r.score.asset, 100); // asset type match
+    assertEquals(r.score.estimated_replacement_loan, 900_000);
+    assertEquals(r.score.estimated_ltv, 0.6);
   }
 });
 
@@ -30,7 +38,7 @@ Deno.test("scorePairExplained: affordability rejection", () => {
   const candidateFin = { asking_price: 3_000_000, noi: 250_000 };
   const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
   assert(!r.ok);
-  if (!r.ok) assertMatch(r.reason, /candidate price .* exceeds affordability/);
+  if ("reason" in r) assertMatch(r.reason, /candidate price .* exceeds affordability/);
 });
 
 Deno.test("scorePairExplained: no ROE upgrade rejection", () => {
@@ -39,7 +47,7 @@ Deno.test("scorePairExplained: no ROE upgrade rejection", () => {
   const candidateFin = { asking_price: 1_500_000, noi: 30_000 };
   const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
   assert(!r.ok);
-  if (!r.ok) assertMatch(r.reason, /no ROE upgrade/);
+  if ("reason" in r) assertMatch(r.reason, /no ROE upgrade/);
 });
 
 Deno.test("scorePairExplained: missing buyer financials → skip", () => {
@@ -47,14 +55,14 @@ Deno.test("scorePairExplained: missing buyer financials → skip", () => {
   const candidateFin = { asking_price: 1_500_000, noi: 130_000 };
   const r = scorePairExplained(buyerExchange, { noi: 60_000 }, candidate, candidateFin, criteria, settings);
   assert(!r.ok);
-  if (!r.ok) assertMatch(r.reason, /missing NOI, asking price, or loan balance/);
+  if ("reason" in r) assertMatch(r.reason, /missing NOI, asking price, or loan balance/);
 });
 
 Deno.test("scorePairExplained: missing candidate financials → skip", () => {
   const candidate = { state: "MA", asset_type: "multifamily" };
   const r = scorePairExplained(buyerExchange, buyerFin, candidate, { noi: 100_000 }, criteria, settings);
   assert(!r.ok);
-  if (!r.ok) assertMatch(r.reason, /candidate property missing/);
+  if ("reason" in r) assertMatch(r.reason, /candidate property missing/);
 });
 
 Deno.test("blendFit: no criteria → 100 (pure ROE ranking)", () => {
@@ -68,16 +76,18 @@ Deno.test("blendFit: partial criteria only weights expressed dimensions", () => 
   assertEquals(v, 80);
 });
 
-Deno.test("calculateBoot: candidate cheaper than proceeds → cash boot", () => {
-  const b = calculateBoot({ exchange_proceeds: 600_000 }, { loan_balance: 400_000 }, {}, { asking_price: 500_000, loan_balance: 400_000 });
+Deno.test("calculateBoot: uses buyer equity and modeled new financing, not seller debt", () => {
+  const b = calculateBoot({}, { asking_price: 1_000_000, loan_balance: 400_000 }, {}, { asking_price: 500_000, loan_balance: 999_999 });
   assertEquals(b.estimated_cash_boot, 100_000);
-  assertEquals(b.estimated_mortgage_boot, 0);
+  assertEquals(b.estimated_mortgage_boot, 400_000);
   assertEquals(b.boot_status, "significant_boot");
+  assertEquals(b.estimated_boot_tax, null);
 });
 
 Deno.test("calculateBoot: fully consumed proceeds → no boot", () => {
-  const b = calculateBoot({ exchange_proceeds: 600_000 }, { loan_balance: 400_000 }, {}, { asking_price: 1_500_000, loan_balance: 1_125_000 });
+  const b = calculateBoot({}, { asking_price: 1_000_000, loan_balance: 400_000 }, {}, { asking_price: 1_500_000, loan_balance: 1 });
   assertEquals(b.estimated_cash_boot, 0);
+  assertEquals(b.estimated_mortgage_boot, 0);
   assertEquals(b.boot_status, "no_boot");
 });
 
@@ -93,5 +103,45 @@ Deno.test("scorePairExplained: replacement cheaper than relinquished → trade-u
   const candidateFin = { asking_price: 900_000, noi: 120_000 };
   const r = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, criteria, settings);
   assert(!r.ok);
-  if (!r.ok) assertMatch(r.reason, /1031 trade-up rule/);
+  if ("reason" in r) assertMatch(r.reason, /1031 trade-up rule/);
+});
+
+Deno.test("boss example: $2M value and $1M debt supports up to $4M at 75% LTV", () => {
+  const buyer = { asking_price: 2_000_000, loan_balance: 1_000_000, noi: 170_000, annual_debt_service: 80_000 };
+  const atCeiling = scorePairExplained(
+    {}, buyer, {}, { asking_price: 4_000_000, noi: 400_000 }, {},
+    { mortgage_interest_rate: 7, mortgage_amortization_years: 25 },
+  );
+  assert(atCeiling.ok, `expected ceiling candidate to qualify, got: ${"reason" in atCeiling ? atCeiling.reason : "unknown failure"}`);
+  if (atCeiling.ok) {
+    assertEquals(atCeiling.score.estimated_purchasing_capacity, 4_000_000);
+    assertEquals(atCeiling.score.estimated_replacement_loan, 3_000_000);
+    assertEquals(atCeiling.score.estimated_ltv, 0.75);
+  }
+
+  const aboveCeiling = scorePairExplained(
+    {}, buyer, {}, { asking_price: 4_000_001, noi: 500_000 }, {},
+    { mortgage_interest_rate: 7, mortgage_amortization_years: 25 },
+  );
+  assert(!aboveCeiling.ok);
+  if ("reason" in aboveCeiling) assertMatch(aboveCeiling.reason, /exceeds affordability ceiling/);
+});
+
+Deno.test("self-managed investors cannot match their own account; agents can match different clients", () => {
+  const property = { agent_id: "owner-1" };
+  assert(isInvestorSelfMatch({ owner_type: "investor", agent_id: "owner-1" }, property));
+  assertEquals(isInvestorSelfMatch({ owner_type: "agent", agent_id: "owner-1" }, property), false);
+  assertEquals(isInvestorSelfMatch({ owner_type: "investor", agent_id: "owner-2" }, property), false);
+});
+
+Deno.test("reconciliation finds active pairs that no longer qualify", () => {
+  const stale = findStaleActiveMatchIds(
+    [
+      { id: "keep", buyer_exchange_id: "ex-1", seller_property_id: "p-1", status: "active" },
+      { id: "archive", buyer_exchange_id: "ex-1", seller_property_id: "p-2", status: "active" },
+      { id: "already", buyer_exchange_id: "ex-1", seller_property_id: "p-3", status: "archived" },
+    ],
+    [{ buyer_exchange_id: "ex-1", seller_property_id: "p-1" }],
+  );
+  assertEquals(stale, ["archive"]);
 });

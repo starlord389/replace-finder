@@ -19,6 +19,7 @@
 // Admin-only. Runs with the service role.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { calculateBoot, scorePairExplained } from "../_shared/matching-core.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,6 +42,63 @@ function fin(o: { ask: number; cap: number; gross: number; occ: number; loan: nu
     occupancy_rate: o.occ, loan_balance: o.loan, loan_rate: o.rate,
     loan_type: o.loan > 0 ? "Fixed-rate" : "Free & clear", loan_maturity_date: o.maturity,
     annual_debt_service: Math.round(monthly * 12),
+  };
+}
+
+async function buildEngineMatch(
+  db: any,
+  buyerExchangeId: string,
+  sellerPropertyId: string,
+  opts: Record<string, unknown> = {},
+) {
+  const [{ data: exchange }, { data: sellerProperty }, { data: sellerFin }] = await Promise.all([
+    db.from("exchanges").select("*").eq("id", buyerExchangeId).single(),
+    db.from("pledged_properties").select("*").eq("id", sellerPropertyId).single(),
+    db.from("property_financials").select("*").eq("property_id", sellerPropertyId).single(),
+  ]);
+  if (!exchange || !sellerProperty || !sellerFin) throw new Error("Demo match fixture is missing source data");
+  const [{ data: buyerFin }, { data: criteria }] = await Promise.all([
+    db.from("property_financials").select("*").eq("property_id", exchange.relinquished_property_id).single(),
+    exchange.criteria_id
+      ? db.from("replacement_criteria").select("*").eq("id", exchange.criteria_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  // Demo fixtures use the platform defaults so an experimental admin setting
+  // cannot make the demo reset itself fail. The same production scoring code is
+  // still used; only the inputs are held stable for repeatable QA.
+  const settings = { mortgage_interest_rate: 7, mortgage_amortization_years: 25 };
+  const result = scorePairExplained(exchange, buyerFin, sellerProperty, sellerFin, criteria ?? {}, settings);
+  if ("reason" in result) {
+    throw new Error(`Invalid demo match ${buyerExchangeId}/${sellerPropertyId}: ${result.reason}`);
+  }
+  const s = result.score;
+  return {
+    buyer_exchange_id: buyerExchangeId,
+    seller_property_id: sellerPropertyId,
+    total_score: s.total,
+    price_score: s.price,
+    geo_score: s.geo,
+    asset_score: s.asset,
+    strategy_score: s.strategy,
+    financial_score: s.financial,
+    buyer_current_roe: s.buyer_current_roe,
+    candidate_roe: s.candidate_roe,
+    roe_improvement_pp: s.roe_improvement_pp,
+    roe_improvement_rel: s.roe_improvement_rel,
+    candidate_annual_debt_service: s.candidate_annual_debt_service,
+    estimated_purchasing_capacity: s.estimated_purchasing_capacity,
+    estimated_replacement_loan: s.estimated_replacement_loan,
+    estimated_ltv: s.estimated_ltv,
+    relinquished_value: s.relinquished_value,
+    replacement_value: s.replacement_value,
+    value_increase: s.value_increase,
+    exchange_up_percentage: s.exchange_up_percentage,
+    match_classification: s.match_classification,
+    eligibility_reasons: s.eligibility_reasons,
+    ...calculateBoot(exchange, buyerFin, sellerProperty, sellerFin),
+    buyer_agent_viewed: false,
+    status: "active",
+    ...opts,
   };
 }
 
@@ -144,21 +202,6 @@ const OWN = [
       f: fin({ ask: 3_100_000, cap: 6.0, gross: 300_000, occ: 90, loan: 1_300_000, rate: 5.0, maturity: "2029-01-01" }), img: IMG.industrial },
     exchange: { status: "completed", exchange_proceeds: 1_800_000, estimated_equity: 1_800_000, estimated_basis: 1_050_000, estimated_gain: 750_000, estimated_tax_liability: 187_500, sale_close_date: dFrom(-180), identification_deadline: dFrom(-135), closing_deadline: dFrom(-8), actual_close_date: dFrom(-8) } },
 ];
-
-function factors(total: number) {
-  const c = (n: number) => Math.max(20, Math.min(100, Math.round(n)));
-  return { price_score: c(total + 1), geo_score: 50, asset_score: 50, strategy_score: 50, financial_score: c(total - 4), timing_score: c(total + 3), scale_fit_score: c(total - 2), debt_fit_score: c(total - 4) };
-}
-// Match helper: ROE stored as RATIOS (0.052), pp as percentage points, rel as a ratio.
-function match(buyerEx: string, sellerProp: string, total: number, curRoe: number, projRoe: number, boot: string, opts: Record<string, unknown> = {}) {
-  return {
-    buyer_exchange_id: buyerEx, seller_property_id: sellerProp, total_score: total, ...factors(total),
-    boot_status: boot, buyer_current_roe: curRoe, candidate_roe: projRoe,
-    roe_improvement_pp: Math.round((projRoe - curRoe) * 1000) / 10,
-    roe_improvement_rel: curRoe > 0 ? Math.round((projRoe / curRoe - 1) * 100) / 100 : null,
-    buyer_agent_viewed: false, status: "active", ...opts,
-  };
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -325,18 +368,15 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   const marcus = exFor("Marcus Rodriguez"), patel = exFor("Patel Family Trust"), wilson = exFor("James Wilson");
 
   // Buyer-side matches (the caller's active/in-ID exchanges x candidates).
-  const matchRows = [
-    match(marcus, prop["Sunrise Apartments"], 91, 0.052, 0.074, "no_boot", { candidate_annual_debt_service: 199_500 }),
-    match(marcus, prop["Lakeline Flex Park"], 86, 0.052, 0.081, "minor_boot", { estimated_cash_boot: 0, estimated_mortgage_boot: 120_000, estimated_total_boot: 120_000, estimated_boot_tax: 30_000, candidate_annual_debt_service: 116_800 }),
-    match(marcus, prop["Mesa Gateway Plaza"], 74, 0.052, 0.068, "no_boot", { buyer_agent_viewed: true, buyer_agent_viewed_at: dFrom(-3) + "T15:00:00Z", candidate_annual_debt_service: 94_000 }),
-    match(patel, prop["Queen City Medical Commons"], 88, 0.056, 0.072, "no_boot", { candidate_annual_debt_service: 157_600 }),
-    match(patel, prop["Crosspoint Industrial"], 81, 0.056, 0.079, "minor_boot", { estimated_cash_boot: 95_000, estimated_mortgage_boot: 0, estimated_total_boot: 95_000, estimated_boot_tax: 23_750, candidate_annual_debt_service: 119_400 }),
-    match(patel, prop["Bayshore Court Apartments"], 70, 0.056, 0.069, "no_boot", { candidate_annual_debt_service: 181_000 }),
-    match(wilson, prop["Crosspoint Industrial"], 93, 0.064, 0.086, "no_boot", { buyer_agent_viewed: true, buyer_agent_viewed_at: dFrom(-1) + "T18:00:00Z", candidate_annual_debt_service: 119_400 }),
-    match(wilson, prop["Lakeline Flex Park"], 89, 0.064, 0.090, "minor_boot", { estimated_cash_boot: 145_000, estimated_mortgage_boot: 0, estimated_total_boot: 145_000, estimated_boot_tax: 36_250, candidate_annual_debt_service: 116_800 }),
-    match(wilson, prop["Westshore Corporate Center"], 61, 0.064, 0.071, "significant_boot", { estimated_cash_boot: 0, estimated_mortgage_boot: 920_000, estimated_total_boot: 920_000, estimated_boot_tax: 230_000, candidate_annual_debt_service: 246_000 }),
-    match(wilson, prop["Bayshore Court Apartments"], 47, 0.064, null as any, "insufficient_data", { roe_improvement_pp: null, roe_improvement_rel: null }),
-  ];
+  // Seed only pairs that the production engine itself approves. This keeps the
+  // demo useful as a QA fixture instead of presenting fabricated scores or
+  // impossible trade-down recommendations.
+  const matchRows = await Promise.all([
+    buildEngineMatch(db, marcus, prop["Westshore Corporate Center"]),
+    buildEngineMatch(db, patel, prop["Crosspoint Industrial"]),
+    buildEngineMatch(db, patel, prop["Westshore Corporate Center"]),
+    buildEngineMatch(db, wilson, prop["Westshore Corporate Center"], { buyer_agent_viewed: true, buyer_agent_viewed_at: dFrom(-1) + "T18:00:00Z" }),
+  ]);
   const { data: matches, error: mErr } = await db.from("matches").insert(matchRows).select("id, buyer_exchange_id, seller_property_id");
   if (mErr) throw new Error(`matches insert failed: ${mErr.message}`);
   const matchId = (ex: string, p: string) => (matches ?? []).find((m: any) => m.buyer_exchange_id === ex && m.seller_property_id === p)?.id;
@@ -345,28 +385,30 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   // matched against the caller's own Heights listing — exercises "incoming interest".
   const jordan = cpAgent["Jordan Alvarez"];
   const inboundClient = await insertOne(db, "agent_clients", { agent_id: jordan, client_name: "Cardinal Multifamily Fund", client_company: "Cardinal Capital", client_email: "acq@cardinalcap.example", client_phone: "(602) 555-0210", notes: "Acquiring Texas multifamily.", is_demo: true, status: "active" }, "id");
-  const inboundRelProp = await insertProperty(db, jordan, { name: "Tempe Town Lake Apartments", address: "60 E Rio Salado Pkwy", city: "Tempe", state: "AZ", asset_type: "multifamily", strategy_type: "core_plus", units: 40, year_built: 2006, sf: 36000, description: "Relinquished asset for Cardinal's exchange.", f: fin({ ask: 6_200_000, cap: 5.2, gross: 470_000, occ: 96, loan: 3_000_000, rate: 4.8, maturity: "2030-09-01" }), img: IMG.mf }, true);
-  const inboundEx = await insertOne(db, "exchanges", { agent_id: jordan, client_id: inboundClient.id, relinquished_property_id: inboundRelProp, is_demo: true, status: "active", exchange_proceeds: 3_000_000, estimated_equity: 3_000_000, identification_deadline: dFrom(40), closing_deadline: dFrom(175) }, "id");
+  const inboundRelProp = await insertProperty(db, jordan, { name: "Tempe Town Lake Apartments", address: "60 E Rio Salado Pkwy", city: "Tempe", state: "AZ", asset_type: "multifamily", strategy_type: "core_plus", units: 40, year_built: 2006, sf: 36000, description: "Relinquished asset for Cardinal's exchange.", f: fin({ ask: 3_000_000, cap: 3.2, gross: 160_000, occ: 96, loan: 1_200_000, rate: 4.8, maturity: "2030-09-01" }), img: IMG.mf }, true);
+  const inboundEx = await insertOne(db, "exchanges", { agent_id: jordan, client_id: inboundClient.id, relinquished_property_id: inboundRelProp, is_demo: true, status: "active", exchange_proceeds: 1_800_000, estimated_equity: 1_800_000, identification_deadline: dFrom(40), closing_deadline: dFrom(175) }, "id");
   const inboundCrit = await insertOne(db, "replacement_criteria", { exchange_id: inboundEx.id, target_asset_types: ["multifamily"], target_states: ["TX"], target_price_min: 2_500_000, target_price_max: 4_500_000 }, "id");
   await db.from("exchanges").update({ criteria_id: inboundCrit.id }).eq("id", inboundEx.id);
   await db.from("pledged_properties").update({ exchange_id: inboundEx.id }).eq("id", inboundRelProp);
-  const { data: inboundMatch } = await db.from("matches").insert(match(inboundEx.id, prop["Heights Multifamily 24"], 84, 0.049, 0.071, "no_boot", { candidate_annual_debt_service: 219_000 })).select("id").single();
+  const inboundMatchRow = await buildEngineMatch(db, inboundEx.id, prop["Heights Multifamily 24"]);
+  const { data: inboundMatch, error: inboundMatchError } = await db.from("matches").insert(inboundMatchRow).select("id").single();
+  if (inboundMatchError) throw new Error(`inbound demo match insert failed: ${inboundMatchError.message}`);
 
   // Connections at varied lifecycle stages.
   // (a) Pending, the OTHER side initiated -> "needs your reply".
-  await mustInsert(db, "exchange_connections", { match_id: matchId(marcus, prop["Sunrise Apartments"]), buyer_agent_id: ownerId, seller_agent_id: jordan, buyer_exchange_id: marcus, seller_exchange_id: null, status: "pending", initiated_by: "seller_agent", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  await mustInsert(db, "exchange_connections", { match_id: matchId(marcus, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: marcus, seller_exchange_id: null, status: "pending", initiated_by: "seller_agent", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (b) Pending, YOU initiated -> "awaiting response".
-  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Queen City Medical Commons"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: patel, seller_exchange_id: null, status: "pending", initiated_by: "buyer_agent", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Crosspoint Industrial"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: patel, seller_exchange_id: null, status: "pending", initiated_by: "buyer_agent", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (c) Accepted + conversing -> live message thread.
-  const conn = await insertOne(db, "exchange_connections", { match_id: matchId(wilson, prop["Crosspoint Industrial"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: wilson, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-2) + "T16:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true }, "id");
+  const conn = await insertOne(db, "exchange_connections", { match_id: matchId(wilson, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: wilson, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-2) + "T16:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true }, "id");
   await mustInsert(db, "messages", [
-    { connection_id: conn.id, sender_id: cpAgent["Priya Mehta"], content: "Thanks for connecting — Crosspoint is a strong fit for an industrial 1031. Happy to send the OM and rent roll." },
+    { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Thanks for connecting — Westshore is available for a 1031 buyer. Happy to send the OM and rent roll." },
     { connection_id: conn.id, sender_id: ownerId, content: "Appreciate it. My client's on a 9-day ID clock, so speed matters. Can you also share the T-12 and the tenant's lease abstract?" },
-    { connection_id: conn.id, sender_id: cpAgent["Priya Mehta"], content: "Sending all three now. Tenant has 6 years left at 2.5% bumps, and the loan is assumable at 5.4% if that helps the debt replacement." },
-    { connection_id: conn.id, sender_id: ownerId, content: "The assumable note could seal it — his relinquished debt is $1.98M. Reviewing with him this afternoon; can we tour Thursday?" },
+    { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Sending the package now. The value-add plan centers on leasing the remaining vacancy and below-market renewals." },
+    { connection_id: conn.id, sender_id: ownerId, content: "Thanks — reviewing the T-12 and leasing assumptions with him this afternoon. Can we tour Thursday?" },
   ]);
   // (d) Declined -> "closed (lost)".
-  await mustInsert(db, "exchange_connections", { match_id: matchId(wilson, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: wilson, seller_exchange_id: null, status: "declined", initiated_by: "buyer_agent", declined_at: dFrom(-4) + "T12:00:00Z", decline_reason: "Boot exposure too high for the client's basis.", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: patel, seller_exchange_id: null, status: "declined", initiated_by: "buyer_agent", declined_at: dFrom(-4) + "T12:00:00Z", decline_reason: "The office value-add strategy was not a fit for the trust.", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (e) Inbound accepted -> seller-side conversation on the caller's listing.
   if (inboundMatch) {
     await mustInsert(db, "exchange_connections", { match_id: inboundMatch.id, buyer_agent_id: jordan, seller_agent_id: ownerId, buyer_exchange_id: inboundEx.id, seller_exchange_id: marcus, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-1) + "T14:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true });
@@ -376,30 +418,28 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   // Best-effort: this feature's schema may vary, so don't let it break the rebuild.
   try {
     await mustInsert(db, "identification_list", [
-      { exchange_id: wilson, property_id: prop["Crosspoint Industrial"], match_id: matchId(wilson, prop["Crosspoint Industrial"]), position: 1, status: "identified" },
-      { exchange_id: wilson, property_id: prop["Lakeline Flex Park"], match_id: matchId(wilson, prop["Lakeline Flex Park"]), position: 2, status: "identified" },
+      { exchange_id: wilson, property_id: prop["Westshore Corporate Center"], match_id: matchId(wilson, prop["Westshore Corporate Center"]), position: 1, status: "identified" },
     ]);
   } catch (e) { console.warn("identification_list seed skipped:", (e as Error).message); }
 
   // Notifications (varied types; some unread). Tagged demo for clean teardown.
   await mustInsert(db, "notifications", [
-    { user_id: ownerId, type: "new_match", title: "Strong new match — score 93", message: "Crosspoint Industrial (Charlotte, NC) matched James Wilson's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "new_match", title: "New match — score 91", message: "Sunrise Apartments (Phoenix, AZ) matched Marcus Rodriguez's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "connection_request", title: "Connection request", message: "Jordan Alvarez wants to connect on Sunrise Apartments.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "connection_accepted", title: "Connection accepted", message: "Priya Mehta accepted your connection on Crosspoint Industrial.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Westshore Corporate Center (Tampa, FL) matched James Wilson's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Crosspoint Industrial (Charlotte, NC) matched the Patel Family Trust exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "connection_request", title: "Connection request", message: "Elena Vasquez wants to connect on Westshore Corporate Center.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "connection_accepted", title: "Connection accepted", message: "Elena Vasquez accepted your connection on Westshore Corporate Center.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
   ]);
 
   // Investor view: a realistic shortlist plus open/responded property inquiries.
   await mustInsert(db, "investor_saved_properties", [
-    { investor_id: ownerId, property_id: prop["Sunrise Apartments"], is_demo: true },
+    { investor_id: ownerId, property_id: prop["Westshore Corporate Center"], is_demo: true },
     { investor_id: ownerId, property_id: prop["Crosspoint Industrial"], is_demo: true },
-    { investor_id: ownerId, property_id: prop["Bayshore Court Apartments"], is_demo: true },
   ]);
   const openInvestorInquiry = await insertOne(db, "listing_inquiries", {
     investor_id: ownerId,
-    property_id: prop["Sunrise Apartments"],
-    listing_agent_id: jordan,
-    initial_message: "I am evaluating Phoenix multifamily for a 1031 replacement. Please send the current rent roll, T-12, and remaining renovation scope.",
+    property_id: prop["Westshore Corporate Center"],
+    listing_agent_id: cpAgent["Elena Vasquez"],
+    initial_message: "I am evaluating Westshore as a 1031 replacement. Please send the current rent roll, T-12, and leasing assumptions.",
     is_demo: true,
   }, "id");
   const respondedInvestorInquiry = await insertOne(db, "listing_inquiries", {
@@ -414,7 +454,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     status: "responded",
   }).eq("id", respondedInvestorInquiry.id);
 
-  return { clients: OWN.length + 1, listings: OWN.length, counterpartyProperties: Object.keys(prop).length - OWN.length, matches: matchRows.length + 1, investorSaved: 3, investorInquiries: openInvestorInquiry && respondedInvestorInquiry ? 2 : 0 };
+  return { clients: OWN.length + 1, listings: OWN.length, counterpartyProperties: Object.keys(prop).length - OWN.length, matches: matchRows.length + 1, investorSaved: 2, investorInquiries: openInvestorInquiry && respondedInvestorInquiry ? 2 : 0 };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

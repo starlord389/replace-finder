@@ -215,8 +215,8 @@ export function projectedRoe(rel: Relationship): { pct: number | null; fromEngin
   const cap = rel.capRate ?? 0;
   if (!price || !cap) return { pct: null, fromEngine: false };
   const noi = price * (cap / 100);
-  const loan = price * LTV;
-  const equity = price * (1 - LTV); // 25% down
+  const loan = rel.estimatedReplacementLoan ?? price * LTV;
+  const equity = price - loan;
   const debtService = rel.candidateAnnualDebtService ?? estimateAnnualDebtService(loan);
   if (equity <= 0) return { pct: null, fromEngine: false };
   return { pct: ((noi - debtService) / equity) * 100, fromEngine: false };
@@ -230,7 +230,11 @@ export function whyThisMatched(rel: Relationship): string[] {
   } else {
     out.push("The matching engine projects a better return on equity than the current property.");
   }
-  out.push("Asking price is within the exchange-equity ceiling at the platform's 75% LTV assumption.");
+  if (rel.estimatedPurchasingCapacity != null) {
+    out.push(`Asking price is within the ${formatMoney(rel.estimatedPurchasingCapacity)} purchasing ceiling at the platform's 75% maximum LTV.`);
+  } else {
+    out.push("Asking price is within the exchange-equity ceiling at the platform's 75% maximum LTV.");
+  }
 
   // Only claim a dimension fits when the engine actually scored it that way —
   // don't assert budget / geography / timeline fit we haven't verified.
@@ -239,7 +243,7 @@ export function whyThisMatched(rel: Relationship): string[] {
   } else if (rel.propertyCity) {
     out.push(`Located in ${rel.propertyCity}${rel.propertyState ? `, ${rel.propertyState}` : ""}.`);
   }
-  if (rel.bootStatus === "no_boot") out.push("No boot exposure — full equity replacement looks achievable.");
+  if (rel.bootStatus === "no_boot") out.push("No modeled boot under the full-equity reinvestment assumptions.");
   else if (rel.bootStatus === "minor_boot") out.push("Minor boot expected — manageable equity gap.");
   else if (rel.bootStatus === "significant_boot") out.push("Significant boot expected — a meaningful taxable gap; structure the exchange carefully.");
   if (rel.capRate) out.push(`Projected cap rate of ${formatCapRate(rel.capRate)}.`);
@@ -273,15 +277,17 @@ export function financialMetrics(rel: Relationship): FinancialMetric[] {
   const price = rel.askingPrice ?? 0;
   const cap = rel.capRate ?? 0;
   const noi = price && cap ? price * (cap / 100) : null;
-  const equity = price ? price * (1 - LTV) : null; // 25% down
-  const loan = price ? price * LTV : null;         // 75% loan
+  const engineLoan = rel.estimatedReplacementLoan;
+  const loan = price ? (engineLoan ?? price * LTV) : null;
+  const equity = price && loan != null ? price - loan : null;
   // Prefer the engine's amortized debt service; otherwise estimate at the same assumptions.
   const debtService = rel.candidateAnnualDebtService ?? (loan ? estimateAnnualDebtService(loan) : null);
   const annualCashFlow = noi != null && debtService != null ? noi - debtService : null;
   // Single shared ROE basis (engine candidate_roe when present, else 25%-down cash-on-cash).
   const roe = projectedRoe(rel);
   const dscr = noi != null && debtService ? noi / debtService : null;
-  const fromEngine = rel.candidateAnnualDebtService != null;
+  const fromEngine = rel.candidateAnnualDebtService != null || engineLoan != null;
+  const modeledLtv = rel.estimatedLtv ?? (price && loan != null ? loan / price : null);
 
   return [
     { key: "price", label: "Price", value: price ? formatMoney(price) : "—" },
@@ -290,8 +296,9 @@ export function financialMetrics(rel: Relationship): FinancialMetric[] {
     { key: "coc", label: "Projected ROE", value: roe.pct != null ? `${roe.pct.toFixed(1)}%` : "—", estimated: !roe.fromEngine },
     { key: "dscr", label: "DSCR", value: dscr ? dscr.toFixed(2) : "—", estimated: !fromEngine },
     { key: "occupancy", label: "Occupancy", value: rel.occupancy != null ? `${Math.round(rel.occupancy)}%` : "—" },
-    { key: "equity", label: "Est. Down (25%)", value: equity ? formatMoney(equity) : "—", estimated: true },
-    { key: "loan", label: "Est. Loan (75%)", value: loan ? formatMoney(loan) : "—", estimated: true },
+    { key: "equity", label: "Equity Reinvested", value: equity != null ? formatMoney(equity) : "—", estimated: !fromEngine },
+    { key: "loan", label: "Modeled Loan", value: loan != null ? formatMoney(loan) : "—", estimated: !fromEngine },
+    { key: "ltv", label: "Modeled LTV", value: modeledLtv != null ? `${(modeledLtv * 100).toFixed(1)}%` : "—", estimated: !fromEngine },
     { key: "cashflow", label: "Projected Cash Flow", value: annualCashFlow != null ? `${formatMoney(annualCashFlow)}/yr` : "—", estimated: !fromEngine },
   ];
 }
