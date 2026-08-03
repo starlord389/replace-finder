@@ -40,10 +40,11 @@ const AuthContext = createContext<AuthContextType>({
   agentVerificationStatus: null,
 });
 
-/** Admin wins, then agent, then anything else. */
+/** Admin wins, then agent, then investor, then any legacy role. */
 function pickPrimaryRole(roles: AppRole[]): AppRole | null {
   if (roles.includes("admin" as AppRole)) return "admin" as AppRole;
   if (roles.includes("agent" as AppRole)) return "agent" as AppRole;
+  if (roles.includes("investor" as AppRole)) return "investor" as AppRole;
   return roles[0] ?? null;
 }
 

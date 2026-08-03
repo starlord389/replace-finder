@@ -28,4 +28,22 @@ describe("agent signup form", () => {
     expect(screen.queryByLabelText(/years of experience/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/property types you work with/i)).not.toBeInTheDocument();
   });
+
+  it("offers an investor account without agent-only license fields", () => {
+    render(
+      <MemoryRouter>
+        <Signup />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /sign up as investor/i }));
+
+    expect(screen.getByRole("heading", { name: /create investor account/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/company or investment entity/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/license or mls number/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/brokerage name/i)).not.toBeInTheDocument();
+  });
 });

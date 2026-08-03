@@ -1,4 +1,4 @@
-export type AppRouteRole = "public" | "agent" | "admin";
+export type AppRouteRole = "public" | "agent" | "investor" | "admin";
 
 export const ROUTES = {
   home: "/",
@@ -12,11 +12,13 @@ export const ROUTES = {
   terms: "/terms",
   agentHome: "/agent",
   agentLaunchpad: "/agent/launchpad",
+  investorHome: "/investor",
   adminHome: "/admin",
 } as const;
 
 export function getDefaultRouteForRole(role: string | null | undefined): string {
   if (role === "admin") return ROUTES.adminHome;
+  if (role === "investor") return ROUTES.investorHome;
   return ROUTES.agentHome;
 }
 

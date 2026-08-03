@@ -89,7 +89,13 @@ export default function Login() {
             .maybeSingle(),
         ]);
         const roles = roleRows?.map((r) => r.role) ?? [];
-        const primary = roles.includes("admin") ? "admin" : roles.includes("agent") ? "agent" : roles[0];
+        const primary = roles.includes("admin")
+          ? "admin"
+          : roles.includes("agent")
+            ? "agent"
+            : roles.includes("investor")
+              ? "investor"
+              : roles[0];
         target = primary === "agent"
           ? getAgentPostLoginRoute(profile?.launchpad_completed_at, profile?.verification_status)
           : getDefaultRouteForRole(primary);
@@ -112,7 +118,7 @@ export default function Login() {
               <div className="text-center">
                 <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Sign in to access your agent workspace.
+                  Sign in to access your workspace.
                 </p>
               </div>
               <form onSubmit={handleLogin} className="mt-8 space-y-4">

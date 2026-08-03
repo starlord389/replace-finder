@@ -10,9 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { ASSET_TYPE_LABELS, US_STATES } from "@/lib/constants";
-import { Briefcase, Home, ArrowLeft, CheckCircle2, Mail, Phone, Search, Handshake, Clock, Shield } from "lucide-react";
+import { Briefcase, Home, ArrowLeft, CheckCircle2, Mail, Phone, Search, Handshake, Clock, Shield, TrendingUp } from "lucide-react";
 
-type Step = "choose" | "agent" | "referral";
+type Step = "choose" | "agent" | "investor" | "referral";
 
 export default function Signup() {
   const [step, setStep] = useState<Step>("choose");
@@ -23,6 +23,7 @@ export default function Signup() {
         <div className="w-full max-w-lg">
           {step === "choose" && <RoleSelection onSelect={setStep} />}
           {step === "agent" && <AgentSignupForm onBack={() => setStep("choose")} />}
+          {step === "investor" && <InvestorSignupForm onBack={() => setStep("choose")} />}
           {step === "referral" && <ReferralForm onBack={() => setStep("choose")} />}
         </div>
       </div>
@@ -59,6 +60,23 @@ function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {
         </Card>
         <Card
           className="cursor-pointer border-2 border-transparent bg-white/90 transition-all hover:border-[#16284a]/35 hover:shadow-md"
+          onClick={() => onSelect("investor")}
+        >
+          <CardContent className="flex items-start gap-4 p-6">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#e7edf7] text-[#16284a]">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-semibold text-foreground">I'm a Real Estate Investor</h3>
+              <p className="text-sm text-muted-foreground">
+                Browse published opportunities, save properties, and connect directly with listing agents.
+              </p>
+              <Button size="sm" className="mt-3 bg-[#16284a] text-white hover:bg-[#20385f]">Sign Up as Investor</Button>
+            </div>
+          </CardContent>
+        </Card>
+        <Card
+          className="cursor-pointer border-2 border-transparent bg-white/90 transition-all hover:border-[#16284a]/35 hover:shadow-md"
           onClick={() => onSelect("referral")}
         >
           <CardContent className="flex items-start gap-4 p-6">
@@ -80,6 +98,73 @@ function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {
         <Link to="/login" className="font-medium text-[#16284a] hover:underline">Sign in</Link>
       </p>
     </div>
+  );
+}
+
+function InvestorSignupForm({ onBack }: { onBack: () => void }) {
+  const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "", confirmPassword: "", company: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const set = (key: keyof typeof form, value: string) => {
+    setForm((current) => ({ ...current, [key]: value }));
+    if (errors[key]) setErrors((current) => { const next = { ...current }; delete next[key]; return next; });
+  };
+  const validate = () => {
+    const next: Record<string, string> = {};
+    if (!form.fullName.trim()) next.fullName = "Full name is required";
+    if (!form.email.trim()) next.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = "Invalid email format";
+    if (form.password.length < 8) next.password = "Password must be at least 8 characters";
+    if (form.password !== form.confirmPassword) next.confirmPassword = "Passwords do not match";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!validate()) return;
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
+      email: form.email.trim(),
+      password: form.password,
+      options: {
+        data: { full_name: form.fullName.trim(), phone: form.phone.trim(), company: form.company.trim(), role: "investor" },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Signup failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (data.user) {
+      setSubmittedEmail(form.email.trim());
+      toast({ title: "Check your email", description: "Confirm your email to unlock your investor workspace." });
+    }
+  };
+  const fieldError = (key: string) => errors[key] ? <p className="text-sm text-destructive">{errors[key]}</p> : null;
+
+  if (submittedEmail) return <PostSignupVerify email={submittedEmail} onBack={onBack} />;
+
+  return (
+    <form onSubmit={submit} className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Button type="button" variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
+        <div><h1 className="text-2xl font-bold">Create Investor Account</h1><p className="text-sm text-muted-foreground">Start exploring published investment opportunities.</p></div>
+      </div>
+      <div className="space-y-4 rounded-xl border bg-white/90 p-6">
+        <div className="space-y-2"><Label htmlFor="investorFullName">Full Name *</Label><Input id="investorFullName" value={form.fullName} onChange={(e) => set("fullName", e.target.value)} />{fieldError("fullName")}</div>
+        <div className="space-y-2"><Label htmlFor="investorEmail">Email *</Label><Input id="investorEmail" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />{fieldError("email")}</div>
+        <div className="space-y-2"><Label htmlFor="investorPhone">Mobile Phone</Label><Input id="investorPhone" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></div>
+        <div className="space-y-2"><Label htmlFor="investorCompany">Company or Investment Entity</Label><Input id="investorCompany" value={form.company} onChange={(e) => set("company", e.target.value)} /></div>
+        <div className="space-y-2"><Label htmlFor="investorPassword">Password *</Label><Input id="investorPassword" type="password" minLength={8} value={form.password} onChange={(e) => set("password", e.target.value)} />{fieldError("password")}</div>
+        <div className="space-y-2"><Label htmlFor="investorConfirmPassword">Confirm Password *</Label><Input id="investorConfirmPassword" type="password" value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} />{fieldError("confirmPassword")}</div>
+      </div>
+      <Button type="submit" className="w-full bg-[#16284a] text-white hover:bg-[#20385f]" disabled={loading}>{loading ? "Creating account…" : "Create Investor Account"}</Button>
+      <p className="text-center text-sm text-muted-foreground">Already have an account? <Link to="/login" className="font-medium text-[#16284a] hover:underline">Sign in</Link></p>
+    </form>
   );
 }
 

@@ -37,6 +37,7 @@ type UserRow = {
 const roleBadgeClass: Record<string, string> = {
   admin: "bg-red-100 text-red-800 border-red-200",
   agent: "bg-[#e8eef0] text-[#2d3d42] border-[#c9d4d9]",
+  investor: "bg-emerald-100 text-emerald-800 border-emerald-200",
   client: "bg-blue-100 text-blue-800 border-blue-200",
   broker: "bg-purple-100 text-purple-800 border-purple-200",
 };
@@ -241,6 +242,7 @@ export default function AdminUsers() {
             <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="agent">Agent</SelectItem>
+            <SelectItem value="investor">Investor</SelectItem>
             <SelectItem value="client">Client</SelectItem>
           </SelectContent>
         </Select>
@@ -270,6 +272,7 @@ export default function AdminUsers() {
                   const isSelf = u.id === currentUser?.id;
                   const isAdmin = u.roles.includes("admin");
                   const isAgent = u.roles.includes("agent");
+                  const isInvestor = u.roles.includes("investor");
                   return (
                     <Fragment key={u.id}>
                       <TableRow
@@ -344,6 +347,22 @@ export default function AdminUsers() {
                                     <UserCog className="h-3.5 w-3.5" />
                                   )}
                                   {isAgent ? "Revoke Agent role" : "Grant Agent role"}
+                                </Button>
+
+                                {/* Investor role — direct toggle */}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full justify-start"
+                                  disabled={!!busy[`${u.id}-investor`]}
+                                  onClick={() => setRole(u.id, "investor", !isInvestor)}
+                                >
+                                  {busy[`${u.id}-investor`] ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <UserCog className="h-3.5 w-3.5" />
+                                  )}
+                                  {isInvestor ? "Revoke Investor role" : "Grant Investor role"}
                                 </Button>
 
                                 <h4 className="flex items-center gap-1.5 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">

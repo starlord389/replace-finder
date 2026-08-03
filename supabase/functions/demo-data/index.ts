@@ -200,6 +200,11 @@ Deno.serve(async (req) => {
 // idempotently and are shared across every admin's demo workspace, so this reset
 // can never destroy another admin's data. Live data is never touched (is_demo=true).
 async function clearOwnerDemo(db: any, ownerId: string) {
+  // Investor demo activity must be removed before its referenced properties.
+  await db.from("investor_saved_properties").delete().eq("investor_id", ownerId).eq("is_demo", true);
+  await db.from("listing_inquiries").delete().eq("investor_id", ownerId).eq("is_demo", true);
+  await db.from("notifications").delete().contains("metadata", { demo: true, investor_id: ownerId });
+
   // 1) Connections where the caller is buyer OR seller. These reach both the
   //    caller's own exchanges and the per-build inbound counterparty exchange.
   const { data: connRows } = await db
@@ -384,7 +389,32 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     { user_id: ownerId, type: "connection_accepted", title: "Connection accepted", message: "Priya Mehta accepted your connection on Crosspoint Industrial.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
   ]);
 
-  return { clients: OWN.length + 1, listings: OWN.length, counterpartyProperties: Object.keys(prop).length - OWN.length, matches: matchRows.length + 1 };
+  // Investor view: a realistic shortlist plus open/responded property inquiries.
+  await mustInsert(db, "investor_saved_properties", [
+    { investor_id: ownerId, property_id: prop["Sunrise Apartments"], is_demo: true },
+    { investor_id: ownerId, property_id: prop["Crosspoint Industrial"], is_demo: true },
+    { investor_id: ownerId, property_id: prop["Bayshore Court Apartments"], is_demo: true },
+  ]);
+  const openInvestorInquiry = await insertOne(db, "listing_inquiries", {
+    investor_id: ownerId,
+    property_id: prop["Sunrise Apartments"],
+    listing_agent_id: jordan,
+    initial_message: "I am evaluating Phoenix multifamily for a 1031 replacement. Please send the current rent roll, T-12, and remaining renovation scope.",
+    is_demo: true,
+  }, "id");
+  const respondedInvestorInquiry = await insertOne(db, "listing_inquiries", {
+    investor_id: ownerId,
+    property_id: prop["Crosspoint Industrial"],
+    listing_agent_id: cpAgent["Priya Mehta"],
+    initial_message: "The assumable loan and lease term look promising. Is the tenant financial package available, and are tours open next week?",
+    is_demo: true,
+  }, "id");
+  await db.from("listing_inquiries").update({
+    agent_response: "Yes — the tenant package, lease abstract, and OM are ready. Tours are available Tuesday and Thursday afternoon.",
+    status: "responded",
+  }).eq("id", respondedInvestorInquiry.id);
+
+  return { clients: OWN.length + 1, listings: OWN.length, counterpartyProperties: Object.keys(prop).length - OWN.length, matches: matchRows.length + 1, investorSaved: 3, investorInquiries: openInvestorInquiry && respondedInvestorInquiry ? 2 : 0 };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

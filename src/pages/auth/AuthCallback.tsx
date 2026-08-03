@@ -106,7 +106,9 @@ export default function AuthCallback() {
         ? "admin"
         : roles.includes("agent")
           ? "agent"
-          : roles[0];
+          : roles.includes("investor")
+            ? "investor"
+            : roles[0];
 
       const target =
         primary === "agent"

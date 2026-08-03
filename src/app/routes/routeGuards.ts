@@ -5,6 +5,6 @@ export function getUnauthorizedRedirectPath(role: string | null | undefined): st
   return getDefaultRouteForRole(role);
 }
 
-export function isKnownRole(role: string | null | undefined): role is "admin" | "agent" {
-  return role === "admin" || role === "agent";
+export function isKnownRole(role: string | null | undefined): role is "admin" | "agent" | "investor" {
+  return role === "admin" || role === "agent" || role === "investor";
 }

@@ -13,6 +13,7 @@ import {
 export default function AdminHeader() {
   const { user, hasRole } = useAuth();
   const canSwitchToAgent = hasRole("agent");
+  const canSwitchToInvestor = hasRole("investor");
   const { data, isLoading } = useAdminCommandCenter();
   const attention = data?.attentionItems ?? [];
   const attentionCount = attention.length;
@@ -30,6 +31,14 @@ export default function AdminHeader() {
             <Link to="/agent/dashboard">
               <ArrowLeftRight className="h-3.5 w-3.5" />
               Switch to Agent view
+            </Link>
+          </Button>
+        )}
+        {canSwitchToInvestor && (
+          <Button asChild variant="outline" size="sm" className="hidden h-8 gap-1.5 text-xs xl:flex">
+            <Link to="/investor/dashboard">
+              <ArrowLeftRight className="h-3.5 w-3.5" />
+              Switch to Investor view
             </Link>
           </Button>
         )}

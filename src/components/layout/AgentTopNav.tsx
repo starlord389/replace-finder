@@ -39,6 +39,7 @@ const PRIMARY_NAV: NavItem[] = [
     activeMatch: /^\/agent\/(listings|exchanges\/[^/]+\/edit)/,
   },
   { title: "Matches", url: "/agent/matches" },
+  { title: "Investor Leads", url: "/agent/investor-inquiries" },
 ];
 
 function NotificationsBell() {
@@ -236,6 +237,14 @@ export default function AgentTopNav() {
                     </DropdownMenuItem>
                   </>
                 )}
+                {hasRole("investor") && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/investor/dashboard">
+                      <ArrowLeftRight className="mr-2 h-4 w-4" />
+                      Switch to Investor View
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => signOut()}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -304,6 +313,14 @@ export default function AgentTopNav() {
                         className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                       >
                         <ArrowLeftRight className="mr-2 h-4 w-4" /> Switch to Admin View
+                      </Link>
+                    )}
+                    {hasRole("investor") && (
+                      <Link
+                        to="/investor/dashboard"
+                        className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                      >
+                        <ArrowLeftRight className="mr-2 h-4 w-4" /> Switch to Investor View
                       </Link>
                     )}
                   </nav>

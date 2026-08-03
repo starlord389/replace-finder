@@ -10,6 +10,7 @@ import { ROUTES } from "@/app/routes/routeManifest";
 import PublicLayout from "@/components/layout/PublicLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
 import AgentLayout from "@/components/layout/AgentLayout";
+import InvestorLayout from "@/components/layout/InvestorLayout";
 import RequireGuest from "@/components/layout/RequireGuest";
 
 const Home = lazy(() => import("@/pages/Home"));
@@ -50,6 +51,14 @@ const AgentConnectionDetail = lazy(() => import("@/pages/agent/AgentConnectionDe
 const AgentSettings = lazy(() => import("@/pages/agent/AgentSettings"));
 const AgentHelp = lazy(() => import("@/pages/agent/AgentHelp"));
 const AgentNotifications = lazy(() => import("@/pages/agent/AgentNotifications"));
+const AgentInvestorInquiries = lazy(() => import("@/pages/agent/AgentInvestorInquiries"));
+const InvestorDashboard = lazy(() => import("@/pages/investor/InvestorDashboard"));
+const InvestorMarketplace = lazy(() => import("@/pages/investor/InvestorMarketplace"));
+const InvestorPropertyDetail = lazy(() => import("@/pages/investor/InvestorPropertyDetail"));
+const InvestorSaved = lazy(() => import("@/pages/investor/InvestorSaved"));
+const InvestorInquiries = lazy(() => import("@/pages/investor/InvestorInquiries"));
+const InvestorSettings = lazy(() => import("@/pages/investor/InvestorSettings"));
+const InvestorHelp = lazy(() => import("@/pages/investor/InvestorHelp"));
 const AcceptInvite = lazy(() => import("@/pages/auth/AcceptInvite"));
 const Unsubscribe = lazy(() => import("@/pages/Unsubscribe"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
@@ -143,9 +152,22 @@ const App = () => (
               <Route path="/agent/messages" element={<Navigate to="/agent/pipeline" replace />} />
 
               <Route path="/agent/notifications" element={<AgentNotifications />} />
+              <Route path="/agent/investor-inquiries" element={<AgentInvestorInquiries />} />
               <Route path="/agent/profile" element={<Navigate to="/agent/settings" replace />} />
               <Route path="/agent/settings" element={<AgentSettings />} />
               <Route path="/agent/help" element={<AgentHelp />} />
+            </Route>
+
+            {/* Investor (investor role required) */}
+            <Route element={<InvestorLayout />}>
+              <Route path="/investor" element={<Navigate to="/investor/dashboard" replace />} />
+              <Route path="/investor/dashboard" element={<InvestorDashboard />} />
+              <Route path="/investor/marketplace" element={<InvestorMarketplace />} />
+              <Route path="/investor/properties/:propertyId" element={<InvestorPropertyDetail />} />
+              <Route path="/investor/saved" element={<InvestorSaved />} />
+              <Route path="/investor/inquiries" element={<InvestorInquiries />} />
+              <Route path="/investor/settings" element={<InvestorSettings />} />
+              <Route path="/investor/help" element={<InvestorHelp />} />
             </Route>
 
             {/* Admin (admin role required) */}

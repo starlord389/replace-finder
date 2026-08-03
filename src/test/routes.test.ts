@@ -5,6 +5,7 @@ import { getUnauthorizedRedirectPath, isKnownRole } from "@/app/routes/routeGuar
 describe("route policy helpers", () => {
   it("returns default route by role", () => {
     expect(getDefaultRouteForRole("agent")).toBe(ROUTES.agentHome);
+    expect(getDefaultRouteForRole("investor")).toBe(ROUTES.investorHome);
     expect(getDefaultRouteForRole("admin")).toBe(ROUTES.adminHome);
     expect(getDefaultRouteForRole("unknown")).toBe(ROUTES.agentHome);
   });
@@ -12,12 +13,14 @@ describe("route policy helpers", () => {
   it("returns unauthorized redirect path", () => {
     expect(getUnauthorizedRedirectPath(null)).toBe(ROUTES.login);
     expect(getUnauthorizedRedirectPath("agent")).toBe(ROUTES.agentHome);
+    expect(getUnauthorizedRedirectPath("investor")).toBe(ROUTES.investorHome);
     expect(getUnauthorizedRedirectPath("admin")).toBe(ROUTES.adminHome);
   });
 
   it("flags known roles", () => {
     expect(isKnownRole("agent")).toBe(true);
     expect(isKnownRole("admin")).toBe(true);
+    expect(isKnownRole("investor")).toBe(true);
     expect(isKnownRole("client")).toBe(false);
     expect(isKnownRole("broker")).toBe(false);
   });
