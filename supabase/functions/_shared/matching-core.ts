@@ -77,12 +77,13 @@ export async function computeMatchesForExchange(
   exchangeId: string,
   propertyId: string,
   diagnostics?: MatchDiagnosticRow[],
-  // QA-only escape hatch: when true, the caller's own inventory is NOT excluded
-  // from the candidate pool. Real runs always leave this false — the product is
-  // a cross-agent network and an agent must never match against themselves.
-  // Only run-auto-matching sets it, admin-gated and forced into dry-run.
-  includeSameAgent = false,
+  // Deprecated / no-op. Same-agent, same-brokerage and same-account candidates
+  // are always eligible: identifying Exchange Up opportunities inside one
+  // agent's own book of business is a core product feature. Kept only so older
+  // callers passing the flag keep compiling.
+  _deprecatedIncludeSameAgent = true,
 ): Promise<ScoredMatch[]> {
+
   const [exchangeRes, propertyRes, settings] = await Promise.all([
     db.from("exchanges").select("*").eq("id", exchangeId).single(),
     db.from("pledged_properties").select("*").eq("id", propertyId).single(),
