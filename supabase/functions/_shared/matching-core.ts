@@ -126,15 +126,36 @@ export async function computeMatchesForExchange(
     });
   }
   if (criteria) {
-    let activeQuery = db
+    // Same-agent / same-account candidates are FULLY eligible: 1031 Exchange Up
+    // is built to surface exchange opportunities inside an agent's own book of
+    // business. The only records excluded are the ones that would pair a record
+    // with itself or with the very same client.
+    const { data: activePropertiesRaw } = await db
       .from("pledged_properties")
       .select("*")
       .eq("status", "active")
       .eq("is_demo", isDemo);
-    if (!includeSameAgent) activeQuery = activeQuery.neq("agent_id", userId);
-    const { data: activePropertiesRaw } = await activeQuery;
-    // Never pair the exchange's own relinquished property with itself.
-    const activeProperties = (activePropertiesRaw ?? []).filter((p: any) => p.id !== propertyId);
+
+    // Map each candidate listing to the client behind it so we never match a
+    // client to their own property (distinct-opportunity rule).
+    const candidateExchangeIds = Array.from(
+      new Set((activePropertiesRaw ?? []).map((p: any) => p.exchange_id).filter(Boolean)),
+    );
+    const { data: candidateExchanges } = candidateExchangeIds.length
+      ? await db.from("exchanges").select("id, client_id").in("id", candidateExchangeIds)
+      : { data: [] };
+    const clientByExchange = new Map(
+      (candidateExchanges ?? []).map((e: any) => [e.id, e.client_id]),
+    );
+
+    const activeProperties = (activePropertiesRaw ?? []).filter((p: any) => {
+      if (p.id === propertyId) return false;                       // itself
+      if (p.id === exchange.relinquished_property_id) return false; // this exchange's own relinquished asset
+      if (p.exchange_id && p.exchange_id === exchangeId) return false;
+      const candidateClient = p.exchange_id ? clientByExchange.get(p.exchange_id) : null;
+      if (candidateClient && exchange.client_id && candidateClient === exchange.client_id) return false;
+      return true;
+    });
 
     if (!activeProperties?.length && diagnostics) {
       diagnostics.push({
@@ -143,11 +164,10 @@ export async function computeMatchesForExchange(
         candidate_exchange_id: exchangeId,
         candidate_label: "buyer-side scan",
         status: "skipped",
-        reason: includeSameAgent
-          ? "no other active properties in this workspace"
-          : "no active properties from other agents in this workspace",
+        reason: "no other active properties in this workspace",
       });
     }
+
     if (activeProperties?.length) {
 
       const propIds = activeProperties.map((p: any) => p.id);
