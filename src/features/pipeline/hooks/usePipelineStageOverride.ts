@@ -10,7 +10,7 @@ export interface SetStageInput {
   userId: string;
 }
 
-export function useUpdatePipelineStage() {
+export function useUpdatePipelineStage(ownerType: "agent" | "investor" = "agent") {
   const qc = useQueryClient();
   const { isDemo } = useWorkspaceMode();
 
@@ -23,7 +23,7 @@ export function useUpdatePipelineStage() {
       if (error) throw error;
     },
     onMutate: async ({ exchangeId, stage, userId }) => {
-      const key = ["agent-listings", userId, isDemo];
+      const key = ["agent-listings", ownerType, userId, isDemo];
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<AgentListing[]>(key);
       if (prev) {
@@ -40,7 +40,7 @@ export function useUpdatePipelineStage() {
       if (ctx?.prev && ctx.key) qc.setQueryData(ctx.key, ctx.prev);
     },
     onSettled: (_data, _err, vars) => {
-      qc.invalidateQueries({ queryKey: ["agent-listings", vars.userId] });
+      qc.invalidateQueries({ queryKey: ["agent-listings", ownerType, vars.userId] });
     },
   });
 }

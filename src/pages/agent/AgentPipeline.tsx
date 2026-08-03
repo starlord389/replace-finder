@@ -198,6 +198,7 @@ export default function AgentPipeline({ audience = "agent" }: { audience?: "agen
             onResetFilters={() => setFilters(DEFAULT_FILTERS)}
             basePath={basePath}
             ownerLabel={isInvestor ? "Your exchange" : undefined}
+            ownerType={audience}
           />
         </>
       )}

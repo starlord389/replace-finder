@@ -41,6 +41,7 @@ function StageColumn({
   items: ListingMeta[];
   basePath: string;
   ownerLabel?: string;
+  ownerType?: "agent" | "investor";
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `col-${stage}`, data: { stage } });
   const value = items.reduce((sum, m) => sum + (m.listing.askingPrice ?? 0), 0);
@@ -98,10 +99,11 @@ export function PipelineKanban({
   onResetFilters,
   basePath = "/agent",
   ownerLabel,
+  ownerType = "agent",
 }: PipelineKanbanProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const updateStage = useUpdatePipelineStage();
+  const updateStage = useUpdatePipelineStage(ownerType);
   const [activeId, setActiveId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
