@@ -14,8 +14,10 @@ import {
   RefreshCw,
   ShieldCheck,
   TrendingUp,
+  UserRound,
   Users,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,13 +90,26 @@ export default function AdminDashboard() {
     );
   }
 
-  const kpis = [
-    { label: "Active Exchanges", value: data.kpis.activeExchanges, icon: ArrowLeftRight, color: "bg-primary/10 text-primary" },
+  const kpis: Array<{
+    label: string;
+    value: number;
+    detail?: string;
+    icon: LucideIcon;
+    color: string;
+  }> = [
+    {
+      label: "Active Exchanges",
+      value: data.kpis.activeExchanges,
+      detail: `${data.kpis.agentManagedExchanges} agent · ${data.kpis.investorManagedExchanges} owner`,
+      icon: ArrowLeftRight,
+      color: "bg-primary/10 text-primary",
+    },
     { label: "Active Matches", value: data.kpis.activeMatches, icon: Handshake, color: "bg-green-50 text-green-700" },
     { label: "Open Connections", value: data.kpis.openConnections, icon: Activity, color: "bg-amber-50 text-amber-700" },
     { label: "Properties", value: data.kpis.properties, icon: Building2, color: "bg-blue-50 text-blue-700" },
     { label: "Total Users", value: data.kpis.users, icon: Users, color: "bg-indigo-50 text-indigo-700" },
     { label: "Agents", value: data.kpis.agents, icon: ShieldCheck, color: "bg-teal-50 text-teal-700" },
+    { label: "Investors / Owners", value: data.kpis.investors, icon: UserRound, color: "bg-emerald-50 text-emerald-700" },
     { label: "New Leads", value: data.kpis.newLeads, icon: Inbox, color: "bg-rose-50 text-rose-700" },
     { label: "Open Tickets", value: data.kpis.openTickets, icon: LifeBuoy, color: "bg-purple-50 text-purple-700" },
   ];
@@ -158,7 +173,7 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-9">
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="shadow-none">
             <CardContent className="p-3.5">
@@ -167,6 +182,7 @@ export default function AdminDashboard() {
               </div>
               <p className="text-xl font-bold">{kpi.value}</p>
               <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{kpi.label}</p>
+              {kpi.detail && <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{kpi.detail}</p>}
             </CardContent>
           </Card>
         ))}
@@ -389,8 +405,8 @@ function CommandCenterSkeleton() {
         <Skeleton className="h-4 w-80" />
       </div>
       <Skeleton className="h-40 w-full" />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-        {Array.from({ length: 8 }).map((_, index) => <Skeleton key={index} className="h-24" />)}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-9">
+        {Array.from({ length: 9 }).map((_, index) => <Skeleton key={index} className="h-24" />)}
       </div>
       <div className="grid gap-6 lg:grid-cols-[1.45fr_0.55fr]">
         <Skeleton className="h-[420px]" />

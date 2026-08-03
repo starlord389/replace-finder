@@ -123,4 +123,45 @@ describe("admin command center", () => {
       ]),
     );
   });
+
+  it("labels self-managed investor/property-owner records without inventing a client", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-24T12:00:00Z"));
+
+    const source = baseSource();
+    source.profiles = [
+      row<"profiles">({ id: "owner-1", full_name: "Taylor Owner", email: "taylor@example.com" }),
+    ];
+    source.roles = [
+      row<"roles">({ user_id: "owner-1", role: "investor" }),
+    ];
+    source.exchanges = [
+      row<"exchanges">({
+        id: "exchange-owner-1",
+        agent_id: "owner-1",
+        client_id: null,
+        owner_type: "investor",
+        status: "active",
+        identification_deadline: "2026-07-25T12:00:00Z",
+        closing_deadline: null,
+      }),
+    ];
+
+    const attention = buildAdminAttentionItems(source);
+    const search = buildAdminSearchItems(source);
+
+    expect(attention[0].detail).toBe("Taylor Owner · Investor / Property Owner · Self-managed");
+    expect(search).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: "User",
+        title: "Taylor Owner",
+        subtitle: expect.stringContaining("Investor / Property Owner"),
+      }),
+      expect.objectContaining({
+        type: "Exchange",
+        title: "Taylor Owner exchange",
+        subtitle: expect.stringContaining("Investor / Property Owner"),
+      }),
+    ]));
+  });
 });

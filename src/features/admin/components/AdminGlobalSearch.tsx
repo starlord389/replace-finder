@@ -35,7 +35,7 @@ interface AdminGlobalSearchProps {
 const destinations = [
   { title: "Command Center", href: "/admin", icon: LayoutDashboard },
   { title: "Deal Oversight", href: "/admin/deals", icon: ArrowLeftRight },
-  { title: "Users & Roles", href: "/admin/users", icon: Users },
+  { title: "Users & Account Roles", href: "/admin/users", icon: Users },
   { title: "Demos", href: "/admin/demos", icon: CalendarClock },
   { title: "Growth & Intake", href: "/admin/intake", icon: Inbox },
   { title: "Support", href: "/admin/support", icon: HelpCircle },
@@ -113,7 +113,7 @@ export default function AdminGlobalSearch({ items, isLoading }: AdminGlobalSearc
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
-          placeholder="Search people, exchanges, properties, leads, tickets…"
+          placeholder="Search accounts, investors, exchanges, properties, leads, tickets…"
           value={query}
           onValueChange={setQuery}
         />

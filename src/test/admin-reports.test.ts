@@ -30,10 +30,12 @@ describe("admin reports", () => {
     const data = emptyData();
     data.profiles = [
       row<"profiles">({ id: "new-agent", created_at: "2026-07-20T12:00:00Z" }),
+      row<"profiles">({ id: "new-investor", created_at: "2026-07-21T12:00:00Z" }),
       row<"profiles">({ id: "old-agent", created_at: "2026-05-01T12:00:00Z" }),
     ];
     data.roles = [
       row<"roles">({ user_id: "new-agent", role: "agent" }),
+      row<"roles">({ user_id: "new-investor", role: "investor" }),
       row<"roles">({ user_id: "old-agent", role: "agent" }),
     ];
     data.exchanges = [
@@ -52,8 +54,13 @@ describe("admin reports", () => {
 
     const snapshot = buildAdminReportSnapshot(data, 7, new Date("2026-07-24T12:00:00Z").getTime());
 
-    expect(snapshot.users).toBe(1);
+    expect(snapshot.users).toBe(2);
     expect(snapshot.agents).toBe(1);
+    expect(snapshot.investors).toBe(1);
+    expect(snapshot.accountTypes).toEqual({
+      Agents: 1,
+      "Investors / Property Owners": 1,
+    });
     expect(snapshot.exchanges).toBe(1);
     expect(snapshot.activeExchanges).toBe(1);
     expect(snapshot.leads).toBe(1);

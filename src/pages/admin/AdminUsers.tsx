@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Enums } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
+import { adminRoleLabel } from "@/features/admin/lib/accountTypes";
 import { Loader2, ChevronDown, ChevronUp, Search, ShieldCheck, ShieldOff, UserCog, Ban, CircleCheck } from "lucide-react";
 
 type AppRole = Enums<"app_role">;
@@ -199,6 +200,7 @@ export default function AdminUsers() {
         !term ||
         (u.full_name ?? "").toLowerCase().includes(term) ||
         (u.email ?? "").toLowerCase().includes(term) ||
+        (u.company ?? "").toLowerCase().includes(term) ||
         (u.brokerage_name ?? "").toLowerCase().includes(term);
       const matchesRole = roleFilter === "all" || u.roles.includes(roleFilter as AppRole);
       const matchesVerification = verificationFilter === "all" || u.verification_status === verificationFilter;
@@ -215,13 +217,15 @@ export default function AdminUsers() {
   }
 
   const adminCount = users.filter((u) => u.roles.includes("admin")).length;
+  const agentCount = users.filter((u) => u.roles.includes("agent")).length;
+  const investorCount = users.filter((u) => u.roles.includes("investor")).length;
 
   return (
     <div>
       <div className="mb-6 flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-foreground">Users &amp; Roles</h1>
+        <h1 className="text-2xl font-bold text-foreground">Users &amp; Account Roles</h1>
         <p className="text-sm text-muted-foreground">
-          {users.length} user{users.length !== 1 ? "s" : ""} · {adminCount} admin{adminCount !== 1 ? "s" : ""}
+          {users.length} user{users.length !== 1 ? "s" : ""} · {agentCount} agent{agentCount !== 1 ? "s" : ""} · {investorCount} investor/property owner{investorCount !== 1 ? "s" : ""} · {adminCount} admin{adminCount !== 1 ? "s" : ""}
         </p>
       </div>
 
@@ -231,7 +235,7 @@ export default function AdminUsers() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, email, or brokerage…"
+            placeholder="Search by name, email, company, or brokerage…"
             className="pl-9"
             aria-label="Search users"
           />
@@ -242,8 +246,17 @@ export default function AdminUsers() {
             <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="agent">Agent</SelectItem>
-            <SelectItem value="investor">Investor</SelectItem>
+            <SelectItem value="investor">Investor / Property Owner</SelectItem>
             <SelectItem value="client">Client</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={verificationFilter} onValueChange={setVerificationFilter}>
+          <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="Account status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            {verificationValues.map((status) => (
+              <SelectItem key={status} value={status} className="capitalize">{status.replace(/_/g, " ")}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -262,6 +275,7 @@ export default function AdminUsers() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead className="w-[180px]">Roles</TableHead>
+                  <TableHead className="w-[150px]">Account status</TableHead>
                   <TableHead className="w-[120px]">Joined</TableHead>
                   <TableHead className="w-[50px]" />
                 </TableRow>
@@ -290,11 +304,16 @@ export default function AdminUsers() {
                             ) : (
                               u.roles.map((r) => (
                                 <span key={r} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${roleBadgeClass[r] || ""}`}>
-                                  {r}
+                                  {adminRoleLabel(r)}
                                 </span>
                               ))
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${verificationBadgeClass[u.verification_status] || "bg-muted text-muted-foreground"}`}>
+                            {u.verification_status.replace(/_/g, " ")}
+                          </span>
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {new Date(u.created_at).toLocaleDateString()}
@@ -305,7 +324,7 @@ export default function AdminUsers() {
                       </TableRow>
                       {isExpanded && (
                         <TableRow key={`${u.id}-detail`}>
-                          <TableCell colSpan={4} className="bg-muted/30 p-4">
+                          <TableCell colSpan={5} className="bg-muted/30 p-4">
                             <div className="grid gap-6 md:grid-cols-2">
                               <div className="space-y-3">
                                 <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Details</h4>
@@ -362,7 +381,7 @@ export default function AdminUsers() {
                                   ) : (
                                     <UserCog className="h-3.5 w-3.5" />
                                   )}
-                                  {isInvestor ? "Revoke Investor role" : "Grant Investor role"}
+                                  {isInvestor ? "Revoke Investor / Property Owner role" : "Grant Investor / Property Owner role"}
                                 </Button>
 
                                 <h4 className="flex items-center gap-1.5 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -372,6 +391,7 @@ export default function AdminUsers() {
                                   isSuspended={u.verification_status === "suspended"}
                                   isSelf={isSelf}
                                   isAgent={isAgent}
+                                  isInvestor={isInvestor}
                                   busy={!!busy[`v-${u.id}`]}
                                   userLabel={u.full_name || u.email || "this user"}
                                   onSuspend={() => suspendAccount(u.id)}
@@ -454,11 +474,12 @@ function AdminRoleAction({
 }
 
 function AccountAction({
-  isSuspended, isSelf, isAgent, busy, userLabel, onSuspend, onReactivate,
+  isSuspended, isSelf, isAgent, isInvestor, busy, userLabel, onSuspend, onReactivate,
 }: {
   isSuspended: boolean;
   isSelf: boolean;
   isAgent: boolean;
+  isInvestor: boolean;
   busy: boolean;
   userLabel: string;
   onSuspend: () => void;
@@ -480,12 +501,17 @@ function AccountAction({
       </Button>
     );
   }
-  // Suspension is only enforced for agents (it locks the agent workspace). For a
-  // non-agent the flag has no effect, so don't offer a control that does nothing.
-  if (!isAgent) {
+  const hasWorkspace = isAgent || isInvestor;
+  const workspaceLabel = isAgent && isInvestor
+    ? "agent and investor workspaces"
+    : isInvestor
+      ? "investor/property-owner workspace"
+      : "agent workspace";
+
+  if (!hasWorkspace) {
     return (
       <p className="text-xs text-muted-foreground">
-        Suspension applies to agent accounts. This user has no agent workspace to lock.
+        Suspension applies to agent and investor/property-owner accounts. This user has no workspace to lock.
       </p>
     );
   }
@@ -501,7 +527,7 @@ function AccountAction({
         <AlertDialogHeader>
           <AlertDialogTitle>Suspend this account?</AlertDialogTitle>
           <AlertDialogDescription>
-            {userLabel} will be locked out of their agent workspace until reactivated. They'll see a
+            {userLabel} will be locked out of their {workspaceLabel} until reactivated. They'll see a
             suspension notice prompting them to contact support.
           </AlertDialogDescription>
         </AlertDialogHeader>

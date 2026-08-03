@@ -25,6 +25,10 @@ import {
 } from "@/features/admin/hooks/useAdminReports";
 import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 import { downloadCsv, type CsvValue } from "@/features/admin/lib/csvExport";
+import {
+  exchangeManagedForLabel,
+  exchangeOwnerTypeLabel,
+} from "@/features/admin/lib/accountTypes";
 
 type ExportDefinition = {
   key: string;
@@ -104,7 +108,7 @@ export default function AdminReports() {
   }
 
   const metrics = [
-    { label: "New users", value: snapshot.users, detail: `${snapshot.agents} agents`, icon: Users },
+    { label: "New users", value: snapshot.users, detail: `${snapshot.agents} agents · ${snapshot.investors} investors/owners`, icon: Users },
     { label: "Exchanges started", value: snapshot.exchanges, detail: `${snapshot.activeExchanges} active`, icon: ArrowLeftRight },
     { label: "Leads captured", value: snapshot.leads, detail: `${snapshot.leadSources.demos} demo requests`, icon: Inbox },
     { label: "Unresolved tickets", value: snapshot.unresolvedTickets, detail: `${Object.values(snapshot.supportStatuses).reduce((sum, value) => sum + value, 0)} opened`, icon: LifeBuoy },
@@ -131,7 +135,8 @@ export default function AdminReports() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <StatusBreakdown title="Account roles" values={snapshot.accountTypes} />
         <StatusBreakdown title="Exchange status" values={snapshot.exchangeStatuses} />
         <StatusBreakdown title="Lead source" values={snapshot.leadSources} />
         <StatusBreakdown title="Support status" values={snapshot.supportStatuses} />
@@ -305,16 +310,17 @@ function buildExportDefinitions(data: AdminReportData, range: AdminReportRange):
   ]);
 
   const dealRows = inRange(data.exchanges).map((exchange) => {
-    const client = clientById.get(exchange.client_id);
+    const client = exchange.client_id ? clientById.get(exchange.client_id) : null;
     const agent = profileById.get(exchange.agent_id);
     const property = exchange.relinquished_property_id
       ? propertyById.get(exchange.relinquished_property_id)
       : null;
     return [
       exchange.id,
-      client?.client_name,
+      exchangeOwnerTypeLabel(exchange.owner_type),
       agent?.full_name,
       agent?.email,
+      exchangeManagedForLabel(exchange.owner_type, client?.client_name),
       exchange.status,
       property?.property_name,
       property?.city,
@@ -372,9 +378,9 @@ function buildExportDefinitions(data: AdminReportData, range: AdminReportRange):
     {
       key: "deals",
       title: "Exchanges & deals",
-      description: "Exchange status, agent and client context, property summary, economics, and deadlines.",
+      description: "Exchange status, account-owner type, agent or self-managed ownership, property summary, economics, and deadlines.",
       filename: `1031-exchange-up-deals-${stamp}.csv`,
-      headers: ["Exchange ID", "Client", "Agent", "Agent Email", "Status", "Property", "City", "State", "Asset Type", "Connections", "Estimated Equity", "Exchange Proceeds", "Identification Deadline", "Closing Deadline", "Created At"],
+      headers: ["Exchange ID", "Account Type", "Account Owner", "Account Email", "Managed For", "Status", "Property", "City", "State", "Asset Type", "Connections", "Estimated Equity", "Exchange Proceeds", "Identification Deadline", "Closing Deadline", "Created At"],
       rows: dealRows,
     },
     {

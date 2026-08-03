@@ -21,11 +21,13 @@ export type AdminReportData = {
 export type AdminReportSnapshot = {
   users: number;
   agents: number;
+  investors: number;
   exchanges: number;
   activeExchanges: number;
   leads: number;
   unresolvedTickets: number;
   exchangeStatuses: Record<string, number>;
+  accountTypes: Record<string, number>;
   leadSources: Record<string, number>;
   supportStatuses: Record<string, number>;
 };
@@ -62,19 +64,30 @@ export function buildAdminReportSnapshot(
   const demos = withinRange(data.demos);
   const events = withinRange(data.events);
   const tickets = withinRange(data.tickets);
+  const agents = new Set(
+    data.roles
+      .filter((role) => role.role === "agent" && profileIds.has(role.user_id))
+      .map((role) => role.user_id),
+  ).size;
+  const investors = new Set(
+    data.roles
+      .filter((role) => role.role === "investor" && profileIds.has(role.user_id))
+      .map((role) => role.user_id),
+  ).size;
 
   return {
     users: profiles.length,
-    agents: new Set(
-      data.roles
-        .filter((role) => role.role === "agent" && profileIds.has(role.user_id))
-        .map((role) => role.user_id),
-    ).size,
+    agents,
+    investors,
     exchanges: exchanges.length,
     activeExchanges: exchanges.filter((exchange) => ACTIVE_EXCHANGE_STATUSES.has(exchange.status)).length,
     leads: contacts.length + referrals.length + demos.length + events.length,
     unresolvedTickets: tickets.filter((ticket) => UNRESOLVED_TICKET_STATUSES.has(ticket.status)).length,
     exchangeStatuses: countBy(exchanges, (exchange) => exchange.status),
+    accountTypes: {
+      Agents: agents,
+      "Investors / Property Owners": investors,
+    },
     leadSources: {
       contacts: contacts.length,
       referrals: referrals.length,

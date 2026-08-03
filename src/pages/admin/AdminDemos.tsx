@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
+import { adminRoleLabel } from "@/features/admin/lib/accountTypes";
 import { Loader2, ChevronDown, ChevronUp, Search, CalendarClock, Save, ExternalLink } from "lucide-react";
 
 type Demo = Tables<"demo_requests">;
@@ -146,7 +147,8 @@ export default function AdminDemos() {
         !term ||
         d.full_name.toLowerCase().includes(term) ||
         d.work_email.toLowerCase().includes(term) ||
-        d.company.toLowerCase().includes(term);
+        d.company.toLowerCase().includes(term) ||
+        d.role.toLowerCase().includes(term);
       const matchesStatus = statusFilter === "all" || d.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
@@ -190,7 +192,7 @@ export default function AdminDemos() {
                     </div>
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium">{d.full_name} · {d.company}</div>
-                      <div className="truncate text-xs text-muted-foreground">{d.work_email}</div>
+                      <div className="truncate text-xs text-muted-foreground">{adminRoleLabel(d.role)} · {d.work_email}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -260,7 +262,7 @@ export default function AdminDemos() {
                           </TableCell>
                           <TableCell className="text-sm">
                             <div>{d.company}</div>
-                            <div className="text-xs text-muted-foreground capitalize">{d.role}{d.timeline ? ` · ${d.timeline}` : ""}</div>
+                            <div className="text-xs text-muted-foreground">{adminRoleLabel(d.role)}{d.timeline ? ` · ${d.timeline}` : ""}</div>
                           </TableCell>
                           <TableCell className="text-sm">
                             {d.scheduled_at

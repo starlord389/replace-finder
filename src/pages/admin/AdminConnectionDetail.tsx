@@ -6,6 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
+import { exchangeOwnerTypeLabel } from "@/features/admin/lib/accountTypes";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const CONNECTION_STATUSES = ["pending", "accepted", "in_progress", "declined", "cancelled", "completed"];
@@ -40,6 +41,7 @@ export default function AdminConnectionDetail() {
   const [match, setMatch] = useState<Tables<"matches"> | null>(null);
   const [messages, setMessages] = useState<Tables<"messages">[]>([]);
   const [names, setNames] = useState<Map<string, string>>(new Map());
+  const [ownerTypes, setOwnerTypes] = useState<Map<string, string>>(new Map());
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -55,14 +57,17 @@ export default function AdminConnectionDetail() {
       return;
     }
     setConn(c);
-    const [mt, msgs, profs] = await Promise.all([
+    const exchangeIds = [c.buyer_exchange_id, c.seller_exchange_id].filter((value): value is string => Boolean(value));
+    const [mt, msgs, profs, exchanges] = await Promise.all([
       c.match_id ? supabase.from("matches").select("*").eq("id", c.match_id).maybeSingle() : Promise.resolve({ data: null }),
       supabase.from("messages").select("*").eq("connection_id", connId).order("created_at", { ascending: true }),
       supabase.from("profiles").select("id, full_name, email").in("id", [c.buyer_agent_id, c.seller_agent_id]),
+      supabase.from("exchanges").select("id, owner_type").in("id", exchangeIds),
     ]);
     setMatch(mt.data ?? null);
     setMessages(msgs.data ?? []);
     setNames(new Map((profs.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"])));
+    setOwnerTypes(new Map((exchanges.data ?? []).map((exchange) => [exchange.id, exchange.owner_type])));
     setLoading(false);
   }
 
@@ -88,6 +93,8 @@ export default function AdminConnectionDetail() {
   }
 
   const name = (uid: string) => names.get(uid) ?? "Unknown";
+  const participantType = (exchangeId: string | null) =>
+    exchangeOwnerTypeLabel(exchangeId ? ownerTypes.get(exchangeId) : null);
 
   if (loading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
@@ -120,7 +127,7 @@ export default function AdminConnectionDetail() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Connection</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Buyer: {name(conn.buyer_agent_id)} · Seller: {name(conn.seller_agent_id)}
+            Buyer: {name(conn.buyer_agent_id)} ({participantType(conn.buyer_exchange_id)}) · Seller: {name(conn.seller_agent_id)} ({participantType(conn.seller_exchange_id)})
           </p>
         </div>
         <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium capitalize ${statusColor[conn.status] || "bg-muted text-muted-foreground"}`}>
@@ -173,6 +180,8 @@ export default function AdminConnectionDetail() {
           <CardContent>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <dt className="text-muted-foreground">Match score</dt><dd>{match ? Math.round(match.total_score) : "—"}</dd>
+              <dt className="text-muted-foreground">Buyer account</dt><dd>{participantType(conn.buyer_exchange_id)}</dd>
+              <dt className="text-muted-foreground">Seller account</dt><dd>{participantType(conn.seller_exchange_id)}</dd>
               <dt className="text-muted-foreground">Fee agreed</dt><dd>{conn.facilitation_fee_agreed ? "Yes" : "No"}</dd>
               <dt className="text-muted-foreground">Fee amount</dt><dd>{money(conn.facilitation_fee_amount)}</dd>
               <dt className="text-muted-foreground">Fee status</dt><dd className="capitalize">{pretty(conn.facilitation_fee_status)}</dd>

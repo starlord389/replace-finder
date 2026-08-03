@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import {
+  adminRoleSummary,
+  exchangeManagedForLabel,
+  exchangeOwnerTypeLabel,
+  isInvestorOwned,
+} from "@/features/admin/lib/accountTypes";
 
 type Profile = Tables<"profiles">;
 type UserRole = Tables<"user_roles">;
@@ -97,11 +103,15 @@ function ageInDays(iso: string) {
 export function buildAdminAttentionItems(source: CommandCenterSource): AdminAttentionItem[] {
   const clientsById = new Map(source.clients.map((client) => [client.id, client.client_name]));
   const profilesById = new Map(source.profiles.map((profile) => [profile.id, clean(profile.full_name, profile.email ?? undefined)]));
+  const exchangesById = new Map(source.exchanges.map((exchange) => [exchange.id, exchange]));
   const items: AdminAttentionItem[] = [];
 
   for (const exchange of source.exchanges) {
     if (!ACTIVE_EXCHANGE_STATUSES.has(exchange.status)) continue;
-    const detail = `${clean(clientsById.get(exchange.client_id), "Client")} · ${clean(profilesById.get(exchange.agent_id), "Agent")}`;
+    const ownerName = clean(profilesById.get(exchange.agent_id), "Account owner");
+    const detail = isInvestorOwned(exchange.owner_type)
+      ? `${ownerName} · ${exchangeOwnerTypeLabel(exchange.owner_type)} · Self-managed`
+      : `${exchangeManagedForLabel(exchange.owner_type, clientsById.get(exchange.client_id))} · Agent ${ownerName}`;
     const deadlines = [
       ["Identification deadline", exchange.identification_deadline],
       ["Closing deadline", exchange.closing_deadline],
@@ -178,12 +188,16 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
 
   for (const connection of source.connections) {
     if (connection.status !== "pending") continue;
+    const buyerType = exchangeOwnerTypeLabel(exchangesById.get(connection.buyer_exchange_id)?.owner_type);
+    const sellerType = exchangeOwnerTypeLabel(
+      connection.seller_exchange_id ? exchangesById.get(connection.seller_exchange_id)?.owner_type : null,
+    );
     items.push({
       id: `connection-${connection.id}`,
       priority: ageInDays(connection.created_at) >= 3 ? "high" : "medium",
       category: "connection",
       title: "Connection awaiting response",
-      detail: `${clean(profilesById.get(connection.buyer_agent_id), "Buyer agent")} → ${clean(profilesById.get(connection.seller_agent_id), "Seller agent")}`,
+      detail: `${clean(profilesById.get(connection.buyer_agent_id), "Buyer account")} (${buyerType}) → ${clean(profilesById.get(connection.seller_agent_id), "Seller account")} (${sellerType})`,
       timestamp: connection.created_at,
       href: `/admin/deals/connections/${connection.id}`,
     });
@@ -212,6 +226,11 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
 export function buildAdminSearchItems(source: CommandCenterSource): AdminSearchItem[] {
   const profilesById = new Map(source.profiles.map((profile) => [profile.id, clean(profile.full_name, profile.email ?? undefined)]));
   const clientsById = new Map(source.clients.map((client) => [client.id, client.client_name]));
+  const exchangesById = new Map(source.exchanges.map((exchange) => [exchange.id, exchange]));
+  const rolesByUser = source.roles.reduce<Map<string, string[]>>((map, role) => {
+    map.set(role.user_id, [...(map.get(role.user_id) ?? []), role.role]);
+    return map;
+  }, new Map());
   const items: AdminSearchItem[] = [];
 
   for (const profile of source.profiles) {
@@ -219,37 +238,46 @@ export function buildAdminSearchItems(source: CommandCenterSource): AdminSearchI
       id: `user-${profile.id}`,
       type: "User",
       title: clean(profile.full_name, profile.email ?? undefined),
-      subtitle: [profile.email, profile.brokerage_name].filter(Boolean).join(" · ") || "User account",
+      subtitle: [adminRoleSummary(rolesByUser.get(profile.id) ?? []), profile.email, profile.brokerage_name]
+        .filter(Boolean)
+        .join(" · "),
       href: `/admin/users?q=${encodeURIComponent(profile.email ?? profile.full_name ?? "")}`,
     });
   }
 
   for (const exchange of source.exchanges) {
+    const ownerName = clean(profilesById.get(exchange.agent_id), "Account owner");
+    const managedFor = exchangeManagedForLabel(exchange.owner_type, clientsById.get(exchange.client_id));
     items.push({
       id: `exchange-${exchange.id}`,
       type: "Exchange",
-      title: `${clean(clientsById.get(exchange.client_id), "Client")} exchange`,
-      subtitle: `${exchange.status.replace(/_/g, " ")} · ${clean(profilesById.get(exchange.agent_id), "Agent")}`,
+      title: `${isInvestorOwned(exchange.owner_type) ? ownerName : managedFor} exchange`,
+      subtitle: `${exchange.status.replace(/_/g, " ")} · ${exchangeOwnerTypeLabel(exchange.owner_type)} · ${ownerName}`,
       href: `/admin/deals/exchanges/${exchange.id}`,
     });
   }
 
   for (const property of source.properties) {
+    const exchange = property.exchange_id ? exchangesById.get(property.exchange_id) : null;
     items.push({
       id: `property-${property.id}`,
       type: "Property",
       title: propertyLabel(property),
-      subtitle: `${fullLocation(property)} · ${clean(profilesById.get(property.agent_id), "Agent")}`,
+      subtitle: `${fullLocation(property)} · ${exchangeOwnerTypeLabel(exchange?.owner_type)} · ${clean(profilesById.get(property.agent_id), "Account owner")}`,
       href: `/admin/deals?q=${encodeURIComponent(propertyLabel(property))}`,
     });
   }
 
   for (const connection of source.connections) {
+    const buyerType = exchangeOwnerTypeLabel(exchangesById.get(connection.buyer_exchange_id)?.owner_type);
+    const sellerType = exchangeOwnerTypeLabel(
+      connection.seller_exchange_id ? exchangesById.get(connection.seller_exchange_id)?.owner_type : null,
+    );
     items.push({
       id: `connection-${connection.id}`,
       type: "Connection",
-      title: `${clean(profilesById.get(connection.buyer_agent_id), "Buyer agent")} ↔ ${clean(profilesById.get(connection.seller_agent_id), "Seller agent")}`,
-      subtitle: connection.status.replace(/_/g, " "),
+      title: `${clean(profilesById.get(connection.buyer_agent_id), "Buyer account")} ↔ ${clean(profilesById.get(connection.seller_agent_id), "Seller account")}`,
+      subtitle: `${connection.status.replace(/_/g, " ")} · ${buyerType} ↔ ${sellerType}`,
       href: `/admin/deals/connections/${connection.id}`,
     });
   }
@@ -433,6 +461,9 @@ export function useAdminCommandCenter() {
           properties: source.properties.length,
           users: source.profiles.length,
           agents: new Set(source.roles.filter((role) => role.role === "agent").map((role) => role.user_id)).size,
+          investors: new Set(source.roles.filter((role) => role.role === "investor").map((role) => role.user_id)).size,
+          agentManagedExchanges: activeExchanges.filter((exchange) => !isInvestorOwned(exchange.owner_type)).length,
+          investorManagedExchanges: activeExchanges.filter((exchange) => isInvestorOwned(exchange.owner_type)).length,
           newLeads:
             source.contacts.filter((contact) => contact.status === "new").length +
             source.referrals.filter((referral) => referral.status === "pending").length +

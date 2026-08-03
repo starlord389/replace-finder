@@ -10,6 +10,10 @@ import type { Tables } from "@/integrations/supabase/types";
 import { resolveListingName } from "@/lib/listingDisplay";
 import { Loader2, Search, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  exchangeManagedForLabel,
+  exchangeOwnerTypeLabel,
+} from "@/features/admin/lib/accountTypes";
 
 type Exchange = Tables<"exchanges">;
 type Property = Tables<"pledged_properties">;
@@ -111,23 +115,30 @@ export default function AdminDeals() {
     (id: string | null) => (id ? agentName.get(id) ?? "Unknown" : "—"),
     [agentName],
   );
+  const exchangeById = useMemo(
+    () => new Map(exchanges.map((exchange) => [exchange.id, exchange])),
+    [exchanges],
+  );
 
   const term = search.trim().toLowerCase();
   const fExchanges = useMemo(
-    () => exchanges.filter((e) => !term || agent(e.agent_id).toLowerCase().includes(term) || (clientName.get(e.client_id) ?? "").toLowerCase().includes(term) || e.status.toLowerCase().includes(term)),
+    () => exchanges.filter((e) => !term || agent(e.agent_id).toLowerCase().includes(term) || exchangeManagedForLabel(e.owner_type, clientName.get(e.client_id)).toLowerCase().includes(term) || exchangeOwnerTypeLabel(e.owner_type).toLowerCase().includes(term) || e.status.toLowerCase().includes(term)),
     [exchanges, term, agent, clientName],
   );
   const fProperties = useMemo(
-    () => properties.filter((p) => !term || (p.property_name ?? "").toLowerCase().includes(term) || (p.address ?? "").toLowerCase().includes(term) || (p.city ?? "").toLowerCase().includes(term) || (p.state ?? "").toLowerCase().includes(term) || agent(p.agent_id).toLowerCase().includes(term)),
-    [properties, term, agent],
+    () => properties.filter((p) => {
+      const ownerType = exchangeById.get(p.exchange_id ?? "")?.owner_type;
+      return !term || (p.property_name ?? "").toLowerCase().includes(term) || (p.address ?? "").toLowerCase().includes(term) || (p.city ?? "").toLowerCase().includes(term) || (p.state ?? "").toLowerCase().includes(term) || agent(p.agent_id).toLowerCase().includes(term) || exchangeOwnerTypeLabel(ownerType).toLowerCase().includes(term);
+    }),
+    [properties, term, agent, exchangeById],
   );
   const fConnections = useMemo(
-    () => connections.filter((c) => !term || agent(c.buyer_agent_id).toLowerCase().includes(term) || agent(c.seller_agent_id).toLowerCase().includes(term) || c.status.toLowerCase().includes(term)),
-    [connections, term, agent],
+    () => connections.filter((c) => !term || agent(c.buyer_agent_id).toLowerCase().includes(term) || agent(c.seller_agent_id).toLowerCase().includes(term) || exchangeOwnerTypeLabel(exchangeById.get(c.buyer_exchange_id)?.owner_type).toLowerCase().includes(term) || exchangeOwnerTypeLabel(c.seller_exchange_id ? exchangeById.get(c.seller_exchange_id)?.owner_type : null).toLowerCase().includes(term) || c.status.toLowerCase().includes(term)),
+    [connections, term, agent, exchangeById],
   );
   const fMatches = useMemo(
-    () => matches.filter((m) => !term || (m.status ?? "").toLowerCase().includes(term) || (m.boot_status ?? "").toLowerCase().includes(term)),
-    [matches, term],
+    () => matches.filter((m) => !term || (m.status ?? "").toLowerCase().includes(term) || (m.boot_status ?? "").toLowerCase().includes(term) || (m.match_classification ?? "").toLowerCase().includes(term) || exchangeOwnerTypeLabel(exchangeById.get(m.buyer_exchange_id)?.owner_type).toLowerCase().includes(term)),
+    [matches, term, exchangeById],
   );
 
   if (loading) {
@@ -144,7 +155,7 @@ export default function AdminDeals() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Deal Oversight</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Every live exchange, property, match, and connection across all agents (demo data excluded).
+            Every live exchange, property, match, and connection across agents and self-managed investors/property owners (demo data excluded).
           </p>
         </div>
         <ReseedStagingButton />
@@ -153,7 +164,7 @@ export default function AdminDeals() {
 
       <div className="mb-4 relative max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by agent, client, property, or status…" className="pl-9" aria-label="Search deals" />
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by account owner, client, property, account type, or status…" className="pl-9" aria-label="Search deals" />
       </div>
 
       <Tabs defaultValue="exchanges">
@@ -171,8 +182,9 @@ export default function AdminDeals() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">Created</TableHead>
-                  <TableHead>Agent</TableHead>
-                  <TableHead>Client</TableHead>
+                  <TableHead>Account type</TableHead>
+                  <TableHead>Account owner</TableHead>
+                  <TableHead>Managed for</TableHead>
                   <TableHead className="w-[150px]">Status</TableHead>
                   <TableHead className="w-[120px]">Proceeds</TableHead>
                 </TableRow>
@@ -181,8 +193,9 @@ export default function AdminDeals() {
                 {fExchanges.map((e) => (
                   <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/deals/exchanges/${e.id}`)}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(e.created_at)}</TableCell>
+                    <TableCell className="text-xs font-medium">{exchangeOwnerTypeLabel(e.owner_type)}</TableCell>
                     <TableCell className="text-sm">{agent(e.agent_id)}</TableCell>
-                    <TableCell className="text-sm">{clientName.get(e.client_id) ?? "—"}</TableCell>
+                    <TableCell className="text-sm">{exchangeManagedForLabel(e.owner_type, clientName.get(e.client_id))}</TableCell>
                     <TableCell><StatusPill value={e.status} /></TableCell>
                     <TableCell className="text-sm">{money(e.exchange_proceeds)}</TableCell>
                   </TableRow>
@@ -202,21 +215,26 @@ export default function AdminDeals() {
                   <TableHead>Property</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Asset type</TableHead>
-                  <TableHead>Agent</TableHead>
+                  <TableHead>Account type</TableHead>
+                  <TableHead>Account owner</TableHead>
                   <TableHead className="w-[130px]">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {fProperties.map((p) => (
+                {fProperties.map((p) => {
+                  const ownerType = exchangeById.get(p.exchange_id ?? "")?.owner_type;
+                  return (
                   <TableRow key={p.id}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(p.created_at)}</TableCell>
                     <TableCell className="text-sm font-medium">{resolveListingName(p, true)}</TableCell>
                     <TableCell className="text-sm">{[p.city, p.state].filter(Boolean).join(", ") || "—"}</TableCell>
                     <TableCell className="text-sm capitalize">{p.asset_type ? pretty(p.asset_type) : "—"}</TableCell>
+                    <TableCell className="text-xs font-medium">{exchangeOwnerTypeLabel(ownerType)}</TableCell>
                     <TableCell className="text-sm">{agent(p.agent_id)}</TableCell>
                     <TableCell><StatusPill value={p.status} /></TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </TableCard>
@@ -229,6 +247,7 @@ export default function AdminDeals() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[110px]">Created</TableHead>
+                  <TableHead>Buyer account</TableHead>
                   <TableHead className="w-[110px]">Total score</TableHead>
                   <TableHead>Score breakdown</TableHead>
                   <TableHead className="w-[140px]">Boot</TableHead>
@@ -239,6 +258,9 @@ export default function AdminDeals() {
                 {fMatches.map((m) => (
                   <TableRow key={m.id}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(m.created_at)}</TableCell>
+                    <TableCell className="text-xs font-medium">
+                      {exchangeOwnerTypeLabel(exchangeById.get(m.buyer_exchange_id)?.owner_type)}
+                    </TableCell>
                     <TableCell>
                       <span className="text-sm font-semibold">{Math.round(m.total_score)}</span>
                     </TableCell>
@@ -264,8 +286,8 @@ export default function AdminDeals() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">Started</TableHead>
-                  <TableHead>Buyer agent</TableHead>
-                  <TableHead>Seller agent</TableHead>
+                  <TableHead>Buyer account</TableHead>
+                  <TableHead>Seller account</TableHead>
                   <TableHead className="w-[140px]">Status</TableHead>
                   <TableHead className="w-[140px]">Facilitation fee</TableHead>
                 </TableRow>
@@ -274,8 +296,14 @@ export default function AdminDeals() {
                 {fConnections.map((c) => (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/deals/connections/${c.id}`)}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(c.created_at)}</TableCell>
-                    <TableCell className="text-sm">{agent(c.buyer_agent_id)}</TableCell>
-                    <TableCell className="text-sm">{agent(c.seller_agent_id)}</TableCell>
+                    <TableCell className="text-sm">
+                      <div>{agent(c.buyer_agent_id)}</div>
+                      <div className="text-xs text-muted-foreground">{exchangeOwnerTypeLabel(exchangeById.get(c.buyer_exchange_id)?.owner_type)}</div>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      <div>{agent(c.seller_agent_id)}</div>
+                      <div className="text-xs text-muted-foreground">{exchangeOwnerTypeLabel(c.seller_exchange_id ? exchangeById.get(c.seller_exchange_id)?.owner_type : null)}</div>
+                    </TableCell>
                     <TableCell><StatusPill value={c.status} /></TableCell>
                     <TableCell className="text-sm">
                       {c.facilitation_fee_amount != null ? money(c.facilitation_fee_amount) : "—"}

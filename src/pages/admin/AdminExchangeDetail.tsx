@@ -11,6 +11,11 @@ import { STAGE_DEFS, type StageKey } from "@/features/pipeline/lib/pipelineStage
 import { Loader2, ArrowLeft, Clock, Sparkles, CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
+import {
+  exchangeManagedForLabel,
+  exchangeOwnerTypeLabel,
+  isInvestorOwned,
+} from "@/features/admin/lib/accountTypes";
 
 interface DiagRow {
   direction: "buyer" | "seller";
@@ -90,7 +95,9 @@ export default function AdminExchangeDetail() {
     setExchange(ex);
     const [prof, cl, prop, crit, mt, cn, tl] = await Promise.all([
       supabase.from("profiles").select("full_name, email").eq("id", ex.agent_id).maybeSingle(),
-      supabase.from("agent_clients").select("*").eq("id", ex.client_id).maybeSingle(),
+      ex.client_id
+        ? supabase.from("agent_clients").select("*").eq("id", ex.client_id).maybeSingle()
+        : Promise.resolve({ data: null }),
       ex.relinquished_property_id
         ? supabase.from("pledged_properties").select("*").eq("id", ex.relinquished_property_id).maybeSingle()
         : Promise.resolve({ data: null }),
@@ -229,6 +236,10 @@ export default function AdminExchangeDetail() {
     );
   }
 
+  const ownerTypeLabel = exchangeOwnerTypeLabel(exchange.owner_type);
+  const managedForLabel = exchangeManagedForLabel(exchange.owner_type, client?.client_name);
+  const selfManagedInvestor = isInvestorOwned(exchange.owner_type);
+
   return (
     <div className="space-y-6">
       <BackLink />
@@ -237,7 +248,7 @@ export default function AdminExchangeDetail() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Exchange</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {agentName} · {client?.client_name ?? "—"} · created {fmtDate(exchange.created_at)}
+            {ownerTypeLabel} · {agentName} · {managedForLabel} · created {fmtDate(exchange.created_at)}
           </p>
         </div>
         <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium capitalize ${statusColor[exchange.status] || "bg-muted text-muted-foreground"}`}>
@@ -375,6 +386,19 @@ export default function AdminExchangeDetail() {
 
 
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Ownership */}
+        <Card>
+          <CardHeader><CardTitle className="text-base">Account ownership</CardTitle></CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <dt className="text-muted-foreground">Account type</dt><dd>{ownerTypeLabel}</dd>
+              <dt className="text-muted-foreground">Account owner</dt><dd>{agentName}</dd>
+              <dt className="text-muted-foreground">Management</dt><dd>{selfManagedInvestor ? "Self-managed" : "Agent-managed"}</dd>
+              <dt className="text-muted-foreground">Managed for</dt><dd>{managedForLabel}</dd>
+            </dl>
+          </CardContent>
+        </Card>
+
         {/* Financials */}
         <Card>
           <CardHeader><CardTitle className="text-base">Exchange details</CardTitle></CardHeader>
@@ -398,7 +422,7 @@ export default function AdminExchangeDetail() {
             {property ? (
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <dt className="text-muted-foreground">Address</dt><dd>{property.address || property.property_name || "—"}</dd>
-                <dt className="text-muted-foreground">Address visibility</dt><dd>{property.address_is_public ? "Shown to agents" : "Hidden from agents"}</dd>
+                <dt className="text-muted-foreground">Address visibility</dt><dd>{property.address_is_public ? "Shown to eligible marketplace users" : "Hidden from marketplace users"}</dd>
                 <dt className="text-muted-foreground">Location</dt><dd>{[property.city, property.state].filter(Boolean).join(", ") || "—"}</dd>
                 <dt className="text-muted-foreground">Asset type</dt><dd className="capitalize">{property.asset_type ? pretty(property.asset_type) : "—"}</dd>
                 <dt className="text-muted-foreground">Status</dt><dd className="capitalize">{pretty(property.status)}</dd>
@@ -407,10 +431,15 @@ export default function AdminExchangeDetail() {
           </CardContent>
         </Card>
 
-        {/* Criteria */}
+        {/* Matching inputs */}
         <Card>
-          <CardHeader><CardTitle className="text-base">Replacement criteria</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Matching inputs</CardTitle></CardHeader>
           <CardContent>
+            {selfManagedInvestor && (
+              <p className="mb-3 rounded-md bg-muted/50 p-2.5 text-xs text-muted-foreground">
+                Investor matches are generated automatically from exchange equity, the 75% maximum LTV, and projected ROE improvement.
+              </p>
+            )}
             {criteria ? (
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <dt className="text-muted-foreground">Price range</dt><dd>{money(criteria.target_price_min)} – {money(criteria.target_price_max)}</dd>

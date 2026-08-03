@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { Loader2, Search } from "lucide-react";
 import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
+import { adminRoleLabel } from "@/features/admin/lib/accountTypes";
 
 type StatusTable = "contact_submissions" | "referrals";
 
@@ -66,10 +67,10 @@ function StatusSelect({
   );
 }
 
-function StatusBadge({ value }: { value: string }) {
+function StatusBadge({ value, label }: { value: string; label?: string }) {
   return (
     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${statusColor[value] || "bg-muted text-muted-foreground"}`}>
-      {value}
+      {label ?? value}
     </span>
   );
 }
@@ -333,7 +334,7 @@ export default function AdminIntake() {
                       <div className="text-sm font-medium">{row.full_name}</div>
                       <div className="text-xs text-muted-foreground">{row.email}</div>
                     </TableCell>
-                    <TableCell><StatusBadge value={row.role} /></TableCell>
+                    <TableCell><StatusBadge value={row.role} label={adminRoleLabel(row.role)} /></TableCell>
                     <TableCell className="text-sm capitalize">{row.event.replace(/-/g, " ")}</TableCell>
                   </TableRow>
                 ))}

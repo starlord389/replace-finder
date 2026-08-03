@@ -23,7 +23,7 @@ const operationsItems = [
 ];
 
 const managementItems = [
-  { title: "Users & Roles", url: "/admin/users", icon: Users },
+  { title: "Users & Account Roles", url: "/admin/users", icon: Users },
   { title: "Demos", url: "/admin/demos", icon: CalendarClock },
   { title: "Growth & Intake", url: "/admin/intake", icon: Inbox },
   { title: "Support", url: "/admin/support", icon: HelpCircle },
@@ -36,7 +36,7 @@ const managementItems = [
 export default function AdminSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { user, signOut } = useAuth();
+  const { user, signOut, hasRole } = useAuth();
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -111,13 +111,26 @@ export default function AdminSidebar() {
               <p className="mb-1 truncate text-xs text-muted-foreground">
                 {user?.email}
               </p>
-              <Link
-                to="/agent"
-                className="mb-2 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeftRight className="h-3 w-3" />
-                Switch to Agent View
-              </Link>
+              <div className="mb-2 space-y-1">
+                {hasRole("agent") && (
+                  <Link
+                    to="/agent/dashboard"
+                    className="flex items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <ArrowLeftRight className="h-3 w-3" />
+                    Switch to Agent View
+                  </Link>
+                )}
+                {hasRole("investor") && (
+                  <Link
+                    to="/investor/dashboard"
+                    className="flex items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <ArrowLeftRight className="h-3 w-3" />
+                    Switch to Investor View
+                  </Link>
+                )}
+              </div>
             </>
           )}
           <Button
