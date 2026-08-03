@@ -1184,144 +1184,6 @@ export type Database = {
           },
         ]
       }
-      investor_preferences: {
-        Row: {
-          budget_max: number | null
-          budget_min: number | null
-          company: string | null
-          created_at: string
-          experience_level: string | null
-          investment_strategies: Database["public"]["Enums"]["strategy_type"][]
-          notes: string | null
-          preferred_asset_types: Database["public"]["Enums"]["asset_type"][]
-          preferred_states: string[]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          budget_max?: number | null
-          budget_min?: number | null
-          company?: string | null
-          created_at?: string
-          experience_level?: string | null
-          investment_strategies?: Database["public"]["Enums"]["strategy_type"][]
-          notes?: string | null
-          preferred_asset_types?: Database["public"]["Enums"]["asset_type"][]
-          preferred_states?: string[]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          budget_max?: number | null
-          budget_min?: number | null
-          company?: string | null
-          created_at?: string
-          experience_level?: string | null
-          investment_strategies?: Database["public"]["Enums"]["strategy_type"][]
-          notes?: string | null
-          preferred_asset_types?: Database["public"]["Enums"]["asset_type"][]
-          preferred_states?: string[]
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      investor_saved_properties: {
-        Row: {
-          created_at: string
-          id: string
-          investor_id: string
-          is_demo: boolean
-          property_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          investor_id: string
-          is_demo?: boolean
-          property_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          investor_id?: string
-          is_demo?: boolean
-          property_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "investor_saved_properties_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "pledged_properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "investor_saved_properties_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "pledged_properties_secure"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      listing_inquiries: {
-        Row: {
-          agent_response: string | null
-          created_at: string
-          id: string
-          initial_message: string
-          investor_id: string
-          is_demo: boolean
-          listing_agent_id: string
-          property_id: string
-          responded_at: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          agent_response?: string | null
-          created_at?: string
-          id?: string
-          initial_message: string
-          investor_id: string
-          is_demo?: boolean
-          listing_agent_id: string
-          property_id: string
-          responded_at?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          agent_response?: string | null
-          created_at?: string
-          id?: string
-          initial_message?: string
-          investor_id?: string
-          is_demo?: boolean
-          listing_agent_id?: string
-          property_id?: string
-          responded_at?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "listing_inquiries_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "pledged_properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "listing_inquiries_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "pledged_properties_secure"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           bio: string | null
@@ -2220,7 +2082,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "client" | "broker" | "admin" | "agent" | "investor"
+      app_role: "client" | "broker" | "admin" | "agent"
       asset_type:
         | "multifamily"
         | "office"
@@ -2389,7 +2251,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["client", "broker", "admin", "agent", "investor"],
+      app_role: ["client", "broker", "admin", "agent"],
       asset_type: [
         "multifamily",
         "office",
