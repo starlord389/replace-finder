@@ -287,7 +287,7 @@ export default function AdminExchangeDetail() {
               {runningMatch && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               Dry-run with diagnostics
             </Button>
-            <Button size="sm" onClick={() => runMatching(false)} disabled={runningMatch || includeSameAgent}>
+            <Button size="sm" onClick={() => runMatching(false)} disabled={runningMatch}>
               {runningMatch && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               Re-run &amp; persist matches
             </Button>
@@ -296,22 +296,12 @@ export default function AdminExchangeDetail() {
             </p>
           </div>
 
-          <label className="flex items-start gap-2 rounded-md border border-dashed p-3 text-xs">
-            <input
-              type="checkbox"
-              className="mt-0.5"
-              checked={includeSameAgent}
-              onChange={(e) => setIncludeSameAgent(e.target.checked)}
-              disabled={runningMatch}
-            />
-            <span>
-              <span className="font-medium text-foreground">Match as if cross-agent (test only)</span>
-              <span className="block text-muted-foreground">
-                Scores this agent's own listings against each other so you can verify the algorithm.
-                Always a dry run — same-agent pairs are never saved or notified on.
-              </span>
-            </span>
-          </label>
+          <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">Same-agent matches are enabled.</span>{" "}
+            Listings and exchanges belonging to the same agent, brokerage or account are scored
+            like any other candidate — only self-pairings and same-client records are skipped.
+          </p>
+
 
 
           {matchResult && (
