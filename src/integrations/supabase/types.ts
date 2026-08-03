@@ -295,7 +295,7 @@ export type Database = {
           accepted_at: string | null
           accepted_user_id: string | null
           agent_id: string
-          client_id: string | null
+          client_id: string
           created_at: string
           email: string
           expires_at: string
@@ -663,7 +663,7 @@ export type Database = {
         Row: {
           actual_close_date: string | null
           agent_id: string
-          client_id: string
+          client_id: string | null
           closing_deadline: string | null
           created_at: string
           criteria_id: string | null
