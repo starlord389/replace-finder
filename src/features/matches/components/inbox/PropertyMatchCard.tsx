@@ -124,6 +124,14 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClie
         >
           {UI_STATUS_LABEL[status]}
         </span>
+        {rel.isSameAgent && (
+          <span
+            className="inline-flex shrink-0 items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10.5px] font-semibold text-amber-800"
+            title="Both sides of this match are in your own book of business — potential multiple transaction sides."
+          >
+            In-Network Match
+          </span>
+        )}
         {action && (
           <span className="truncate text-[11px] font-semibold text-muted-foreground transition-colors group-hover:text-primary">
             {action.label} →
