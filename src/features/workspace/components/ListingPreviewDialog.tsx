@@ -81,6 +81,8 @@ function buildPreviewRel(listing: AgentListing): Relationship {
     declineReason: null,
     buyerAgentId: "",
     sellerAgentId: null,
+    isSameAgent: false,
+
   };
 }
 
