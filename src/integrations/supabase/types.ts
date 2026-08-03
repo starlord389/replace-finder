@@ -663,7 +663,7 @@ export type Database = {
         Row: {
           actual_close_date: string | null
           agent_id: string
-          client_id: string
+          client_id: string | null
           closing_deadline: string | null
           created_at: string
           criteria_id: string | null
@@ -675,6 +675,7 @@ export type Database = {
           id: string
           identification_deadline: string | null
           is_demo: boolean
+          owner_type: string
           pipeline_stage_override: string | null
           relinquished_property_id: string | null
           sale_close_date: string | null
@@ -684,7 +685,7 @@ export type Database = {
         Insert: {
           actual_close_date?: string | null
           agent_id: string
-          client_id: string
+          client_id?: string | null
           closing_deadline?: string | null
           created_at?: string
           criteria_id?: string | null
@@ -696,6 +697,7 @@ export type Database = {
           id?: string
           identification_deadline?: string | null
           is_demo?: boolean
+          owner_type?: string
           pipeline_stage_override?: string | null
           relinquished_property_id?: string | null
           sale_close_date?: string | null
@@ -705,7 +707,7 @@ export type Database = {
         Update: {
           actual_close_date?: string | null
           agent_id?: string
-          client_id?: string
+          client_id?: string | null
           closing_deadline?: string | null
           created_at?: string
           criteria_id?: string | null
@@ -717,6 +719,7 @@ export type Database = {
           id?: string
           identification_deadline?: string | null
           is_demo?: boolean
+          owner_type?: string
           pipeline_stage_override?: string | null
           relinquished_property_id?: string | null
           sale_close_date?: string | null
