@@ -72,7 +72,6 @@ export default function AdminExchangeDetail() {
   const [savingStage, setSavingStage] = useState(false);
   const [runningMatch, setRunningMatch] = useState(false);
   const [matchResult, setMatchResult] = useState<DiagResult | null>(null);
-  const [includeSameAgent, setIncludeSameAgent] = useState(false);
 
   useEffect(() => {
     if (id) load(id);
@@ -190,9 +189,7 @@ export default function AdminExchangeDetail() {
         exchange_id: exchange.id,
         property_id: exchange.relinquished_property_id,
         explain: true,
-        // Same-agent scoring is diagnostics-only; the function forces dry-run for it.
-        dry_run: dryRun || includeSameAgent,
-        include_same_agent: includeSameAgent,
+        dry_run: dryRun,
       },
     });
     setRunningMatch(false);
