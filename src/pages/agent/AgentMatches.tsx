@@ -238,6 +238,14 @@ export default function AgentMatches({ audience = "agent" }: { audience?: "agent
     setSearchParams(next);
   }
 
+  function clearInvestorExchangeScope() {
+    const next = new URLSearchParams(searchParams);
+    next.delete("client");
+    next.delete("listing");
+    next.delete("match");
+    setSearchParams(next);
+  }
+
   const listingsTouched = useMemo(
     () => new Set(buyerRels.map((r) => r.buyerExchangeId)).size,
     [buyerRels],
@@ -324,17 +332,17 @@ export default function AgentMatches({ audience = "agent" }: { audience?: "agent
               onFiltersChange={setFilters}
               scopeRels={scopedRels}
               rankMap={rankMap}
-              groupByClient={groupByClient && !activeClient}
-              onGroupByClientChange={activeClient ? undefined : setGroupByClient}
+              groupByClient={!isInvestor && groupByClient && !activeClient}
+              onGroupByClientChange={isInvestor || activeClient ? undefined : setGroupByClient}
               clients={clientGroups}
               activeClientId={activeClient?.clientId ?? null}
-              activeExchangeId={undefined}
-              allClientsActive={!activeClient}
-              allPropertiesActive={!!activeClient}
+              activeExchangeId={listingFilterId ?? undefined}
+              allClientsActive={isInvestor ? !listingFilterId : !activeClient}
+              allPropertiesActive={isInvestor ? false : !!activeClient}
               audience={audience}
               onSelectExchange={(id) => navigate(`${basePath}/matches?listing=${id}`)}
-              onSelectAllClients={() => setScopeClient(null)}
-              onSelectAllPropertiesForClient={(clientId) => setScopeClient(clientId)}
+              onSelectAllClients={isInvestor ? clearInvestorExchangeScope : () => setScopeClient(null)}
+              onSelectAllPropertiesForClient={isInvestor ? undefined : (clientId) => setScopeClient(clientId)}
             />
           </div>
 

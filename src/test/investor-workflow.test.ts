@@ -3,8 +3,11 @@ import {
   INVESTOR_FILTER_TABS,
   INVESTOR_LIFECYCLE_ORDER,
   nextActionsForAudience,
+  rankExplanation,
+  rankReason,
   statusForAudience,
 } from "@/features/matches/components/inbox/inboxHelpers";
+import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 
 describe("investor match workflow", () => {
   it("removes agent/client-only lifecycle stages", () => {
@@ -34,5 +37,20 @@ describe("investor match workflow", () => {
     expect(statusForAudience("sent_to_client", "investor")).toBe("new");
     expect(statusForAudience("client_interested", "investor")).toBe("new");
     expect(statusForAudience("client_interested", "agent")).toBe("client_interested");
+  });
+
+  it("explains rankings with the actual ROE and financing rules", () => {
+    const match = {
+      roeImprovementPp: 1.5,
+      estimatedLtv: 0.615,
+      askingPrice: 5_200_000,
+      estimatedPurchasingCapacity: 8_000_000,
+    } as unknown as Relationship;
+
+    expect(rankReason(match)).toBe("ROE +1.5 pts · 61.5% LTV");
+    expect(rankExplanation(match, 1)).toBe(
+      "Ranked #1 because projected ROE improves by 1.5 percentage points and modeled financing is 61.5% LTV and the $5.20M price is within the $8.00M purchasing ceiling.",
+    );
+    expect(rankExplanation(match, 1)).not.toMatch(/location|asset type|strategy/i);
   });
 });

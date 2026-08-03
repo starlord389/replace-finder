@@ -393,20 +393,32 @@ export function sortRelationships<T extends Relationship>(
   return arr;
 }
 
-/** Short reason why a match ranks where it does — heuristic, deterministic. */
+/** Short reason grounded in the two rules that qualify investor matches. */
 export function rankReason(rel: Relationship): string {
-  const dims = matchBreakdown(rel);
-  const top = [...dims].sort((a, b) => b.score - a.score).slice(0, 2);
-  if (rel.score >= 85) return `Strong ${top[0].label.toLowerCase()} & ${top[1].label.toLowerCase()}`;
-  if (rel.score >= 70) return `Good ${top[0].label.toLowerCase()} fit`;
-  return `Partial fit — strongest on ${top[0].label.toLowerCase()}`;
+  const roe = rel.roeImprovementPp;
+  const ltv = rel.estimatedLtv;
+  if (roe != null && ltv != null) {
+    return `ROE +${roe.toFixed(1)} pts · ${(ltv * 100).toFixed(1)}% LTV`;
+  }
+  if (roe != null) return `ROE improves by ${roe.toFixed(1)} pts`;
+  if (ltv != null) return `Within ${(ltv * 100).toFixed(1)}% modeled LTV`;
+  return "Qualified ROE upgrade";
 }
 
 /** Longer explanation, used in the detail panel header. */
 export function rankExplanation(rel: Relationship, rank: number): string {
-  const top = [...matchBreakdown(rel)]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map((d) => d.label.toLowerCase());
-  return `Ranked #${rank} because of its combination of ${top.join(", ")}.`;
+  const reasons: string[] = [];
+  if (rel.roeImprovementPp != null) {
+    reasons.push(`projected ROE improves by ${rel.roeImprovementPp.toFixed(1)} percentage points`);
+  }
+  if (rel.estimatedLtv != null) {
+    reasons.push(`modeled financing is ${(rel.estimatedLtv * 100).toFixed(1)}% LTV`);
+  }
+  if (rel.estimatedPurchasingCapacity != null && rel.askingPrice != null) {
+    reasons.push(`the ${formatMoney(rel.askingPrice)} price is within the ${formatMoney(rel.estimatedPurchasingCapacity)} purchasing ceiling`);
+  }
+  if (reasons.length === 0) {
+    return `Ranked #${rank} based on its qualified ROE improvement and affordability.`;
+  }
+  return `Ranked #${rank} because ${reasons.join(" and ")}.`;
 }
