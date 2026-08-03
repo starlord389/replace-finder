@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { ASSET_TYPE_LABELS, US_STATES } from "@/lib/constants";
-import { Briefcase, Home, ArrowLeft, CheckCircle2, Mail, Phone, Search, Handshake, Clock, Shield, TrendingUp } from "lucide-react";
+import { Briefcase, Home, ArrowLeft, CheckCircle2, Mail, Phone, Search, Handshake, Clock, Shield } from "lucide-react";
 
 type Step = "choose" | "agent" | "investor" | "referral";
 
@@ -64,35 +64,22 @@ function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {
         >
           <CardContent className="flex items-start gap-4 p-6">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#e7edf7] text-[#16284a]">
-              <TrendingUp className="h-5 w-5" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold text-foreground">I'm a Real Estate Investor</h3>
-              <p className="text-sm text-muted-foreground">
-                Browse published opportunities, save properties, and connect directly with listing agents.
-              </p>
-              <Button size="sm" className="mt-3 bg-[#16284a] text-white hover:bg-[#20385f]">Sign Up as Investor</Button>
-            </div>
-          </CardContent>
-        </Card>
-        <Card
-          className="cursor-pointer border-2 border-transparent bg-white/90 transition-all hover:border-[#16284a]/35 hover:shadow-md"
-          onClick={() => onSelect("referral")}
-        >
-          <CardContent className="flex items-start gap-4 p-6">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#e3f1e4] text-[#43a047]">
               <Home className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-semibold text-foreground">I'm a Property Owner</h3>
+              <h3 className="font-semibold text-foreground">I'm an Investor / Property Owner</h3>
               <p className="text-sm text-muted-foreground">
-                Looking to do a 1031 exchange? We'll connect you with a qualified agent in our network.
+                Own real estate, plan your 1031 exchange, browse replacement properties, and connect with investor-friendly agents.
               </p>
-              <Button size="sm" variant="outline" className="mt-3 border-[#e8edf3] text-[#16284a] hover:bg-[#eef3fb] hover:text-[#16284a]">Get Connected</Button>
+              <Button size="sm" className="mt-3 bg-[#16284a] text-white hover:bg-[#20385f]">Create Investor / Owner Account</Button>
             </div>
           </CardContent>
         </Card>
       </div>
+      <p className="text-center text-sm text-muted-foreground">
+        Want help choosing an agent first?{" "}
+        <Link to="/landlords" className="font-medium text-[#16284a] hover:underline">Use our agent-matching service</Link>
+      </p>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link to="/login" className="font-medium text-[#16284a] hover:underline">Sign in</Link>
@@ -141,7 +128,7 @@ function InvestorSignupForm({ onBack }: { onBack: () => void }) {
     }
     if (data.user) {
       setSubmittedEmail(form.email.trim());
-      toast({ title: "Check your email", description: "Confirm your email to unlock your investor workspace." });
+      toast({ title: "Check your email", description: "Confirm your email to unlock your investor / owner workspace." });
     }
   };
   const fieldError = (key: string) => errors[key] ? <p className="text-sm text-destructive">{errors[key]}</p> : null;
@@ -152,7 +139,7 @@ function InvestorSignupForm({ onBack }: { onBack: () => void }) {
     <form onSubmit={submit} className="space-y-6">
       <div className="flex items-center gap-3">
         <Button type="button" variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
-        <div><h1 className="text-2xl font-bold">Create Investor Account</h1><p className="text-sm text-muted-foreground">Start exploring published investment opportunities.</p></div>
+        <div><h1 className="text-2xl font-bold">Create Investor / Property Owner Account</h1><p className="text-sm text-muted-foreground">Manage your investment search and explore replacement properties in one workspace.</p></div>
       </div>
       <div className="space-y-4 rounded-xl border bg-white/90 p-6">
         <div className="space-y-2"><Label htmlFor="investorFullName">Full Name *</Label><Input id="investorFullName" value={form.fullName} onChange={(e) => set("fullName", e.target.value)} />{fieldError("fullName")}</div>
@@ -162,7 +149,7 @@ function InvestorSignupForm({ onBack }: { onBack: () => void }) {
         <div className="space-y-2"><Label htmlFor="investorPassword">Password *</Label><Input id="investorPassword" type="password" minLength={8} value={form.password} onChange={(e) => set("password", e.target.value)} />{fieldError("password")}</div>
         <div className="space-y-2"><Label htmlFor="investorConfirmPassword">Confirm Password *</Label><Input id="investorConfirmPassword" type="password" value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} />{fieldError("confirmPassword")}</div>
       </div>
-      <Button type="submit" className="w-full bg-[#16284a] text-white hover:bg-[#20385f]" disabled={loading}>{loading ? "Creating account…" : "Create Investor Account"}</Button>
+      <Button type="submit" className="w-full bg-[#16284a] text-white hover:bg-[#20385f]" disabled={loading}>{loading ? "Creating account…" : "Create Investor / Owner Account"}</Button>
       <p className="text-center text-sm text-muted-foreground">Already have an account? <Link to="/login" className="font-medium text-[#16284a] hover:underline">Sign in</Link></p>
     </form>
   );

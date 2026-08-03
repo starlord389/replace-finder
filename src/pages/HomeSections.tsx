@@ -199,7 +199,7 @@ function Sec_who() {
       <h2 className="nb-h2">Who It's Built For</h2>
     </div>
 
-    <div className="nb-who-grid">
+    <div className="nb-who-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))" }}>
       {/* Real Estate Agents */}
       <div className="nb-who-card nb-who-card--blue">
         <div className="nb-who-icon" aria-hidden="true">
@@ -224,7 +224,7 @@ function Sec_who() {
         <a className="nb-who-link" href="/signup">Learn More <span aria-hidden="true">&rarr;</span></a>
       </div>
 
-      {/* Property Owners */}
+      {/* Investors and property owners are one audience and one account type. */}
       <div className="nb-who-card nb-who-card--green">
         <div className="nb-who-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -235,9 +235,9 @@ function Sec_who() {
             <path d="M9.5 8.5h5" />
           </svg>
         </div>
-        <h3 className="nb-who-title">Property Owners</h3>
+        <h3 className="nb-who-title">Investors / Property Owners</h3>
         <ul className="nb-who-list">
-          {["Find replacement properties", "Reduce stress", "Save time"].map((b) => (
+          {["Find replacement properties", "Discover opportunities", "Save a focused shortlist", "Connect with investor-friendly agents"].map((b) => (
             <li className="nb-who-li" key={b}>
               <span className="nb-who-check" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -249,29 +249,6 @@ function Sec_who() {
         <a className="nb-who-link" href="/signup">Learn More <span aria-hidden="true">&rarr;</span></a>
       </div>
 
-      {/* Investors */}
-      <div className="nb-who-card nb-who-card--orange">
-        <div className="nb-who-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 17l5-5 4 4 8-8" />
-            <polyline points="16 8 21 8 21 13" />
-            <path d="M12 21v-3" />
-            <path d="M12 18a2 2 0 0 0 2-2c0-1.2-1-1.6-2-2s-2-.8-2-2a2 2 0 0 1 4 0" />
-          </svg>
-        </div>
-        <h3 className="nb-who-title">Investors</h3>
-        <ul className="nb-who-list">
-          {["Discover opportunities", "Expand your network", "Exchange smarter"].map((b) => (
-            <li className="nb-who-li" key={b}>
-              <span className="nb-who-check" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-              </span>
-              {b}
-            </li>
-          ))}
-        </ul>
-        <a className="nb-who-link" href="/signup">Learn More <span aria-hidden="true">&rarr;</span></a>
-      </div>
     </div>
   </div>
 </section>
@@ -1004,7 +981,7 @@ function Sec_faqcta() {
           },
           {
             q: 'Who can join 1031ExchangeUp?',
-            a: 'Licensed agents, brokers, and accredited investors active in 1031 exchanges are all welcome to create an account.',
+            a: 'Licensed agents and real estate investors / property owners active in 1031 exchanges are all welcome to create an account.',
           },
           {
             q: 'Do I have to upload property addresses?',
@@ -1019,8 +996,8 @@ function Sec_faqcta() {
             a: 'That is fine — many members join early to build their network so the right match is waiting when a client does come along.',
           },
           {
-            q: 'Can investors join?',
-            a: 'Yes — investors are a core part of the network and can join directly to connect with investor-friendly agents.',
+            q: 'Can investors and property owners join?',
+            a: 'Yes — property owners are investors and use the same account. They can explore replacement opportunities and connect directly with investor-friendly agents.',
           },
         ].map((item, i) => (
           <details className="nb-fct-item" key={i}>

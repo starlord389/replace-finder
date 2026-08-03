@@ -3,7 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import Signup from "@/pages/auth/Signup";
 
-describe("agent signup form", () => {
+describe("account signup", () => {
   it("shows only the essential self-certification fields", () => {
     render(
       <MemoryRouter>
@@ -29,16 +29,18 @@ describe("agent signup form", () => {
     expect(screen.queryByText(/property types you work with/i)).not.toBeInTheDocument();
   });
 
-  it("offers an investor account without agent-only license fields", () => {
+  it("uses one account path for investors and property owners", () => {
     render(
       <MemoryRouter>
         <Signup />
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /sign up as investor/i }));
+    expect(screen.getByRole("heading", { name: /investor \/ property owner/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /^i'm a property owner$/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /create investor \/ owner account/i }));
 
-    expect(screen.getByRole("heading", { name: /create investor account/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /create investor \/ property owner account/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/company or investment entity/i)).toBeInTheDocument();

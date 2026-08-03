@@ -20,7 +20,7 @@ export default function InvestorLayout() {
   return (
     <div className="min-h-screen bg-[#f6f8fb]">
       <InvestorTopNav />
-      {isDemo && hasRole("admin") && <div className="bg-[#16284a] px-4 py-1.5 text-center text-xs font-semibold text-white">Investor Demo view — sample activity, fully separate from Live data.</div>}
+      {isDemo && hasRole("admin") && <div className="bg-[#16284a] px-4 py-1.5 text-center text-xs font-semibold text-white">Investor / Owner Demo view — sample activity, fully separate from Live data.</div>}
       <main className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8"><Outlet /></main>
     </div>
   );

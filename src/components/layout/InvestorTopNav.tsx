@@ -47,7 +47,7 @@ export default function InvestorTopNav() {
     <header className="sticky top-0 z-40 border-b border-[#e2e8f0] bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-4 sm:px-6">
         <Link to="/investor/dashboard" className="shrink-0">
-          <ExchangeLogoLockup markClassName="h-8" textClassName="text-[15px] text-[#16284a]" suffix="Investor" suffixClassName="rounded bg-[#16284a]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#16284a]" />
+          <ExchangeLogoLockup markClassName="h-8" textClassName="text-[15px] text-[#16284a]" suffix="Investor / Owner" suffixClassName="rounded bg-[#16284a]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#16284a]" />
         </Link>
         <nav className="hidden flex-1 items-center justify-center gap-1 md:flex">
           {NAV.map(({ title, url, icon: Icon }) => <NavLink key={url} to={url} className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted" activeClassName="bg-[#16284a]/10 text-[#16284a]"><Icon className="h-4 w-4" />{title}</NavLink>)}
