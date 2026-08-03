@@ -17,6 +17,7 @@ import {
 import { PropertyReviewPanel } from "@/features/matches/components/inbox/PropertyReviewPanel";
 import {
   deriveUiStatus,
+  statusForAudience,
   sortRelationships,
   type SortKey,
   type UiStatus,
@@ -27,26 +28,28 @@ import {
 } from "@/features/matches/components/inbox/SortFilterBar";
 import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/matches/components/inbox/useMatchLocalState";
 
-export default function AgentMatches() {
+export default function AgentMatches({ audience = "agent" }: { audience?: "agent" | "investor" }) {
   const { user } = useAuth();
   const { isDemo } = useWorkspaceMode();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const isInvestor = audience === "investor";
+  const basePath = isInvestor ? "/investor" : "/agent";
 
   // Stamp the launchpad "matches" ack on first visit (Live workspace only, idempotent).
   useEffect(() => {
-    if (!user || isDemo) return;
+    if (!user || isDemo || isInvestor) return;
     supabase
       .from("profiles")
       .update({ launchpad_matches_ack_at: new Date().toISOString() })
       .eq("id", user.id)
       .is("launchpad_matches_ack_at", null)
       .then(() => {});
-  }, [user, isDemo]);
+  }, [user, isDemo, isInvestor]);
 
 
-  const { data: allRels = [], isLoading } = useUnifiedRelationships();
-  const { data: agentListings = [] } = useAgentListings(user?.id);
+  const { data: allRels = [], isLoading } = useUnifiedRelationships(audience);
+  const { data: agentListings = [] } = useAgentListings(user?.id, audience);
 
   // Buyer-side rels = matches against the agent's own listings.
   const buyerRels = useMemo(
@@ -55,6 +58,19 @@ export default function AgentMatches() {
   );
 
   const clientGroups = useMemo<InboxClientGroup[]>(() => {
+    if (isInvestor) {
+      return [{
+        clientId: null,
+        clientName: "My exchanges",
+        listings: agentListings.map((l) => ({
+          exchangeId: l.id,
+          propertyLabel: l.propertyName || l.address || [l.city, l.state].filter(Boolean).join(", ") || "Untitled listing",
+          city: l.city,
+          state: l.state,
+          status: l.status,
+        })),
+      }];
+    }
     const map = new Map<string, InboxClientGroup>();
     for (const l of agentListings) {
       const key = l.clientId ?? "__unassigned";
@@ -80,7 +96,7 @@ export default function AgentMatches() {
     return Array.from(map.values()).sort((a, b) =>
       a.clientName.localeCompare(b.clientName),
     );
-  }, [agentListings]);
+  }, [agentListings, isInvestor]);
 
   // Scope: "all" by default; can narrow to a client (all properties) via the toolbar.
   const scopeClientId = searchParams.get("client"); // null = all clients
@@ -114,7 +130,7 @@ export default function AgentMatches() {
   const [filter, setFilter] = useState<"all" | UiStatus>("all");
   const [sort, setSort] = useState<SortKey>("best_match");
   const [filters, setFilters] = useState<MatchFilters>(EMPTY_FILTERS);
-  const [groupByClient, setGroupByClient] = useState(true);
+  const [groupByClient, setGroupByClient] = useState(!isInvestor);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
 
   const selectedMatchId = searchParams.get("match");
@@ -125,9 +141,9 @@ export default function AgentMatches() {
     () =>
       scopedRels.map((r) => ({
         rel: r,
-        status: deriveUiStatus(r, readMatchLocalState(r.matchId)),
+        status: statusForAudience(deriveUiStatus(r, readMatchLocalState(r.matchId)), audience),
       })),
-    [scopedRels, localStateVersion],
+    [scopedRels, localStateVersion, audience],
   );
 
   const counts = useMemo(() => {
@@ -241,7 +257,7 @@ export default function AgentMatches() {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            {activeClient ? `${activeClient.clientName} · Matches` : "All matches"}
+            {isInvestor ? "My matches" : (activeClient ? `${activeClient.clientName} · Matches` : "All matches")}
           </h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {activeClient
@@ -278,10 +294,12 @@ export default function AgentMatches() {
           <InboxIcon className="mb-3 h-10 w-10 text-muted-foreground/40" />
           <p className="text-base font-semibold text-foreground">No matches yet</p>
           <p className="mt-1 max-w-md text-sm text-muted-foreground">
-            Matches will appear here as soon as your listings start receiving them.
+            {isInvestor
+              ? "Matches appear when an active property fits your equity-based 75% LTV ceiling and improves your projected return on equity."
+              : "Matches will appear here as soon as your listings start receiving them."}
           </p>
           <Button asChild size="sm" variant="outline" className="mt-4">
-            <Link to="/agent/listings">Go to listings</Link>
+            <Link to={`${basePath}/listings`}>Go to listings</Link>
           </Button>
         </div>
       ) : (
@@ -313,7 +331,8 @@ export default function AgentMatches() {
               activeExchangeId={undefined}
               allClientsActive={!activeClient}
               allPropertiesActive={!!activeClient}
-              onSelectExchange={(id) => navigate(`/agent/matches?listing=${id}`)}
+              audience={audience}
+              onSelectExchange={(id) => navigate(`${basePath}/matches?listing=${id}`)}
               onSelectAllClients={() => setScopeClient(null)}
               onSelectAllPropertiesForClient={(clientId) => setScopeClient(clientId)}
             />
@@ -344,6 +363,7 @@ export default function AgentMatches() {
                     rank={rankMap.get(selected.id) ?? null}
                     totalInScope={visibleRels.length}
                     initialTab={searchParams.get("view") ?? undefined}
+                    audience={audience}
                   />
                 </div>
               </>

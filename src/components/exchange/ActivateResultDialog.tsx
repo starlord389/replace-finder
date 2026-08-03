@@ -49,10 +49,9 @@ export default function ActivateResultDialog({
               <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4 text-sm text-foreground">
                 <div className="font-medium">No matches right now — that's normal.</div>
                 <p className="mt-1 text-muted-foreground">
-                  Matches are made against listings from <span className="font-medium">other agents</span> in the
-                  network, so your own listings never match each other. Nothing else in the network currently clears
-                  your client's criteria and return-on-equity bar. Your listing stays live and is re-scanned
-                  automatically every time a new property is added.
+                  Nothing else in the network currently clears both the equity-based 75% LTV ceiling and the
+                  return-on-equity improvement requirement. Your listing stays live and is re-scanned automatically
+                  every time a new property is added.
                 </p>
               </div>
             )}
@@ -74,7 +73,7 @@ export default function ActivateResultDialog({
                 <div>
                   <div className="font-medium">Only upgrades, never downgrades.</div>
                   <p className="mt-1 text-muted-foreground">
-                    We only match your client with replacement properties that are true upgrades — never lateral moves or downgrades.
+                    We only surface replacement properties with a higher projected return on equity — never lateral moves or downgrades.
                   </p>
                 </div>
               </div>

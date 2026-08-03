@@ -24,6 +24,7 @@ interface PipelineToolbarProps {
   assetOptions: string[];
   resultCount: number;
   totalCount: number;
+  audience?: "agent" | "investor";
 }
 
 const SORT_LABEL: Record<SortKey, string> = {
@@ -39,6 +40,7 @@ export function PipelineToolbar({
   assetOptions,
   resultCount,
   totalCount,
+  audience = "agent",
 }: PipelineToolbarProps) {
   const hasFilters =
     filters.search.trim() !== "" ||
@@ -67,12 +69,12 @@ export function PipelineToolbar({
         <Input
           value={filters.search}
           onChange={(e) => onChange({ ...filters, search: e.target.value })}
-          placeholder="Search client, property, city…"
+          placeholder={audience === "investor" ? "Search property or city…" : "Search client, property, city…"}
           className="h-8 pl-8 text-sm"
         />
       </div>
 
-      <Popover>
+      {audience === "agent" && <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className="h-8 gap-1.5">
             Client
@@ -104,7 +106,7 @@ export function PipelineToolbar({
             )}
           </div>
         </PopoverContent>
-      </Popover>
+      </Popover>}
 
       <Popover>
         <PopoverTrigger asChild>

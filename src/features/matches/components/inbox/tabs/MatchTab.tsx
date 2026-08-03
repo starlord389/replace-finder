@@ -9,9 +9,10 @@ interface Props {
   rel: Relationship;
   rank?: number | null;
   totalInScope?: number;
+  audience?: "agent" | "investor";
 }
 
-export function MatchTab({ rel, rank, totalInScope }: Props) {
+export function MatchTab({ rel, rank, totalInScope, audience = "agent" }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center rounded-2xl border bg-gradient-to-br from-primary/5 via-card to-card p-8 text-center">
@@ -26,7 +27,7 @@ export function MatchTab({ rel, rank, totalInScope }: Props) {
         <h2 className="mt-4 text-2xl font-bold text-foreground">Match Score</h2>
         {rank != null && totalInScope ? (
           <p className="mt-1 text-sm text-muted-foreground">
-            Ranked <span className="font-semibold text-foreground">#{rank}</span> of {totalInScope} matches for {rel.clientName ?? "your client"}
+            Ranked <span className="font-semibold text-foreground">#{rank}</span> of {totalInScope} matches for {audience === "investor" ? "your exchange" : (rel.clientName ?? "your client")}
           </p>
         ) : null}
         {rank != null && (

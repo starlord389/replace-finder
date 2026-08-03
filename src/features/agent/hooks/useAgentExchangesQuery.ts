@@ -25,6 +25,7 @@ async function fetchAgentExchanges(userId: string, isDemo: boolean): Promise<Age
       "id, status, exchange_proceeds, created_at, relinquished_property_id, client_id, agent_clients(client_name)"
     )
     .eq("agent_id", userId)
+    .eq("owner_type", "agent")
     .eq("is_demo", isDemo)
     .order("created_at", { ascending: false });
 

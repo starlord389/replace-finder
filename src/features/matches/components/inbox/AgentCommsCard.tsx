@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ThreadView } from "@/features/messages/components/ThreadView";
 import { isConnected, type Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
-import { QUICK_MESSAGES } from "./inboxHelpers";
+import { INVESTOR_QUICK_MESSAGES, QUICK_MESSAGES } from "./inboxHelpers";
 
 interface Props {
   rel: Relationship;
+  audience?: "agent" | "investor";
 }
 
-export function AgentCommsCard({ rel }: Props) {
+export function AgentCommsCard({ rel, audience = "agent" }: Props) {
   const connected = isConnected(rel.stage) && !!rel.connectionId;
   const [draft, setDraft] = useState<string | undefined>(undefined);
 
@@ -38,7 +39,7 @@ export function AgentCommsCard({ rel }: Props) {
           Quick messages
         </p>
         <div className="flex flex-wrap gap-1.5">
-          {QUICK_MESSAGES.map((m) => (
+          {(audience === "investor" ? INVESTOR_QUICK_MESSAGES : QUICK_MESSAGES).map((m) => (
             <button
               key={m}
               type="button"

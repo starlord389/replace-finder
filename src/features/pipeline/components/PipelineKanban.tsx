@@ -32,11 +32,15 @@ function StageColumn({
   title,
   subtitle,
   items,
+  basePath,
+  ownerLabel,
 }: {
   stage: StageKey;
   title: string;
   subtitle: string;
   items: ListingMeta[];
+  basePath: string;
+  ownerLabel?: string;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `col-${stage}`, data: { stage } });
   const value = items.reduce((sum, m) => sum + (m.listing.askingPrice ?? 0), 0);
@@ -73,7 +77,7 @@ function StageColumn({
             </p>
           </div>
         ) : (
-          items.map((m) => <PipelineListingCard key={m.listing.id} meta={m} />)
+          items.map((m) => <PipelineListingCard key={m.listing.id} meta={m} basePath={basePath} ownerLabel={ownerLabel} />)
         )}
       </div>
     </div>
@@ -84,12 +88,16 @@ interface PipelineKanbanProps {
   rows: ListingMeta[];
   hasFilters: boolean;
   onResetFilters: () => void;
+  basePath?: string;
+  ownerLabel?: string;
 }
 
 export function PipelineKanban({
   rows,
   hasFilters,
   onResetFilters,
+  basePath = "/agent",
+  ownerLabel,
 }: PipelineKanbanProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -172,7 +180,7 @@ export function PipelineKanban({
             </Button>
           ) : (
             <Button asChild size="sm">
-              <Link to="/agent/exchanges/new">
+              <Link to={`${basePath}/exchanges/new`}>
                 <Plus className="mr-1 h-4 w-4" /> New listing
               </Link>
             </Button>
@@ -192,13 +200,15 @@ export function PipelineKanban({
             title={col.title}
             subtitle={col.subtitle}
             items={columns[col.key]}
+            basePath={basePath}
+            ownerLabel={ownerLabel}
           />
         ))}
       </div>
       <DragOverlay dropAnimation={null}>
         {activeMeta ? (
           <div className="w-72">
-            <PipelineListingCard meta={activeMeta} isDragOverlay />
+            <PipelineListingCard meta={activeMeta} isDragOverlay basePath={basePath} ownerLabel={ownerLabel} />
           </div>
         ) : null}
       </DragOverlay>

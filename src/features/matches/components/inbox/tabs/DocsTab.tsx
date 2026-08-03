@@ -6,9 +6,10 @@ interface Props {
   rel: Relationship;
   conversationAvailable?: boolean;
   onOpenConversation?: () => void;
+  audience?: "agent" | "investor";
 }
 
-export function DocsTab({ rel, conversationAvailable = false, onOpenConversation }: Props) {
+export function DocsTab({ rel, conversationAvailable = false, onOpenConversation, audience = "agent" }: Props) {
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -24,8 +25,9 @@ export function DocsTab({ rel, conversationAvailable = false, onOpenConversation
         </div>
         <h3 className="mt-4 text-lg font-semibold text-foreground">No documents shared yet</h3>
         <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
-          Offering memorandums, rent rolls, and operating statements are exchanged directly with the
-          listing agent once you're connected — kept private until your client expresses interest.
+          {audience === "investor"
+            ? "Offering memorandums, rent rolls, and operating statements are exchanged directly with the listing agent once you're connected."
+            : "Offering memorandums, rent rolls, and operating statements are exchanged directly with the listing agent once you're connected — kept private until your client expresses interest."}
         </p>
         {conversationAvailable ? (
           <Button className="mt-5 gap-2" onClick={onOpenConversation}>

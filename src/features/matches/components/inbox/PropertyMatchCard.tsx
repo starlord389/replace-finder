@@ -6,7 +6,8 @@ import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationsh
 import {
   deriveUiStatus,
   formatCapRate,
-  nextActionsFor,
+  nextActionsForAudience,
+  statusForAudience,
   UI_STATUS_CLASS,
   UI_STATUS_LABEL,
 } from "./inboxHelpers";
@@ -21,15 +22,16 @@ interface Props {
   /** When true, suppress the client lead line (used when scope is grouped by client header). */
   hideClientLead?: boolean;
   rank?: number;
+  audience?: "agent" | "investor";
 }
 
-export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClientLead = false, rank }: Props) {
+export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClientLead = false, rank, audience = "agent" }: Props) {
   // Re-render this card when any match's local state changes, so its status
   // badge / next-action stay fresh after an action taken elsewhere.
   useMatchLocalStateVersion();
   const local = readMatchLocalState(rel.matchId);
-  const status = deriveUiStatus(rel, local);
-  const action = nextActionsFor(status).primary;
+  const status = statusForAudience(deriveUiStatus(rel, local), audience);
+  const action = nextActionsForAudience(status, audience).primary;
 
   const assetLabel = assetType
     ? ASSET_TYPE_LABELS[assetType as keyof typeof ASSET_TYPE_LABELS] ?? assetType

@@ -42,11 +42,12 @@ const MILESTONES = [
 
 type MilestoneKey = typeof MILESTONES[number]["key"];
 
-export default function AgentConnectionDetail() {
+export default function AgentConnectionDetail({ audience = "agent" }: { audience?: "agent" | "investor" }) {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const basePath = audience === "investor" ? "/investor" : "/agent";
 
   const [conn, setConn] = useState<any>(null);
   const [match, setMatch] = useState<any>(null);
@@ -105,11 +106,13 @@ export default function AgentConnectionDetail() {
         // Buyer's relinquished property — counterparty-owned when we're the seller-side agent → masked view.
         exchange.relinquished_property_id ? supabase.from("pledged_properties_secure").select("*").eq("id", exchange.relinquished_property_id).single() : Promise.resolve({ data: null }),
         exchange.relinquished_property_id ? supabase.from("property_financials").select("*").eq("property_id", exchange.relinquished_property_id).maybeSingle() : Promise.resolve({ data: null }),
-        supabase.from("agent_clients").select("client_name").eq("id", exchange.client_id).single(),
+        exchange.client_id
+          ? supabase.from("agent_clients").select("client_name").eq("id", exchange.client_id).single()
+          : Promise.resolve({ data: null }),
       ]);
       setRelinquishedProp(relPropRes.data);
       setRelinquishedFin(relFinRes.data);
-      setClientName(clientRes.data?.client_name || "Client");
+      setClientName(audience === "investor" ? "Your" : (clientRes.data?.client_name || "Client"));
     }
 
     setLoading(false);
@@ -133,10 +136,10 @@ export default function AgentConnectionDetail() {
       p_type: "connection_accepted",
       p_title: "Connection Accepted",
       p_message: "Your connection request has been accepted. You can now view agent details and start messaging.",
-      p_link_to: `/agent/connections/${conn.id}`,
+      p_link_to: `${basePath}/connections/${conn.id}`,
     });
     if (notifyErr) console.error("Failed to notify counterparty of acceptance:", notifyErr);
-    toast({ title: "Connection accepted!", description: "You can now message the other agent." });
+    toast({ title: "Connection accepted!", description: "You can now message the other participant." });
     setActing(false);
     loadData();
   };
@@ -159,7 +162,7 @@ export default function AgentConnectionDetail() {
       p_type: "connection_declined",
       p_title: "Connection Declined",
       p_message: "Your connection request was declined.",
-      p_link_to: `/agent/connections/${conn.id}`,
+      p_link_to: `${basePath}/connections/${conn.id}`,
     });
     if (notifyErr) console.error("Failed to notify counterparty of decline:", notifyErr);
     toast({ title: "Connection declined." });
@@ -214,7 +217,7 @@ export default function AgentConnectionDetail() {
       p_type: "connection_milestone",
       p_title: `${stageDialog.mode === "edit" ? "Updated" : "Reached"}: ${stage.label}`,
       p_message: `${stage.label} ${stageDialog.mode === "edit" ? "date updated" : "marked complete"} on ${format(milestoneDate, "MMM d, yyyy")}.${milestoneNote ? ` Note: ${milestoneNote}` : ""}`,
-      p_link_to: `/agent/connections/${conn.id}`,
+      p_link_to: `${basePath}/connections/${conn.id}`,
     });
     if (notifyErr) console.error("Failed to notify counterparty of milestone:", notifyErr);
 
@@ -285,7 +288,7 @@ export default function AgentConnectionDetail() {
       p_type: "connection_failed",
       p_title: "Exchange Connection Failed",
       p_message: `The exchange connection has been marked as failed.${failReason ? ` Reason: ${failReason}` : ""}`,
-      p_link_to: `/agent/connections/${conn.id}`,
+      p_link_to: `${basePath}/connections/${conn.id}`,
     });
     if (notifyErr) console.error("Failed to notify counterparty of failure:", notifyErr);
 
@@ -305,8 +308,8 @@ export default function AgentConnectionDetail() {
 
   return (
     <div>
-      <button onClick={() => navigate("/agent/connections")} className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft className="h-4 w-4" /> Back to Connections
+      <button onClick={() => navigate(`${basePath}/pipeline`)} className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="h-4 w-4" /> Back to Pipeline
       </button>
 
       {/* Header */}
@@ -321,7 +324,7 @@ export default function AgentConnectionDetail() {
         )}
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        {clientName}'s exchange · Started {format(new Date(conn.initiated_at), "MMM d, yyyy")}
+        {audience === "investor" ? "Your exchange" : `${clientName}'s exchange`} · Started {format(new Date(conn.initiated_at), "MMM d, yyyy")}
       </p>
 
       {/* Pending: accept/decline actions */}
@@ -334,8 +337,8 @@ export default function AgentConnectionDetail() {
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 {conn.seller_agent_id === user!.id
-                  ? "Review the match and respond to the requesting agent."
-                  : "The other agent will be notified. You'll see their response here."}
+                  ? "Review the match and respond to the connection request."
+                  : "The listing participant will be notified. You'll see their response here."}
               </p>
             </div>
             {conn.seller_agent_id === user!.id && (
@@ -355,8 +358,8 @@ export default function AgentConnectionDetail() {
       {/* Agent Profile Cards — revealed only after acceptance */}
       {revealed && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <AgentProfileCard label="Buyer Agent" profile={buyerProfile} />
-          <AgentProfileCard label="Seller Agent" profile={sellerProfile} />
+          <AgentProfileCard label={audience === "investor" && conn.buyer_agent_id === user!.id ? "Property Owner" : "Buyer Agent"} profile={buyerProfile} />
+          <AgentProfileCard label={audience === "investor" && conn.seller_agent_id === user!.id ? "Property Owner" : "Listing Agent"} profile={sellerProfile} />
         </div>
       )}
 
@@ -467,11 +470,11 @@ export default function AgentConnectionDetail() {
             <div>
               <h3 className="font-semibold text-foreground">Messages</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Chat with the other agent in the full messages view.
+                Chat with the other participant in the full messages view.
               </p>
             </div>
             <Button asChild>
-              <Link to={`/agent/matches?listing=${conn.buyer_exchange_id}&match=${conn.match_id}&view=conversation`}>
+              <Link to={`${basePath}/matches?listing=${conn.buyer_exchange_id}&match=${conn.match_id}&view=conversation`}>
                 <MessageSquare className="mr-1.5 h-4 w-4" /> Open conversation
               </Link>
             </Button>

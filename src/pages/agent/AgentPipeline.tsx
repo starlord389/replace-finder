@@ -40,33 +40,35 @@ function writeFiltersToParams(
   filters: PipelineFilters,
 ): URLSearchParams {
   const next = new URLSearchParams(base);
-  filters.search ? next.set("q", filters.search) : next.delete("q");
-  filters.clientIds.length
-    ? next.set("clients", filters.clientIds.join(","))
-    : next.delete("clients");
-  filters.assetTypes.length
-    ? next.set("assets", filters.assetTypes.join(","))
-    : next.delete("assets");
-  filters.sort !== "activity" ? next.set("sort", filters.sort) : next.delete("sort");
+  if (filters.search) next.set("q", filters.search);
+  else next.delete("q");
+  if (filters.clientIds.length) next.set("clients", filters.clientIds.join(","));
+  else next.delete("clients");
+  if (filters.assetTypes.length) next.set("assets", filters.assetTypes.join(","));
+  else next.delete("assets");
+  if (filters.sort !== "activity") next.set("sort", filters.sort);
+  else next.delete("sort");
   return next;
 }
 
-export default function AgentPipeline() {
+export default function AgentPipeline({ audience = "agent" }: { audience?: "agent" | "investor" }) {
   const { user } = useAuth();
   const { isDemo } = useWorkspaceMode();
-  const { data: rels = [], isLoading: relsLoading } = useUnifiedRelationships();
-  const { data: listings = [], isLoading: listingsLoading } = useAgentListings(user?.id);
+  const isInvestor = audience === "investor";
+  const basePath = isInvestor ? "/investor" : "/agent";
+  const { data: rels = [], isLoading: relsLoading } = useUnifiedRelationships(audience);
+  const { data: listings = [], isLoading: listingsLoading } = useAgentListings(user?.id, audience);
 
   // Stamp the launchpad "pipeline" ack on first visit (Live workspace only, idempotent).
   useEffect(() => {
-    if (!user || isDemo) return;
+    if (!user || isDemo || isInvestor) return;
     supabase
       .from("profiles")
       .update({ launchpad_pipeline_ack_at: new Date().toISOString() })
       .eq("id", user.id)
       .is("launchpad_pipeline_ack_at", null)
       .then(() => {});
-  }, [user, isDemo]);
+  }, [user, isDemo, isInvestor]);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -81,10 +83,10 @@ export default function AgentPipeline() {
       (r) => r.id === legacyId || r.matchId === legacyId || r.connectionId === legacyId,
     );
     if (found)
-      navigate(`/agent/matches?listing=${found.buyerExchangeId}&match=${found.matchId}`, {
+      navigate(`${basePath}/matches?listing=${found.buyerExchangeId}&match=${found.matchId}`, {
         replace: true,
       });
-  }, [searchParams, rels, navigate]);
+  }, [searchParams, rels, navigate, basePath]);
 
   const filters = useMemo(() => parseFiltersFromParams(searchParams), [searchParams]);
   const setFilters = (next: PipelineFilters) => {
@@ -144,11 +146,13 @@ export default function AgentPipeline() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Pipeline</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Every listing across every stage. Drag cards between columns to override the stage.
+            {isInvestor
+              ? "Track each of your exchanges from new matches through closing."
+              : "Every listing across every stage. Drag cards between columns to override the stage."}
           </p>
         </div>
         <Button asChild size="sm">
-          <Link to="/agent/exchanges/new">
+          <Link to={`${basePath}/exchanges/new`}>
             <Plus className="mr-1 h-4 w-4" /> New listing
           </Link>
         </Button>
@@ -166,7 +170,7 @@ export default function AgentPipeline() {
             Create a listing and we&apos;ll start tracking it through the stages here.
           </p>
           <Button asChild size="sm" className="mt-4">
-            <Link to="/agent/exchanges/new">
+            <Link to={`${basePath}/exchanges/new`}>
               <Plus className="mr-1 h-4 w-4" /> New listing
             </Link>
           </Button>
@@ -186,11 +190,14 @@ export default function AgentPipeline() {
             assetOptions={assetOptions}
             resultCount={sorted.length}
             totalCount={allMeta.length}
+            audience={audience}
           />
           <PipelineKanban
             rows={sorted}
             hasFilters={hasFilters}
             onResetFilters={() => setFilters(DEFAULT_FILTERS)}
+            basePath={basePath}
+            ownerLabel={isInvestor ? "Your exchange" : undefined}
           />
         </>
       )}

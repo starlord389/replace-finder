@@ -18,10 +18,10 @@ export default function InvestorLayout() {
   if (!hasRole("investor")) return <Navigate to={getUnauthorizedRedirectPath(profileRole)} replace />;
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb]">
+    <div className="flex min-h-screen flex-col bg-background">
       <InvestorTopNav />
-      {isDemo && hasRole("admin") && <div className="bg-[#16284a] px-4 py-1.5 text-center text-xs font-semibold text-white">Investor / Owner Demo view — sample activity, fully separate from Live data.</div>}
-      <main className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8"><Outlet /></main>
+      {isDemo && hasRole("admin") && <div className="border-b bg-primary/10 px-4 py-1.5 text-center text-xs font-semibold text-primary">Investor / Owner Demo view — sample activity, fully separate from Live data.</div>}
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8"><Outlet /></main>
     </div>
   );
 }

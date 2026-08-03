@@ -53,10 +53,8 @@ const AgentHelp = lazy(() => import("@/pages/agent/AgentHelp"));
 const AgentNotifications = lazy(() => import("@/pages/agent/AgentNotifications"));
 const AgentInvestorInquiries = lazy(() => import("@/pages/agent/AgentInvestorInquiries"));
 const InvestorDashboard = lazy(() => import("@/pages/investor/InvestorDashboard"));
-const InvestorMarketplace = lazy(() => import("@/pages/investor/InvestorMarketplace"));
-const InvestorPropertyDetail = lazy(() => import("@/pages/investor/InvestorPropertyDetail"));
-const InvestorSaved = lazy(() => import("@/pages/investor/InvestorSaved"));
-const InvestorInquiries = lazy(() => import("@/pages/investor/InvestorInquiries"));
+const InvestorLaunchpad = lazy(() => import("@/pages/investor/InvestorLaunchpad"));
+const InvestorListings = lazy(() => import("@/pages/investor/InvestorListings"));
 const InvestorSettings = lazy(() => import("@/pages/investor/InvestorSettings"));
 const InvestorHelp = lazy(() => import("@/pages/investor/InvestorHelp"));
 const AcceptInvite = lazy(() => import("@/pages/auth/AcceptInvite"));
@@ -161,11 +159,19 @@ const App = () => (
             {/* Investor (investor role required) */}
             <Route element={<InvestorLayout />}>
               <Route path="/investor" element={<Navigate to="/investor/dashboard" replace />} />
+              <Route path="/investor/launchpad" element={<InvestorLaunchpad />} />
               <Route path="/investor/dashboard" element={<InvestorDashboard />} />
-              <Route path="/investor/marketplace" element={<InvestorMarketplace />} />
-              <Route path="/investor/properties/:propertyId" element={<InvestorPropertyDetail />} />
-              <Route path="/investor/saved" element={<InvestorSaved />} />
-              <Route path="/investor/inquiries" element={<InvestorInquiries />} />
+              <Route path="/investor/listings" element={<InvestorListings />} />
+              <Route path="/investor/pipeline" element={<AgentPipeline audience="investor" />} />
+              <Route path="/investor/matches" element={<AgentMatches audience="investor" />} />
+              <Route path="/investor/exchanges/new" element={<NewExchange ownerType="investor" />} />
+              <Route path="/investor/exchanges/:id/edit" element={<EditExchange ownerType="investor" />} />
+              <Route path="/investor/connections/:id" element={<AgentConnectionDetail audience="investor" />} />
+              <Route path="/investor/notifications" element={<AgentNotifications />} />
+              <Route path="/investor/marketplace" element={<Navigate to="/investor/matches" replace />} />
+              <Route path="/investor/properties/:propertyId" element={<Navigate to="/investor/matches" replace />} />
+              <Route path="/investor/saved" element={<Navigate to="/investor/matches" replace />} />
+              <Route path="/investor/inquiries" element={<Navigate to="/investor/pipeline" replace />} />
               <Route path="/investor/settings" element={<InvestorSettings />} />
               <Route path="/investor/help" element={<InvestorHelp />} />
             </Route>

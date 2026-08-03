@@ -13,10 +13,10 @@ import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 
 // Criteria step removed — see NewExchange.tsx. Existing criteria records are
 // still loaded and re-saved untouched so we never wipe legacy preferences.
-const STEPS = ["Client", "Property & Financials", "Review"];
-const MOBILE_STEP_LABELS = ["Client", "Property", "Review"];
+const AGENT_STEPS = ["Client", "Property & Financials", "Review"];
+const INVESTOR_STEPS = ["Property & Financials", "Review"];
 
-export default function EditExchange() {
+export default function EditExchange({ ownerType = "agent" }: { ownerType?: "agent" | "investor" }) {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -28,6 +28,9 @@ export default function EditExchange() {
   const [exchangeStatus, setExchangeStatus] = useState<string>("draft");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const isInvestor = ownerType === "investor";
+  const basePath = isInvestor ? "/investor" : "/agent";
+  const steps = isInvestor ? INVESTOR_STEPS : AGENT_STEPS;
 
   useEffect(() => {
     if (!id || !user) return;
@@ -41,20 +44,23 @@ export default function EditExchange() {
         .select("*")
         .eq("id", id)
         .eq("agent_id", user.id)
+        .eq("owner_type", ownerType)
         .maybeSingle();
 
       if (cancelled) return;
 
       if (exErr || !ex) {
         toast.error("Listing not found");
-        navigate("/agent/listings");
+        navigate(`${basePath}/listings`);
         return;
       }
 
       setExchangeStatus(ex.status);
 
       const [clientRes, propRes, finRes, critRes, imgRes] = await Promise.all([
-        supabase.from("agent_clients").select("client_name").eq("id", ex.client_id).maybeSingle(),
+        ex.client_id
+          ? supabase.from("agent_clients").select("client_name").eq("id", ex.client_id).maybeSingle()
+          : Promise.resolve({ data: null } as const),
         ex.relinquished_property_id
           ? supabase.from("pledged_properties").select("*").eq("id", ex.relinquished_property_id).maybeSingle()
           : Promise.resolve({ data: null } as const),
@@ -76,10 +82,10 @@ export default function EditExchange() {
       const cr = (critRes as any).data;
       const imgs = ((imgRes as any).data ?? []) as Array<{ storage_path: string; file_name: string | null; sort_order: number }>;
 
-      setClientName((clientRes as any).data?.client_name ?? "");
+      setClientName(isInvestor ? "Your property" : ((clientRes as any).data?.client_name ?? ""));
 
       const hydrated: WizardState = {
-        selectedClientId: ex.client_id,
+        selectedClientId: ex.client_id ?? "",
         property: {
           property_name: p?.property_name ?? "",
           address: p?.address ?? "",
@@ -126,36 +132,36 @@ export default function EditExchange() {
     // reference on every auth/token-refresh and would silently re-hydrate the
     // form, discarding unsaved edits).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, user?.id, navigate]);
+  }, [id, user?.id, navigate, ownerType, basePath, isInvestor]);
 
   function validatePublish(d: WizardState): { valid: boolean; firstInvalidStep: number; message: string } {
-    if (!d.selectedClientId) return { valid: false, firstInvalidStep: 1, message: "Select a client before publishing." };
+    if (!isInvestor && !d.selectedClientId) return { valid: false, firstInvalidStep: 1, message: "Select a client before publishing." };
 
     const p = d.property;
     if (!p.city.trim() || !p.state || !p.asset_type) {
-      return { valid: false, firstInvalidStep: 2, message: "Fill in all required property fields before publishing." };
+      return { valid: false, firstInvalidStep: isInvestor ? 1 : 2, message: "Fill in all required property fields before publishing." };
     }
 
     const f = d.financials;
     const askingPrice = parseCurrency(f.asking_price);
     if (!f.asking_price || askingPrice === null || askingPrice <= 0) {
-      return { valid: false, firstInvalidStep: 2, message: "Asking price is required before publishing." };
+      return { valid: false, firstInvalidStep: isInvestor ? 1 : 2, message: "Asking price is required before publishing." };
     }
     const grossRentRoll = parseCurrency(f.gross_rent_roll);
     if (!f.gross_rent_roll || grossRentRoll === null || grossRentRoll < 0) {
-      return { valid: false, firstInvalidStep: 2, message: "Gross rent roll is required before publishing." };
+      return { valid: false, firstInvalidStep: isInvestor ? 1 : 2, message: "Gross rent roll is required before publishing." };
     }
     const totalOpex = parseCurrency(f.total_operating_expenses);
     if (f.total_operating_expenses === "" || totalOpex === null || totalOpex < 0) {
-      return { valid: false, firstInvalidStep: 2, message: "Total operating expenses are required before publishing (enter 0 if none)." };
+      return { valid: false, firstInvalidStep: isInvestor ? 1 : 2, message: "Total operating expenses are required before publishing (enter 0 if none)." };
     }
     const loanBalance = parseCurrency(f.loan_balance);
     if (f.loan_balance === "" || loanBalance === null || loanBalance < 0) {
-      return { valid: false, firstInvalidStep: 2, message: "Loan balance is required before publishing (enter 0 if free and clear)." };
+      return { valid: false, firstInvalidStep: isInvestor ? 1 : 2, message: "Loan balance is required before publishing (enter 0 if free and clear)." };
     }
 
     if (!d.property.owner_authorization_confirmed) {
-      return { valid: false, firstInvalidStep: 3, message: "Confirm you have authorization to market this property before publishing." };
+      return { valid: false, firstInvalidStep: isInvestor ? 2 : 3, message: "Confirm you have authorization to market this property before publishing." };
     }
 
     return { valid: true, firstInvalidStep: 1, message: "" };
@@ -193,7 +199,7 @@ export default function EditExchange() {
         move_to_draft: "Exchange moved to draft.",
       };
       toast.success(messages[intent]);
-      navigate("/agent/listings");
+      navigate(`${basePath}/listings`);
     } catch (err: any) {
       console.error("Update error:", err);
       toast.error("Failed to save: " + (err.message || "Unknown error"));
@@ -212,7 +218,7 @@ export default function EditExchange() {
     <div className="mx-auto max-w-3xl space-y-8">
       <div className="space-y-3">
         <Link
-          to="/agent/listings"
+          to={`${basePath}/listings`}
           className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -225,7 +231,7 @@ export default function EditExchange() {
       </div>
 
       <nav className="flex items-center gap-1">
-        {STEPS.map((label, i) => {
+        {steps.map((label, i) => {
           const stepNum = i + 1;
           const isCurrent = step === stepNum;
           return (
@@ -237,7 +243,7 @@ export default function EditExchange() {
                   ${isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
               >
                 <span>{stepNum}</span>
-                <span className="sm:hidden">{MOBILE_STEP_LABELS[i]}</span>
+                <span className="sm:hidden">{label === "Property & Financials" ? "Property" : label}</span>
                 <span className="hidden sm:inline">{label}</span>
               </button>
             </div>
@@ -245,7 +251,7 @@ export default function EditExchange() {
         })}
       </nav>
 
-      {step === 1 && (
+      {!isInvestor && step === 1 && (
         <StepSelectClient
           selectedClientId={data.selectedClientId}
           onChange={() => { /* locked */ }}
@@ -253,7 +259,7 @@ export default function EditExchange() {
           lockedClientName={clientName}
         />
       )}
-      {step === 2 && (
+      {step === (isInvestor ? 1 : 2) && (
         <StepPropertyAndFinancials
           property={data.property}
           financials={data.financials}
@@ -261,19 +267,22 @@ export default function EditExchange() {
           onChangeProperty={property => setData(d => ({ ...d, property }))}
           onChangeFinancials={financials => setData(d => ({ ...d, financials }))}
           onChangeImages={images => setData(d => ({ ...d, images }))}
-          onNext={() => setStep(3)}
+          onNext={() => setStep(isInvestor ? 2 : 3)}
           onBack={() => setStep(1)}
+          ownerType={ownerType}
+          showBack={!isInvestor}
         />
       )}
-      {step === 3 && (
+      {step === (isInvestor ? 2 : 3) && (
         <StepReview
           data={data}
           clientName={clientName}
-          onBack={() => setStep(2)}
+          onBack={() => setStep(isInvestor ? 1 : 2)}
           onSubmit={handleSubmit}
           saving={saving}
           mode={reviewMode}
-          onCancel={() => navigate("/agent/listings")}
+          onCancel={() => navigate(`${basePath}/listings`)}
+          ownerType={ownerType}
           onOwnerAuthorizationChange={v => setData(d => ({ ...d, property: { ...d.property, owner_authorization_confirmed: v } }))}
         />
       )}

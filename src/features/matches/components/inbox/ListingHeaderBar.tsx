@@ -33,6 +33,7 @@ interface Props {
   primaryBusy?: boolean;
   /** Jump to the Match tab from the score chip. */
   onJumpToMatch?: () => void;
+  audience?: "agent" | "investor";
 }
 
 /**
@@ -42,7 +43,7 @@ interface Props {
  * price and numbers rather than repeating the title.
  */
 export function ListingHeaderBar({
-  rel, previewMode = false, status, primary, onPrimary, primaryBusy, onJumpToMatch,
+  rel, previewMode = false, status, primary, onPrimary, primaryBusy, onJumpToMatch, audience = "agent",
 }: Props) {
   const fm = financialMetrics(rel);
   const cap = fm.find((m) => m.key === "cap")?.value;
@@ -85,14 +86,15 @@ export function ListingHeaderBar({
                 className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-800"
                 title="Both sides sit inside your own book of business."
               >
-                Same-Agent Opportunity
+                {audience === "investor" ? "In-Network Opportunity" : "Same-Agent Opportunity"}
               </span>
             )}
           </div>
           {rel.isSameAgent && (
             <p className="mt-2 text-xs text-muted-foreground">
-              In-network exchange chain — both sides are yours, so this deal could give you
-              multiple transaction sides and keep the client relationship in house.
+              {audience === "investor"
+                ? "Both properties are managed in your account, so you can coordinate the exchange from one workspace."
+                : "In-network exchange chain — both sides are yours, so this deal could give you multiple transaction sides and keep the client relationship in house."}
             </p>
           )}
 

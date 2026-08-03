@@ -28,7 +28,11 @@ function fmtPrice(v: number | null) {
   return `$${v.toLocaleString()}`;
 }
 
-export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
+export function ListingSwitcher({ listings, basePath = "/agent", ownerLabel }: {
+  listings: AgentListing[];
+  basePath?: string;
+  ownerLabel?: string;
+}) {
   const { user } = useAuth();
   const [filters, setFilters] = useState<SwitcherFilters>(EMPTY_SWITCHER_FILTERS);
   const [hydrated, setHydrated] = useState(false);
@@ -94,13 +98,13 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
   const groups = useMemo(() => {
     const map = new Map<string, { clientId: string | null; clientName: string; items: AgentListing[] }>();
     for (const l of filtered) {
-      const key = l.clientId ?? "_unassigned";
-      const name = l.clientName ?? "Unassigned";
+      const key = ownerLabel ? "_owner" : (l.clientId ?? "_unassigned");
+      const name = ownerLabel ?? l.clientName ?? "Unassigned";
       if (!map.has(key)) map.set(key, { clientId: l.clientId, clientName: name, items: [] });
       map.get(key)!.items.push(l);
     }
     return Array.from(map.values()).sort((a, b) => a.clientName.localeCompare(b.clientName));
-  }, [filtered]);
+  }, [filtered, ownerLabel]);
 
   const activeCount =
     filters.clientIds.length +
@@ -431,6 +435,7 @@ export function ListingSwitcher({ listings }: { listings: AgentListing[] }) {
         listing={previewListing}
         open={previewListing !== null}
         onOpenChange={(o) => !o && setPreviewListing(null)}
+        basePath={basePath}
       />
     </div>
   );

@@ -1,21 +1,55 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useInvestorPreferences } from "@/features/investor/hooks/useInvestorPreferences";
-import type { Enums } from "@/integrations/supabase/types";
-import { investorErrorMessage } from "@/features/investor/errorMessage";
 
 export default function InvestorSettings() {
-  const { data, isLoading, save } = useInvestorPreferences();
-  const [form, setForm] = useState({ company: "", experience: "", states: "", assetTypes: "", strategies: "", budgetMin: "", budgetMax: "", notes: "" });
-  useEffect(() => { if (data) setForm({ company: data.company ?? "", experience: data.experience_level ?? "", states: (data.preferred_states ?? []).join(", "), assetTypes: (data.preferred_asset_types ?? []).join(", "), strategies: (data.investment_strategies ?? []).join(", "), budgetMin: data.budget_min?.toString() ?? "", budgetMax: data.budget_max?.toString() ?? "", notes: data.notes ?? "" }); }, [data]);
-  const set = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }));
-  const list = (value: string) => value.split(",").map((item) => item.trim().toLowerCase().replace(/ /g, "_")).filter(Boolean);
-  const submit = async (event: React.FormEvent) => { event.preventDefault(); try { await save.mutateAsync({ company: form.company || null, experience_level: form.experience || null, preferred_states: list(form.states).map((item) => item.toUpperCase()), preferred_asset_types: list(form.assetTypes) as Enums<"asset_type">[], investment_strategies: list(form.strategies) as Enums<"strategy_type">[], budget_min: form.budgetMin ? Number(form.budgetMin) : null, budget_max: form.budgetMax ? Number(form.budgetMax) : null, notes: form.notes || null }); toast.success("Investor preferences saved."); } catch (error: unknown) { toast.error(investorErrorMessage(error, "Could not save preferences.")); } };
-  return <div className="mx-auto max-w-3xl space-y-6"><div><h1 className="text-3xl font-bold tracking-tight text-[#16284a]">Investor preferences</h1><p className="mt-2 text-muted-foreground">Keep your acquisition criteria in one place. These preferences are private to your account.</p></div><Card><CardHeader><CardTitle>Investment profile</CardTitle></CardHeader><CardContent>{isLoading ? <p>Loading…</p> : <form onSubmit={submit} className="space-y-5"><div className="space-y-2"><Label htmlFor="company">Company or investment entity</Label><Input id="company" value={form.company} onChange={(e) => set("company", e.target.value)} /></div><div className="space-y-2"><Label>Experience level</Label><Select value={form.experience} onValueChange={(value) => set("experience", value)}><SelectTrigger><SelectValue placeholder="Select experience" /></SelectTrigger><SelectContent><SelectItem value="new">New investor</SelectItem><SelectItem value="intermediate">Intermediate</SelectItem><SelectItem value="experienced">Experienced</SelectItem><SelectItem value="professional">Professional / institutional</SelectItem></SelectContent></Select></div><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="budgetMin">Minimum budget</Label><Input id="budgetMin" type="number" min="0" value={form.budgetMin} onChange={(e) => set("budgetMin", e.target.value)} /></div><div className="space-y-2"><Label htmlFor="budgetMax">Maximum budget</Label><Input id="budgetMax" type="number" min="0" value={form.budgetMax} onChange={(e) => set("budgetMax", e.target.value)} /></div></div><div className="space-y-2"><Label htmlFor="states">Preferred states</Label><Input id="states" placeholder="MA, FL, TX" value={form.states} onChange={(e) => set("states", e.target.value)} /><p className="text-xs text-muted-foreground">Separate multiple values with commas.</p></div><div className="space-y-2"><Label htmlFor="assets">Preferred asset types</Label><Input id="assets" placeholder="multifamily, industrial, retail" value={form.assetTypes} onChange={(e) => set("assetTypes", e.target.value)} /></div><div className="space-y-2"><Label htmlFor="strategies">Investment strategies</Label><Input id="strategies" placeholder="core, core plus, value add" value={form.strategies} onChange={(e) => set("strategies", e.target.value)} /></div><div className="space-y-2"><Label htmlFor="notes">Notes</Label><Textarea id="notes" rows={5} value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div><Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save preferences"}</Button></form>}</CardContent></Card></div>;
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ fullName: "", phone: "", company: "" });
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("full_name, phone, company").eq("id", user.id).maybeSingle()
+      .then(({ data }) => {
+        setForm({ fullName: data?.full_name ?? "", phone: data?.phone ?? "", company: data?.company ?? "" });
+        setLoading(false);
+      });
+  }, [user]);
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({
+      full_name: form.fullName.trim(),
+      phone: form.phone.trim() || null,
+      company: form.company.trim() || null,
+    }).eq("id", user.id);
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else toast.success("Account settings saved.");
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div><h1 className="text-2xl font-bold text-foreground">Settings</h1><p className="mt-1 text-sm text-muted-foreground">Manage your investor/property-owner account. Replacement criteria are not collected at this stage.</p></div>
+      <Card><CardHeader><CardTitle className="text-lg">Account profile</CardTitle></CardHeader><CardContent>
+        {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : (
+          <form onSubmit={save} className="space-y-5">
+            <div className="space-y-2"><Label htmlFor="fullName">Full name</Label><Input id="fullName" value={form.fullName} onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))} /></div>
+            <div className="space-y-2"><Label htmlFor="company">Company or ownership entity</Label><Input id="company" value={form.company} onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))} /></div>
+            <div className="space-y-2"><Label htmlFor="phone">Phone</Label><Input id="phone" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} /></div>
+            <div className="space-y-2"><Label>Email</Label><Input value={user?.email ?? ""} disabled /></div>
+            <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+          </form>
+        )}
+      </CardContent></Card>
+    </div>
+  );
 }

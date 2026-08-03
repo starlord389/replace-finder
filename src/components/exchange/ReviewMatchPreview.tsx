@@ -146,7 +146,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
           <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
             Detailed financials (gross rent, expenses, loan balance) stay hidden until you accept a connection with a matched buyer.
-            {!property.address_is_public && " The exact street address is also hidden — matched agents see only city and state."}
+            {!property.address_is_public && " The exact street address is also hidden — matched participants see only city and state."}
           </span>
         </div>
       </CardContent>

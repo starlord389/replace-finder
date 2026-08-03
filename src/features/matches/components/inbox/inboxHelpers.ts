@@ -43,6 +43,14 @@ export const LIFECYCLE_ORDER: UiStatus[] = [
   "closed",
 ];
 
+export const INVESTOR_LIFECYCLE_ORDER: UiStatus[] = [
+  "new",
+  "in_conversation",
+  "loi",
+  "under_contract",
+  "closed",
+];
+
 /** One-line guidance shown under the stage strip — tells the agent what the stage means for them. */
 export const STATUS_HINTS: Record<UiStatus, string> = {
   new: "Fresh match — share it with your client to gauge interest.",
@@ -52,6 +60,17 @@ export const STATUS_HINTS: Record<UiStatus, string> = {
   loi: "Offer on the table. Update once it goes under contract.",
   under_contract: "Under contract — mark it closed once the deal completes.",
   closed: "Deal closed. Nice work.",
+  archived: "Archived. Reactivate to resume work on this match.",
+};
+
+export const INVESTOR_STATUS_HINTS: Record<UiStatus, string> = {
+  new: "Fresh qualified match — review the property or contact its listing agent.",
+  sent_to_client: "Review the property and contact its listing agent when you are ready.",
+  client_interested: "You marked this property as interesting — contact the listing agent to continue.",
+  in_conversation: "You're talking with the listing agent. Request documents, schedule a call, or work toward an offer.",
+  loi: "Offer on the table. Update this match once it goes under contract.",
+  under_contract: "Under contract — mark it closed once the exchange completes.",
+  closed: "Exchange completed.",
   archived: "Archived. Reactivate to resume work on this match.",
 };
 
@@ -85,6 +104,21 @@ export const FILTER_TABS: Array<{ key: "all" | UiStatus; label: string }> = [
   { key: "closed", label: "Closed" },
   { key: "archived", label: "Archived" },
 ];
+
+export const INVESTOR_FILTER_TABS: Array<{ key: "all" | UiStatus; label: string }> = [
+  { key: "all", label: "All" },
+  { key: "new", label: "New" },
+  { key: "in_conversation", label: "Talking" },
+  { key: "loi", label: "Offers" },
+  { key: "under_contract", label: "Under Contract" },
+  { key: "closed", label: "Closed" },
+  { key: "archived", label: "Archived" },
+];
+
+export function statusForAudience(status: UiStatus, audience: "agent" | "investor"): UiStatus {
+  if (audience === "investor" && (status === "sent_to_client" || status === "client_interested")) return "new";
+  return status;
+}
 
 export interface ActionDescriptor {
   id: string;
@@ -148,6 +182,16 @@ export function nextActionsFor(status: UiStatus): {
   }
 }
 
+export function nextActionsForAudience(status: UiStatus, audience: "agent" | "investor") {
+  if (audience === "investor" && status === "new") {
+    return {
+      primary: { id: "message_listing_agent", label: "Message Listing Agent" },
+      secondary: [{ id: "not_a_fit", label: "Not a Fit", tone: "destructive" as const }],
+    };
+  }
+  return nextActionsFor(status);
+}
+
 // Shared display precision for cap rate so cards and the financials tab agree.
 const CAP_RATE_DECIMALS = 2;
 export function formatCapRate(cap: number): string {
@@ -181,9 +225,12 @@ export function projectedRoe(rel: Relationship): { pct: number | null; fromEngin
 /** Bullets explaining why this property matched — derived heuristically */
 export function whyThisMatched(rel: Relationship): string[] {
   const out: string[] = [];
-  if (rel.score >= 85) out.push("Strong overall fit across price, geography, and asset type.");
-  else if (rel.score >= 70) out.push("Solid fit with minor trade-offs across scoring dimensions.");
-  else out.push("Partial fit — worth a closer look on the weaker dimensions.");
+  if (rel.roeImprovementPp != null) {
+    out.push(`Projected return on equity improves by ${rel.roeImprovementPp.toFixed(1)} percentage points.`);
+  } else {
+    out.push("The matching engine projects a better return on equity than the current property.");
+  }
+  out.push("Asking price is within the exchange-equity ceiling at the platform's 75% LTV assumption.");
 
   // Only claim a dimension fits when the engine actually scored it that way —
   // don't assert budget / geography / timeline fit we haven't verified.
@@ -274,6 +321,15 @@ export const QUICK_MESSAGES = [
   "Is the seller open to a 1031 buyer?",
   "Can we schedule a call?",
   "My client is interested. Can you share more details?",
+];
+
+export const INVESTOR_QUICK_MESSAGES = [
+  "Is this property still available?",
+  "Can you send the OM?",
+  "What is the seller's preferred closing timeline?",
+  "Is the seller open to a 1031 buyer?",
+  "Can we schedule a call?",
+  "I'm interested. Can you share more details?",
 ];
 
 // ── Sorting & rank reasoning ─────────────────────────────────────

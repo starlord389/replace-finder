@@ -116,17 +116,9 @@ export async function computeMatchesForExchange(
     p ? `${p.asset_type ? prettyLabel(p.asset_type) + " · " : ""}${[p.city, p.state].filter(Boolean).join(", ") || p.property_name || p.id}` : "Property";
 
   // Buyer side: this exchange × other people's active properties
-  if (!criteria && diagnostics) {
-    diagnostics.push({
-      direction: "buyer",
-      candidate_property_id: propertyId,
-      candidate_exchange_id: exchangeId,
-      candidate_label: "buyer-side scan",
-      status: "skipped",
-      reason: "no replacement criteria on this exchange",
-    });
-  }
-  if (criteria) {
+  // Criteria are intentionally optional for the current product. When blank,
+  // affordability and improved return on equity are the only match gates.
+  {
     // Same-agent / same-account candidates are FULLY eligible: 1031 Exchange Up
     // is built to surface exchange opportunities inside an agent's own book of
     // business. The only records excluded are the ones that would pair a record
@@ -180,7 +172,7 @@ export async function computeMatchesForExchange(
 
       for (const candidateProperty of activeProperties) {
         const candidateFinancials = financialMap.get(candidateProperty.id);
-        const result = scorePairExplained(exchange, relinquishedFin, candidateProperty, candidateFinancials, criteria, settings);
+        const result = scorePairExplained(exchange, relinquishedFin, candidateProperty, candidateFinancials, criteria ?? {}, settings);
         if (!result.ok) {
           diagnostics?.push({
             direction: "buyer",
@@ -258,23 +250,11 @@ export async function computeMatchesForExchange(
       const otherCriteria = Array.isArray(otherExchange.replacement_criteria)
         ? otherExchange.replacement_criteria[0]
         : otherExchange.replacement_criteria;
-      if (!otherCriteria) {
-        diagnostics?.push({
-          direction: "seller",
-          candidate_property_id: propertyId,
-          candidate_exchange_id: otherExchange.id,
-          candidate_label: `exchange ${otherExchange.id.slice(0, 8)}`,
-          status: "skipped",
-          reason: "counterparty exchange has no replacement criteria",
-        });
-        continue;
-      }
-
       const buyerRelinquishedFinancials = otherExchange.relinquished_property_id
         ? otherFinancialMap.get(otherExchange.relinquished_property_id)
         : null;
 
-      const result = scorePairExplained(otherExchange, buyerRelinquishedFinancials, property, propertyFin, otherCriteria, settings);
+      const result = scorePairExplained(otherExchange, buyerRelinquishedFinancials, property, propertyFin, otherCriteria ?? {}, settings);
       if (!result.ok) {
         diagnostics?.push({
           direction: "seller",
@@ -387,13 +367,43 @@ export async function persistMatchesAndNotifications(
       ]),
     );
 
+    const { data: ownerExchanges } = await db
+      .from("exchanges")
+      .select("id, owner_type")
+      .in("id", buyerExIds);
+    const { data: ownerProperties } = await db
+      .from("pledged_properties")
+      .select("id, exchange_id")
+      .in("id", sellerPropIds);
+    const sellerExchangeIds = Array.from(
+      new Set((ownerProperties ?? []).map((p: any) => p.exchange_id).filter(Boolean)),
+    );
+    const { data: sellerExchanges } = sellerExchangeIds.length
+      ? await db.from("exchanges").select("id, owner_type").in("id", sellerExchangeIds)
+      : { data: [] };
+    const ownerTypeByExchange = new Map<string, string>(
+      [...(ownerExchanges ?? []), ...(sellerExchanges ?? [])]
+        .map((e: any) => [e.id, e.owner_type ?? "agent"]),
+    );
+    const exchangeByProperty = new Map<string, string>(
+      (ownerProperties ?? [])
+        .filter((p: any) => p.exchange_id)
+        .map((p: any) => [p.id, p.exchange_id]),
+    );
+
     const notifications = newMatches.map((match) => {
       const matchId = matchIdByPair.get(
         `${match.buyer_exchange_id}:${match.seller_property_id}`,
       );
+      const ownerExchangeId = match.direction === "buyer"
+        ? match.buyer_exchange_id
+        : exchangeByProperty.get(match.seller_property_id);
+      const workspace = ownerExchangeId && ownerTypeByExchange.get(ownerExchangeId) === "investor"
+        ? "investor"
+        : "agent";
       const linkTo = matchId
-        ? `/agent/matches?listing=${match.buyer_exchange_id}&match=${matchId}`
-        : "/agent/matches";
+        ? `/${workspace}/matches?listing=${match.buyer_exchange_id}&match=${matchId}`
+        : `/${workspace}/matches`;
       return {
         user_id: match.direction === "buyer" ? userId : match.other_agent_id,
         type: "new_match",
@@ -447,18 +457,32 @@ async function sendNewMatchEmails(
 
     // Also need to know the caller (buyer-side recipient). We infer from
     // exchanges.agent_id for the buyer_exchange_id.
-    const [profilesRes, exchangesRes, propertiesRes, clientsRes] = await Promise.all([
+    const [profilesRes, exchangesRes, propertiesRes] = await Promise.all([
       allUserIds.length
         ? db.from("profiles").select("id, email, first_name").in("id", allUserIds)
         : Promise.resolve({ data: [] }),
-      db.from("exchanges").select("id, agent_id, client_id").in("id", buyerExchangeIds),
-      db.from("pledged_properties").select("id, agent_id, city, state, asset_type").in("id", sellerPropertyIds),
-      Promise.resolve({ data: [] }),
+      db.from("exchanges").select("id, agent_id, client_id, owner_type").in("id", buyerExchangeIds),
+      db.from("pledged_properties").select("id, agent_id, exchange_id, city, state, asset_type").in("id", sellerPropertyIds),
     ]);
+
+    // Seller-side recipients may also be self-managed property owners. Hydrate
+    // their exchanges so email links return them to the correct workspace.
+    const sellerExchangeIds = Array.from(
+      new Set((propertiesRes.data ?? []).map((p: any) => p.exchange_id).filter(Boolean)),
+    );
+    const missingSellerExchangeIds = sellerExchangeIds.filter((id) => !buyerExchangeIds.includes(id));
+    let exchanges = exchangesRes.data ?? [];
+    if (missingSellerExchangeIds.length) {
+      const { data: sellerExchanges } = await db
+        .from("exchanges")
+        .select("id, agent_id, client_id, owner_type")
+        .in("id", missingSellerExchangeIds);
+      exchanges = exchanges.concat(sellerExchanges ?? []);
+    }
 
     // Now we know all agent_ids referenced (buyer-side + seller-side); fetch any missing profiles.
     const allReferenced = new Set<string>();
-    (exchangesRes.data ?? []).forEach((e: any) => e.agent_id && allReferenced.add(e.agent_id));
+    exchanges.forEach((e: any) => e.agent_id && allReferenced.add(e.agent_id));
     (propertiesRes.data ?? []).forEach((p: any) => p.agent_id && allReferenced.add(p.agent_id));
     const missing = [...allReferenced].filter(
       (id) => !(profilesRes.data ?? []).some((p: any) => p.id === id),
@@ -474,7 +498,7 @@ async function sendNewMatchEmails(
 
     // Optional: pull client names for buyer-side listings.
     const clientIds = Array.from(
-      new Set((exchangesRes.data ?? []).map((e: any) => e.client_id).filter(Boolean)),
+      new Set(exchanges.map((e: any) => e.client_id).filter(Boolean)),
     );
     let clients: any[] = [];
     if (clientIds.length) {
@@ -486,7 +510,7 @@ async function sendNewMatchEmails(
     }
 
     const profileById = new Map<string, any>(profiles.map((p: any) => [p.id, p]));
-    const exchangeById = new Map<string, any>((exchangesRes.data ?? []).map((e: any) => [e.id, e]));
+    const exchangeById = new Map<string, any>(exchanges.map((e: any) => [e.id, e]));
     const propertyById = new Map<string, any>((propertiesRes.data ?? []).map((p: any) => [p.id, p]));
     const clientById = new Map<string, any>(clients.map((c: any) => [c.id, c]));
 
@@ -496,6 +520,7 @@ async function sendNewMatchEmails(
     const sends = newMatches.map((m) => {
       const buyerExchange = exchangeById.get(m.buyer_exchange_id);
       const sellerProperty = propertyById.get(m.seller_property_id);
+      const sellerExchange = sellerProperty?.exchange_id ? exchangeById.get(sellerProperty.exchange_id) : null;
       const buyerAgentId = buyerExchange?.agent_id;
       const sellerAgentId = sellerProperty?.agent_id;
       const recipientId = m.direction === "buyer" ? buyerAgentId : sellerAgentId;
@@ -503,17 +528,24 @@ async function sendNewMatchEmails(
       if (!recipient?.email) return Promise.resolve();
 
       const matchId = matchIdByPair.get(`${m.buyer_exchange_id}:${m.seller_property_id}`);
+      const recipientExchange = m.direction === "buyer" ? buyerExchange : sellerExchange;
+      const recipientWorkspace = recipientExchange?.owner_type === "investor" ? "investor" : "agent";
+      const recipientExchangeId = recipientExchange?.id ?? m.buyer_exchange_id;
       const matchUrl = matchId
-        ? `${APP_URL}/agent/matches?listing=${m.buyer_exchange_id}&match=${matchId}`
-        : `${APP_URL}/agent/matches?listing=${m.buyer_exchange_id}`;
+        ? `${APP_URL}/${recipientWorkspace}/matches?listing=${recipientExchangeId}&match=${matchId}`
+        : `${APP_URL}/${recipientWorkspace}/matches?listing=${recipientExchangeId}`;
 
       const client = buyerExchange?.client_id ? clientById.get(buyerExchange.client_id) : null;
       const yourListingLabel = m.direction === "buyer"
-        ? (client?.client_name ? `${client.client_name} — buyer exchange` : "Your buyer exchange")
+        ? (buyerExchange?.owner_type === "investor"
+          ? "Your exchange"
+          : client?.client_name ? `${client.client_name} — buyer exchange` : "Your buyer exchange")
         : labelForProperty(sellerProperty);
       const matchedPropertyLabel = m.direction === "buyer"
         ? labelForProperty(sellerProperty)
-        : (client?.client_name ? `${client.client_name} — buyer exchange` : "Buyer exchange");
+        : (buyerExchange?.owner_type === "investor"
+          ? "Property owner exchange"
+          : client?.client_name ? `${client.client_name} — buyer exchange` : "Buyer exchange");
 
       return db.functions.invoke("send-transactional-email", {
         body: {
@@ -526,7 +558,7 @@ async function sendNewMatchEmails(
             matchedPropertyLabel,
             matchScore: m.total,
             matchUrl,
-            matchesUrl: `${APP_URL}/agent/matches`,
+            matchesUrl: `${APP_URL}/${recipientWorkspace}/matches`,
           },
         },
       }).catch((err: any) => {

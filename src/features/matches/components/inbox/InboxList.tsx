@@ -17,6 +17,7 @@ import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationsh
 import { PropertyMatchCard } from "./PropertyMatchCard";
 import {
   FILTER_TABS,
+  INVESTOR_FILTER_TABS,
   SORT_OPTIONS,
   type UiStatus,
   type SortKey,
@@ -68,6 +69,7 @@ interface Props {
   allClientsActive?: boolean;
   /** Label for the active property when the "All properties" mode is active. */
   allPropertiesActive?: boolean;
+  audience?: "agent" | "investor";
 }
 
 export function InboxList({
@@ -95,11 +97,13 @@ export function InboxList({
   onSelectAllPropertiesForClient,
   allClientsActive = false,
   allPropertiesActive = false,
+  audience = "agent",
 }: Props) {
   const totalInScope = scopeRels.length;
   const showingCount = rels.length;
 
-  const statusTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
+  const filterTabs = audience === "investor" ? INVESTOR_FILTER_TABS : FILTER_TABS;
+  const statusTab = filterTabs.find((t) => t.key === filter) ?? filterTabs[0];
   const sortOption = SORT_OPTIONS.find((o) => o.key === sort) ?? SORT_OPTIONS[0];
 
   const activeClient = useMemo(
@@ -168,7 +172,7 @@ export function InboxList({
             <Input
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search property, city, or client…"
+              placeholder={audience === "investor" ? "Search property or city…" : "Search property, city, or client…"}
               className="h-9 border-border bg-background pl-8 pr-8 text-sm shadow-sm focus-visible:ring-1"
             />
             {search && (
@@ -202,7 +206,7 @@ export function InboxList({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
-              {FILTER_TABS.map((t) => {
+              {filterTabs.map((t) => {
                 const active = filter === t.key;
                 return (
                   <DropdownMenuItem
@@ -460,6 +464,7 @@ export function InboxList({
             selectedId={selectedId}
             onSelect={onSelect}
             rankMap={rankMap}
+            audience={audience}
           />
         ) : (
           <ul className="space-y-2">
@@ -470,6 +475,7 @@ export function InboxList({
                   selected={r.id === selectedId}
                   onSelect={() => onSelect(r)}
                   rank={rankMap.get(r.id)}
+                  audience={audience}
                 />
               </li>
             ))}
@@ -501,9 +507,10 @@ interface GroupedListProps {
   selectedId: string | null;
   onSelect: (rel: Relationship) => void;
   rankMap: Map<string, number>;
+  audience?: "agent" | "investor";
 }
 
-function GroupedList({ rels, selectedId, onSelect, rankMap }: GroupedListProps) {
+function GroupedList({ rels, selectedId, onSelect, rankMap, audience = "agent" }: GroupedListProps) {
   const groups: Array<{ clientId: string | null; clientName: string; items: Relationship[] }> = [];
   const indexByKey = new Map<string, number>();
   for (const r of rels) {
@@ -548,6 +555,7 @@ function GroupedList({ rels, selectedId, onSelect, rankMap }: GroupedListProps) 
                     onSelect={() => onSelect(r)}
                     rank={rankMap.get(r.id)}
                     hideClientLead
+                    audience={audience}
                   />
                 </li>
               ))}

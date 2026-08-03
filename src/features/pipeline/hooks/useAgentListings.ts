@@ -23,15 +23,18 @@ export interface AgentListing {
   coverUrl: string | null;
 }
 
-async function fetchAgentListings(userId: string, isDemo: boolean): Promise<AgentListing[]> {
-  const { data, error } = await supabase
+async function fetchAgentListings(userId: string, isDemo: boolean, ownerType: "agent" | "investor"): Promise<AgentListing[]> {
+  let query = supabase
     .from("exchanges")
     .select(
       "id, status, created_at, relinquished_property_id, client_id, pipeline_stage_override, agent_clients(client_name)"
     )
     .eq("agent_id", userId)
-    .eq("is_demo", isDemo)
-    .order("created_at", { ascending: false });
+    .eq("is_demo", isDemo);
+  // The owner/admin demo account reuses the mature agent demo dataset so the
+  // Investor View is immediately populated. Live workspaces remain separated.
+  if (!(isDemo && ownerType === "investor")) query = query.eq("owner_type", ownerType);
+  const { data, error } = await query.order("created_at", { ascending: false });
   if (error) throw error;
 
   const rows = (data ?? []) as Array<{
@@ -136,7 +139,7 @@ async function fetchAgentListings(userId: string, isDemo: boolean): Promise<Agen
       createdAt: r.created_at,
       propertyId: propId,
       clientId: r.client_id,
-      clientName: r.agent_clients?.client_name ?? null,
+      clientName: ownerType === "investor" ? null : (r.agent_clients?.client_name ?? null),
       // Agent's own listing → always show the exact address (falls back to a label).
       propertyName: p ? resolveListingName(p, true) : null,
       address: p?.address ?? null,
@@ -151,11 +154,11 @@ async function fetchAgentListings(userId: string, isDemo: boolean): Promise<Agen
   });
 }
 
-export function useAgentListings(userId?: string) {
+export function useAgentListings(userId?: string, ownerType: "agent" | "investor" = "agent") {
   const { isDemo } = useWorkspaceMode();
   return useQuery({
-    queryKey: ["agent-listings", userId, isDemo],
-    queryFn: () => fetchAgentListings(userId!, isDemo),
+    queryKey: ["agent-listings", ownerType, userId, isDemo],
+    queryFn: () => fetchAgentListings(userId!, isDemo, ownerType),
     enabled: !!userId,
     staleTime: 30_000,
   });

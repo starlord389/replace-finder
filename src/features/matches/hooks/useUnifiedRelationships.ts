@@ -125,13 +125,16 @@ export interface Relationship {
   sellerAgentId: string | null;
 }
 
-async function fetchRelationships(userId: string, isDemo: boolean): Promise<Relationship[]> {
+async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "agent" | "investor"): Promise<Relationship[]> {
+  const basePath = ownerType === "investor" ? "/investor" : "/agent";
   // 1. My exchanges (for buyer-side matches) — scoped to the active workspace
-  const { data: exchanges } = await supabase
+  let exchangeQuery = supabase
     .from("exchanges")
-    .select("id, client_id, relinquished_property_id")
+    .select("id, client_id, relinquished_property_id, owner_type")
     .eq("agent_id", userId)
     .eq("is_demo", isDemo);
+  if (!(isDemo && ownerType === "investor")) exchangeQuery = exchangeQuery.eq("owner_type", ownerType);
+  const { data: exchanges } = await exchangeQuery;
   const myExchangeIds = (exchanges ?? []).map((e) => e.id);
   const relinquishedIds = (exchanges ?? [])
     .map((e: any) => e.relinquished_property_id)
@@ -145,11 +148,13 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
   //    Keep each listing's own exchange so seller-side rows can route to a page
   //    the agent can actually open (their own listing workspace), not the
   //    counterparty's exchange.
-  const { data: myProps } = await supabase
-    .from("pledged_properties")
-    .select("id, property_name, exchange_id")
-    .eq("agent_id", userId)
-    .eq("is_demo", isDemo);
+  const { data: myProps } = myExchangeIds.length
+    ? await supabase
+        .from("pledged_properties")
+        .select("id, property_name, exchange_id")
+        .in("exchange_id", myExchangeIds)
+        .eq("is_demo", isDemo)
+    : { data: [] as any[] };
   const myPropertyIds = (myProps ?? []).map((p) => p.id);
   // My listing → my own exchange id (for seller-side open targets + client lookup).
   const myPropExchangeMap = new Map<string, string>();
@@ -231,7 +236,9 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
   });
 
   // 7. Client names + relinquished snapshot for my exchanges
-  const clientIds = Array.from(new Set((exchanges ?? []).map((e) => e.client_id)));
+  const clientIds = Array.from(
+    new Set((exchanges ?? []).map((e) => e.client_id).filter(Boolean)),
+  ) as string[];
   const [clientsRes, relPropsRes] = await Promise.all([
     clientIds.length
       ? supabase.from("agent_clients").select("id, client_name").in("id", clientIds)
@@ -247,7 +254,10 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
   const exClientNameMap = new Map<string, string>();
   const exClientIdMap = new Map<string, string>();
   (exchanges ?? []).forEach((e: any) => {
-    exClientNameMap.set(e.id, clientMap.get(e.client_id) || "Client");
+    exClientNameMap.set(
+      e.id,
+      ownerType === "investor" ? "Your exchange" : (clientMap.get(e.client_id) || "Client"),
+    );
     if (e.client_id) exClientIdMap.set(e.id, e.client_id);
   });
   const relPropMap = new Map(
@@ -383,14 +393,14 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
     // A route the current agent can actually load.
     const openHref =
       mySide === "buyer"
-        ? `/agent/matches?listing=${match.buyer_exchange_id}&match=${match.id}`
+        ? `${basePath}/matches?listing=${match.buyer_exchange_id}&match=${match.id}`
         : conn
           ? // Incoming match with a live connection → the shared connection detail.
-            `/agent/connections/${conn.id}`
+            `${basePath}/connections/${conn.id}`
           : myExchangeId
             ? // No connection yet → the unified matches inbox, scoped to the listing.
-              `/agent/matches?listing=${myExchangeId}&match=${match.id}`
-            : `/agent/matches`;
+              `${basePath}/matches?listing=${myExchangeId}&match=${match.id}`
+            : `${basePath}/matches`;
 
     return {
       id: conn?.id ?? match.id,
@@ -480,14 +490,14 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
   return out;
 }
 
-export function useUnifiedRelationships() {
+export function useUnifiedRelationships(ownerType: "agent" | "investor" = "agent") {
   const { user } = useAuth();
   const { isDemo } = useWorkspaceMode();
   const qc = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["unified-relationships", user?.id, isDemo],
-    queryFn: () => fetchRelationships(user!.id, isDemo),
+    queryKey: ["unified-relationships", ownerType, user?.id, isDemo],
+    queryFn: () => fetchRelationships(user!.id, isDemo, ownerType),
     enabled: !!user?.id,
   });
 

@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
-import { deriveUiStatus, nextActionsFor } from "./inboxHelpers";
+import { deriveUiStatus, nextActionsForAudience, statusForAudience } from "./inboxHelpers";
 import { useMatchLocalState } from "./useMatchLocalState";
 
 interface Callbacks {
@@ -11,10 +11,14 @@ interface Callbacks {
   onSendToClient?: () => void;
 }
 
-export function useMatchActions(rel: Relationship, cb: Callbacks = {}) {
+export function useMatchActions(
+  rel: Relationship,
+  cb: Callbacks = {},
+  audience: "agent" | "investor" = "agent",
+) {
   const { state, update } = useMatchLocalState(rel.matchId);
-  const status = deriveUiStatus(rel, state);
-  const { primary, secondary } = nextActionsFor(status);
+  const status = statusForAudience(deriveUiStatus(rel, state), audience);
+  const { primary, secondary } = nextActionsForAudience(status, audience);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
@@ -105,7 +109,7 @@ export function useMatchActions(rel: Relationship, cb: Callbacks = {}) {
           return;
         case "mark_interested":
           update({ clientInterestedAt: new Date().toISOString() });
-          toast({ title: "Marked Client Interested" });
+          toast({ title: audience === "investor" ? "Marked Interested" : "Marked Client Interested" });
           return;
         case "follow_up_client": {
           const who = rel.clientName ? rel.clientName.split(" ")[0] : "your client";

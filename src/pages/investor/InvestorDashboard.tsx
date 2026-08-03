@@ -1,32 +1,91 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Building2, Heart, MessageCircle, Search } from "lucide-react";
+import { ArrowRight, Building2, Handshake, Plus, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { useAgentListings } from "@/features/pipeline/hooks/useAgentListings";
+import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRelationships";
 import { DemoDataControls } from "@/features/workspace/components/DemoDataControls";
-import { InvestorPropertyCard } from "@/features/investor/components/InvestorPropertyCard";
-import { useInvestorProperties } from "@/features/investor/hooks/useInvestorProperties";
-import { useInvestorSavedProperties } from "@/features/investor/hooks/useInvestorSavedProperties";
-import { useInvestorInquiries } from "@/features/investor/hooks/useInvestorInquiries";
-import { toast } from "sonner";
-import { investorErrorMessage } from "@/features/investor/errorMessage";
+
+function money(value: number | null) {
+  if (value == null) return "—";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+}
 
 export default function InvestorDashboard() {
-  const { data: properties = [], isLoading } = useInvestorProperties();
-  const { savedIds, toggle } = useInvestorSavedProperties();
-  const { data: inquiries = [] } = useInvestorInquiries();
-  const recent = properties.slice(0, 3);
-  const responded = inquiries.filter((item) => item.status === "responded").length;
-  const toggleSaved = async (propertyId: string) => {
-    try { await toggle.mutateAsync({ propertyId, saved: savedIds.has(propertyId) }); }
-    catch (error: unknown) { toast.error(investorErrorMessage(error, "Could not update saved properties.")); }
-  };
+  const { user, profileName } = useAuth();
+  const { data: listings = [], isLoading: listingsLoading } = useAgentListings(user?.id, "investor");
+  const { data: relationships = [], isLoading: matchesLoading } = useUnifiedRelationships("investor");
+  const buyerMatches = relationships.filter((item) => item.mySide === "buyer");
+  const activeListings = listings.filter((item) => item.status !== "draft").length;
+  const connected = buyerMatches.filter((item) => item.connectionId).length;
+  const topMatches = [...buyerMatches].sort((a, b) => b.score - a.score).slice(0, 4);
+  const recentListings = listings.slice(0, 4);
 
   return (
-    <div className="space-y-7">
-      <div className="rounded-2xl bg-[#16284a] p-6 text-white sm:p-8"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-200">Investor / property owner workspace</p><h1 className="mt-2 text-3xl font-bold">Find your next replacement property</h1><p className="mt-2 max-w-2xl text-blue-100">Manage your investment search, review published opportunities, and connect directly with the agents representing the properties that fit.</p><Button asChild className="mt-6 bg-white text-[#16284a] hover:bg-blue-50"><Link to="/investor/marketplace"><Search className="mr-2 h-4 w-4" />Explore properties</Link></Button></div>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Investor / Property Owner</p>
+          <h1 className="text-2xl font-bold text-foreground">
+            {profileName ? `Welcome back, ${profileName.split(" ")[0]}` : "Your exchange dashboard"}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your listed properties, review automatic matches, and connect with listing agents.
+          </p>
+        </div>
+        <Button asChild>
+          <Link to="/investor/exchanges/new"><Plus className="mr-2 h-4 w-4" /> New listing</Link>
+        </Button>
+      </div>
+
       <DemoDataControls />
-      <div className="grid gap-4 sm:grid-cols-3"><Card><CardContent className="p-5"><Building2 className="h-5 w-5 text-[#16284a]" /><p className="mt-3 text-3xl font-bold">{isLoading ? "—" : properties.length}</p><p className="text-sm text-muted-foreground">Published opportunities</p></CardContent></Card><Card><CardContent className="p-5"><Heart className="h-5 w-5 text-rose-500" /><p className="mt-3 text-3xl font-bold">{savedIds.size}</p><p className="text-sm text-muted-foreground">Saved properties</p></CardContent></Card><Card><CardContent className="p-5"><MessageCircle className="h-5 w-5 text-emerald-600" /><p className="mt-3 text-3xl font-bold">{responded}</p><p className="text-sm text-muted-foreground">Agent responses</p></CardContent></Card></div>
-      <section><div className="mb-4 flex items-center justify-between"><div><h2 className="text-xl font-bold text-[#16284a]">Recently added</h2><p className="text-sm text-muted-foreground">Fresh published opportunities from across the network.</p></div><Button asChild variant="ghost"><Link to="/investor/marketplace">View all <ArrowRight className="ml-1 h-4 w-4" /></Link></Button></div>{recent.length ? <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{recent.map((property) => <InvestorPropertyCard key={property.id} property={property} saved={savedIds.has(property.id)} saving={toggle.isPending} onToggleSaved={() => toggleSaved(property.id)} />)}</div> : <Card><CardHeader><CardTitle className="text-base">No published properties yet</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">New network opportunities will appear here as agents publish them.</CardContent></Card>}</section>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card><CardContent className="p-4"><Building2 className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{listingsLoading ? "—" : activeListings}</p><p className="text-xs text-muted-foreground">Active exchanges</p></CardContent></Card>
+        <Card><CardContent className="p-4"><TrendingUp className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{matchesLoading ? "—" : buyerMatches.length}</p><p className="text-xs text-muted-foreground">Qualified matches</p></CardContent></Card>
+        <Card><CardContent className="p-4"><Handshake className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{matchesLoading ? "—" : connected}</p><p className="text-xs text-muted-foreground">Agent connections</p></CardContent></Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="flex-row items-start justify-between space-y-0">
+            <div><CardTitle className="text-lg">My exchanges</CardTitle><CardDescription>Your relinquished properties and current status.</CardDescription></div>
+            <Button variant="ghost" size="sm" asChild><Link to="/investor/listings">View all <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link></Button>
+          </CardHeader>
+          <CardContent>
+            {recentListings.length ? (
+              <ul className="divide-y rounded-lg border">
+                {recentListings.map((listing) => (
+                  <li key={listing.id} className="flex items-center justify-between gap-3 p-3">
+                    <div className="min-w-0"><p className="truncate text-sm font-semibold">{listing.propertyName || "Untitled property"}</p><p className="text-xs text-muted-foreground">{[listing.city, listing.state].filter(Boolean).join(", ")} · {money(listing.askingPrice)}</p></div>
+                    <Button variant="ghost" size="sm" asChild><Link to={`/investor/matches?listing=${listing.id}`}>Open</Link></Button>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">List your first property to begin matching.</p>}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex-row items-start justify-between space-y-0">
+            <div><CardTitle className="text-lg">Top matches</CardTitle><CardDescription>Only properties that improve projected return on equity.</CardDescription></div>
+            <Button variant="ghost" size="sm" asChild><Link to="/investor/matches">View all <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link></Button>
+          </CardHeader>
+          <CardContent>
+            {topMatches.length ? (
+              <ul className="divide-y rounded-lg border">
+                {topMatches.map((match) => (
+                  <li key={match.id} className="flex items-center justify-between gap-3 p-3">
+                    <div className="min-w-0"><p className="truncate text-sm font-semibold">{match.propertyName}</p><p className="text-xs text-muted-foreground">{[match.propertyCity, match.propertyState].filter(Boolean).join(", ")} · {match.roeImprovementPp != null ? `+${match.roeImprovementPp.toFixed(1)} pts ROE` : "Higher projected ROE"}</p></div>
+                    <Button variant="ghost" size="sm" asChild><Link to={match.openHref}>{Math.round(match.score)} score</Link></Button>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Qualified matches will appear after an exchange is published.</p>}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

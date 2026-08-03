@@ -26,9 +26,10 @@ interface Props {
   previewMode?: boolean;
   /** Tab to open on mount (e.g. "conversation" via a deep link). Falls back to overview if unavailable. */
   initialTab?: string;
+  audience?: "agent" | "investor";
 }
 
-export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = false, initialTab }: Props) {
+export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = false, initialTab, audience = "agent" }: Props) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
   const [tab, setTab] = useState<string>(initialTab ?? "overview");
@@ -63,7 +64,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
   const { status, primary, secondary, handle, busy } = useMatchActions(rel, {
     onOpenConversation: () => setTab("conversation"),
     onSendToClient: () => setSendOpen(true),
-  });
+  }, audience);
 
   const conversationAvailable =
     !previewMode &&
@@ -122,6 +123,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
         onPrimary={() => primary && handle(primary.id, primary.label)}
         primaryBusy={!!primary && busy === primary.id}
         onJumpToMatch={previewMode ? undefined : () => setTab("match")}
+        audience={audience}
       />
 
       {/* One clean column: everything lives in the tabs */}
@@ -151,12 +153,12 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
           <TabsContent value="financials" className="mt-0"><FinancialsTab rel={rel} /></TabsContent>
           <TabsContent value="location" className="mt-0"><LocationTab rel={rel} /></TabsContent>
           {!previewMode && (
-            <TabsContent value="match" className="mt-0"><MatchTab rel={rel} rank={rank} totalInScope={totalInScope} /></TabsContent>
+            <TabsContent value="match" className="mt-0"><MatchTab rel={rel} rank={rank} totalInScope={totalInScope} audience={audience} /></TabsContent>
           )}
           {conversationAvailable && (
             <TabsContent value="conversation" className="mt-0">
               <div className="min-h-[520px]">
-                <AgentCommsCard rel={rel} />
+                <AgentCommsCard rel={rel} audience={audience} />
               </div>
             </TabsContent>
           )}
@@ -165,6 +167,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
               rel={rel}
               conversationAvailable={conversationAvailable}
               onOpenConversation={() => setTab("conversation")}
+              audience={audience}
             />
           </TabsContent>
           {!previewMode && (
@@ -178,6 +181,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
                 busy={busy}
                 onOpenHistory={() => setHistoryOpen(true)}
                 onOpenConversation={() => setTab("conversation")}
+                audience={audience}
               />
             </TabsContent>
           )}
@@ -186,8 +190,8 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
 
       {!previewMode && (
         <>
-          <MatchHistorySheet rel={rel} open={historyOpen} onOpenChange={setHistoryOpen} />
-          <SendToClientDialog rel={rel} open={sendOpen} onOpenChange={setSendOpen} />
+          <MatchHistorySheet rel={rel} open={historyOpen} onOpenChange={setHistoryOpen} audience={audience} />
+          {audience === "agent" && <SendToClientDialog rel={rel} open={sendOpen} onOpenChange={setSendOpen} />}
         </>
       )}
     </div>

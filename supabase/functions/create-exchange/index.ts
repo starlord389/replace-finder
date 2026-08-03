@@ -14,7 +14,8 @@ const corsHeaders = {
 type NumericLike = number | null;
 
 interface CreateExchangePayload {
-  clientId: string;
+  clientId?: string | null;
+  ownerType?: "agent" | "investor";
   activate: boolean;
   isDemo?: boolean;
   property: Record<string, unknown>;
@@ -49,19 +50,21 @@ Deno.serve(async (req) => {
     if (authError || !user) return response({ error: "Unauthorized" }, 401);
 
     const db = createClient(supabaseUrl, serviceRoleKey);
-    // Roles live in user_roles (the profiles.role column was dropped in
-    // 20260522172727). Selecting profiles.role here errored on every call and
-    // 403'd every agent, blocking all listing creation.
+    const payload = (await req.json()) as CreateExchangePayload;
+    const ownerType = payload.ownerType === "investor" ? "investor" : "agent";
+
+    // Agents create exchanges for clients; investors/property owners create
+    // self-managed exchanges for their own listed properties.
     const { data: roleRow } = await db
       .from("user_roles")
       .select("user_id")
       .eq("user_id", user.id)
-      .eq("role", "agent")
+      .eq("role", ownerType)
       .maybeSingle();
-    if (!roleRow) return response({ error: "Agent role required" }, 403);
-
-    const payload = (await req.json()) as CreateExchangePayload;
-    if (!payload.clientId) return response({ error: "clientId is required" }, 400);
+    if (!roleRow) return response({ error: `${ownerType === "investor" ? "Investor" : "Agent"} role required` }, 403);
+    if (ownerType === "agent" && !payload.clientId) {
+      return response({ error: "clientId is required for an agent-managed exchange" }, 400);
+    }
 
     const financialErrors = validateFinancials(payload.financials as Record<string, unknown>, "create");
     if (financialErrors.length > 0) {
@@ -77,25 +80,31 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Ensure client belongs to this agent.
-    const { data: clientCheck } = await db
-      .from("agent_clients")
-      .select("id, is_demo")
-      .eq("id", payload.clientId)
-      .eq("agent_id", user.id)
-      .maybeSingle();
-    if (!clientCheck) return response({ error: "Client not found for this agent" }, 400);
-
-    // Workspace integrity: the client's workspace (demo sandbox vs live) must
-    // match the workspace this exchange is being created in. Otherwise a Live
-    // exchange could reference a Demo client, and a demo reset would
-    // CASCADE-delete the linked Live exchange.
     const requestedIsDemo = payload.isDemo === true;
-    if (clientCheck.is_demo !== requestedIsDemo) {
-      return response(
-        { error: "Client workspace mismatch: the selected client belongs to a different workspace" },
-        400,
-      );
+    if (ownerType === "investor" && requestedIsDemo) {
+      const { data: adminRole } = await db
+        .from("user_roles")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!adminRole) return response({ error: "Admin role required for demo data" }, 403);
+    }
+    if (ownerType === "agent") {
+      // Ensure the selected client belongs to this agent and workspace.
+      const { data: clientCheck } = await db
+        .from("agent_clients")
+        .select("id, is_demo")
+        .eq("id", payload.clientId!)
+        .eq("agent_id", user.id)
+        .maybeSingle();
+      if (!clientCheck) return response({ error: "Client not found for this agent" }, 400);
+      if (clientCheck.is_demo !== requestedIsDemo) {
+        return response(
+          { error: "Client workspace mismatch: the selected client belongs to a different workspace" },
+          400,
+        );
+      }
     }
 
     // Storage IDOR guard: every client-supplied image path must either be an
@@ -189,7 +198,8 @@ Deno.serve(async (req) => {
         .from("exchanges")
         .insert({
           agent_id: user.id,
-          client_id: payload.clientId,
+          client_id: ownerType === "investor" ? null : payload.clientId,
+          owner_type: ownerType,
           relinquished_property_id: propertyId,
           exchange_proceeds: exchangeProceeds,
           estimated_equity: estimatedEquity,
@@ -228,7 +238,9 @@ Deno.serve(async (req) => {
         {
           exchange_id: exchangeId,
           event_type: "created",
-          description: `Exchange created${payload.clientName ? ` for ${payload.clientName}` : ""}`,
+          description: ownerType === "investor"
+            ? "Self-managed investor exchange created"
+            : `Exchange created${payload.clientName ? ` for ${payload.clientName}` : ""}`,
           actor_id: user.id,
         },
         ...(payload.activate
@@ -262,7 +274,9 @@ Deno.serve(async (req) => {
           notifyAdmins({
             eventType: "New listing activated",
             title: `New listing: ${cityState}`,
-            summary: payload.clientName
+            summary: ownerType === "investor"
+              ? "An investor/property owner activated a self-managed listing."
+              : payload.clientName
               ? `${payload.clientName}'s listing was just activated by their agent.`
               : "An agent just activated a new listing on 1031ExchangeUp.",
             details: [

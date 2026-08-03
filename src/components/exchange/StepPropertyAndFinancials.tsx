@@ -33,6 +33,8 @@ interface Props {
   onChangeImages: (images: UploadedPropertyImage[]) => void;
   onNext: () => void;
   onBack: () => void;
+  ownerType?: "agent" | "investor";
+  showBack?: boolean;
 }
 
 function CurrencyField({ label, value, onChange, required, error, errorMessage, help }: {
@@ -91,6 +93,8 @@ export default function StepPropertyAndFinancials({
   onChangeImages,
   onNext,
   onBack,
+  ownerType = "agent",
+  showBack = true,
 }: Props) {
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
@@ -157,7 +161,9 @@ export default function StepPropertyAndFinancials({
       <div>
         <h2 className="text-lg font-semibold text-foreground">Property & Financials</h2>
         <p className="text-sm text-muted-foreground">
-          Tell us about the property your client is relinquishing. We'll use these numbers to estimate their equity and find properties they can exchange into.
+          {ownerType === "investor"
+            ? "Tell us about the property you are relinquishing. We’ll calculate your equity and automatically find replacement properties with a better return on equity."
+            : "Tell us about the property your client is relinquishing. We'll use these numbers to estimate their equity and find properties they can exchange into."}
         </p>
       </div>
 
@@ -180,12 +186,12 @@ export default function StepPropertyAndFinancials({
               />
               <div className="space-y-0.5">
                 <Label htmlFor="address-public" className="cursor-pointer text-sm font-medium text-foreground">
-                  Show the exact address to other agents
+                  Show the exact address to matched users
                 </Label>
                 <p className="text-xs text-muted-foreground">
                   {property.address_is_public
-                    ? "Other agents will see the full street address."
-                    : "Other agents see only the city and state. You and admins always see the full address."}
+                    ? "Users matched with this property will see the full street address."
+                    : "Matched users see only the city and state. You and admins always see the full address."}
                 </p>
               </div>
             </div>
@@ -224,7 +230,7 @@ export default function StepPropertyAndFinancials({
         <div>
           <Label>Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
           <p className="mt-1 text-xs text-muted-foreground">
-            A short narrative helps matched agents understand the property. Skip it if you'd rather add it later.
+            A short narrative helps matched users understand the property. Skip it if you'd rather add it later.
           </p>
         </div>
         <Textarea
@@ -240,7 +246,7 @@ export default function StepPropertyAndFinancials({
             Property Photos <span className="ml-1 normal-case tracking-normal text-muted-foreground/70">(optional)</span>
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Optional — add photos so matched agents can see the property at a glance. First photo is used as the cover. If you skip this, we'll show a clean placeholder.
+            Optional — add photos so matched participants can see the property at a glance. The first photo is used as the cover. If you skip this, we'll show a clean placeholder.
           </p>
         </div>
         <PropertyPhotoUploader images={images} onChange={onChangeImages} />
@@ -272,7 +278,7 @@ export default function StepPropertyAndFinancials({
       </section>
 
       <div className="flex justify-between pt-4">
-        <Button variant="outline" onClick={onBack}>Back</Button>
+        {showBack ? <Button variant="outline" onClick={onBack}>Back</Button> : <span />}
         <Button onClick={handleNext}>Continue</Button>
       </div>
     </div>

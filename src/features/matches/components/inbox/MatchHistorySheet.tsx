@@ -16,6 +16,7 @@ interface Props {
   rel: Relationship;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  audience?: "agent" | "investor";
 }
 
 interface HistoryEvent {
@@ -28,7 +29,7 @@ interface HistoryEvent {
  * Slim reference panel: what actually happened on this match (real,
  * dated events only) plus the agent's private working note.
  */
-export function MatchHistorySheet({ rel, open, onOpenChange }: Props) {
+export function MatchHistorySheet({ rel, open, onOpenChange, audience = "agent" }: Props) {
   const { toast } = useToast();
   const { state, update } = useMatchLocalState(rel.matchId);
   const [note, setNote] = useState(state.agentNote);
@@ -45,8 +46,10 @@ export function MatchHistorySheet({ rel, open, onOpenChange }: Props) {
     if (ts) events.push({ ts, label, icon });
   };
 
-  push(state.sentToClientAt, "Sent to client", Send);
-  push(state.clientInterestedAt, "Client marked interested", Sparkles);
+  if (audience === "agent") {
+    push(state.sentToClientAt, "Sent to client", Send);
+    push(state.clientInterestedAt, "Client marked interested", Sparkles);
+  }
   push(rel.acceptedAt ?? state.conversationStartedAt, "Conversation started with listing agent", Handshake);
   push(state.loiSentAt, "Offer sent", FileSignature);
   push(rel.underContractAt ?? state.underContractAt, "Under contract", FileCheck);
@@ -54,7 +57,7 @@ export function MatchHistorySheet({ rel, open, onOpenChange }: Props) {
   push(rel.financingApprovedAt, "Financing approved", Banknote);
   push(rel.closedAt ?? state.closedAt, "Deal closed", Home);
   push(state.notFitAt, "Marked not a fit", XCircle);
-  push(state.clientPassedAt, "Client passed", XCircle);
+  if (audience === "agent") push(state.clientPassedAt, "Client passed", XCircle);
   push(rel.declinedAt, "Listing agent declined", XCircle);
   push(state.archivedAt, "Archived", Archive);
 
@@ -72,7 +75,7 @@ export function MatchHistorySheet({ rel, open, onOpenChange }: Props) {
           <SheetTitle>History &amp; notes</SheetTitle>
           <SheetDescription className="truncate">
             {rel.propertyName}
-            {rel.clientName ? ` · for ${rel.clientName}` : ""}
+            {audience === "agent" && rel.clientName ? ` · for ${rel.clientName}` : ""}
           </SheetDescription>
         </SheetHeader>
 

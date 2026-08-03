@@ -13,10 +13,12 @@ import { useCreateExchange } from "@/features/exchanges/hooks/useCreateExchange"
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { trackEvent } from "@/lib/telemetry";
 
-const STEPS = ["Select Client", "Property & Financials", "Review"];
-const MOBILE_STEP_LABELS = ["Client", "Property", "Review"];
+const AGENT_STEPS = ["Select Client", "Property & Financials", "Review"];
+const AGENT_MOBILE_STEP_LABELS = ["Client", "Property", "Review"];
+const INVESTOR_STEPS = ["Property & Financials", "Review"];
+const INVESTOR_MOBILE_STEP_LABELS = ["Property", "Review"];
 
-export default function NewExchange() {
+export default function NewExchange({ ownerType = "agent" }: { ownerType?: "agent" | "investor" }) {
   const { user } = useAuth();
   const { isDemo } = useWorkspaceMode();
   const navigate = useNavigate();
@@ -33,13 +35,18 @@ export default function NewExchange() {
   const [lastExchangeId, setLastExchangeId] = useState<string | null>(null);
   const [result, setResult] = useState<ActivateResultState | null>(null);
   const [resultOpen, setResultOpen] = useState(false);
+  const isInvestor = ownerType === "investor";
+  const basePath = isInvestor ? "/investor" : "/agent";
+  const steps = isInvestor ? INVESTOR_STEPS : AGENT_STEPS;
+  const mobileStepLabels = isInvestor ? INVESTOR_MOBILE_STEP_LABELS : AGENT_MOBILE_STEP_LABELS;
   const clientLocked = Boolean(preselectedClientId);
 
   useEffect(() => {
+    if (isInvestor) { setClientName("Your property"); return; }
     if (!data.selectedClientId) { setClientName(""); return; }
     supabase.from("agent_clients").select("client_name").eq("id", data.selectedClientId).single()
       .then(({ data: c }) => setClientName(c?.client_name || ""));
-  }, [data.selectedClientId]);
+  }, [data.selectedClientId, isInvestor]);
 
   const extractErrorCode = (err: any): string => {
     if (err?.context?.response?.status) return String(err.context.response.status);
@@ -53,7 +60,7 @@ export default function NewExchange() {
     if (!user) return;
     setSaving(true);
     try {
-      const res = await createExchange.mutateAsync({ data, activate, clientName, isDemo });
+      const res = await createExchange.mutateAsync({ data, activate, clientName, isDemo, ownerType });
       setLastExchangeId(res.exchange_id ?? null);
       if (activate) {
         const newMatches = Number(res?.matching?.new_matches ?? 0);
@@ -63,7 +70,7 @@ export default function NewExchange() {
         setResultOpen(true);
       } else {
         toast.success("Exchange saved as draft.");
-        navigate("/agent/listings");
+        navigate(`${basePath}/listings`);
       }
     } catch (err: any) {
       console.error("Save error:", err);
@@ -84,12 +91,16 @@ export default function NewExchange() {
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-foreground">New Exchange</h1>
-        <p className="text-sm text-muted-foreground">Create a 1031 exchange for one of your clients.</p>
+        <p className="text-sm text-muted-foreground">
+          {isInvestor
+            ? "List your current property and let the matching engine find higher-return exchange opportunities."
+            : "Create a 1031 exchange for one of your clients."}
+        </p>
       </div>
 
       {/* Step Progress */}
       <nav className="flex items-center gap-1">
-        {STEPS.map((label, i) => {
+        {steps.map((label, i) => {
           const stepNum = i + 1;
           const isCompleted = step > stepNum;
           const isCurrent = step === stepNum;
@@ -102,7 +113,7 @@ export default function NewExchange() {
                   ${isCurrent ? "bg-primary text-primary-foreground" : isCompleted ? "bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer" : "bg-muted text-muted-foreground"}`}
               >
                 {isCompleted ? <Check className="h-3.5 w-3.5" /> : <span>{stepNum}</span>}
-                <span className="sm:hidden">{MOBILE_STEP_LABELS[i]}</span>
+                <span className="sm:hidden">{mobileStepLabels[i]}</span>
                 <span className="hidden sm:inline">{label}</span>
               </button>
             </div>
@@ -111,13 +122,13 @@ export default function NewExchange() {
       </nav>
 
       {/* Step Content */}
-      {step === 1 && (
+      {!isInvestor && step === 1 && (
         <StepSelectClient selectedClientId={data.selectedClientId}
           onChange={id => setData(d => ({ ...d, selectedClientId: id }))}
           onNext={() => setStep(2)}
           lockedClientName={clientLocked ? (clientName || "Selected client") : undefined} />
       )}
-      {step === 2 && (
+      {step === (isInvestor ? 1 : 2) && (
         <StepPropertyAndFinancials
           property={data.property}
           financials={data.financials}
@@ -125,13 +136,16 @@ export default function NewExchange() {
           onChangeProperty={property => setData(d => ({ ...d, property }))}
           onChangeFinancials={financials => setData(d => ({ ...d, financials }))}
           onChangeImages={images => setData(d => ({ ...d, images }))}
-          onNext={() => setStep(3)}
+          onNext={() => setStep(isInvestor ? 2 : 3)}
           onBack={() => setStep(1)}
+          ownerType={ownerType}
+          showBack={!isInvestor}
         />
       )}
-      {step === 3 && (
+      {step === (isInvestor ? 2 : 3) && (
         <StepReview data={data} clientName={clientName}
-          onBack={() => setStep(2)} onSubmit={handleSubmit} saving={saving}
+          onBack={() => setStep(isInvestor ? 1 : 2)} onSubmit={handleSubmit} saving={saving}
+          ownerType={ownerType}
           onOwnerAuthorizationChange={v => setData(d => ({ ...d, property: { ...d.property, owner_authorization_confirmed: v } }))} />
       )}
 
@@ -141,11 +155,11 @@ export default function NewExchange() {
         onClose={() => setResultOpen(false)}
         onViewListing={() => {
           setResultOpen(false);
-          navigate(lastExchangeId ? `/agent/listings` : "/agent/listings");
+          navigate(`${basePath}/listings`);
         }}
         onGoToMatches={() => {
           setResultOpen(false);
-          navigate(lastExchangeId ? `/agent/matches?listing=${lastExchangeId}` : "/agent/matches");
+          navigate(lastExchangeId ? `${basePath}/matches?listing=${lastExchangeId}` : `${basePath}/matches`);
         }}
         onRetry={() => setResultOpen(false)}
         onSaveAsDraft={() => {

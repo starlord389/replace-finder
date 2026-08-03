@@ -21,11 +21,15 @@ function fmtPrice(v: number | null | undefined) {
 interface PipelineListingCardProps {
   meta: ListingMeta;
   isDragOverlay?: boolean;
+  basePath?: string;
+  ownerLabel?: string;
 }
 
 export function PipelineListingCard({
   meta,
   isDragOverlay = false,
+  basePath = "/agent",
+  ownerLabel,
 }: PipelineListingCardProps) {
   const { listing, stage, isOverridden, matchCount, bestScore, lastActivityAt } = meta;
   const accent = getClientAccent(listing.clientId);
@@ -63,7 +67,7 @@ export function PipelineListingCard({
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
           <span className={cn("h-1.5 w-1.5 rounded-full", accent.dot)} />
-          <span className="truncate">{listing.clientName ?? "No client"}</span>
+          <span className="truncate">{ownerLabel ?? listing.clientName ?? "No client"}</span>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {isOverridden && (
@@ -87,7 +91,7 @@ export function PipelineListingCard({
       {/* Title + price */}
       <div className="mt-1 flex items-start justify-between gap-2">
         <Link
-          to={`/agent/matches?listing=${listing.id}`}
+          to={`${basePath}/matches?listing=${listing.id}`}
           className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground hover:text-primary"
         >
           {title}
@@ -149,7 +153,7 @@ export function PipelineListingCard({
             <span>{formatDistanceToNow(new Date(lastActivityAt), { addSuffix: true })}</span>
           )}
           <Link
-            to={`/agent/matches?listing=${listing.id}`}
+            to={`${basePath}/matches?listing=${listing.id}`}
             className="invisible inline-flex items-center font-medium text-primary group-hover:visible"
           >
             Open <ArrowRight className="ml-0.5 h-3 w-3" />

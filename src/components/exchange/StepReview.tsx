@@ -25,6 +25,7 @@ interface Props {
   mode?: ReviewMode;
   onCancel?: () => void;
   onOwnerAuthorizationChange?: (value: boolean) => void;
+  ownerType?: "agent" | "investor";
 }
 
 function Field({ label, value, recommended }: { label: string; value?: string | null; recommended?: boolean }) {
@@ -38,21 +39,12 @@ function Field({ label, value, recommended }: { label: string; value?: string | 
   );
 }
 
-export default function StepReview({ data, clientName, onBack, onSubmit, saving, mode = "create", onCancel, onOwnerAuthorizationChange }: Props) {
-  const { property: p, financials: f, criteria: c } = data;
+export default function StepReview({ data, clientName, onBack, onSubmit, saving, mode = "create", onCancel, onOwnerAuthorizationChange, ownerType = "agent" }: Props) {
+  const { property: p, financials: f } = data;
   const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(f);
   const derived = getDerivedFinancials(f);
   const sellerCostRatePercent = Math.round(DEFAULT_SELLER_COST_ESTIMATE_RATE * 100);
   const ownerAuthConfirmed = p.owner_authorization_confirmed;
-
-  // Empty replacement criteria makes the listing effectively unmatchable — the
-  // engine has nothing to score candidates against. Warn before activating.
-  const criteriaGaps = [
-    c.target_asset_types.length === 0 ? "target asset types" : null,
-    c.target_states.length === 0 ? "target states" : null,
-    !parseCurrency(c.target_price_max) ? "target price range" : null,
-  ].filter(Boolean) as string[];
-
 
   // Recurring financials are stored/entered monthly — show them with a "/ mo" suffix.
   const perMonth = (v: string) => {
@@ -76,10 +68,10 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
 
 
       {/* Client */}
-      <Card>
+      {ownerType === "agent" && <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Client</CardTitle></CardHeader>
         <CardContent><p className="font-medium text-foreground">{clientName}</p></CardContent>
-      </Card>
+      </Card>}
 
       {/* Property */}
       <Card>
@@ -89,8 +81,8 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
           <p className="text-sm text-muted-foreground">{[p.city, p.state].filter(Boolean).join(", ")}</p>
           <p className="text-xs text-muted-foreground">
             {p.address_is_public
-              ? "Exact address is visible to other agents."
-              : "Exact address is hidden — other agents see only the city & state."}
+              ? "Exact address is visible to matched participants."
+              : "Exact address is hidden — matched participants see only the city and state."}
           </p>
           <div className="mt-3 grid grid-cols-2 gap-x-8">
             <Field label="Asset Type" value={p.asset_type ? ASSET_TYPE_LABELS[p.asset_type as keyof typeof ASSET_TYPE_LABELS] : undefined} />
@@ -149,18 +141,6 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
 
       <ReviewMatchPreview property={p} financials={f} images={data.images} />
 
-      {criteriaGaps.length > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50/60 p-4 text-sm">
-          <div className="font-medium text-foreground">Replacement criteria are incomplete</div>
-          <p className="mt-1 text-muted-foreground">
-            Missing {criteriaGaps.join(", ")}. Without these, the matching engine has nothing to score replacement
-            properties against and this exchange will rarely — if ever — return matches. Go back and fill them in for
-            the best results.
-          </p>
-        </div>
-      )}
-
-
       {/* Compliance attestation — required before a property can go into the network */}
       <div className="rounded-lg border border-amber-300 bg-amber-50/60 p-4">
         <div className="flex items-start gap-3">
@@ -172,12 +152,12 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
           />
           <div className="space-y-1">
             <Label htmlFor="owner-auth" className="cursor-pointer text-sm font-medium text-foreground">
-              I have authorization to market this property
+              {ownerType === "investor" ? "I own or am authorized to list this property" : "I have authorization to market this property"}
             </Label>
             <p className="text-xs text-muted-foreground">
-              I confirm I have a current listing/representation agreement or written authorization from the
-              property owner to market and share this property on 1031 Exchange Up, and that the information
-              above is accurate to the best of my knowledge.
+              {ownerType === "investor"
+                ? "I confirm that I own this property or have written authority to list it, and that the information above is accurate to the best of my knowledge."
+                : "I confirm I have a current listing/representation agreement or written authorization from the property owner to market and share this property on 1031 Exchange Up, and that the information above is accurate to the best of my knowledge."}
             </p>
           </div>
         </div>

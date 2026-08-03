@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import {
-  LIFECYCLE_ORDER, UI_STATUS_LABEL, STATUS_HINTS,
+  INVESTOR_LIFECYCLE_ORDER, INVESTOR_STATUS_HINTS, LIFECYCLE_ORDER, UI_STATUS_LABEL, STATUS_HINTS,
   type UiStatus, type ActionDescriptor,
 } from "../inboxHelpers";
 import { ACTION_ICONS } from "../actionIcons";
@@ -17,6 +17,7 @@ interface Props {
   busy: string | null;
   onOpenHistory: () => void;
   onOpenConversation?: () => void;
+  audience?: "agent" | "investor";
 }
 
 /**
@@ -25,10 +26,12 @@ interface Props {
  * away. Replaces the old cramped right-hand sidebar.
  */
 export function NextStepsTab({
-  rel, status, primary, secondary, handle, busy, onOpenHistory, onOpenConversation,
+  rel, status, primary, secondary, handle, busy, onOpenHistory, onOpenConversation, audience = "agent",
 }: Props) {
   const isArchived = status === "archived";
-  const currentIdx = isArchived ? -1 : LIFECYCLE_ORDER.indexOf(status);
+  const lifecycleOrder = audience === "investor" ? INVESTOR_LIFECYCLE_ORDER : LIFECYCLE_ORDER;
+  const currentIdx = isArchived ? -1 : lifecycleOrder.indexOf(status);
+  const statusHints = audience === "investor" ? INVESTOR_STATUS_HINTS : STATUS_HINTS;
   const constructive = secondary.filter((a) => a.tone !== "destructive");
   const destructive = secondary.filter((a) => a.tone === "destructive");
   const PrimaryIcon = primary ? ACTION_ICONS[primary.id] ?? ArrowRight : null;
@@ -52,7 +55,7 @@ export function NextStepsTab({
         </div>
 
         <div className="mt-4 flex items-center overflow-x-auto pb-1">
-          {LIFECYCLE_ORDER.map((s, i) => {
+          {lifecycleOrder.map((s, i) => {
             const done = !isArchived && i < currentIdx;
             const current = !isArchived && i === currentIdx;
             return (
@@ -85,7 +88,7 @@ export function NextStepsTab({
           })}
         </div>
 
-        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{STATUS_HINTS[status]}</p>
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{statusHints[status]}</p>
       </div>
 
       {/* Actions */}
@@ -142,9 +145,11 @@ export function NextStepsTab({
             {destructive.map((a) => {
               const Icon = ACTION_ICONS[a.id];
               const label =
-                a.id === "not_a_fit" && rel.clientName
-                  ? `Not a fit for ${rel.clientName.split(" ")[0]}`
-                  : a.label;
+                a.id === "not_a_fit" && audience === "investor"
+                  ? "Not a fit"
+                  : a.id === "not_a_fit" && rel.clientName
+                    ? `Not a fit for ${rel.clientName.split(" ")[0]}`
+                    : a.label;
               return (
                 <Button
                   key={a.id}
@@ -177,8 +182,9 @@ export function NextStepsTab({
         <div className="mt-3 flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
           <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/70" />
           <span>
-            Contact details stay private until your client expresses interest and the listing agent
-            accepts the intro. All messages happen in-app.
+            {audience === "investor"
+              ? "Contact details stay private until you connect with the listing agent. All messages happen in-app."
+              : "Contact details stay private until your client expresses interest and the listing agent accepts the intro. All messages happen in-app."}
           </span>
         </div>
       </div>

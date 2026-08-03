@@ -5,6 +5,7 @@ import { getDerivedFinancials, getEstimatedExchangeEconomics, parseCurrency } fr
 export interface CreateExchangeRequest {
   data: WizardState;
   activate: boolean;
+  ownerType?: "agent" | "investor";
   clientName?: string;
   /** Stamp the new listing for the active workspace (demo sandbox vs live). */
   isDemo?: boolean;
@@ -61,7 +62,8 @@ export async function createExchange(request: CreateExchangeRequest): Promise<Cr
   const normalized = normalizeWizardData(request.data);
   const { data, error } = await supabase.functions.invoke<CreateExchangeResponse>("create-exchange", {
     body: {
-      clientId: request.data.selectedClientId,
+      clientId: request.ownerType === "investor" ? null : request.data.selectedClientId,
+      ownerType: request.ownerType ?? "agent",
       activate: request.activate,
       clientName: request.clientName,
       isDemo: request.isDemo ?? false,

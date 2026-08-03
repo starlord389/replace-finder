@@ -15,9 +15,10 @@ interface Props {
   listing: AgentListing | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  basePath?: string;
 }
 
-function buildPreviewRel(listing: AgentListing): Relationship {
+function buildPreviewRel(listing: AgentListing, basePath: string): Relationship {
   return {
     id: `preview-${listing.id}`,
     matchId: `preview-${listing.id}`,
@@ -64,7 +65,7 @@ function buildPreviewRel(listing: AgentListing): Relationship {
     buyerExchangeId: "",
     myExchangeId: listing.id,
     relinquishedLabel: null,
-    openHref: `/agent/exchanges/${listing.id}/edit`,
+    openHref: `${basePath}/exchanges/${listing.id}/edit`,
     lastActivityAt: listing.createdAt,
     lastMessagePreview: null,
     lastMessageSenderId: null,
@@ -86,7 +87,7 @@ function buildPreviewRel(listing: AgentListing): Relationship {
   };
 }
 
-export function ListingPreviewDialog({ listing, open, onOpenChange }: Props) {
+export function ListingPreviewDialog({ listing, open, onOpenChange, basePath = "/agent" }: Props) {
   if (!listing) return null;
 
   const title = listing.propertyName || listing.address || "Untitled listing";
@@ -96,7 +97,7 @@ export function ListingPreviewDialog({ listing, open, onOpenChange }: Props) {
     !!listing.address ||
     listing.askingPrice != null;
   const isDraft = listing.status === "draft";
-  const rel = hasProperty ? buildPreviewRel(listing) : null;
+  const rel = hasProperty ? buildPreviewRel(listing, basePath) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -130,7 +131,7 @@ export function ListingPreviewDialog({ listing, open, onOpenChange }: Props) {
                   : "Add a property to this listing to see the investor preview."}
               </p>
               <Button asChild size="sm" className="mt-2">
-                <Link to={`/agent/exchanges/${listing.id}/edit`}>
+                <Link to={`${basePath}/exchanges/${listing.id}/edit`}>
                   <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit listing
                 </Link>
               </Button>
@@ -159,13 +160,13 @@ export function ListingPreviewDialog({ listing, open, onOpenChange }: Props) {
               Close
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link to={`/agent/exchanges/${listing.id}/edit`}>
+              <Link to={`${basePath}/exchanges/${listing.id}/edit`}>
                 <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit listing
               </Link>
             </Button>
             <Button size="sm" asChild>
               <Link
-                to={`/agent/matches?${listing.clientId ? `client=${listing.clientId}&` : ""}listing=${listing.id}`}
+                to={`${basePath}/matches?${listing.clientId ? `client=${listing.clientId}&` : ""}listing=${listing.id}`}
               >
                 View matches
               </Link>
