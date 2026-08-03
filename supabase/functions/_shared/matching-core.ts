@@ -77,12 +77,13 @@ export async function computeMatchesForExchange(
   exchangeId: string,
   propertyId: string,
   diagnostics?: MatchDiagnosticRow[],
-  // QA-only escape hatch: when true, the caller's own inventory is NOT excluded
-  // from the candidate pool. Real runs always leave this false — the product is
-  // a cross-agent network and an agent must never match against themselves.
-  // Only run-auto-matching sets it, admin-gated and forced into dry-run.
-  includeSameAgent = false,
+  // Deprecated / no-op. Same-agent, same-brokerage and same-account candidates
+  // are always eligible: identifying Exchange Up opportunities inside one
+  // agent's own book of business is a core product feature. Kept only so older
+  // callers passing the flag keep compiling.
+  _deprecatedIncludeSameAgent = true,
 ): Promise<ScoredMatch[]> {
+
   const [exchangeRes, propertyRes, settings] = await Promise.all([
     db.from("exchanges").select("*").eq("id", exchangeId).single(),
     db.from("pledged_properties").select("*").eq("id", propertyId).single(),
@@ -126,15 +127,36 @@ export async function computeMatchesForExchange(
     });
   }
   if (criteria) {
-    let activeQuery = db
+    // Same-agent / same-account candidates are FULLY eligible: 1031 Exchange Up
+    // is built to surface exchange opportunities inside an agent's own book of
+    // business. The only records excluded are the ones that would pair a record
+    // with itself or with the very same client.
+    const { data: activePropertiesRaw } = await db
       .from("pledged_properties")
       .select("*")
       .eq("status", "active")
       .eq("is_demo", isDemo);
-    if (!includeSameAgent) activeQuery = activeQuery.neq("agent_id", userId);
-    const { data: activePropertiesRaw } = await activeQuery;
-    // Never pair the exchange's own relinquished property with itself.
-    const activeProperties = (activePropertiesRaw ?? []).filter((p: any) => p.id !== propertyId);
+
+    // Map each candidate listing to the client behind it so we never match a
+    // client to their own property (distinct-opportunity rule).
+    const candidateExchangeIds = Array.from(
+      new Set((activePropertiesRaw ?? []).map((p: any) => p.exchange_id).filter(Boolean)),
+    );
+    const { data: candidateExchanges } = candidateExchangeIds.length
+      ? await db.from("exchanges").select("id, client_id").in("id", candidateExchangeIds)
+      : { data: [] };
+    const clientByExchange = new Map(
+      (candidateExchanges ?? []).map((e: any) => [e.id, e.client_id]),
+    );
+
+    const activeProperties = (activePropertiesRaw ?? []).filter((p: any) => {
+      if (p.id === propertyId) return false;                       // itself
+      if (p.id === exchange.relinquished_property_id) return false; // this exchange's own relinquished asset
+      if (p.exchange_id && p.exchange_id === exchangeId) return false;
+      const candidateClient = p.exchange_id ? clientByExchange.get(p.exchange_id) : null;
+      if (candidateClient && exchange.client_id && candidateClient === exchange.client_id) return false;
+      return true;
+    });
 
     if (!activeProperties?.length && diagnostics) {
       diagnostics.push({
@@ -143,11 +165,10 @@ export async function computeMatchesForExchange(
         candidate_exchange_id: exchangeId,
         candidate_label: "buyer-side scan",
         status: "skipped",
-        reason: includeSameAgent
-          ? "no other active properties in this workspace"
-          : "no active properties from other agents in this workspace",
+        reason: "no other active properties in this workspace",
       });
     }
+
     if (activeProperties?.length) {
 
       const propIds = activeProperties.map((p: any) => p.id);
@@ -196,16 +217,21 @@ export async function computeMatchesForExchange(
     }
   }
 
-  // Seller side: this property × other people's exchanges
-  let otherExchangeQuery = db
+  // Seller side: this property × every other active buyer exchange, including
+  // exchanges owned by the same agent / account (in-network opportunities).
+  const { data: otherExchangesRaw } = await db
     .from("exchanges")
     .select("*, replacement_criteria(*)")
     .in("status", ["active", "in_identification", "in_closing"])
     .eq("is_demo", isDemo);
-  if (!includeSameAgent) otherExchangeQuery = otherExchangeQuery.neq("agent_id", userId);
-  const { data: otherExchangesRaw } = await otherExchangeQuery;
-  // Never pair this exchange with itself.
-  const otherExchanges = (otherExchangesRaw ?? []).filter((e: any) => e.id !== exchangeId);
+  // Exclude only self-pairings: this same exchange, an exchange whose own
+  // relinquished asset IS this property, or the same client on both sides.
+  const otherExchanges = (otherExchangesRaw ?? []).filter((e: any) => {
+    if (e.id === exchangeId) return false;
+    if (e.relinquished_property_id && e.relinquished_property_id === propertyId) return false;
+    if (e.client_id && exchange.client_id && e.client_id === exchange.client_id) return false;
+    return true;
+  });
 
   if (!otherExchanges?.length && diagnostics) {
     diagnostics.push({
@@ -214,10 +240,9 @@ export async function computeMatchesForExchange(
       candidate_exchange_id: null,
       candidate_label: "seller-side scan",
       status: "skipped",
-      reason: includeSameAgent
-        ? "no other active buyer exchanges in this workspace"
-        : "no other agents have active buyer exchanges in this workspace",
+      reason: "no other active buyer exchanges in this workspace",
     });
+
 
   }
   if (otherExchanges?.length) {
