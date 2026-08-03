@@ -91,6 +91,7 @@ interface PipelineKanbanProps {
   onResetFilters: () => void;
   basePath?: string;
   ownerLabel?: string;
+  ownerType?: "agent" | "investor";
 }
 
 export function PipelineKanban({
