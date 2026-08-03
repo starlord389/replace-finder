@@ -80,7 +80,21 @@ export function ListingHeaderBar({
                 {UI_STATUS_LABEL[status]}
               </span>
             )}
+            {rel.isSameAgent && (
+              <span
+                className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-800"
+                title="Both sides sit inside your own book of business."
+              >
+                Same-Agent Opportunity
+              </span>
+            )}
           </div>
+          {rel.isSameAgent && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              In-network exchange chain — both sides are yours, so this deal could give you
+              multiple transaction sides and keep the client relationship in house.
+            </p>
+          )}
 
           {stats.length > 0 && (
             <div className="mt-5 flex flex-wrap gap-x-5 gap-y-3.5">
