@@ -113,6 +113,13 @@ export interface Relationship {
   financingApprovedAt: string | null;
   declineReason: string | null;
 
+  /**
+   * True when both sides of this match sit inside the current agent's own book
+   * of business (same agent / brokerage / account). Informational only — it
+   * never affects eligibility, scoring, or visibility.
+   */
+  isSameAgent: boolean;
+
   // raw refs for downstream
   buyerAgentId: string;
   sellerAgentId: string | null;
@@ -453,6 +460,10 @@ async function fetchRelationships(userId: string, isDemo: boolean): Promise<Rela
       // Fall back so a brand-new match (no connection row yet) can still open a
       // conversation: the seller is the listing's owner; for buyer-side matches
       // the buyer is the current agent.
+      isSameAgent:
+        mySide === "buyer"
+          ? prop?.agent_id === userId
+          : myExchangeIds.includes(match.buyer_exchange_id),
       buyerAgentId: conn?.buyer_agent_id ?? (mySide === "buyer" ? userId : null),
       sellerAgentId: conn?.seller_agent_id ?? prop?.agent_id ?? null,
     };
