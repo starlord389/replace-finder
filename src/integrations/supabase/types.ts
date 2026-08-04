@@ -370,6 +370,10 @@ export type Database = {
           phone: string | null
           role: string
           scheduled_at: string | null
+          sms_consent: boolean
+          sms_consent_at: string | null
+          sms_consent_disclosure_version: string | null
+          sms_consent_source: string | null
           status: string
           timeline: string | null
           use_case: string
@@ -385,6 +389,10 @@ export type Database = {
           phone?: string | null
           role: string
           scheduled_at?: string | null
+          sms_consent?: boolean
+          sms_consent_at?: string | null
+          sms_consent_disclosure_version?: string | null
+          sms_consent_source?: string | null
           status?: string
           timeline?: string | null
           use_case: string
@@ -400,6 +408,10 @@ export type Database = {
           phone?: string | null
           role?: string
           scheduled_at?: string | null
+          sms_consent?: boolean
+          sms_consent_at?: string | null
+          sms_consent_disclosure_version?: string | null
+          sms_consent_source?: string | null
           status?: string
           timeline?: string | null
           use_case?: string
@@ -1592,6 +1604,10 @@ export type Database = {
           owner_phone: string | null
           property_location: string | null
           property_type: string | null
+          sms_consent: boolean
+          sms_consent_at: string | null
+          sms_consent_disclosure_version: string | null
+          sms_consent_source: string | null
           status: string
         }
         Insert: {
@@ -1607,6 +1623,10 @@ export type Database = {
           owner_phone?: string | null
           property_location?: string | null
           property_type?: string | null
+          sms_consent?: boolean
+          sms_consent_at?: string | null
+          sms_consent_disclosure_version?: string | null
+          sms_consent_source?: string | null
           status?: string
         }
         Update: {
@@ -1622,6 +1642,10 @@ export type Database = {
           owner_phone?: string | null
           property_location?: string | null
           property_type?: string | null
+          sms_consent?: boolean
+          sms_consent_at?: string | null
+          sms_consent_disclosure_version?: string | null
+          sms_consent_source?: string | null
           status?: string
         }
         Relationships: []
@@ -1863,6 +1887,72 @@ export type Database = {
           resolved_by?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sms_consent_events: {
+        Row: {
+          action: string
+          disclosure_version: string
+          id: string
+          occurred_at: string
+          phone: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          disclosure_version: string
+          id?: string
+          occurred_at?: string
+          phone: string
+          source: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          disclosure_version?: string
+          id?: string
+          occurred_at?: string
+          phone?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sms_subscriptions: {
+        Row: {
+          consented: boolean
+          consented_at: string | null
+          created_at: string
+          disclosure_version: string
+          opted_out_at: string | null
+          phone: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consented?: boolean
+          consented_at?: string | null
+          created_at?: string
+          disclosure_version: string
+          opted_out_at?: string | null
+          phone: string
+          source: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consented?: boolean
+          consented_at?: string | null
+          created_at?: string
+          disclosure_version?: string
+          opted_out_at?: string | null
+          phone?: string
+          source?: string
           updated_at?: string
           user_id?: string
         }
@@ -2250,6 +2340,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      set_my_sms_consent: {
+        Args: { p_consented: boolean; p_phone?: string | null }
+        Returns: undefined
       }
       users_share_active_connection: {
         Args: { _user_a: string; _user_b: string }

@@ -9,13 +9,12 @@ export default function Terms() {
   }, []);
 
   return (
-    <LegalDoc title="Terms & Conditions" lastUpdated="July 22, 2026">
+    <LegalDoc title="Terms & Conditions" lastUpdated="August 4, 2026">
       <p className="legal-intro">
-        These Terms &amp; Conditions (the “Terms”) are a binding agreement between you and{" "}
-        MFPX LLC, d/b/a 1031 Exchange Up (“1031 Exchange Up,” “we,” “us,” or “our”) and govern your
-        access to and use of our website, platform, and related services (together, the “Service”). By
-        accessing or using the Service, you agree to these Terms and to our{" "}
-        <Link to={ROUTES.privacy}>Privacy Policy</Link>. If you do not agree, do not use the Service.
+        These Terms &amp; Conditions (the "Terms") are a binding agreement between you and MFPX LLC,
+        d/b/a 1031 Exchange Up ("1031 Exchange Up," "we," "us," or "our") and govern your use of our
+        website, platform, and related services (together, the "Service"). By using the Service, you
+        agree to these Terms and acknowledge our <Link to={ROUTES.privacy}>Privacy Policy</Link>.
       </p>
 
       <div className="legal-toc">
@@ -30,6 +29,7 @@ export default function Terms() {
           <li>Our intellectual property</li>
           <li>Fees</li>
           <li>Third-party services</li>
+          <li>Text messaging terms</li>
           <li>Disclaimers</li>
           <li>Limitation of liability</li>
           <li>Indemnification</li>
@@ -43,184 +43,169 @@ export default function Terms() {
 
       <h2>1. Eligibility and acceptance</h2>
       <p>
-        You must be at least 18 years old and able to enter into a binding contract to use the Service.
-        Agent features are intended for licensed real estate professionals; by using them, you
-        represent and warrant that you hold a valid real estate license in good standing in each
-        jurisdiction where you operate, and that your use complies with your brokerage’s policies and
-        applicable law.
+        You must be at least 18 years old and able to enter into a binding contract. Agent features are
+        intended for licensed real estate professionals; an agent represents that each license used on
+        the Service is valid and in good standing and that use complies with applicable law and brokerage
+        policy. Investor/property-owner features are intended for people authorized to act for the
+        relevant property or ownership entity.
       </p>
 
       <h2>2. What the Service is — and is not</h2>
       <p>
-        1031 Exchange Up is a technology platform and agent-to-agent network that helps licensed agents
-        source and discover 1031 exchange replacement properties and connect with one another. Please
-        read the following carefully:
+        1031 Exchange Up is a technology platform for licensed agents and investors/property owners to
+        organize potential exchanges, publish authorized property information, receive potential
+        replacement-property matches, and connect with relevant counterparties.
       </p>
       <ul>
-        <li>
-          <strong>We are not a real estate brokerage.</strong> We do not list, market, broker, sell,
-          buy, lease, appraise, or represent any party in any transaction, and we are not a party to
-          any agreement reached between users or their clients.
-        </li>
-        <li>
-          <strong>We are not a Multiple Listing Service (MLS).</strong> The Service does not replace any
-          MLS, and using it does not satisfy, waive, or change any obligation you may have under any
-          MLS rules — including the National Association of REALTORS® Clear Cooperation Policy or your
-          local MLS’s rules. <strong>You are solely responsible for complying with all MLS and
-          association rules, including timely submission of any publicly marketed listing.</strong>
-        </li>
-        <li>
-          <strong>We do not provide legal, tax, accounting, financial, brokerage, or investment
-          advice.</strong> Section 1031 exchanges are governed by strict IRS rules and deadlines,
-          including the 45-day identification period and the 180-day closing period. You and your
-          clients are responsible for engaging a qualified intermediary, attorney, and tax advisor.
-          Nothing on the Service is a recommendation to buy, sell, or hold any property.
-        </li>
-        <li>
-          <strong>No guarantee of results.</strong> Any match scores, estimates, benchmarks, projected
-          returns, or “targets” shown on the Service are illustrative and informational only. We do not
-          guarantee that any property, match, listing, agent, buyer, transaction, financing, or
-          financial outcome will be available, accurate, suitable, or achieved.
-        </li>
+        <li><strong>We are not a real estate brokerage.</strong> We do not broker, buy, sell, lease, appraise, or represent a party in a transaction and are not a party to agreements between users.</li>
+        <li><strong>We are not an MLS.</strong> The Service does not replace an MLS or change obligations under MLS, association, advertising, or clear-cooperation rules.</li>
+        <li><strong>We do not provide legal, tax, accounting, financial, brokerage, or investment advice.</strong> Users are responsible for qualified professional advice, including a qualified intermediary, attorney, lender, and tax advisor.</li>
+        <li><strong>No result is guaranteed.</strong> Matches, scores, estimates, projected returns, financing assumptions, and deadlines are informational and may be incomplete or inaccurate.</li>
       </ul>
 
       <h2>3. Accounts</h2>
       <p>
-        You agree to provide accurate, current, and complete information, to keep it up to date, and to
-        keep your login credentials confidential. You are responsible for all activity under your
-        account. Notify us promptly of any unauthorized use. We may verify your identity and license,
-        and may suspend or terminate accounts that violate these Terms or that we reasonably believe
-        pose a risk.
+        You will provide accurate information, keep it current, protect your credentials, and accept
+        responsibility for account activity. Notify us promptly of unauthorized use. We may verify an
+        identity, license, ownership authorization, or listing and may restrict accounts that violate
+        these Terms or pose a risk.
       </p>
 
       <h2>4. Your content and conduct</h2>
       <p>
-        You are solely responsible for the information and content you submit, including property and
-        client information (“Your Content”). You represent and warrant that you have all rights and
-        authorizations necessary to submit Your Content and to share it with other users, that it is
-        accurate and not misleading, and that it does not violate any law or third-party right. You
-        agree to comply with all applicable laws and rules, including fair housing, advertising and
-        consumer-protection laws, privacy and anti-spam laws, real estate licensing laws, the Real
-        Estate Settlement Procedures Act (RESPA) where applicable, and MLS rules. You will not:
+        You are responsible for information you submit, including property, client, and exchange data
+        ("Your Content"). You represent that Your Content is accurate and that you have all rights,
+        authorizations, notices, and consents required to collect, submit, use, and disclose it. You will
+        comply with fair-housing, advertising, privacy, consumer-protection, anti-spam, telemarketing,
+        real estate licensing, RESPA, and MLS rules that apply to you.
       </p>
       <ul>
-        <li>post false, fraudulent, duplicate, or unauthorized listings, or information about a property you are not authorized to represent or share;</li>
-        <li>misuse, scrape, harvest, or improperly disclose other users’ information;</li>
-        <li>infringe any intellectual property, privacy, or other right;</li>
-        <li>upload malicious code or attempt to disrupt or gain unauthorized access to the Service; or</li>
-        <li>use the Service for any unlawful, deceptive, or harmful purpose.</li>
+        <li>Do not post a false, misleading, duplicate, or unauthorized listing.</li>
+        <li>Do not scrape, harvest, sell, or improperly disclose another person&apos;s information.</li>
+        <li>Do not enter a phone number or trigger a call or text unless you have the authority and any consent required for that communication.</li>
+        <li>Do not use client information or a connection made through the Service for unsolicited marketing outside the purpose for which it was provided.</li>
+        <li>Do not upload malicious code, interfere with security, or use the Service for unlawful, deceptive, or harmful activity.</li>
       </ul>
       <p>
-        We may, but are not obligated to, review, moderate, or remove content, and may suspend users at
-        our discretion. You grant us a non-exclusive, worldwide, royalty-free license to host, store,
-        display, and use Your Content as needed to operate and improve the Service.
+        We may moderate or remove content. You grant us a non-exclusive, worldwide, royalty-free license
+        to host, store, display, and use Your Content only as reasonably needed to operate, secure, and
+        improve the Service.
       </p>
 
       <h2>5. Referral fees and compensation</h2>
       <p>
-        Any referral fees, commissions, or other compensation arranged through or in connection with the
-        Service are solely between the agents and parties involved. Only properly licensed individuals
-        may pay or receive real estate referral fees, and you are solely responsible for ensuring any
-        such arrangement complies with applicable law (including state real estate law and, for
-        residential transactions, RESPA). We are not a party to, and do not collect, broker, hold,
-        guarantee, or enforce, any referral fee or commission.
+        Referral fees, commissions, or other compensation are solely between the properly licensed
+        parties involved. You are responsible for compliance with state law and RESPA. We do not collect,
+        hold, guarantee, broker, or enforce a referral fee or commission unless separately stated in a
+        written agreement.
       </p>
 
       <h2>6. License to use the Service</h2>
       <p>
-        Subject to these Terms, we grant you a limited, revocable, non-exclusive, non-transferable
-        license to access and use the Service for its intended business purpose. You will not copy,
-        modify, distribute, sell, lease, reverse engineer, scrape, or create derivative works from the
-        Service or its data, except as permitted by law.
+        We grant you a limited, revocable, non-exclusive, non-transferable license to use the Service for
+        its intended business purpose. You may not copy, distribute, sell, lease, reverse engineer, scrape,
+        or create derivative works from the Service or its data except as law expressly permits.
       </p>
 
       <h2>7. Our intellectual property</h2>
       <p>
-        The Service and all related software, design, text, graphics, logos, and other content
-        (excluding Your Content) are owned by us or our licensors and are protected by intellectual
-        property laws. Except for the limited license above, no rights are granted to you.
+        The Service and its software, design, text, graphics, logos, and other content, excluding Your
+        Content, belong to us or our licensors and are protected by intellectual-property law.
       </p>
 
       <h2>8. Fees</h2>
       <p>
-        The Service is currently offered free of charge during early access. We may introduce or change
-        fees in the future; if we do, we will provide notice, and any paid features will be subject to
-        the pricing and terms presented at that time.
+        The Service is currently offered free during early access. We may introduce or change fees after
+        notice. Paid features will be governed by the pricing and additional terms presented at purchase.
       </p>
 
       <h2>9. Third-party services</h2>
       <p>
-        The Service may integrate with or link to third-party products and services that we do not
-        control. We are not responsible for those services, and your use of them is subject to their
-        own terms.
+        The Service may integrate with third-party products, carriers, or websites that we do not control.
+        We are not responsible for those services, which may have their own terms and privacy notices.
       </p>
 
-      <h2>10. Disclaimers</h2>
+      <h2>10. Text messaging terms</h2>
+      <p>
+        If you separately opt in, you authorize MFPX LLC, d/b/a 1031 Exchange Up, to send recurring
+        automated SMS messages to the mobile number you provided. Messages may concern your account,
+        demo or referral request, exchange activity, property matches, inquiries, connection requests,
+        deadline reminders, and related service notices. Message frequency varies based on your account
+        or request activity. Message and data rates may apply. Consent is optional and is not a condition
+        of purchase or use of the Service.
+      </p>
+      <p>
+        Reply <strong>STOP</strong> to opt out at any time. After a final opt-out confirmation, no further
+        messages will be sent unless you provide new consent. Reply <strong>HELP</strong> for help or email{" "}
+        <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a>. You represent that you
+        are the subscriber or customary user of the number provided and will notify us before the number
+        is reassigned. Carriers are not liable for delayed or undelivered messages. Opting out of SMS does
+        not stop communications through email, in-app notifications, or other channels where permitted.
+      </p>
+      <p>
+        We will not sell, rent, or transfer your SMS consent. See our{" "}
+        <Link to={ROUTES.privacy}>Privacy Policy</Link> for how mobile information and consent records are
+        handled.
+      </p>
+
+      <h2>11. Disclaimers</h2>
       <p className="legal-caps">
-        THE SERVICE AND ALL CONTENT ARE PROVIDED “AS IS” AND “AS AVAILABLE,” WITHOUT WARRANTIES OF ANY
-        KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE SERVICE
-        WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE, OR THAT ANY PROPERTY, MATCH, LISTING, AGENT, BUYER,
-        TRANSACTION, OR FINANCIAL OUTCOME WILL BE AVAILABLE, ACCURATE, SUITABLE, OR ACHIEVED. ANY
-        RELIANCE ON THE SERVICE OR ITS CONTENT IS AT YOUR OWN RISK.
+        THE SERVICE AND CONTENT ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND,
+        WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR
+        PURPOSE, TITLE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED,
+        ERROR-FREE, OR SECURE, OR THAT ANY PROPERTY, MATCH, LISTING, AGENT, BUYER, TRANSACTION, FINANCING,
+        COMMUNICATION, DEADLINE, OR FINANCIAL OUTCOME WILL BE AVAILABLE, ACCURATE, SUITABLE, OR ACHIEVED.
       </p>
 
-      <h2>11. Limitation of liability</h2>
+      <h2>12. Limitation of liability</h2>
       <p className="legal-caps">
-        TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT WILL 1031 EXCHANGE UP OR ITS OFFICERS,
-        EMPLOYEES, OR AGENTS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY,
-        OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL, ARISING OUT OF OR
-        RELATING TO YOUR USE OF THE SERVICE. OUR TOTAL LIABILITY FOR ANY CLAIM RELATING TO THE SERVICE
-        WILL NOT EXCEED THE GREATER OF (A) THE AMOUNTS YOU PAID US FOR THE SERVICE IN THE 12 MONTHS
-        BEFORE THE CLAIM OR (B) ONE HUNDRED U.S. DOLLARS ($100). SOME JURISDICTIONS DO NOT ALLOW CERTAIN
-        LIMITATIONS, SO SOME OF THE ABOVE MAY NOT APPLY TO YOU.
+        TO THE MAXIMUM EXTENT PERMITTED BY LAW, 1031 EXCHANGE UP AND ITS OFFICERS, EMPLOYEES, AND AGENTS
+        WILL NOT BE LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE
+        DAMAGES OR LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL ARISING FROM THE SERVICE. OUR TOTAL
+        LIABILITY FOR A CLAIM RELATING TO THE SERVICE WILL NOT EXCEED THE GREATER OF AMOUNTS YOU PAID US
+        FOR THE SERVICE IN THE 12 MONTHS BEFORE THE CLAIM OR ONE HUNDRED U.S. DOLLARS ($100). SOME
+        JURISDICTIONS DO NOT ALLOW CERTAIN LIMITATIONS.
       </p>
 
-      <h2>12. Indemnification</h2>
+      <h2>13. Indemnification</h2>
       <p>
-        You agree to indemnify, defend, and hold harmless 1031 Exchange Up and its officers, employees,
-        and agents from and against any claims, liabilities, damages, losses, and expenses (including
-        reasonable attorneys’ fees) arising out of or related to: your use of the Service; Your Content;
-        your transactions, dealings, or communications with other users or any party; your violation of
-        these Terms; or your violation of any law or third-party right.
+        You will indemnify, defend, and hold harmless 1031 Exchange Up and its officers, employees, and
+        agents from claims, liabilities, damages, losses, and reasonable legal expenses arising from your
+        use of the Service, Your Content, your communications or transactions, or your violation of these
+        Terms, applicable law, or a third party&apos;s rights.
       </p>
 
-      <h2>13. Termination</h2>
+      <h2>14. Termination</h2>
       <p>
-        You may stop using the Service at any time. We may suspend or terminate your access to the
-        Service at any time, with or without notice or cause. Provisions that by their nature should
-        survive termination — including ownership, disclaimers, limitation of liability,
-        indemnification, and dispute terms — will survive.
+        You may stop using the Service at any time. We may suspend or terminate access for violation,
+        risk, or discontinuation of the Service. Provisions that by their nature should survive will do so.
       </p>
 
-      <h2>14. Governing law and disputes</h2>
+      <h2>15. Governing law and disputes</h2>
       <p>
-        These Terms are governed by the laws of the Commonwealth of Massachusetts, without regard to its
-        conflict-of-laws rules. Any dispute arising out of or relating to these Terms or the Service will
-        be resolved exclusively in the state and federal courts located in Massachusetts, and you consent
-        to the personal jurisdiction and venue of those courts.
+        Massachusetts law governs these Terms, without regard to conflict-of-law rules. Disputes arising
+        from the Service will be resolved exclusively in state or federal courts in Massachusetts, and
+        you consent to their personal jurisdiction and venue.
       </p>
 
-      <h2>15. Changes to these Terms</h2>
+      <h2>16. Changes to these Terms</h2>
       <p>
-        We may update these Terms from time to time. We will revise the “Last updated” date above and,
-        where appropriate, provide additional notice. Changes are effective when posted (or as otherwise
-        stated). Your continued use of the Service after changes take effect means you accept the
-        revised Terms.
+        We may update these Terms and will revise the "Last updated" date. Where appropriate or required,
+        we will provide additional notice. A material change to an SMS program does not expand the scope
+        of existing SMS consent where new consent is required by law.
       </p>
 
-      <h2>16. General</h2>
+      <h2>17. General</h2>
       <p>
-        These Terms, together with our <Link to={ROUTES.privacy}>Privacy Policy</Link>, are the entire
-        agreement between you and us regarding the Service and supersede any prior agreements. If any
-        provision is found unenforceable, the remaining provisions stay in effect. Our failure to
-        enforce a provision is not a waiver. You may not assign these Terms without our consent; we may
-        assign them in connection with a merger, acquisition, or sale of assets.
+        These Terms and our <Link to={ROUTES.privacy}>Privacy Policy</Link> are the entire agreement about
+        the Service unless additional written terms apply. If a provision is unenforceable, the remainder
+        continues. Failure to enforce a provision is not a waiver. You may not assign these Terms without
+        consent; we may assign them in a merger, financing, reorganization, or asset sale.
       </p>
 
-      <h2>17. Contact us</h2>
+      <h2>18. Contact us</h2>
       <p>
-        Questions about these Terms? Contact us at{" "}
+        Contact MFPX LLC, d/b/a 1031 Exchange Up, at{" "}
         <a href="mailto:support@1031exchangeup.com">support@1031exchangeup.com</a> or 15 North St,
         Manchester, MA 01944.
       </p>

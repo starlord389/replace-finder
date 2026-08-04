@@ -8,8 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { SmsConsentField } from "@/components/compliance/SmsConsentField";
 import { useToast } from "@/hooks/use-toast";
 import { ASSET_TYPE_LABELS, US_STATES } from "@/lib/constants";
+import { SMS_DISCLOSURE_VERSION } from "@/lib/smsCompliance";
+import { ROUTES } from "@/app/routes/routeManifest";
 import { Briefcase, Home, ArrowLeft, CheckCircle2, Mail, Phone, Search, Handshake, Clock, Shield } from "lucide-react";
 
 type Step = "choose" | "agent" | "investor" | "referral";
@@ -89,7 +92,7 @@ function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {
 }
 
 function InvestorSignupForm({ onBack }: { onBack: () => void }) {
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "", confirmPassword: "", company: "" });
+  const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "", confirmPassword: "", company: "", smsConsent: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
@@ -117,7 +120,14 @@ function InvestorSignupForm({ onBack }: { onBack: () => void }) {
       email: form.email.trim(),
       password: form.password,
       options: {
-        data: { full_name: form.fullName.trim(), phone: form.phone.trim(), company: form.company.trim(), role: "investor" },
+        data: {
+          full_name: form.fullName.trim(),
+          phone: form.phone.trim(),
+          company: form.company.trim(),
+          role: "investor",
+          sms_consent: form.smsConsent,
+          sms_consent_disclosure_version: SMS_DISCLOSURE_VERSION,
+        },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -145,10 +155,19 @@ function InvestorSignupForm({ onBack }: { onBack: () => void }) {
         <div className="space-y-2"><Label htmlFor="investorFullName">Full Name *</Label><Input id="investorFullName" value={form.fullName} onChange={(e) => set("fullName", e.target.value)} />{fieldError("fullName")}</div>
         <div className="space-y-2"><Label htmlFor="investorEmail">Email *</Label><Input id="investorEmail" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />{fieldError("email")}</div>
         <div className="space-y-2"><Label htmlFor="investorPhone">Mobile Phone</Label><Input id="investorPhone" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></div>
+        <SmsConsentField
+          id="investorSmsConsent"
+          checked={form.smsConsent}
+          onCheckedChange={(checked) => setForm((current) => ({ ...current, smsConsent: checked }))}
+          messageDescription="your account, exchange activity, property matches, inquiries, and related service notices"
+        />
         <div className="space-y-2"><Label htmlFor="investorCompany">Company or Investment Entity</Label><Input id="investorCompany" value={form.company} onChange={(e) => set("company", e.target.value)} /></div>
         <div className="space-y-2"><Label htmlFor="investorPassword">Password *</Label><Input id="investorPassword" type="password" minLength={8} value={form.password} onChange={(e) => set("password", e.target.value)} />{fieldError("password")}</div>
         <div className="space-y-2"><Label htmlFor="investorConfirmPassword">Confirm Password *</Label><Input id="investorConfirmPassword" type="password" value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} />{fieldError("confirmPassword")}</div>
       </div>
+      <p className="text-center text-xs leading-5 text-muted-foreground">
+        By creating an account, you agree to our <Link to={ROUTES.terms} className="underline underline-offset-2">Terms &amp; Conditions</Link> and acknowledge our <Link to={ROUTES.privacy} className="underline underline-offset-2">Privacy Policy</Link>.
+      </p>
       <Button type="submit" className="w-full bg-[#16284a] text-white hover:bg-[#20385f]" disabled={loading}>{loading ? "Creating account…" : "Create Investor / Owner Account"}</Button>
       <p className="text-center text-sm text-muted-foreground">Already have an account? <Link to="/login" className="font-medium text-[#16284a] hover:underline">Sign in</Link></p>
     </form>
@@ -166,6 +185,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
     licenseState: "",
     brokerageName: "",
     attested: false,
+    smsConsent: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -212,6 +232,8 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
           brokerage_name: form.brokerageName.trim(),
           verification_path: "self_certification",
           self_certified_at: new Date().toISOString(),
+          sms_consent: form.smsConsent,
+          sms_consent_disclosure_version: SMS_DISCLOSURE_VERSION,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -296,6 +318,12 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
           <Input id="phone" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="(555) 123-4567" className="focus-visible:ring-[#43a047]" />
           {fieldError("phone")}
         </div>
+        <SmsConsentField
+          id="agentSmsConsent"
+          checked={form.smsConsent}
+          onCheckedChange={(checked) => setForm((current) => ({ ...current, smsConsent: checked }))}
+          messageDescription="your account, client exchanges, property matches, connection requests, deadlines, and related service notices"
+        />
         <div className="space-y-2">
           <Label htmlFor="password">Password *</Label>
           <Input id="password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" minLength={8} className="focus-visible:ring-[#43a047]" />
@@ -371,6 +399,10 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
+      <p className="text-center text-xs leading-5 text-muted-foreground">
+        By creating an account, you agree to our <Link to={ROUTES.terms} className="underline underline-offset-2">Terms &amp; Conditions</Link> and acknowledge our <Link to={ROUTES.privacy} className="underline underline-offset-2">Privacy Policy</Link>.
+      </p>
+
       <Button type="submit" className="w-full bg-[#43a047] text-white hover:bg-[#3a8c3e]" disabled={loading}>
         {loading ? "Creating account…" : "Create Account"}
       </Button>
@@ -392,6 +424,7 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
     propertyType: "",
     estimatedValue: "",
     notes: "",
+    smsConsent: false,
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -416,6 +449,7 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
       estimated_value: form.estimatedValue ? parseFloat(form.estimatedValue.replace(/[^0-9.]/g, "")) : null,
       notes: form.notes || null,
       status: "pending",
+      ...(form.smsConsent ? { sms_consent: true } : {}),
     });
 
     if (!error) {
@@ -601,6 +635,12 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
           <Label htmlFor="refNotes">Anything else you'd like us to know?</Label>
           <Textarea id="refNotes" value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={3} className="focus-visible:ring-[#43a047]" />
         </div>
+        <SmsConsentField
+          id="referralSmsConsent"
+          checked={form.smsConsent}
+          onCheckedChange={(checked) => setForm((current) => ({ ...current, smsConsent: checked }))}
+          messageDescription="your property-owner referral, agent introduction, and exchange request"
+        />
       </div>
 
       <Button type="submit" className="w-full bg-[#43a047] text-white hover:bg-[#3a8c3e]" disabled={loading}>

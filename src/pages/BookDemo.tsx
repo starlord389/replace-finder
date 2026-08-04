@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { ArrowRight, CheckCircle2, LifeBuoy, Loader2 } from "lucide-react";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { Button } from "@/components/ui/button";
+import { SmsConsentField } from "@/components/compliance/SmsConsentField";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,6 +56,7 @@ type DemoFormState = {
   phone: string;
   timeline: string;
   useCase: string;
+  smsConsent: boolean;
 };
 
 const INITIAL_FORM_STATE: DemoFormState = {
@@ -65,6 +67,7 @@ const INITIAL_FORM_STATE: DemoFormState = {
   phone: "",
   timeline: "",
   useCase: "",
+  smsConsent: false,
 };
 
 export default function BookDemo() {
@@ -92,6 +95,7 @@ export default function BookDemo() {
       phone: formState.phone.trim(),
       timeline: formState.timeline.trim(),
       useCase: formState.useCase.trim(),
+      smsConsent: formState.smsConsent,
     };
 
     if (!payload.fullName || !payload.workEmail || !payload.company || !payload.role || !payload.useCase) {
@@ -128,6 +132,14 @@ export default function BookDemo() {
       return;
     }
 
+    if (payload.smsConsent && !payload.phone) {
+      toast({
+        title: "Enter a mobile number to receive text messages.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (payload.timeline.length > 80 || payload.useCase.length > 5000) {
       toast({
         title: "Your timeline or message is too long.",
@@ -146,6 +158,7 @@ export default function BookDemo() {
       phone: payload.phone || null,
       timeline: payload.timeline || null,
       use_case: payload.useCase,
+      ...(payload.smsConsent ? { sms_consent: true } : {}),
     });
 
     setSubmitting(false);
@@ -313,6 +326,16 @@ export default function BookDemo() {
                   </div>
                 </div>
 
+                <SmsConsentField
+                  id="demoSmsConsent"
+                  checked={formState.smsConsent}
+                  onCheckedChange={(checked) => {
+                    setSubmitted(false);
+                    setFormState((current) => ({ ...current, smsConsent: checked }));
+                  }}
+                  messageDescription="your demo request and scheduling"
+                />
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="demo-company" className="text-[#16284a]">
@@ -376,8 +399,8 @@ export default function BookDemo() {
                 <div className="flex flex-col gap-4 border-t border-[#e8edf3] pt-4 sm:flex-row sm:items-end sm:justify-between">
                   <div className="max-w-[19rem] space-y-2 text-xs leading-5 text-[#8794a6]">
                     <p>
-                      By submitting, you agree that our team may contact you
-                      about your demo request and the 1031 Exchange Up platform.
+                      By submitting, you agree that our team may contact you by email or phone call
+                      about your demo request. Submitting alone does not consent to text messages.
                     </p>
                     <p className="flex items-start gap-2 text-[#8794a6]">
                       <LifeBuoy className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#16284a]" />

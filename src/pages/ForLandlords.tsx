@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SmsConsentField } from "@/components/compliance/SmsConsentField";
 import {
   LANDING_BASE_CSS, LandingBackdrop, Pill, inDelay, scrollToId, useLandingMotion,
 } from "@/components/landing/landingKit";
@@ -993,10 +994,11 @@ type ReferralFormState = {
   propertyLocation: string;
   propertyType: string;
   estimatedValue: string;
+  smsConsent: boolean;
 };
 
 const INITIAL_FORM_STATE: ReferralFormState = {
-  ownerName: "", ownerEmail: "", ownerPhone: "", propertyLocation: "", propertyType: "", estimatedValue: "",
+  ownerName: "", ownerEmail: "", ownerPhone: "", propertyLocation: "", propertyType: "", estimatedValue: "", smsConsent: false,
 };
 
 export default function ForLandlords() {
@@ -1036,6 +1038,10 @@ export default function ForLandlords() {
       toast({ title: "One of your entries is too long.", variant: "destructive" });
       return;
     }
+    if (formState.smsConsent && !ownerPhone) {
+      toast({ title: "Enter a mobile number to receive text messages.", variant: "destructive" });
+      return;
+    }
 
     let estimatedValue: number | null = null;
     const rawValue = formState.estimatedValue.trim().toLowerCase();
@@ -1055,6 +1061,7 @@ export default function ForLandlords() {
       property_location: propertyLocation || null,
       property_type: propertyType || null,
       estimated_value: estimatedValue,
+      ...(formState.smsConsent ? { sms_consent: true } : {}),
     });
 
     setSubmitting(false);
@@ -1193,10 +1200,19 @@ export default function ForLandlords() {
                       </div>
                     </div>
 
+                    <SmsConsentField
+                      id="propertyOwnerSmsConsent"
+                      checked={formState.smsConsent}
+                      onCheckedChange={(checked) => setFormState((current) => ({ ...current, smsConsent: checked }))}
+                      messageDescription="your property-owner request, agent introduction, and exchange support"
+                      className="bg-white"
+                    />
+
                     <div className="fl-form-foot">
                       <p className="fl-fine">
-                        By submitting, you agree that a licensed agent from our network may contact you about
-                        your exchange. No fees, no obligation.
+                        By submitting, you agree that a licensed agent from our network may contact you by
+                        email or phone call about your exchange. Submitting alone does not consent to texts.
+                        No fees, no obligation.
                       </p>
                       <button type="submit" className="fl-submit" disabled={submitting}>
                         {submitting ? (<><Loader2 className="fl-submit-spin" />Submitting…</>)

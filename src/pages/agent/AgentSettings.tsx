@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SmsPreferencesCard } from "@/components/compliance/SmsPreferencesCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,6 +121,7 @@ export default function AgentSettings() {
   }, [user, profileForm]);
 
   const bioValue = profileForm.watch("bio");
+  const phoneValue = profileForm.watch("phone");
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!user) return;
@@ -448,7 +450,7 @@ export default function AgentSettings() {
         </TabsContent>
 
         {/* Notifications */}
-        <TabsContent value="notifications" className="mt-4">
+        <TabsContent value="notifications" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">In-app Notifications</CardTitle>
@@ -482,6 +484,10 @@ export default function AgentSettings() {
               </p>
             </CardContent>
           </Card>
+          <SmsPreferencesCard
+            phone={phoneValue}
+            messageDescription="your account, client exchanges, property matches, connection requests, deadlines, and related service notices"
+          />
         </TabsContent>
 
         {/* Security */}

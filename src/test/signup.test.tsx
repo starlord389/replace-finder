@@ -22,6 +22,12 @@ describe("account signup", () => {
     expect(screen.getByText(/license state/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/brokerage name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/i certify that my real estate license is active/i)).toBeInTheDocument();
+    const smsConsent = screen.getByRole("checkbox", { name: /client exchanges, property matches/i });
+    expect(smsConsent).not.toBeChecked();
+    expect(screen.getByText(/message frequency varies/i)).toBeInTheDocument();
+    expect(screen.getByText(/reply stop to opt out or help for help/i)).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /terms & conditions/i })[0]).toHaveAttribute("href", "/terms");
+    expect(screen.getAllByRole("link", { name: /privacy policy/i })[0]).toHaveAttribute("href", "/privacy");
 
     expect(screen.queryByLabelText(/brokerage address/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/brief bio/i)).not.toBeInTheDocument();
@@ -47,5 +53,6 @@ describe("account signup", () => {
     expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
     expect(screen.queryByLabelText(/license or mls number/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/brokerage name/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /account, exchange activity, property matches/i })).not.toBeChecked();
   });
 });
