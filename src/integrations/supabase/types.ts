@@ -370,6 +370,7 @@ export type Database = {
           phone: string | null
           role: string
           scheduled_at: string | null
+          sms_consent: boolean
           status: string
           timeline: string | null
           use_case: string
@@ -385,6 +386,7 @@ export type Database = {
           phone?: string | null
           role: string
           scheduled_at?: string | null
+          sms_consent?: boolean
           status?: string
           timeline?: string | null
           use_case: string
@@ -400,6 +402,7 @@ export type Database = {
           phone?: string | null
           role?: string
           scheduled_at?: string | null
+          sms_consent?: boolean
           status?: string
           timeline?: string | null
           use_case?: string
@@ -1592,6 +1595,7 @@ export type Database = {
           owner_phone: string | null
           property_location: string | null
           property_type: string | null
+          sms_consent: boolean
           status: string
         }
         Insert: {
@@ -1607,6 +1611,7 @@ export type Database = {
           owner_phone?: string | null
           property_location?: string | null
           property_type?: string | null
+          sms_consent?: boolean
           status?: string
         }
         Update: {
@@ -1622,6 +1627,7 @@ export type Database = {
           owner_phone?: string | null
           property_location?: string | null
           property_type?: string | null
+          sms_consent?: boolean
           status?: string
         }
         Relationships: []
@@ -1826,6 +1832,36 @@ export type Database = {
           status_updated_at?: string | null
           to_number?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      sms_subscriptions: {
+        Row: {
+          consented: boolean
+          consented_at: string | null
+          created_at: string
+          phone: string | null
+          revoked_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consented?: boolean
+          consented_at?: string | null
+          created_at?: string
+          phone?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consented?: boolean
+          consented_at?: string | null
+          created_at?: string
+          phone?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2250,6 +2286,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      set_my_sms_consent: {
+        Args: { p_consented: boolean; p_phone?: string }
+        Returns: undefined
       }
       users_share_active_connection: {
         Args: { _user_a: string; _user_b: string }
