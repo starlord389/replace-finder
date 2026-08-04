@@ -19,3 +19,7 @@ verify_jwt = true
 
 [functions.admin-send-message]
 verify_jwt = true
+
+[functions.twilio-status-callback]
+verify_jwt = false
+

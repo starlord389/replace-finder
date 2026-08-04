@@ -1781,6 +1781,54 @@ export type Database = {
         }
         Relationships: []
       }
+      sms_messages: {
+        Row: {
+          body: string | null
+          created_at: string
+          delivered_at: string | null
+          error_code: string | null
+          error_message: string | null
+          from_number: string | null
+          id: string
+          message_sid: string | null
+          purpose: string | null
+          status: string
+          status_updated_at: string | null
+          to_number: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          from_number?: string | null
+          id?: string
+          message_sid?: string | null
+          purpose?: string | null
+          status?: string
+          status_updated_at?: string | null
+          to_number: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          from_number?: string | null
+          id?: string
+          message_sid?: string | null
+          purpose?: string | null
+          status?: string
+          status_updated_at?: string | null
+          to_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           admin_notes: string | null
