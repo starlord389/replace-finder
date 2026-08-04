@@ -182,19 +182,19 @@ const LOGO_BRANDS = [
 ];
 
 const NODES = [
-  { tag: "BUYER", lbl: ["Looking for", "Replacement Property"], x: 44, y: 16, rev: false },
+  { tag: "INVESTOR", lbl: ["Exchanging an", "Owned Property"], x: 44, y: 16, rev: false },
   { tag: "AGENT", lbl: ["Investor-Focused", "Real Estate Agent"], x: 17, y: 49, rev: true },
-  { tag: "SELLER", lbl: ["1031 Exchange", "Property Owner"], x: 84, y: 49, rev: false },
+  { tag: "PROPERTY", lbl: ["Matched", "Replacement Property"], x: 84, y: 49, rev: false },
 ];
 
 const ROLE_ICON: Record<string, JSX.Element> = {
-  BUYER: (
+  INVESTOR: (
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><line x1="20.5" y1="20.5" x2="15.4" y2="15.4" /></svg>
   ),
   AGENT: (
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>
   ),
-  SELLER: (
+  PROPERTY: (
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>
   ),
 };
@@ -329,7 +329,7 @@ function HeroNetwork() {
 const BADGES = [
   { txt: ["Proprietary Tech"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["Free for", "Founding Members"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="5" stroke="currentColor" strokeWidth="1.8" /><path d="M9 13.2 7.5 21l4.5-2.6L16.5 21 15 13.2" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>) },
-  { txt: ["Built by", "Investor-Friendly Agents"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><circle cx="17" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.8" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
+  { txt: ["Built for", "Agents & Investors"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><circle cx="17" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.8" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["Takes Less Than", "5 Minutes"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
 ];
 
@@ -340,11 +340,12 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[600px]">
-            The Matchmaking Platform Powered by Our Proprietary Technology for 1031 Exchange Buyers, Sellers &amp; Investor-Friendly Real Estate Agents.
+            The 1031 Exchange Matching Platform for Property Owners and Their Agents.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[510px]">
-            Finally, a better way to connect exchange buyers, replacement properties, and investor-friendly
-            agents—all in one place.
+            Investors list the property they own, see replacement properties matched to their purchasing
+            capacity and return on equity, and connect with the listing agent. Agents manage the same process
+            for their clients—all in one private network.
           </p>
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
@@ -374,7 +375,7 @@ function NbHero() {
 function NbLogoMarquee() {
   return (
     <section className="nb-mq">
-      <p className="nb-mq-label">Trusted by agents from</p>
+      <p className="nb-mq-label">A growing network of 1031-focused agents and investors</p>
       <div className="nb-mq-viewport">
         <div className="nb-mq-track">
           {[0, 1].map((group) => (
@@ -398,7 +399,7 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUP — Proprietary 1031 Exchange Matchmaking Technology";
+    document.title = "1031ExchangeUP — 1031 Exchange Matching for Investors and Agents";
   }, []);
 
   return (

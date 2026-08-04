@@ -16,7 +16,7 @@ function Sec_problem() {
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
     <div className="nb-prob-head">
       <h2 className="nb-h2">The 1031 Exchange Process Is Broken</h2>
-      <p className="nb-lead mt-4">Outdated processes, limited inventory, and disconnected professionals make successful exchanges harder than they should be.</p>
+      <p className="nb-lead mt-4">Property owners, investors, and their agents are still forced to piece together a time-sensitive exchange across scattered listings, spreadsheets, and inboxes.</p>
       <p className="nb-prob-line">There has to be a better way.</p>
     </div>
 
@@ -26,7 +26,7 @@ function Sec_problem() {
           <div className="nb-prob-ico">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
           </div>
-          <div className="nb-prob-label">Buyers can&rsquo;t find replacement properties.</div>
+          <div className="nb-prob-label">Investors struggle to find replacement properties that fit the exchange math.</div>
         </div>
 
         {/* 2 — target / bullseye */}
@@ -58,7 +58,7 @@ function Sec_problem() {
           <div className="nb-prob-ico">
             <svg viewBox="0 0 24 24"><circle cx="9" cy="7.5" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M17 8.2a2 2 0 1 1 2.6 1.9c-.7.3-1.1.8-1.1 1.6"/><line x1="18.5" y1="14.4" x2="18.5" y2="14.5"/></svg>
           </div>
-          <div className="nb-prob-label">Landlords don&rsquo;t know where to start.</div>
+          <div className="nb-prob-label">Property owners often don&rsquo;t know where to begin.</div>
         </div>
       </div>
     </div>
@@ -74,7 +74,7 @@ function Sec_meet() {
 
       <div className="max-w-xl">
         <h2 className="nb-h2">Meet 1031Exchange<span style={{ color: '#43a047' }}>Up</span></h2>
-        <p className="nb-lead mt-5">The first matchmaking platform built on our own proprietary technology, designed specifically to streamline the 1031 exchange process.</p>
+        <p className="nb-lead mt-5">One private matching network where investors/property owners can run their own exchanges and agents can manage exchanges for their clients.</p>
         <a href="#how" className="nb-meet-btn mt-8">
           <span className="nb-meet-play" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
@@ -92,7 +92,7 @@ function Sec_meet() {
               <path d="M9 15.5 12 12.5l3 3" />
             </svg>
           </div>
-          <div className="nb-meet-label">Upload Property</div>
+          <div className="nb-meet-label">Create an Exchange &amp; List the Property</div>
         </div>
 
         <div className="nb-meet-arrow" aria-hidden="true">&rarr;</div>
@@ -105,7 +105,7 @@ function Sec_meet() {
               <path d="M9 9.5h1.5M15 9.5h-1.5M9 13h1.5" />
             </svg>
           </div>
-          <div className="nb-meet-label">Our Technology Finds Matches</div>
+          <div className="nb-meet-label">The Engine Compares Equity &amp; Returns</div>
         </div>
 
         <div className="nb-meet-arrow" aria-hidden="true">&rarr;</div>
@@ -119,7 +119,7 @@ function Sec_meet() {
               <path d="M14.5 13.2a4.4 4.4 0 0 1 5.5 4.3" />
             </svg>
           </div>
-          <div className="nb-meet-label">Agents Collaborate</div>
+          <div className="nb-meet-label">Investors &amp; Agents Connect</div>
         </div>
 
         <div className="nb-meet-arrow" aria-hidden="true">&rarr;</div>
@@ -131,7 +131,7 @@ function Sec_meet() {
               <path d="m8.5 12 2.5 2.5L16 9" />
             </svg>
           </div>
-          <div className="nb-meet-label">Exchange Completed</div>
+          <div className="nb-meet-label">Move the Exchange Forward</div>
         </div>
       </div>
 
@@ -154,8 +154,8 @@ function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
-        <h3 className="nb-how-title">Join Free</h3>
-        <p className="nb-how-desc">Create your free account in less than 5 minutes</p>
+        <h3 className="nb-how-title">Choose Your Workspace</h3>
+        <p className="nb-how-desc">Join as an investor/property owner or as a licensed real estate agent</p>
       </div>
 
       <div className="nb-how-card">
@@ -163,8 +163,8 @@ function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
         </div>
-        <h3 className="nb-how-title">Add Your Client or Property</h3>
-        <p className="nb-how-desc">Input your client criteria or list a property</p>
+        <h3 className="nb-how-title">Create the Exchange</h3>
+        <p className="nb-how-desc">List the current property and add the financial details that drive its exchange</p>
       </div>
 
       <div className="nb-how-card">
@@ -172,8 +172,8 @@ function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M9.5 11h5M9.5 13.5h5"/><path d="M9 3v2M12 3v2M15 3v2M9 19v2M12 19v2M15 19v2M3 9h2M3 12h2M3 15h2M19 9h2M19 12h2M19 15h2"/></svg>
         </div>
-        <h3 className="nb-how-title">Our Engine Searches the Network</h3>
-        <p className="nb-how-desc">Our proprietary engine matches against thousands of opportunities</p>
+        <h3 className="nb-how-title">The Engine Runs the Math</h3>
+        <p className="nb-how-desc">It compares purchasing capacity and return on equity across the private property network</p>
       </div>
 
       <div className="nb-how-card">
@@ -181,8 +181,8 @@ function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
-        <h3 className="nb-how-title">Receive Match Alerts</h3>
-        <p className="nb-how-desc">Get notified of the best matches in real time</p>
+        <h3 className="nb-how-title">Review Matches &amp; Connect</h3>
+        <p className="nb-how-desc">See focused replacement matches and contact the agent representing the property</p>
       </div>
 
     </div>
@@ -196,7 +196,8 @@ function Sec_who() {
 <section id="who" data-nb className="w-full py-20 sm:py-24" style={{ background: "#eef3fb" }}>
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
     <div className="nb-who-head">
-      <h2 className="nb-h2">Who It's Built For</h2>
+      <h2 className="nb-h2">One Network. Two Purpose-Built Workspaces.</h2>
+      <p className="nb-lead mt-4">Agents and investors/property owners see the same matched property network, with the tools each role actually needs.</p>
     </div>
 
     <div className="nb-who-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))" }}>
@@ -212,7 +213,7 @@ function Sec_who() {
         </div>
         <h3 className="nb-who-title">Real Estate Agents</h3>
         <ul className="nb-who-list">
-          {["More listings", "More buyers", "More referrals", "More commissions"].map((b) => (
+          {["Manage multiple client exchanges", "Publish authorized listings", "Receive automatic replacement matches", "Connect with buyers and listing agents"].map((b) => (
             <li className="nb-who-li" key={b}>
               <span className="nb-who-check" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -221,7 +222,7 @@ function Sec_who() {
             </li>
           ))}
         </ul>
-        <a className="nb-who-link" href="/signup">Learn More <span aria-hidden="true">&rarr;</span></a>
+        <a className="nb-who-link" href="/signup">Create an Agent Account <span aria-hidden="true">&rarr;</span></a>
       </div>
 
       {/* Investors and property owners are one audience and one account type. */}
@@ -237,7 +238,7 @@ function Sec_who() {
         </div>
         <h3 className="nb-who-title">Investors / Property Owners</h3>
         <ul className="nb-who-list">
-          {["Find replacement properties", "Discover opportunities", "Save a focused shortlist", "Connect with investor-friendly agents"].map((b) => (
+          {["List your own exchange property", "Run multiple active exchanges", "See only matched replacement opportunities", "Compare return on equity", "Connect directly with the listing agent"].map((b) => (
             <li className="nb-who-li" key={b}>
               <span className="nb-who-check" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -246,7 +247,7 @@ function Sec_who() {
             </li>
           ))}
         </ul>
-        <a className="nb-who-link" href="/signup">Learn More <span aria-hidden="true">&rarr;</span></a>
+        <a className="nb-who-link" href="/signup">Create an Investor / Owner Account <span aria-hidden="true">&rarr;</span></a>
       </div>
 
     </div>
@@ -335,9 +336,10 @@ function Sec_why() {
           </h2>
           <div className="nb-why-list">
             {[
-              "Proprietary Matchmaking Technology",
-              "Off-Market Opportunities",
-              "Investor-Focused Network",
+              "Automatic Return-on-Equity Matching",
+              "Purchasing-Capacity Guardrails",
+              "Private, Network-Wide Opportunities",
+              "Agent & Investor Workspaces",
               "Educational Webinars & Events",
               "Exchange Resources",
               "Growing Community",
@@ -486,7 +488,7 @@ const DASHBOARD_CSS = `
 
 const PB_NAV = [
   { Icon: LayoutDashboard, label: "Dashboard" },
-  { Icon: Users, label: "My Clients" },
+  { Icon: Users, label: "My Exchanges" },
   { Icon: Sparkles, label: "Matches", active: true },
   { Icon: MessageSquare, label: "Messages" },
   { Icon: Settings, label: "Settings" },
@@ -562,7 +564,7 @@ function PipelineBoard() {
         <div className="pb-brand">
           <span className="pb-brand-logo"><Sparkles /></span>
           <span className="pb-brand-name">1031ExchangeUp</span>
-          <span className="pb-brand-badge">Agent</span>
+          <span className="pb-brand-badge">Exchange</span>
         </div>
         <nav className="pb-nav">
           {PB_NAV.map(({ Icon, label, active }) => (
@@ -768,9 +770,7 @@ function SummitEventCard() {
     }
 
     setSubmitting(true);
-    // event_registrations is created via a Lovable migration; the generated
-    // client types don't include it yet, hence the cast.
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from("event_registrations")
       .upsert(
         { full_name: name, email: mail, role, event: "1031-exchange-summit" },
@@ -939,7 +939,7 @@ function Sec_resources() {
         <div className="nb-res-card nb-res-dark">
           <h3 className="nb-res-title">Become a Founding Member</h3>
           <ul className="nb-res-clist">
-            {['First 25 North Shore Agents','First 75 Properties','6 Months Free','Help Shape the Platform','Be Part of Something Big'].map((t) => (
+            {['Founding Agents & Investors','First 75 Exchange Properties','6 Months Free','Help Shape the Platform','Be Part of Something Big'].map((t) => (
               <li className="nb-res-cli" key={t}>
                 <span className="nb-res-check">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#5cc15f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -989,7 +989,7 @@ function Sec_faqcta() {
           },
           {
             q: 'How does your proprietary matching technology work?',
-            a: 'Our in-house engine — built by us, not licensed from a third party — reads the shape of each deal and each investor goal, then quietly connects the two sides when there is real overlap.',
+            a: 'Our in-house engine reads the current property\'s equity, debt, and return profile, estimates purchasing capacity, and surfaces network properties that fit the exchange math and can improve return on equity.',
           },
           {
             q: "What if I don't have a 1031 client today?",
@@ -997,7 +997,7 @@ function Sec_faqcta() {
           },
           {
             q: 'Can investors and property owners join?',
-            a: 'Yes — property owners are investors and use the same account. They can explore replacement opportunities and connect directly with investor-friendly agents.',
+            a: 'Yes — property owners are investors and use the same account. They can list their own property, run multiple active exchanges, see only replacement properties matched to those exchanges, and connect directly with the listing agent.',
           },
         ].map((item, i) => (
           <details className="nb-fct-item" key={i}>
@@ -1021,7 +1021,7 @@ function Sec_faqcta() {
       {/* RIGHT — CTA card */}
       <div className="nb-fct-cta">
         <h3 className="nb-fct-cta-h">Ready to Exchange Up?</h3>
-        <p className="nb-fct-cta-sub">Join the network powered by our proprietary technology that's revolutionizing the 1031 exchange process.</p>
+        <p className="nb-fct-cta-sub">Whether you are exchanging a property yourself or guiding a client, start with a workspace built around the same private matching network.</p>
         <div className="nb-fct-cta-btns">
           <a href="/signup" className="nb-fct-btn nb-fct-btn-green">Join the Network (Free)</a>
           <a href="/book-demo" className="nb-fct-btn nb-fct-btn-out">
@@ -1036,7 +1036,7 @@ function Sec_faqcta() {
             <span>RP</span>
             <span>+</span>
           </div>
-          <span className="nb-fct-proof-txt">Join hundreds of investor-friendly agents and investors today!</span>
+          <span className="nb-fct-proof-txt">Join a growing network of 1031-focused agents and investors.</span>
         </div>
       </div>
 
@@ -1049,7 +1049,7 @@ function Sec_faqcta() {
       <div className="nb-fct-fgrid">
         <div>
           <div className="nb-fct-flogo">1031Exchange<b>UP</b></div>
-          <p className="nb-fct-ftag">Proprietary matchmaking technology, built for 1031 exchange success.</p>
+          <p className="nb-fct-ftag">Private 1031 exchange matching for investors/property owners and their agents.</p>
         </div>
 
         <div className="nb-fct-fcol">
@@ -1067,7 +1067,7 @@ function Sec_faqcta() {
           <ul>
             <li><a href="/signup">Join Free</a></li>
             <li><a href="/book-demo">Book a Demo</a></li>
-            <li><a href="/landlords">For Landlords</a></li>
+            <li><a href="/landlords">For Property Owners</a></li>
             <li><a href="/login">Log In</a></li>
           </ul>
         </div>
