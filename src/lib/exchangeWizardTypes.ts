@@ -11,7 +11,28 @@ export interface PropertyData {
   address_is_public: boolean;
   city: string;
   state: string;
+  zip: string;
+  county: string;
+  unit_suite: string;
   asset_type: Enums<"asset_type"> | "";
+  asset_subtype: string;
+  strategy_type: Enums<"strategy_type"> | "";
+  property_class: string;
+  property_condition: string;
+  year_built: string;
+  units: string;
+  building_square_footage: string;
+  land_area_acres: string;
+  num_buildings: string;
+  num_stories: string;
+  parking_spaces: string;
+  parking_type: string;
+  construction_type: string;
+  roof_type: string;
+  hvac_type: string;
+  zoning: string;
+  amenities: string[];
+  recent_renovations: string;
   description: string;
   // Compliance: the agent attests they have a listing/representation agreement
   // or written authorization from the owner to market this property.
@@ -44,7 +65,6 @@ export interface CriteriaData {
   preferred_monthly_cash_flow: string;
   require_location_match: boolean;
   require_asset_type_match: boolean;
-  additional_notes: string;
 }
 
 export interface WizardState {
@@ -61,7 +81,28 @@ export const initialPropertyData: PropertyData = {
   address_is_public: false,
   city: "",
   state: "",
+  zip: "",
+  county: "",
+  unit_suite: "",
   asset_type: "",
+  asset_subtype: "",
+  strategy_type: "",
+  property_class: "",
+  property_condition: "",
+  year_built: "",
+  units: "",
+  building_square_footage: "",
+  land_area_acres: "",
+  num_buildings: "",
+  num_stories: "",
+  parking_spaces: "",
+  parking_type: "",
+  construction_type: "",
+  roof_type: "",
+  hvac_type: "",
+  zoning: "",
+  amenities: [],
+  recent_renovations: "",
   description: "",
   owner_authorization_confirmed: false,
 };
@@ -87,7 +128,6 @@ export const initialCriteriaData: CriteriaData = {
   preferred_monthly_cash_flow: "",
   require_location_match: false,
   require_asset_type_match: false,
-  additional_notes: "",
 };
 
 export const initialWizardState: WizardState = {
@@ -256,8 +296,45 @@ export function hasExchangeCriteria(criteria: CriteriaData): boolean {
     criteria.additional_cash_available.trim() ||
     criteria.max_ltv.trim() ||
     criteria.min_projected_roe.trim() ||
-    criteria.preferred_monthly_cash_flow.trim() ||
-    criteria.additional_notes.trim(),
+    criteria.preferred_monthly_cash_flow.trim(),
+  );
+}
+
+/** Optional listing details are collapsed by default, but reopen automatically
+ * when an existing listing already contains any of them. */
+export function hasAdvancedPropertyDetails(
+  property: PropertyData,
+  financials: Pick<FinancialsData, "monthly_mortgage_payment">,
+  imageCount = 0,
+): boolean {
+  return Boolean(
+    property.property_name.trim() ||
+    property.address.trim() ||
+    property.address_is_public ||
+    property.zip.trim() ||
+    property.county.trim() ||
+    property.unit_suite.trim() ||
+    property.asset_subtype.trim() ||
+    property.strategy_type ||
+    property.property_class.trim() ||
+    property.property_condition.trim() ||
+    property.year_built.trim() ||
+    property.units.trim() ||
+    property.building_square_footage.trim() ||
+    property.land_area_acres.trim() ||
+    property.num_buildings.trim() ||
+    property.num_stories.trim() ||
+    property.parking_spaces.trim() ||
+    property.parking_type.trim() ||
+    property.construction_type.trim() ||
+    property.roof_type.trim() ||
+    property.hvac_type.trim() ||
+    property.zoning.trim() ||
+    property.amenities.length ||
+    property.recent_renovations.trim() ||
+    property.description.trim() ||
+    financials.monthly_mortgage_payment.trim() ||
+    imageCount,
   );
 }
 

@@ -79,8 +79,9 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Pledged Property</CardTitle></CardHeader>
         <CardContent className="space-y-1">
-          {p.address && <p className="font-medium">{p.address}</p>}
-          <p className="text-sm text-muted-foreground">{[p.city, p.state].filter(Boolean).join(", ")}</p>
+          {(p.property_name || p.address) && <p className="font-medium">{p.property_name || p.address}</p>}
+          {p.property_name && p.address && <p className="text-sm text-muted-foreground">{p.address}</p>}
+          <p className="text-sm text-muted-foreground">{[p.city, p.state, p.zip].filter(Boolean).join(", ")}</p>
           <p className="text-xs text-muted-foreground">
             {p.address_is_public
               ? "Exact address is visible to matched participants."
@@ -88,8 +89,21 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
           </p>
           <div className="mt-3 grid grid-cols-2 gap-x-8">
             <Field label="Asset Type" value={p.asset_type ? ASSET_TYPE_LABELS[p.asset_type as keyof typeof ASSET_TYPE_LABELS] : undefined} />
+            <Field label="Subtype" value={p.asset_subtype} />
+            <Field label="Property Class" value={p.property_class} />
+            <Field label="Condition" value={p.property_condition} />
+            <Field label="Year Built" value={p.year_built} />
+            <Field label="Units" value={p.units} />
+            <Field label="Building Size" value={p.building_square_footage ? `${Number(p.building_square_footage).toLocaleString()} sq ft` : undefined} />
+            <Field label="Land Area" value={p.land_area_acres ? `${p.land_area_acres} acres` : undefined} />
+            <Field label="Buildings / Stories" value={p.num_buildings || p.num_stories ? `${p.num_buildings || "—"} / ${p.num_stories || "—"}` : undefined} />
+            <Field label="Parking" value={p.parking_spaces || p.parking_type ? [p.parking_spaces ? `${p.parking_spaces} spaces` : "", p.parking_type].filter(Boolean).join(", ") : undefined} />
+            <Field label="Zoning" value={p.zoning} />
+            <Field label="County" value={p.county} />
           </div>
+          {p.amenities.length > 0 && <Field label="Amenities" value={p.amenities.join(", ")} />}
           <Field label="Description" value={p.description} />
+          <Field label="Recent Renovations" value={p.recent_renovations} />
           {data.images.length > 0 && (
             <div className="mt-4">
               <p className="mb-2 text-sm text-muted-foreground">{data.images.length} photo{data.images.length > 1 ? "s" : ""} attached</p>
@@ -172,9 +186,6 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
               <Field label="Minimum Monthly Cash Flow" value={formatCurrency(parseCurrency(c.preferred_monthly_cash_flow))} />
               <Field label="Location Matching" value={c.require_location_match ? "Required" : undefined} />
               <Field label="Property-Type Matching" value={c.require_asset_type_match ? "Required" : undefined} />
-              <div className="sm:col-span-2">
-                <Field label="Notes" value={c.additional_notes} />
-              </div>
             </div>
           )}
         </CardContent>

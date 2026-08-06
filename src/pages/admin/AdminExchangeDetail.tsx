@@ -421,10 +421,24 @@ export default function AdminExchangeDetail() {
           <CardContent>
             {property ? (
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <dt className="text-muted-foreground">Address</dt><dd>{property.address || property.property_name || "—"}</dd>
+                <dt className="text-muted-foreground">Property name</dt><dd>{property.property_name || "—"}</dd>
+                <dt className="text-muted-foreground">Address</dt><dd>{property.address || "—"}</dd>
                 <dt className="text-muted-foreground">Address visibility</dt><dd>{property.address_is_public ? "Shown to eligible marketplace users" : "Hidden from marketplace users"}</dd>
-                <dt className="text-muted-foreground">Location</dt><dd>{[property.city, property.state].filter(Boolean).join(", ") || "—"}</dd>
+                <dt className="text-muted-foreground">Location</dt><dd>{[property.city, property.state, property.zip].filter(Boolean).join(", ") || "—"}</dd>
+                <dt className="text-muted-foreground">County</dt><dd>{property.county || "—"}</dd>
                 <dt className="text-muted-foreground">Asset type</dt><dd className="capitalize">{property.asset_type ? pretty(property.asset_type) : "—"}</dd>
+                <dt className="text-muted-foreground">Subtype</dt><dd>{property.asset_subtype || "—"}</dd>
+                <dt className="text-muted-foreground">Investment profile</dt><dd className="capitalize">{property.strategy_type ? pretty(property.strategy_type) : "—"}</dd>
+                <dt className="text-muted-foreground">Class / condition</dt><dd>{[property.property_class, property.property_condition].filter(Boolean).join(" / ") || "—"}</dd>
+                <dt className="text-muted-foreground">Year built</dt><dd>{property.year_built ?? "—"}</dd>
+                <dt className="text-muted-foreground">Units</dt><dd>{property.units?.toLocaleString() ?? "—"}</dd>
+                <dt className="text-muted-foreground">Building size</dt><dd>{property.building_square_footage != null ? `${Number(property.building_square_footage).toLocaleString()} sq ft` : "—"}</dd>
+                <dt className="text-muted-foreground">Land area</dt><dd>{property.land_area_acres != null ? `${property.land_area_acres} acres` : "—"}</dd>
+                <dt className="text-muted-foreground">Buildings / stories</dt><dd>{property.num_buildings != null || property.num_stories != null ? `${property.num_buildings ?? "—"} / ${property.num_stories ?? "—"}` : "—"}</dd>
+                <dt className="text-muted-foreground">Parking</dt><dd>{[property.parking_spaces != null ? `${property.parking_spaces} spaces` : null, property.parking_type].filter(Boolean).join(", ") || "—"}</dd>
+                <dt className="text-muted-foreground">Zoning</dt><dd>{property.zoning || "—"}</dd>
+                <dt className="text-muted-foreground">Amenities</dt><dd>{property.amenities?.join(", ") || "—"}</dd>
+                <dt className="text-muted-foreground">Recent renovations</dt><dd>{property.recent_renovations || "—"}</dd>
                 <dt className="text-muted-foreground">Status</dt><dd className="capitalize">{pretty(property.status)}</dd>
               </dl>
             ) : <p className="text-sm text-muted-foreground">No relinquished property linked.</p>}
@@ -452,7 +466,6 @@ export default function AdminExchangeDetail() {
                 <dt className="text-muted-foreground">Minimum monthly cash flow</dt><dd>{money(criteria.preferred_monthly_cash_flow)}</dd>
                 <dt className="text-muted-foreground">Location</dt><dd>{criteria.require_location_match ? "Required" : "Preferred when selected"}</dd>
                 <dt className="text-muted-foreground">Property type</dt><dd>{criteria.require_asset_type_match ? "Required" : "Preferred when selected"}</dd>
-                <dt className="text-muted-foreground">Notes</dt><dd>{criteria.additional_notes || "—"}</dd>
               </dl>
             ) : <p className="text-sm text-muted-foreground">No criteria set.</p>}
           </CardContent>

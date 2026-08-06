@@ -63,7 +63,23 @@ export interface Relationship {
   propertyZip: string | null;
   // Real property facts (null when the listing agent hasn't entered them — never fabricated).
   propertyAssetType: string | null;
+  propertyAssetSubtype?: string | null;
+  propertyStrategyType?: string | null;
+  propertyClass?: string | null;
+  propertyCondition?: string | null;
+  propertyYearBuilt?: number | null;
+  propertyUnits?: number | null;
+  propertyBuildingSquareFeet?: number | null;
   propertyLotAcres: number | null;
+  propertyNumBuildings?: number | null;
+  propertyNumStories?: number | null;
+  propertyParkingSpaces?: number | null;
+  propertyParkingType?: string | null;
+  propertyConstructionType?: string | null;
+  propertyRoofType?: string | null;
+  propertyHvacType?: string | null;
+  propertyZoning?: string | null;
+  propertyAmenities?: string[];
   propertyDescription: string | null;
   propertyRenovations: string | null;
   propertyImageUrl: string | null;
@@ -213,7 +229,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
         // we're an admin, or the owner published it.
         supabase
           .from("pledged_properties_secure")
-          .select("id, agent_id, property_name, city, state, address, address_is_public, zip, asset_type, land_area_acres, description, recent_renovations")
+          .select("id, agent_id, property_name, city, state, address, address_is_public, zip, asset_type, asset_subtype, strategy_type, property_class, property_condition, year_built, units, building_square_footage, land_area_acres, num_buildings, num_stories, parking_spaces, parking_type, construction_type, roof_type, hvac_type, zoning, amenities, description, recent_renovations")
           .in("id", allSellerPropIds),
         supabase
           .from("property_financials")
@@ -442,7 +458,23 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
       propertyAddress: (mySide === "seller" || prop?.address_is_public) ? (prop?.address ?? null) : null,
       propertyZip: prop?.zip ?? null,
       propertyAssetType: prop?.asset_type ?? null,
+      propertyAssetSubtype: prop?.asset_subtype ?? null,
+      propertyStrategyType: prop?.strategy_type ?? null,
+      propertyClass: prop?.property_class ?? null,
+      propertyCondition: prop?.property_condition ?? null,
+      propertyYearBuilt: prop?.year_built != null ? Number(prop.year_built) : null,
+      propertyUnits: prop?.units != null ? Number(prop.units) : null,
+      propertyBuildingSquareFeet: prop?.building_square_footage != null ? Number(prop.building_square_footage) : null,
       propertyLotAcres: prop?.land_area_acres != null ? Number(prop.land_area_acres) : null,
+      propertyNumBuildings: prop?.num_buildings != null ? Number(prop.num_buildings) : null,
+      propertyNumStories: prop?.num_stories != null ? Number(prop.num_stories) : null,
+      propertyParkingSpaces: prop?.parking_spaces != null ? Number(prop.parking_spaces) : null,
+      propertyParkingType: prop?.parking_type ?? null,
+      propertyConstructionType: prop?.construction_type ?? null,
+      propertyRoofType: prop?.roof_type ?? null,
+      propertyHvacType: prop?.hvac_type ?? null,
+      propertyZoning: prop?.zoning ?? null,
+      propertyAmenities: Array.isArray(prop?.amenities) ? prop.amenities : [],
       propertyDescription: prop?.description ?? null,
       propertyRenovations: prop?.recent_renovations ?? null,
       propertyImageUrl: imgs[0] ?? null,

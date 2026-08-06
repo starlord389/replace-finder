@@ -5,6 +5,7 @@ import { deriveFinancialColumns } from "../_shared/derive-financials.ts";
 import { validatePublish } from "../_shared/validate-publish.ts";
 import { notifyAdmins } from "../_shared/admin-notify.ts";
 import { normalizeReplacementCriteria, validateReplacementCriteria } from "../_shared/replacement-criteria.ts";
+import { normalizeOptionalPropertyDetails, validateOptionalPropertyDetails } from "../_shared/property-details.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,6 +44,14 @@ Deno.serve(async (req) => {
     const db = createClient(supabaseUrl, serviceRoleKey);
     const payload = (await req.json()) as UpdatePayload;
     if (!payload.exchangeId) return response({ error: "exchangeId is required" }, 400);
+
+    const propertyErrors = validateOptionalPropertyDetails(payload.property);
+    if (propertyErrors.length > 0) {
+      return response({ error: "Invalid optional property details", details: propertyErrors }, 400);
+    }
+    const normalizedPropertyDetails = payload.property
+      ? normalizeOptionalPropertyDetails(payload.property)
+      : null;
 
     const criteriaErrors = validateReplacementCriteria(payload.criteria);
     if (criteriaErrors.length > 0) {
@@ -148,11 +157,8 @@ Deno.serve(async (req) => {
         address_is_public: boolOrFalse(payload.property.address_is_public),
         city: stringOrNull(payload.property.city),
         state: stringOrNull(payload.property.state),
-        zip: null,
         asset_type: valueOrNull(payload.property.asset_type),
-        year_built: null,
-        units: null,
-        building_square_footage: null,
+        ...normalizedPropertyDetails,
         description: stringOrNull(payload.property.description),
         owner_authorization_confirmed: boolOrFalse(payload.property.owner_authorization_confirmed),
       };

@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { ASSET_TYPE_LABELS, US_STATES } from "@/lib/constants";
 import {
@@ -176,8 +175,7 @@ export default function StepCriteria({ criteria, financials, onChange, onNext, o
     criteria.min_projected_roe ||
     criteria.preferred_monthly_cash_flow ||
     criteria.require_location_match ||
-    criteria.require_asset_type_match ||
-    criteria.additional_notes,
+    criteria.require_asset_type_match,
   );
   const [advancedOpen, setAdvancedOpen] = useState(startsAdvanced);
   const [metroDraft, setMetroDraft] = useState("");
@@ -472,17 +470,6 @@ export default function StepCriteria({ criteria, financials, onChange, onNext, o
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="criteria-additional-notes">Additional notes <span className="font-normal text-muted-foreground">(optional)</span></Label>
-              <Textarea
-                id="criteria-additional-notes"
-                value={criteria.additional_notes}
-                onChange={(event) => setField("additional_notes", event.target.value)}
-                maxLength={2000}
-                placeholder="Anything else your agent or team should know."
-              />
-              <p className="text-xs text-muted-foreground">Notes are saved with the exchange but do not affect automatic matching.</p>
-            </div>
           </div>
         </CollapsibleContent>
       </Collapsible>

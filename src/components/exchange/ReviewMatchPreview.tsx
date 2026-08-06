@@ -24,7 +24,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
     ? property.address
     : cityState;
   const secondaryLine = property.address_is_public && property.address ? cityState : null;
-  const name = property.address || cityState || "Untitled property";
+  const name = property.property_name || property.address || cityState || "Untitled property";
   const assetLabel = property.asset_type
     ? ASSET_TYPE_LABELS[property.asset_type as keyof typeof ASSET_TYPE_LABELS]
     : null;
@@ -133,6 +133,13 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
                   </span>
                 )}
               </div>
+              {(property.units || property.building_square_footage || property.year_built) && (
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  {property.units && <span>{Number(property.units).toLocaleString()} units</span>}
+                  {property.building_square_footage && <span>{Number(property.building_square_footage).toLocaleString()} sq ft</span>}
+                  {property.year_built && <span>Built {property.year_built}</span>}
+                </div>
+              )}
               {property.description && (
                 <p className="line-clamp-2 pt-1 text-xs text-muted-foreground">
                   {property.description}

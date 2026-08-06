@@ -55,7 +55,6 @@ function normalizeWizardData(data: WizardState) {
       preferred_monthly_cash_flow: parseCurrency(data.criteria.preferred_monthly_cash_flow),
       require_location_match: data.criteria.require_location_match,
       require_asset_type_match: data.criteria.require_asset_type_match,
-      additional_notes: data.criteria.additional_notes.trim() || null,
     },
     images: data.images.map((img, i) => ({
       storage_path: img.storage_path,

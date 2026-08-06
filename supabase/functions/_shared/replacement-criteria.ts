@@ -27,12 +27,6 @@ function cleanArray(value: unknown): string[] {
   return Array.from(new Set(value.map((item) => String(item).trim()).filter(Boolean)));
 }
 
-function cleanText(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed || null;
-}
-
 function invalidNumber(value: unknown): boolean {
   return value !== null && value !== undefined && value !== "" && numberOrNull(value) === null;
 }
@@ -85,9 +79,6 @@ export function validateReplacementCriteria(input: unknown): string[] {
     errors.push("target_metros may contain up to 25 entries of 100 characters each");
   }
 
-  const notes = cleanText(criteria.additional_notes);
-  if (notes && notes.length > 2000) errors.push("additional_notes may not exceed 2000 characters");
-
   return errors;
 }
 
@@ -109,6 +100,5 @@ export function normalizeReplacementCriteria(input: Record<string, unknown>) {
     preferred_monthly_cash_flow: numberOrNull(input.preferred_monthly_cash_flow),
     require_location_match: input.require_location_match === true && Boolean(targetStates.length || targetMetros.length),
     require_asset_type_match: input.require_asset_type_match === true && targetAssetTypes.length > 0,
-    additional_notes: cleanText(input.additional_notes),
   };
 }

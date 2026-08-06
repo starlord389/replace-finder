@@ -16,7 +16,6 @@ Deno.test("blank replacement criteria normalize to neutral defaults", () => {
     preferred_monthly_cash_flow: null,
     require_location_match: false,
     require_asset_type_match: false,
-    additional_notes: null,
   });
 });
 
@@ -31,7 +30,6 @@ Deno.test("criteria normalization preserves valid optional preferences", () => {
     preferred_monthly_cash_flow: 5_000,
     require_location_match: true,
     require_asset_type_match: true,
-    additional_notes: "  Prefer newer roofs.  ",
   };
   assertEquals(validateReplacementCriteria(input), []);
   const normalized = normalizeReplacementCriteria(input);
@@ -39,7 +37,6 @@ Deno.test("criteria normalization preserves valid optional preferences", () => {
   assertEquals(normalized.target_states, ["FL", "TX"]);
   assertEquals(normalized.target_metros, ["Tampa"]);
   assertEquals(normalized.max_ltv, 0.65);
-  assertEquals(normalized.additional_notes, "Prefer newer roofs.");
   assertEquals(normalized.require_location_match, true);
 });
 

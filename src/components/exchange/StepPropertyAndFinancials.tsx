@@ -1,9 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import {
   FinancialsData,
@@ -22,7 +20,7 @@ import {
 import { Enums } from "@/integrations/supabase/types";
 import { useState } from "react";
 import { toast } from "sonner";
-import PropertyPhotoUploader from "./PropertyPhotoUploader";
+import AdvancedPropertyDetails from "./AdvancedPropertyDetails";
 
 interface Props {
   property: PropertyData;
@@ -40,12 +38,14 @@ interface Props {
 function CurrencyField({ label, value, onChange, required, error, errorMessage, help }: {
   label: string; value: string; onChange: (v: string) => void; required?: boolean; error?: boolean; errorMessage?: string; help?: string;
 }) {
+  const id = `financial-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <div>
-      <Label>{label}{required && " *"}</Label>
+      <Label htmlFor={id}>{label}{required && " *"}</Label>
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
         <Input
+          id={id}
           className={cn("pl-7", error && "border-destructive")}
           inputMode="decimal"
           value={formatThousands(value)}
@@ -100,12 +100,12 @@ export default function StepPropertyAndFinancials({
 
   const selectValue = (v: string) => v || undefined;
 
-  const setProperty = (field: keyof PropertyData, value: any) => {
+  const setProperty = <K extends keyof PropertyData>(field: K, value: PropertyData[K]) => {
     onChangeProperty({ ...property, [field]: value });
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
-  const setFinancials = (field: keyof FinancialsData, value: any) => {
+  const setFinancials = <K extends keyof FinancialsData>(field: K, value: FinancialsData[K]) => {
     onChangeFinancials({ ...financials, [field]: value });
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
@@ -144,6 +144,37 @@ export default function StepPropertyAndFinancials({
       else if (mortgage < 0) next.monthly_mortgage_payment = "Must be 0 or greater";
     }
 
+    if (property.zip && !/^\d{5}(?:-\d{4})?$/.test(property.zip.trim())) {
+      next.zip = "Enter a valid 5-digit or ZIP+4 code.";
+    }
+
+    const currentYear = new Date().getFullYear();
+    if (property.year_built) {
+      const year = Number(property.year_built);
+      if (!Number.isInteger(year) || year < 1700 || year > currentYear + 2) {
+        next.year_built = `Enter a year from 1700 to ${currentYear + 2}.`;
+      }
+    }
+
+    const wholeNumberFields: Array<[keyof PropertyData, string]> = [
+      ["units", "Units"],
+      ["building_square_footage", "Building square feet"],
+      ["num_buildings", "Number of buildings"],
+      ["num_stories", "Number of stories"],
+      ["parking_spaces", "Parking spaces"],
+    ];
+    for (const [field, label] of wholeNumberFields) {
+      const raw = property[field] as string;
+      if (!raw) continue;
+      const value = Number(raw);
+      if (!Number.isInteger(value) || value < 0) next[field] = `${label} must be a whole number of 0 or greater.`;
+    }
+
+    if (property.land_area_acres) {
+      const acres = Number(property.land_area_acres);
+      if (!Number.isFinite(acres) || acres < 0) next.land_area_acres = "Land area must be 0 or greater.";
+    }
+
     setErrors(next);
     return Object.values(next).every(v => !v);
   };
@@ -167,96 +198,44 @@ export default function StepPropertyAndFinancials({
         </p>
       </div>
 
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Location</h3>
+      <section className="space-y-4 rounded-xl border bg-card p-4 sm:p-5">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Basic information</h3>
+            <span className="text-xs text-muted-foreground">Required</span>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Only the information the matching engine needs to evaluate the exchange.</p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <Label>Property Address</Label>
-            <Input
-              placeholder="e.g., 123 Main St"
-              value={property.address}
-              onChange={e => setProperty("address", e.target.value)}
-            />
-            <div className="mt-2 flex items-start gap-3 rounded-md border bg-muted/30 p-3">
-              <Switch
-                id="address-public"
-                checked={property.address_is_public}
-                onCheckedChange={v => setProperty("address_is_public", v)}
-                className="mt-0.5"
-              />
-              <div className="space-y-0.5">
-                <Label htmlFor="address-public" className="cursor-pointer text-sm font-medium text-foreground">
-                  Show the exact address to matched users
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {property.address_is_public
-                    ? "Users matched with this property will see the full street address."
-                    : "Matched users see only the city and state. You and admins always see the full address."}
-                </p>
-              </div>
-            </div>
+          <div>
+            <Label htmlFor="property-city">City *</Label>
+            <Input id="property-city" value={property.city} onChange={e => setProperty("city", e.target.value)} className={errors.city ? "border-destructive" : ""} />
+            {errors.city && <p className="mt-1 text-xs text-destructive">{errors.city}</p>}
           </div>
           <div>
-            <Label>City *</Label>
-            <Input value={property.city} onChange={e => setProperty("city", e.target.value)} className={errors.city ? "border-destructive" : ""} />
-          </div>
-          <div>
-            <Label>State *</Label>
+            <Label htmlFor="property-state">State *</Label>
             <Select value={selectValue(property.state)} onValueChange={v => setProperty("state", v)}>
-              <SelectTrigger className={errors.state ? "border-destructive" : ""}><SelectValue placeholder="Select state" /></SelectTrigger>
+              <SelectTrigger id="property-state" className={errors.state ? "border-destructive" : ""}><SelectValue placeholder="Select state" /></SelectTrigger>
               <SelectContent>{US_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
             </Select>
+            {errors.state && <p className="mt-1 text-xs text-destructive">{errors.state}</p>}
           </div>
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Classification</h3>
-        <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label>Asset Type *</Label>
+            <Label htmlFor="property-asset-type">Asset Type *</Label>
             <Select
               value={selectValue(property.asset_type)}
               onValueChange={(v) => setProperty("asset_type", v as Enums<"asset_type">)}
             >
-              <SelectTrigger className={errors.asset_type ? "border-destructive" : ""}><SelectValue placeholder="Select type" /></SelectTrigger>
+              <SelectTrigger id="property-asset-type" className={errors.asset_type ? "border-destructive" : ""}><SelectValue placeholder="Select type" /></SelectTrigger>
               <SelectContent>{Object.entries(ASSET_TYPE_LABELS).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent>
             </Select>
+            {errors.asset_type && <p className="mt-1 text-xs text-destructive">{errors.asset_type}</p>}
           </div>
         </div>
-      </section>
-
-      <section className="space-y-3">
-        <div>
-          <Label>Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
-          <p className="mt-1 text-xs text-muted-foreground">
-            A short narrative helps matched users understand the property. Skip it if you'd rather add it later.
-          </p>
+        <div className="border-t pt-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Required financials</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Enter recurring figures as monthly amounts. We annualize them automatically.</p>
         </div>
-        <Textarea
-          value={property.description}
-          onChange={e => setProperty("description", e.target.value)}
-          placeholder="Summarize the property, tenancy, recent improvements, and anything a buyer should know."
-        />
-      </section>
-
-      <section className="space-y-3">
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Property Photos <span className="ml-1 normal-case tracking-normal text-muted-foreground/70">(optional)</span>
-          </h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Optional — add photos so matched participants can see the property at a glance. The first photo is used as the cover. If you skip this, we'll show a clean placeholder.
-          </p>
-        </div>
-        <PropertyPhotoUploader images={images} onChange={onChangeImages} />
-      </section>
-
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Financials</h3>
-        <p className="text-xs text-muted-foreground">
-          Enter the recurring figures as <strong>monthly</strong> amounts. We total them up for the year automatically.
-        </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <CurrencyField label="Asking Price / Estimated Value" value={financials.asking_price} onChange={v => setFinancials("asking_price", v)}
             required error={!!errors.asking_price} errorMessage={errors.asking_price}
@@ -267,15 +246,22 @@ export default function StepPropertyAndFinancials({
           <CurrencyField label="Monthly Operating Expenses" value={financials.total_operating_expenses} onChange={v => setFinancials("total_operating_expenses", v)}
             required error={!!errors.total_operating_expenses} errorMessage={errors.total_operating_expenses}
             help="What it costs to OPERATE the property each month — property taxes, insurance, management, repairs, maintenance, utilities, HOA. Do NOT include the mortgage." />
-          <CurrencyField label="Monthly Mortgage Payment" value={financials.monthly_mortgage_payment} onChange={v => setFinancials("monthly_mortgage_payment", v)}
-            error={!!errors.monthly_mortgage_payment} errorMessage={errors.monthly_mortgage_payment}
-            help="The current owner's monthly loan payment (principal + interest). This depends on the owner's financing, so we keep it separate from operating costs. Enter 0 if there's no mortgage." />
           <CurrencyField label="Current Loan Balance" value={financials.loan_balance} onChange={v => setFinancials("loan_balance", v)}
             required error={!!errors.loan_balance} errorMessage={errors.loan_balance}
             help="Remaining balance owed on the loan. Used to estimate equity and exchange proceeds. Enter 0 if free and clear." />
         </div>
         <DerivedFinancials financials={financials} />
       </section>
+
+      <AdvancedPropertyDetails
+        property={property}
+        financials={financials}
+        images={images}
+        errors={errors}
+        onChangeProperty={setProperty}
+        onChangeMortgage={(value) => setFinancials("monthly_mortgage_payment", value)}
+        onChangeImages={onChangeImages}
+      />
 
       <div className="flex justify-between pt-4">
         {showBack ? <Button variant="outline" onClick={onBack}>Back</Button> : <span />}

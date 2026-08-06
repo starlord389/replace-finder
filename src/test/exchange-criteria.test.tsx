@@ -50,7 +50,7 @@ describe("optional exchange criteria", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /advanced preferences/i }));
     expect(screen.getByLabelText(/minimum projected roe/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/additional notes/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/additional notes/i)).not.toBeInTheDocument();
   });
 
   it("expands capacity when optional cash is entered and still allows continuation", () => {
