@@ -437,16 +437,22 @@ export default function AdminExchangeDetail() {
           <CardContent>
             {selfManagedInvestor && (
               <p className="mb-3 rounded-md bg-muted/50 p-2.5 text-xs text-muted-foreground">
-                Investor matches are generated automatically from exchange equity, the 75% maximum LTV, and projected ROE improvement.
+                Investor matches use the default equity, maximum-LTV, and projected-ROE algorithm unless optional preferences are shown below.
               </p>
             )}
             {criteria ? (
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <dt className="text-muted-foreground">Price range</dt><dd>{money(criteria.target_price_min)} – {money(criteria.target_price_max)}</dd>
+                <dt className="text-muted-foreground">Price range</dt><dd>{Number(criteria.target_price_min) > 0 || Number(criteria.target_price_max) > 0 ? `${Number(criteria.target_price_min) > 0 ? money(criteria.target_price_min) : "No minimum"} – ${Number(criteria.target_price_max) > 0 ? money(criteria.target_price_max) : "No maximum"}` : "Automatic"}</dd>
                 <dt className="text-muted-foreground">Asset types</dt><dd className="capitalize">{criteria.target_asset_types?.map(pretty).join(", ") || "—"}</dd>
                 <dt className="text-muted-foreground">States</dt><dd>{criteria.target_states?.join(", ") || "—"}</dd>
-                <dt className="text-muted-foreground">Cap rate</dt><dd>{criteria.target_cap_rate_min ?? "—"}–{criteria.target_cap_rate_max ?? "—"}%</dd>
-                <dt className="text-muted-foreground">Urgency</dt><dd className="capitalize">{criteria.urgency || "—"}</dd>
+                <dt className="text-muted-foreground">Cities / metros</dt><dd>{criteria.target_metros?.join(", ") || "—"}</dd>
+                <dt className="text-muted-foreground">Additional cash</dt><dd>{money(criteria.additional_cash_available)}</dd>
+                <dt className="text-muted-foreground">Maximum LTV</dt><dd>{criteria.max_ltv != null ? `${(Number(criteria.max_ltv) * 100).toFixed(0)}%` : "Platform default (75%)"}</dd>
+                <dt className="text-muted-foreground">Minimum projected ROE</dt><dd>{criteria.min_projected_roe != null ? `${criteria.min_projected_roe}%` : "—"}</dd>
+                <dt className="text-muted-foreground">Minimum monthly cash flow</dt><dd>{money(criteria.preferred_monthly_cash_flow)}</dd>
+                <dt className="text-muted-foreground">Location</dt><dd>{criteria.require_location_match ? "Required" : "Preferred when selected"}</dd>
+                <dt className="text-muted-foreground">Property type</dt><dd>{criteria.require_asset_type_match ? "Required" : "Preferred when selected"}</dd>
+                <dt className="text-muted-foreground">Notes</dt><dd>{criteria.additional_notes || "—"}</dd>
               </dl>
             ) : <p className="text-sm text-muted-foreground">No criteria set.</p>}
           </CardContent>

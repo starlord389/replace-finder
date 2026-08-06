@@ -747,6 +747,15 @@ export function scorePairExplained(
   const buyerDebtService = relinquishedAnnualDebtService(relinquishedFin, settings);
   const buyerCurrentROE = (rNoi - buyerDebtService) / buyerEquity;
 
+  // Blank optional criteria are deliberately neutral. Additional cash is a
+  // ceiling: each candidate uses only what is required by the effective LTV.
+  const additionalCashAvailable = Math.max(0, numOrNull(criteria?.additional_cash_available) ?? 0);
+  const requestedMaxLtv = positiveCriteriaNumber(criteria?.max_ltv);
+  const effectiveMaxLtv = requestedMaxLtv == null
+    ? MAX_COMMERCIAL_LTV
+    : Math.min(MAX_COMMERCIAL_LTV, Math.max(0, requestedMaxLtv));
+  const availableReplacementEquity = buyerEquity + additionalCashAvailable;
+
   const cNoi = numOrNull(candidateFin?.noi);
   const cPrice = numOrNull(candidateFin?.asking_price);
   if (cNoi == null || cPrice == null || cPrice <= 0) {
@@ -764,29 +773,60 @@ export function scorePairExplained(
   }
 
 
-  const maxAffordable = buyerEquity / (1 - MAX_COMMERCIAL_LTV);
-  if (cPrice > maxAffordable) {
+  const targetPriceMin = positiveCriteriaNumber(criteria?.target_price_min);
+  if (targetPriceMin != null && cPrice < targetPriceMin) {
     return {
       ok: false,
-      reason: `candidate price $${Math.round(cPrice).toLocaleString()} exceeds affordability ceiling $${Math.round(maxAffordable).toLocaleString()} (buyer equity × ${1 / (1 - MAX_COMMERCIAL_LTV)}× at ${MAX_COMMERCIAL_LTV * 100}% LTV)`,
+      reason: `candidate price $${Math.round(cPrice).toLocaleString()} is below the optional minimum replacement price $${Math.round(targetPriceMin).toLocaleString()}`,
     };
   }
 
-  // Reinvest the buyer's full equity and finance only the remaining purchase
-  // price. The former formula always borrowed 75% of every candidate price,
-  // which double-counted cash whenever the candidate was below the maximum
-  // purchasing capacity and could turn a good property into a false rejection.
-  const loanAmount = Math.max(0, cPrice - buyerEquity);
-  const candidateLtv = loanAmount / cPrice;
-  if (candidateLtv > MAX_COMMERCIAL_LTV + 1e-9) {
+  const targetPriceMax = positiveCriteriaNumber(criteria?.target_price_max);
+  if (targetPriceMax != null && cPrice > targetPriceMax) {
     return {
       ok: false,
-      reason: `modeled loan-to-value ${(candidateLtv * 100).toFixed(2)}% exceeds the ${MAX_COMMERCIAL_LTV * 100}% maximum`,
+      reason: `candidate price $${Math.round(cPrice).toLocaleString()} exceeds the optional maximum replacement price $${Math.round(targetPriceMax).toLocaleString()}`,
+    };
+  }
+
+  if (criteria?.require_location_match === true && !matchesPreferredLocation(candidateProp, criteria)) {
+    return { ok: false, reason: "candidate does not meet the required location preference" };
+  }
+
+  if (
+    criteria?.require_asset_type_match === true &&
+    criteria?.target_asset_types?.length > 0 &&
+    !criteria.target_asset_types.includes(candidateProp?.asset_type)
+  ) {
+    return { ok: false, reason: "candidate does not meet the required property-type preference" };
+  }
+
+  const maxAffordable = availableReplacementEquity / (1 - effectiveMaxLtv);
+  if (cPrice > maxAffordable) {
+    return {
+      ok: false,
+      reason: `candidate price $${Math.round(cPrice).toLocaleString()} exceeds affordability ceiling $${Math.round(maxAffordable).toLocaleString()} at ${(effectiveMaxLtv * 100).toFixed(0)}% maximum LTV`,
+    };
+  }
+
+  const minimumEquityAtLtv = cPrice * (1 - effectiveMaxLtv);
+  const additionalCashUsed = Math.min(
+    additionalCashAvailable,
+    Math.max(0, minimumEquityAtLtv - buyerEquity),
+  );
+  const replacementEquityInvested = buyerEquity + additionalCashUsed;
+  const loanAmount = Math.max(0, cPrice - replacementEquityInvested);
+  const candidateLtv = loanAmount / cPrice;
+  if (candidateLtv > effectiveMaxLtv + 1e-9) {
+    return {
+      ok: false,
+      reason: `modeled loan-to-value ${(candidateLtv * 100).toFixed(2)}% exceeds the ${(effectiveMaxLtv * 100).toFixed(0)}% maximum`,
     };
   }
   const annualPmt = amortizedAnnualPayment(loanAmount, settings.mortgage_interest_rate, settings.mortgage_amortization_years);
 
-  const candidateROE = (cNoi - annualPmt) / buyerEquity;
+  const projectedAnnualCashFlow = cNoi - annualPmt;
+  const candidateROE = projectedAnnualCashFlow / replacementEquityInvested;
   const improvementPP = (candidateROE - buyerCurrentROE) * 100;
   const improvementRel = buyerCurrentROE > 0 ? candidateROE / buyerCurrentROE - 1 : null;
 
@@ -794,6 +834,25 @@ export function scorePairExplained(
     return {
       ok: false,
       reason: `no ROE upgrade: current ${(buyerCurrentROE * 100).toFixed(2)}% → candidate ${(candidateROE * 100).toFixed(2)}% (Δ ${improvementPP.toFixed(2)}pp, need > ${ELIGIBILITY_MIN_ROE_IMPROVEMENT_PP}pp)`,
+      roe_improvement_pp: round(improvementPP),
+    };
+  }
+
+  const minProjectedRoe = positiveCriteriaNumber(criteria?.min_projected_roe);
+  if (minProjectedRoe != null && candidateROE * 100 < minProjectedRoe) {
+    return {
+      ok: false,
+      reason: `projected ROE ${(candidateROE * 100).toFixed(2)}% is below the optional ${minProjectedRoe.toFixed(2)}% minimum`,
+      roe_improvement_pp: round(improvementPP),
+    };
+  }
+
+  const minMonthlyCashFlow = positiveCriteriaNumber(criteria?.preferred_monthly_cash_flow);
+  const projectedMonthlyCashFlow = projectedAnnualCashFlow / 12;
+  if (minMonthlyCashFlow != null && projectedMonthlyCashFlow < minMonthlyCashFlow) {
+    return {
+      ok: false,
+      reason: `projected monthly cash flow $${Math.round(projectedMonthlyCashFlow).toLocaleString()} is below the optional $${Math.round(minMonthlyCashFlow).toLocaleString()} minimum`,
       roe_improvement_pp: round(improvementPP),
     };
   }
@@ -834,11 +893,38 @@ export function scorePairExplained(
       match_classification: "exchange_up",
       eligibility_reasons: [
         `Replacement value is equal to or above the relinquished value`,
-        `Modeled LTV ${(candidateLtv * 100).toFixed(2)}% is within the ${MAX_COMMERCIAL_LTV * 100}% limit`,
+        `Modeled LTV ${(candidateLtv * 100).toFixed(2)}% is within the ${(effectiveMaxLtv * 100).toFixed(0)}% limit`,
         `Projected ROE improves by ${improvementPP.toFixed(2)} percentage points`,
+        ...(additionalCashUsed > 0
+          ? [`Uses approximately $${Math.round(additionalCashUsed).toLocaleString()} of the available additional cash`]
+          : []),
+        ...(criteria?.require_location_match === true ? ["Meets the required location preference"] : []),
+        ...(criteria?.require_asset_type_match === true ? ["Meets the required property-type preference"] : []),
       ],
     },
   };
+}
+
+function positiveCriteriaNumber(value: unknown): number | null {
+  const parsed = numOrNull(value);
+  if (parsed == null || parsed <= 0) return null;
+  return parsed;
+}
+
+function matchesPreferredLocation(prop: any, criteria: any): boolean {
+  const states = Array.isArray(criteria?.target_states) ? criteria.target_states : [];
+  const metros = Array.isArray(criteria?.target_metros) ? criteria.target_metros : [];
+  if (!states.length && !metros.length) return true;
+
+  const stateMatches = Boolean(prop?.state && states.includes(prop.state));
+  const city = typeof prop?.city === "string" ? prop.city.toLowerCase() : "";
+  const metroMatches = Boolean(
+    city && metros.some((metro: unknown) => {
+      const normalized = typeof metro === "string" ? metro.trim().toLowerCase() : "";
+      return normalized && (city.includes(normalized) || normalized.includes(city));
+    }),
+  );
+  return stateMatches || metroMatches;
 }
 
 
@@ -863,20 +949,21 @@ function scoreGeo(prop: any, criteria: any): number {
   const hasMetros = criteria?.target_metros?.length > 0;
   if (!hasStates && !hasMetros) return 50;
 
-  let score = 0;
-  if (hasStates && prop.state && criteria.target_states.includes(prop.state)) score += 70;
+  const stateMatches = Boolean(hasStates && prop.state && criteria.target_states.includes(prop.state));
+  let metroMatches = false;
   if (hasMetros && prop.city) {
     const cityLower = prop.city.toLowerCase();
-    if (
-      criteria.target_metros.some(
-        (metro: string) =>
-          cityLower.includes(metro.toLowerCase()) || metro.toLowerCase().includes(cityLower),
-      )
-    ) {
-      score += 30;
-    }
+    metroMatches = criteria.target_metros.some(
+      (metro: string) =>
+        cityLower.includes(metro.toLowerCase()) || metro.toLowerCase().includes(cityLower),
+    );
   }
-  return Math.min(100, score);
+
+  // A match gets full credit when the user expressed only one geographic
+  // dimension. When both are present, preserve the 70/30 state/metro blend.
+  if (hasStates && !hasMetros) return stateMatches ? 100 : 0;
+  if (hasMetros && !hasStates) return metroMatches ? 100 : 0;
+  return (stateMatches ? 70 : 0) + (metroMatches ? 30 : 0);
 }
 
 function scoreAsset(prop: any, criteria: any): number {

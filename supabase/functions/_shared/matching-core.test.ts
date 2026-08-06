@@ -25,7 +25,7 @@ Deno.test("scorePairExplained: clean upgrade returns ok with positive ROE improv
   if (r.ok) {
     assert((r.score.roe_improvement_pp ?? 0) > 0, "expected positive ROE improvement");
     assert(r.score.total > 0 && r.score.total <= 100);
-    assertEquals(r.score.geo, 70); // state match, no metros
+    assertEquals(r.score.geo, 100); // state match, no metros
     assertEquals(r.score.asset, 100); // asset type match
     assertEquals(r.score.estimated_replacement_loan, 900_000);
     assertEquals(r.score.estimated_ltv, 0.6);
@@ -82,6 +82,159 @@ Deno.test("calculateBoot: uses buyer equity and modeled new financing, not selle
   assertEquals(b.estimated_mortgage_boot, 400_000);
   assertEquals(b.boot_status, "significant_boot");
   assertEquals(b.estimated_boot_tax, null);
+});
+
+Deno.test("blank optional criteria preserve the default matching result exactly", () => {
+  const candidate = { state: "TX", city: "Austin", asset_type: "office", year_built: 2010 };
+  const candidateFin = { asking_price: 1_500_000, noi: 140_000, occupancy_rate: 90 };
+  const baseline = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, {}, settings);
+  const explicitBlanks = scorePairExplained(
+    buyerExchange,
+    buyerFin,
+    candidate,
+    candidateFin,
+    {
+      target_states: [],
+      target_metros: [],
+      target_asset_types: [],
+      target_price_min: 0,
+      target_price_max: 0,
+      additional_cash_available: null,
+      max_ltv: null,
+      min_projected_roe: null,
+      preferred_monthly_cash_flow: null,
+      require_location_match: false,
+      require_asset_type_match: false,
+    },
+    settings,
+  );
+  assertEquals(explicitBlanks, baseline);
+});
+
+Deno.test("additional cash expands capacity and uses only the amount the candidate needs", () => {
+  const candidate = { state: "MA", asset_type: "multifamily" };
+  const candidateFin = { asking_price: 2_800_000, noi: 280_000 };
+
+  const withoutCash = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, {}, settings);
+  assert(!withoutCash.ok);
+  if ("reason" in withoutCash) assertMatch(withoutCash.reason, /exceeds affordability ceiling/);
+
+  const withCash = scorePairExplained(
+    buyerExchange,
+    buyerFin,
+    candidate,
+    candidateFin,
+    { additional_cash_available: 200_000 },
+    settings,
+  );
+  assert(withCash.ok, `expected cash-assisted candidate to qualify, got: ${"reason" in withCash ? withCash.reason : "unknown"}`);
+  if (withCash.ok) {
+    assertEquals(withCash.score.estimated_purchasing_capacity, 3_200_000);
+    assertEquals(withCash.score.estimated_replacement_loan, 2_100_000);
+    assertEquals(withCash.score.estimated_ltv, 0.75);
+    assert(withCash.score.eligibility_reasons.some((reason) => reason.includes("$100,000")));
+  }
+});
+
+Deno.test("a lower optional LTV is honored and combines with only the required cash", () => {
+  const candidate = { state: "MA", asset_type: "multifamily" };
+  const candidateFin = { asking_price: 1_500_000, noi: 150_000 };
+
+  const withoutCash = scorePairExplained(
+    buyerExchange,
+    buyerFin,
+    candidate,
+    candidateFin,
+    { max_ltv: 0.5 },
+    settings,
+  );
+  assert(!withoutCash.ok);
+  if ("reason" in withoutCash) assertMatch(withoutCash.reason, /exceeds affordability ceiling/);
+
+  const withCash = scorePairExplained(
+    buyerExchange,
+    buyerFin,
+    candidate,
+    candidateFin,
+    { max_ltv: 0.5, additional_cash_available: 200_000 },
+    settings,
+  );
+  assert(withCash.ok, `expected lower-LTV candidate to qualify, got: ${"reason" in withCash ? withCash.reason : "unknown"}`);
+  if (withCash.ok) {
+    assertEquals(withCash.score.estimated_purchasing_capacity, 1_600_000);
+    assertEquals(withCash.score.estimated_replacement_loan, 750_000);
+    assertEquals(withCash.score.estimated_ltv, 0.5);
+    assert(withCash.score.eligibility_reasons.some((reason) => reason.includes("$150,000")));
+  }
+});
+
+Deno.test("optional strict location and property type only gate when enabled", () => {
+  const candidate = { state: "GA", city: "Atlanta", asset_type: "office" };
+  const candidateFin = { asking_price: 1_500_000, noi: 150_000 };
+  const preferences = { target_states: ["FL"], target_asset_types: ["multifamily"] };
+
+  const soft = scorePairExplained(buyerExchange, buyerFin, candidate, candidateFin, preferences, settings);
+  assert(soft.ok, "soft preferences should rank rather than exclude");
+
+  const hardLocation = scorePairExplained(
+    buyerExchange,
+    buyerFin,
+    candidate,
+    candidateFin,
+    { ...preferences, require_location_match: true },
+    settings,
+  );
+  assert(!hardLocation.ok);
+  if ("reason" in hardLocation) assertMatch(hardLocation.reason, /required location/);
+
+  const hardAsset = scorePairExplained(
+    buyerExchange,
+    buyerFin,
+    candidate,
+    candidateFin,
+    { ...preferences, require_asset_type_match: true },
+    settings,
+  );
+  assert(!hardAsset.ok);
+  if ("reason" in hardAsset) assertMatch(hardAsset.reason, /required property-type/);
+});
+
+Deno.test("optional price, ROE, and monthly cash-flow minimums are enforced only when entered", () => {
+  const candidate = { state: "MA", asset_type: "multifamily" };
+  const candidateFin = { asking_price: 1_500_000, noi: 140_000 };
+
+  const abovePrice = scorePairExplained(
+    buyerExchange,
+    buyerFin,
+    candidate,
+    candidateFin,
+    { target_price_max: 1_400_000 },
+    settings,
+  );
+  assert(!abovePrice.ok);
+  if ("reason" in abovePrice) assertMatch(abovePrice.reason, /optional maximum replacement price/);
+
+  const belowRoe = scorePairExplained(
+    buyerExchange,
+    buyerFin,
+    candidate,
+    candidateFin,
+    { min_projected_roe: 50 },
+    settings,
+  );
+  assert(!belowRoe.ok);
+  if ("reason" in belowRoe) assertMatch(belowRoe.reason, /below the optional .* minimum/);
+
+  const belowCashFlow = scorePairExplained(
+    buyerExchange,
+    buyerFin,
+    candidate,
+    candidateFin,
+    { preferred_monthly_cash_flow: 50_000 },
+    settings,
+  );
+  assert(!belowCashFlow.ok);
+  if ("reason" in belowCashFlow) assertMatch(belowCashFlow.reason, /projected monthly cash flow/);
 });
 
 Deno.test("calculateBoot: fully consumed proceeds → no boot", () => {

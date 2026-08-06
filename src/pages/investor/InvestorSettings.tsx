@@ -39,7 +39,7 @@ export default function InvestorSettings() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div><h1 className="text-2xl font-bold text-foreground">Settings</h1><p className="mt-1 text-sm text-muted-foreground">Manage your investor/property-owner account. Replacement criteria are not collected at this stage.</p></div>
+      <div><h1 className="text-2xl font-bold text-foreground">Settings</h1><p className="mt-1 text-sm text-muted-foreground">Manage your investor/property-owner account. Listing-specific replacement preferences are managed when you create or edit a listing.</p></div>
       <Card><CardHeader><CardTitle className="text-lg">Account profile</CardTitle></CardHeader><CardContent>
         {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : (
           <form onSubmit={save} className="space-y-5">

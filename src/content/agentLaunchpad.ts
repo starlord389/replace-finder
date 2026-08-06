@@ -70,8 +70,8 @@ export const AGENT_LAUNCHPAD_STEPS: AgentLaunchpadStepContent[] = [
   {
     id: "exchange",
     title: "Create your first listing",
-    description: "Pledge a property with financials and replacement criteria — the more accurate, the sharper the matches.",
-    tip: "Price, geography, asset type, and strategy are the biggest signals in our scoring.",
+    description: "Pledge a property with accurate financials, then optionally add replacement preferences to refine its matches.",
+    tip: "Equity, financing capacity, and return on equity drive every match; cash, location, property type, and advanced preferences are optional.",
     actionLabel: "New listing",
     icon: FileText,
     href: "/agent/exchanges/new",

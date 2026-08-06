@@ -296,28 +296,28 @@ function MatchingExplainer() {
         <div className="rounded-lg border bg-background p-3">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Target className="h-4 w-4 text-primary" />
-            Your client&apos;s criteria
+            Automatic foundation
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Price range, geography, asset type, strategy, financial fit, and timing — captured on every listing.
+            Equity, financing capacity, and projected return on equity run for every listing without requiring a wish list.
           </p>
         </div>
         <div className="rounded-lg border bg-background p-3">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Sparkles className="h-4 w-4 text-primary" />
-            Rules-based scoring
+            Optional preferences
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Every potential property is ranked across those dimensions. No black-box guesswork, no public MLS — our proprietary engine scores pure fit.
+            Additional cash, location, property type, price, leverage, return, and cash-flow preferences refine results only when entered.
           </p>
         </div>
         <div className="rounded-lg border bg-background p-3">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <ShieldCheck className="h-4 w-4 text-primary" />
-            Private review
+            Focused private results
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            You review the top matches first. Only matches you approve become visible to your client.
+            Only qualifying properties appear in Matches, ranked by return improvement and the preferences your client chose to provide.
           </p>
         </div>
       </div>

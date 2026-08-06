@@ -295,7 +295,7 @@ function InvestorMatchingExplainer() {
         </div>
       </div>
       <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-        You do not browse unmatched properties or enter replacement criteria. The platform uses your property financials to find stronger exchange opportunities automatically.
+        You never browse unmatched properties. Your property financials power automatic matching, and the optional preferences in your listing can refine the results; leave them blank to use the standard algorithm unchanged.
       </div>
     </div>
   );

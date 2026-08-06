@@ -7,16 +7,17 @@ import { Check } from "lucide-react";
 import { WizardState, initialWizardState } from "@/lib/exchangeWizardTypes";
 import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
+import StepCriteria from "@/components/exchange/StepCriteria";
 import StepReview from "@/components/exchange/StepReview";
 import ActivateResultDialog, { ActivateResultState } from "@/components/exchange/ActivateResultDialog";
 import { useCreateExchange } from "@/features/exchanges/hooks/useCreateExchange";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { trackEvent } from "@/lib/telemetry";
 
-const AGENT_STEPS = ["Select Client", "Property & Financials", "Review"];
-const AGENT_MOBILE_STEP_LABELS = ["Client", "Property", "Review"];
-const INVESTOR_STEPS = ["Property & Financials", "Review"];
-const INVESTOR_MOBILE_STEP_LABELS = ["Property", "Review"];
+const AGENT_STEPS = ["Select Client", "Property & Financials", "Preferences", "Review"];
+const AGENT_MOBILE_STEP_LABELS = ["Client", "Property", "Prefs", "Review"];
+const INVESTOR_STEPS = ["Property & Financials", "Preferences", "Review"];
+const INVESTOR_MOBILE_STEP_LABELS = ["Property", "Prefs", "Review"];
 
 export default function NewExchange({ ownerType = "agent" }: { ownerType?: "agent" | "investor" }) {
   const { user } = useAuth();
@@ -40,6 +41,9 @@ export default function NewExchange({ ownerType = "agent" }: { ownerType?: "agen
   const steps = isInvestor ? INVESTOR_STEPS : AGENT_STEPS;
   const mobileStepLabels = isInvestor ? INVESTOR_MOBILE_STEP_LABELS : AGENT_MOBILE_STEP_LABELS;
   const clientLocked = Boolean(preselectedClientId);
+  const propertyStep = isInvestor ? 1 : 2;
+  const criteriaStep = propertyStep + 1;
+  const reviewStep = criteriaStep + 1;
 
   useEffect(() => {
     if (isInvestor) { setClientName("Your property"); return; }
@@ -48,11 +52,14 @@ export default function NewExchange({ ownerType = "agent" }: { ownerType?: "agen
       .then(({ data: c }) => setClientName(c?.client_name || ""));
   }, [data.selectedClientId, isInvestor]);
 
-  const extractErrorCode = (err: any): string => {
-    if (err?.context?.response?.status) return String(err.context.response.status);
-    if (err?.status) return String(err.status);
-    if (err?.code) return String(err.code);
-    if (err?.name) return String(err.name);
+  const extractErrorCode = (err: unknown): string => {
+    const value = typeof err === "object" && err !== null
+      ? err as { context?: { response?: { status?: unknown } }; status?: unknown; code?: unknown; name?: unknown }
+      : {};
+    if (value.context?.response?.status) return String(value.context.response.status);
+    if (value.status) return String(value.status);
+    if (value.code) return String(value.code);
+    if (value.name) return String(value.name);
     return "UNKNOWN";
   };
 
@@ -72,9 +79,9 @@ export default function NewExchange({ ownerType = "agent" }: { ownerType?: "agen
         toast.success("Exchange saved as draft.");
         navigate(`${basePath}/listings`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Save error:", err);
-      const message = err?.message || "Unknown error";
+      const message = err instanceof Error ? err.message : "Unknown error";
       if (activate) {
         setResult({ kind: "error", code: extractErrorCode(err), message });
         setResultOpen(true);
@@ -128,7 +135,7 @@ export default function NewExchange({ ownerType = "agent" }: { ownerType?: "agen
           onNext={() => setStep(2)}
           lockedClientName={clientLocked ? (clientName || "Selected client") : undefined} />
       )}
-      {step === (isInvestor ? 1 : 2) && (
+      {step === propertyStep && (
         <StepPropertyAndFinancials
           property={data.property}
           financials={data.financials}
@@ -136,15 +143,24 @@ export default function NewExchange({ ownerType = "agent" }: { ownerType?: "agen
           onChangeProperty={property => setData(d => ({ ...d, property }))}
           onChangeFinancials={financials => setData(d => ({ ...d, financials }))}
           onChangeImages={images => setData(d => ({ ...d, images }))}
-          onNext={() => setStep(isInvestor ? 2 : 3)}
+          onNext={() => setStep(criteriaStep)}
           onBack={() => setStep(1)}
           ownerType={ownerType}
           showBack={!isInvestor}
         />
       )}
-      {step === (isInvestor ? 2 : 3) && (
+      {step === criteriaStep && (
+        <StepCriteria
+          criteria={data.criteria}
+          financials={data.financials}
+          onChange={criteria => setData(d => ({ ...d, criteria }))}
+          onNext={() => setStep(reviewStep)}
+          onBack={() => setStep(propertyStep)}
+        />
+      )}
+      {step === reviewStep && (
         <StepReview data={data} clientName={clientName}
-          onBack={() => setStep(isInvestor ? 1 : 2)} onSubmit={handleSubmit} saving={saving}
+          onBack={() => setStep(criteriaStep)} onSubmit={handleSubmit} saving={saving}
           ownerType={ownerType}
           onOwnerAuthorizationChange={v => setData(d => ({ ...d, property: { ...d.property, owner_authorization_confirmed: v } }))} />
       )}

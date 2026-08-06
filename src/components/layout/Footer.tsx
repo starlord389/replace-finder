@@ -29,8 +29,8 @@ export default function Footer() {
               />
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#9fb2cc]">
-              The exchange network for 1031 agents. Automatic matching, boot
-              calculations, and exchange tracking — all in one platform.
+              The exchange network for property owners and 1031 agents. Automatic
+              matching and exchange tracking — all in one platform.
             </p>
           </div>
 

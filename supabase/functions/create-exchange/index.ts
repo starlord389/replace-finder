@@ -4,6 +4,7 @@ import { validateFinancials } from "../_shared/validate-financials.ts";
 import { deriveFinancialColumns } from "../_shared/derive-financials.ts";
 import { validatePublish } from "../_shared/validate-publish.ts";
 import { notifyAdmins } from "../_shared/admin-notify.ts";
+import { normalizeReplacementCriteria, validateReplacementCriteria } from "../_shared/replacement-criteria.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,6 +53,12 @@ Deno.serve(async (req) => {
     const db = createClient(supabaseUrl, serviceRoleKey);
     const payload = (await req.json()) as CreateExchangePayload;
     const ownerType = payload.ownerType === "investor" ? "investor" : "agent";
+    const criteriaPayload = payload.criteria ?? {};
+    const criteriaErrors = validateReplacementCriteria(criteriaPayload);
+    if (criteriaErrors.length > 0) {
+      return response({ error: "Invalid replacement criteria", details: criteriaErrors }, 400);
+    }
+    const normalizedCriteria = normalizeReplacementCriteria(criteriaPayload);
 
     // Agents create exchanges for clients; investors/property owners create
     // self-managed exchanges for their own listed properties.
@@ -215,12 +222,7 @@ Deno.serve(async (req) => {
         .from("replacement_criteria")
         .insert({
           exchange_id: exchangeId,
-          target_asset_types: arrayOrDefault(payload.criteria.target_asset_types, []),
-          target_states: arrayOrDefault(payload.criteria.target_states, []),
-          target_price_min: numberOrZero(payload.criteria.target_price_min),
-          target_price_max: numberOrZero(payload.criteria.target_price_max),
-          target_metros: arrayOrNull(payload.criteria.target_metros),
-          target_year_built_min: numberOrNull(payload.criteria.target_year_built_min),
+          ...normalizedCriteria,
         })
         .select("id")
         .single();
@@ -341,10 +343,6 @@ function numberOrNull(value: unknown): number | null {
   return null;
 }
 
-function numberOrZero(value: unknown): number {
-  return numberOrNull(value) ?? 0;
-}
-
 function stringOrNull(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -353,16 +351,6 @@ function stringOrNull(value: unknown): string | null {
 
 function valueOrNull(value: unknown): unknown | null {
   return value ?? null;
-}
-
-function arrayOrNull(value: unknown): string[] | null {
-  if (!Array.isArray(value)) return null;
-  const normalized = value.map((item) => String(item).trim()).filter(Boolean);
-  return normalized.length ? normalized : null;
-}
-
-function arrayOrDefault(value: unknown, fallback: string[]): string[] {
-  return arrayOrNull(value) ?? fallback;
 }
 
 function boolOrFalse(value: unknown): boolean {

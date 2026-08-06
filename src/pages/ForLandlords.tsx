@@ -15,7 +15,7 @@ const HERO = {
   eyebrow: "For landlords",
   headline: "Line up a better-returning building before you ever have to sell.",
   subheadline:
-    "The hard part of a 1031 isn't selling — it's having somewhere worth moving into before the tax clock starts. So we built a private network of agents who do these exchanges for their owner-clients. Your agent enters the building you own now and its numbers, and the network automatically surfaces other owners' buildings that would earn you a better return and that you can afford. No wish-list, no guessing. At the same time, your building is quietly surfaced to owners looking for a better return of their own. Nothing is public — names and addresses stay hidden until both sides choose to connect. Owners pay nothing, so tell us where you are and we'll connect you with a vetted agent, in confidence.",
+    "The hard part of a 1031 isn't selling — it's having somewhere worth moving into before the tax clock starts. So we built a private network of agents who do these exchanges for their owner-clients. Your agent enters the building you own now and its numbers, and the network automatically surfaces other owners' buildings that would earn you a better return and that you can afford. No wish-list is required, but optional preferences can refine the search. At the same time, your building is quietly surfaced to owners looking for a better return of their own. Nothing is public — names and addresses stay hidden until both sides choose to connect. Owners pay nothing, so tell us where you are and we'll connect you with a vetted agent, in confidence.",
 };
 
 /* Hero match card — a replacement that out-earns the owner's current building. */
@@ -39,7 +39,7 @@ const MATCH_CARDS = [
 ] as const;
 
 const MATCH_POINTS = [
-  { title: "No wish-list needed", body: "You never specify a type, an area, a price, or a target return. The starting point is one thing: the building you already own and what it earns. Everything else follows from that." },
+  { title: "No wish-list required", body: "The building you own and what it earns are enough to start automatic matching. If you have preferences for cash, location, property type, financing, or return, you can add them without replacing the return math." },
   { title: "Driven by the return math", body: "The network only surfaces buildings that would beat the return you're getting today and that your equity can actually reach. If it can't earn you more, it doesn't show up." },
   { title: "Buildings you'd never find alone", body: "Every building belongs to another owner in the same spot as you — still holding it, weighing a move. You'd have no way to reach them on your own." },
 ] as const;
@@ -105,7 +105,7 @@ const ROE_STEPS = [
 const FAQS = [
   {
     q: "Can you really find me a replacement within 45 days?",
-    a: "That's what the network is built for. Once your agent enters the building you own and its numbers, the system automatically surfaces other owners' buildings that would earn you a better return and that you can afford. There's no wish-list to fill in — the return math does the matching. We can't promise one specific building, but getting real, better-returning options in front of you fast is exactly what this is for, and that's the part where most owners run out of time on their own.",
+    a: "That's what the network is built for. Once your agent enters the building you own and its numbers, the system automatically surfaces other owners' buildings that could earn you a better return and that you can afford. No wish-list is required: the return math runs automatically, while optional replacement preferences can refine the results. We can't promise one specific building, but getting real, better-returning options in front of you fast is exactly what this is for, and that's the part where most owners run out of time on their own.",
   },
   {
     q: "What's the catch? Why is this free for me?",

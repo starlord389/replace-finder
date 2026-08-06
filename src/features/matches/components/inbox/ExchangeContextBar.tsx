@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/popover";
 import { useAuth } from "@/hooks/useAuth";
 import { useAgentExchangesQuery, type AgentExchangeRow } from "@/features/agent/hooks/useAgentExchangesQuery";
-import { useExchangeContext } from "@/features/matches/hooks/useExchangeContext";
+import { useExchangeContext, type ExchangeContext } from "@/features/matches/hooks/useExchangeContext";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { cn } from "@/lib/utils";
 import { getClientAccent } from "@/features/matches/lib/clientAccent";
@@ -28,6 +28,20 @@ function currency(v: number | null | undefined): string {
   if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`;
   if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K`;
   return `$${Math.round(v).toLocaleString()}`;
+}
+
+function optionalCriteriaSummary(ctx: ExchangeContext): string | null {
+  const parts: string[] = [];
+  if (ctx.targetStates?.length) parts.push(ctx.targetStates.slice(0, 3).join("/"));
+  if (ctx.targetAssetTypes?.length) {
+    parts.push(ctx.targetAssetTypes.slice(0, 2).map((type) => type.replace(/_/g, " ")).join("/"));
+  }
+  if (ctx.targetPriceMin || ctx.targetPriceMax) {
+    parts.push(`${ctx.targetPriceMin ? currency(ctx.targetPriceMin) : "Any"}–${ctx.targetPriceMax ? currency(ctx.targetPriceMax) : "Any"}`);
+  }
+  if (ctx.additionalCashAvailable) parts.push(`+${currency(ctx.additionalCashAvailable)} cash`);
+  if (ctx.maxLtv) parts.push(`${Math.round(ctx.maxLtv * 100)}% max LTV`);
+  return parts.length ? parts.join(" · ") : null;
 }
 
 function relinquishedShort(ex: AgentExchangeRow): string {
@@ -74,7 +88,7 @@ export function ExchangeContextBar({
     }> = [];
     const byKey = new Map<string, number>();
     for (const ex of exchanges) {
-      const cid = (ex as any).client_id ?? null;
+      const cid = ex.client_id ?? null;
       const cname = ex.agent_clients?.client_name ?? "Client";
       const key = cid ?? `__${cname}`;
       let idx = byKey.get(key);
@@ -106,7 +120,7 @@ export function ExchangeContextBar({
   const selectedExchangeAccent = useMemo(() => {
     if (selectedExchangeId === "all") return null;
     const ex = exchanges.find((e) => e.id === selectedExchangeId);
-    return ex ? getClientAccent((ex as any).client_id ?? null) : null;
+    return ex ? getClientAccent(ex.client_id ?? null) : null;
   }, [exchanges, selectedExchangeId]);
 
   return (
@@ -258,17 +272,9 @@ export function ExchangeContextBar({
                   {currency(ctx.exchangeProceeds)}
                 </span>
               </ContextItem>
-              {(ctx.targetStates?.length || ctx.targetPriceMin || ctx.targetPriceMax) && (
+              {optionalCriteriaSummary(ctx) && (
                 <ContextItem icon={Target} label="Target">
-                  <span className="truncate">
-                    {ctx.targetStates?.length ? ctx.targetStates.slice(0, 3).join("/") : "Any geo"}
-                    {(ctx.targetPriceMin || ctx.targetPriceMax) && (
-                      <>
-                        {" · "}
-                        {currency(ctx.targetPriceMin)}–{currency(ctx.targetPriceMax)}
-                      </>
-                    )}
-                  </span>
+                  <span className="truncate capitalize">{optionalCriteriaSummary(ctx)}</span>
                 </ContextItem>
               )}
               {scopedMatchCount != null && (

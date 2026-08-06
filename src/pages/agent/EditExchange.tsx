@@ -7,14 +7,13 @@ import { ArrowLeft } from "lucide-react";
 import { WizardState, initialWizardState, parseCurrency, annualToMonthlyString } from "@/lib/exchangeWizardTypes";
 import StepSelectClient from "@/components/exchange/StepSelectClient";
 import StepPropertyAndFinancials from "@/components/exchange/StepPropertyAndFinancials";
+import StepCriteria from "@/components/exchange/StepCriteria";
 import StepReview from "@/components/exchange/StepReview";
 import { useUpdateExchange } from "@/features/exchanges/hooks/useUpdateExchange";
 import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 
-// Criteria step removed — see NewExchange.tsx. Existing criteria records are
-// still loaded and re-saved untouched so we never wipe legacy preferences.
-const AGENT_STEPS = ["Client", "Property & Financials", "Review"];
-const INVESTOR_STEPS = ["Property & Financials", "Review"];
+const AGENT_STEPS = ["Client", "Property & Financials", "Preferences", "Review"];
+const INVESTOR_STEPS = ["Property & Financials", "Preferences", "Review"];
 
 export default function EditExchange({ ownerType = "agent" }: { ownerType?: "agent" | "investor" }) {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +30,9 @@ export default function EditExchange({ ownerType = "agent" }: { ownerType?: "age
   const isInvestor = ownerType === "investor";
   const basePath = isInvestor ? "/investor" : "/agent";
   const steps = isInvestor ? INVESTOR_STEPS : AGENT_STEPS;
+  const propertyStep = isInvestor ? 1 : 2;
+  const criteriaStep = propertyStep + 1;
+  const reviewStep = criteriaStep + 1;
 
   useEffect(() => {
     if (!id || !user) return;
@@ -77,12 +79,12 @@ export default function EditExchange({ ownerType = "agent" }: { ownerType?: "age
 
       if (cancelled) return;
 
-      const p = (propRes as any).data;
-      const f = (finRes as any).data;
-      const cr = (critRes as any).data;
-      const imgs = ((imgRes as any).data ?? []) as Array<{ storage_path: string; file_name: string | null; sort_order: number }>;
+      const p = propRes.data;
+      const f = finRes.data;
+      const cr = critRes.data;
+      const imgs = (imgRes.data ?? []) as Array<{ storage_path: string; file_name: string | null; sort_order: number }>;
 
-      setClientName(isInvestor ? "Your property" : ((clientRes as any).data?.client_name ?? ""));
+      setClientName(isInvestor ? "Your property" : (clientRes.data?.client_name ?? ""));
 
       const hydrated: WizardState = {
         selectedClientId: ex.client_id ?? "",
@@ -111,6 +113,13 @@ export default function EditExchange({ ownerType = "agent" }: { ownerType?: "age
           target_price_max: cr?.target_price_max?.toString() ?? "",
           target_metros: cr?.target_metros ?? [],
           target_year_built_min: cr?.target_year_built_min?.toString() ?? "",
+          additional_cash_available: cr?.additional_cash_available?.toString() ?? "",
+          max_ltv: cr?.max_ltv != null ? String(Number(cr.max_ltv) * 100) : "",
+          min_projected_roe: cr?.min_projected_roe?.toString() ?? "",
+          preferred_monthly_cash_flow: cr?.preferred_monthly_cash_flow?.toString() ?? "",
+          require_location_match: cr?.require_location_match ?? false,
+          require_asset_type_match: cr?.require_asset_type_match ?? false,
+          additional_notes: cr?.additional_notes ?? "",
         },
         images: imgs.map((im, i) => ({
           storage_path: im.storage_path,
@@ -161,7 +170,7 @@ export default function EditExchange({ ownerType = "agent" }: { ownerType?: "age
     }
 
     if (!d.property.owner_authorization_confirmed) {
-      return { valid: false, firstInvalidStep: isInvestor ? 2 : 3, message: "Confirm you have authorization to market this property before publishing." };
+      return { valid: false, firstInvalidStep: reviewStep, message: "Confirm you have authorization to market this property before publishing." };
     }
 
     return { valid: true, firstInvalidStep: 1, message: "" };
@@ -200,9 +209,9 @@ export default function EditExchange({ ownerType = "agent" }: { ownerType?: "age
       };
       toast.success(messages[intent]);
       navigate(`${basePath}/listings`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Update error:", err);
-      toast.error("Failed to save: " + (err.message || "Unknown error"));
+      toast.error("Failed to save: " + (err instanceof Error ? err.message : "Unknown error"));
     } finally {
       setSaving(false);
     }
@@ -243,7 +252,7 @@ export default function EditExchange({ ownerType = "agent" }: { ownerType?: "age
                   ${isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
               >
                 <span>{stepNum}</span>
-                <span className="sm:hidden">{label === "Property & Financials" ? "Property" : label}</span>
+                <span className="sm:hidden">{label === "Property & Financials" ? "Property" : label === "Preferences" ? "Prefs" : label}</span>
                 <span className="hidden sm:inline">{label}</span>
               </button>
             </div>
@@ -259,7 +268,7 @@ export default function EditExchange({ ownerType = "agent" }: { ownerType?: "age
           lockedClientName={clientName}
         />
       )}
-      {step === (isInvestor ? 1 : 2) && (
+      {step === propertyStep && (
         <StepPropertyAndFinancials
           property={data.property}
           financials={data.financials}
@@ -267,17 +276,26 @@ export default function EditExchange({ ownerType = "agent" }: { ownerType?: "age
           onChangeProperty={property => setData(d => ({ ...d, property }))}
           onChangeFinancials={financials => setData(d => ({ ...d, financials }))}
           onChangeImages={images => setData(d => ({ ...d, images }))}
-          onNext={() => setStep(isInvestor ? 2 : 3)}
+          onNext={() => setStep(criteriaStep)}
           onBack={() => setStep(1)}
           ownerType={ownerType}
           showBack={!isInvestor}
         />
       )}
-      {step === (isInvestor ? 2 : 3) && (
+      {step === criteriaStep && (
+        <StepCriteria
+          criteria={data.criteria}
+          financials={data.financials}
+          onChange={criteria => setData(d => ({ ...d, criteria }))}
+          onNext={() => setStep(reviewStep)}
+          onBack={() => setStep(propertyStep)}
+        />
+      )}
+      {step === reviewStep && (
         <StepReview
           data={data}
           clientName={clientName}
-          onBack={() => setStep(isInvestor ? 1 : 2)}
+          onBack={() => setStep(criteriaStep)}
           onSubmit={handleSubmit}
           saving={saving}
           mode={reviewMode}

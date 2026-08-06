@@ -4,6 +4,7 @@ import { validateFinancials } from "../_shared/validate-financials.ts";
 import { deriveFinancialColumns } from "../_shared/derive-financials.ts";
 import { validatePublish } from "../_shared/validate-publish.ts";
 import { notifyAdmins } from "../_shared/admin-notify.ts";
+import { normalizeReplacementCriteria, validateReplacementCriteria } from "../_shared/replacement-criteria.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,6 +43,14 @@ Deno.serve(async (req) => {
     const db = createClient(supabaseUrl, serviceRoleKey);
     const payload = (await req.json()) as UpdatePayload;
     if (!payload.exchangeId) return response({ error: "exchangeId is required" }, 400);
+
+    const criteriaErrors = validateReplacementCriteria(payload.criteria);
+    if (criteriaErrors.length > 0) {
+      return response({ error: "Invalid replacement criteria", details: criteriaErrors }, 400);
+    }
+    const normalizedCriteria = payload.criteria
+      ? normalizeReplacementCriteria(payload.criteria)
+      : null;
 
     if (payload.financials) {
       const financialErrors = validateFinancials(payload.financials as Record<string, unknown>, "update");
@@ -215,17 +224,23 @@ Deno.serve(async (req) => {
       }).eq("id", exchange.id);
     }
 
-    if (payload.criteria && criteriaId) {
-      const critUpdate = {
-        target_asset_types: arrayOrDefault(payload.criteria.target_asset_types, []),
-        target_states: arrayOrDefault(payload.criteria.target_states, []),
-        target_price_min: numberOrZero(payload.criteria.target_price_min),
-        target_price_max: numberOrZero(payload.criteria.target_price_max),
-        target_metros: arrayOrNull(payload.criteria.target_metros),
-        target_year_built_min: numberOrNull(payload.criteria.target_year_built_min),
-      };
-      const { error } = await db.from("replacement_criteria").update(critUpdate).eq("id", criteriaId);
-      if (error) throw error;
+    if (normalizedCriteria) {
+      if (criteriaId) {
+        const { error } = await db.from("replacement_criteria").update(normalizedCriteria).eq("id", criteriaId);
+        if (error) throw error;
+      } else {
+        const { data: createdCriteria, error } = await db
+          .from("replacement_criteria")
+          .insert({ exchange_id: exchange.id, ...normalizedCriteria })
+          .select("id")
+          .single();
+        if (error || !createdCriteria) throw error || new Error("Unable to create replacement criteria");
+        const { error: linkError } = await db
+          .from("exchanges")
+          .update({ criteria_id: createdCriteria.id })
+          .eq("id", exchange.id);
+        if (linkError) throw linkError;
+      }
     }
 
     // Reconcile images: delete existing not in new list, insert new ones
@@ -555,21 +570,12 @@ function numberOrNull(value: unknown): number | null {
   }
   return null;
 }
-function numberOrZero(value: unknown): number { return numberOrNull(value) ?? 0; }
 function stringOrNull(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const t = value.trim();
   return t.length ? t : null;
 }
 function valueOrNull(value: unknown): unknown | null { return value ?? null; }
-function arrayOrNull(value: unknown): string[] | null {
-  if (!Array.isArray(value)) return null;
-  const n = value.map((i) => String(i).trim()).filter(Boolean);
-  return n.length ? n : null;
-}
-function arrayOrDefault(value: unknown, fallback: string[]): string[] {
-  return arrayOrNull(value) ?? fallback;
-}
 function boolOrFalse(value: unknown): boolean { return value === true; }
 
 // Whether a storage path targets the caller's own bucket folder. The uploader

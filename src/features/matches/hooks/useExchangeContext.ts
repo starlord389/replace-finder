@@ -14,6 +14,8 @@ export interface ExchangeContext {
   targetPriceMin: number | null;
   targetPriceMax: number | null;
   targetAssetTypes: string[] | null;
+  additionalCashAvailable: number | null;
+  maxLtv: number | null;
 }
 
 async function fetchExchangeContext(exchangeId: string): Promise<ExchangeContext | null> {
@@ -37,17 +39,17 @@ async function fetchExchangeContext(exchangeId: string): Promise<ExchangeContext
     ex.criteria_id
       ? supabase
           .from("replacement_criteria")
-          .select("target_states, target_price_min, target_price_max, target_asset_types")
+          .select("target_states, target_price_min, target_price_max, target_asset_types, additional_cash_available, max_ltv")
           .eq("id", ex.criteria_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
-  const prop: any = propRes.data;
-  const crit: any = critRes.data;
+  const prop = propRes.data;
+  const crit = critRes.data;
 
   return {
     id: ex.id,
-    clientName: (ex as any).agent_clients?.client_name ?? null,
+    clientName: ex.agent_clients?.client_name ?? null,
     relinquishedName: prop ? resolveListingName(prop, true) : null,
     relinquishedAddress: prop?.address ?? null,
     relinquishedCity: prop?.city ?? null,
@@ -57,6 +59,8 @@ async function fetchExchangeContext(exchangeId: string): Promise<ExchangeContext
     targetPriceMin: crit?.target_price_min != null ? Number(crit.target_price_min) : null,
     targetPriceMax: crit?.target_price_max != null ? Number(crit.target_price_max) : null,
     targetAssetTypes: crit?.target_asset_types ?? null,
+    additionalCashAvailable: crit?.additional_cash_available != null ? Number(crit.additional_cash_available) : null,
+    maxLtv: crit?.max_ltv != null ? Number(crit.max_ltv) : null,
   };
 }
 

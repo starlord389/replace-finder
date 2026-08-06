@@ -9,6 +9,7 @@ import {
   formatCurrency,
   getDerivedFinancials,
   getEstimatedExchangeEconomics,
+  hasExchangeCriteria,
   parseCurrency,
 } from "@/lib/exchangeWizardTypes";
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
@@ -40,11 +41,12 @@ function Field({ label, value, recommended }: { label: string; value?: string | 
 }
 
 export default function StepReview({ data, clientName, onBack, onSubmit, saving, mode = "create", onCancel, onOwnerAuthorizationChange, ownerType = "agent" }: Props) {
-  const { property: p, financials: f } = data;
+  const { property: p, financials: f, criteria: c } = data;
   const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(f);
   const derived = getDerivedFinancials(f);
   const sellerCostRatePercent = Math.round(DEFAULT_SELLER_COST_ESTIMATE_RATE * 100);
   const ownerAuthConfirmed = p.owner_authorization_confirmed;
+  const hasCriteria = hasExchangeCriteria(c);
 
   // Recurring financials are stored/entered monthly — show them with a "/ mo" suffix.
   const perMonth = (v: string) => {
@@ -136,6 +138,45 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
           <p className="text-xs text-muted-foreground">
             Exchange proceeds are estimated using a {sellerCostRatePercent}% seller cost allowance for closing costs and commissions.
           </p>
+        </CardContent>
+      </Card>
+
+      {/* Optional replacement preferences */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider text-muted-foreground">
+            Replacement Preferences
+            <Badge variant="outline" className="normal-case tracking-normal">Optional</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!hasCriteria ? (
+            <div className="rounded-md border border-dashed bg-muted/30 p-3">
+              <p className="text-sm font-medium text-foreground">Default automatic matching</p>
+              <p className="mt-1 text-xs text-muted-foreground">No optional preferences were added. The existing financing and return-on-equity algorithm will run unchanged.</p>
+            </div>
+          ) : (
+            <div className="grid gap-x-8 sm:grid-cols-2">
+              <Field label="Additional Cash Available" value={formatCurrency(parseCurrency(c.additional_cash_available))} />
+              <Field label="Property Types" value={c.target_asset_types.map(type => ASSET_TYPE_LABELS[type]).join(", ")} />
+              <Field label="Preferred States" value={c.target_states.join(", ")} />
+              <Field label="Cities / Metros" value={c.target_metros.join(", ")} />
+              <Field
+                label="Replacement Price"
+                value={c.target_price_min || c.target_price_max
+                  ? `${formatCurrency(parseCurrency(c.target_price_min)) || "No minimum"} – ${formatCurrency(parseCurrency(c.target_price_max)) || "No maximum"}`
+                  : undefined}
+              />
+              <Field label="Maximum LTV" value={c.max_ltv ? `${c.max_ltv}%` : undefined} />
+              <Field label="Minimum Projected ROE" value={c.min_projected_roe ? `${c.min_projected_roe}%` : undefined} />
+              <Field label="Minimum Monthly Cash Flow" value={formatCurrency(parseCurrency(c.preferred_monthly_cash_flow))} />
+              <Field label="Location Matching" value={c.require_location_match ? "Required" : undefined} />
+              <Field label="Property-Type Matching" value={c.require_asset_type_match ? "Required" : undefined} />
+              <div className="sm:col-span-2">
+                <Field label="Notes" value={c.additional_notes} />
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

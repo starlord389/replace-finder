@@ -45,6 +45,13 @@ function normalize(data: WizardState) {
       target_metros: data.criteria.target_metros,
       target_year_built_min: data.criteria.target_year_built_min
         ? parseInt(data.criteria.target_year_built_min, 10) : null,
+      additional_cash_available: parseCurrency(data.criteria.additional_cash_available),
+      max_ltv: data.criteria.max_ltv ? Number(data.criteria.max_ltv) / 100 : null,
+      min_projected_roe: data.criteria.min_projected_roe ? Number(data.criteria.min_projected_roe) : null,
+      preferred_monthly_cash_flow: parseCurrency(data.criteria.preferred_monthly_cash_flow),
+      require_location_match: data.criteria.require_location_match,
+      require_asset_type_match: data.criteria.require_asset_type_match,
+      additional_notes: data.criteria.additional_notes.trim() || null,
     },
     images: data.images.map((img, i) => ({
       storage_path: img.storage_path,

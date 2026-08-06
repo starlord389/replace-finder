@@ -38,6 +38,13 @@ export interface CriteriaData {
   target_price_max: string;
   target_metros: string[];
   target_year_built_min: string;
+  additional_cash_available: string;
+  max_ltv: string;
+  min_projected_roe: string;
+  preferred_monthly_cash_flow: string;
+  require_location_match: boolean;
+  require_asset_type_match: boolean;
+  additional_notes: string;
 }
 
 export interface WizardState {
@@ -74,6 +81,13 @@ export const initialCriteriaData: CriteriaData = {
   target_price_max: "",
   target_metros: [],
   target_year_built_min: "",
+  additional_cash_available: "",
+  max_ltv: "",
+  min_projected_roe: "",
+  preferred_monthly_cash_flow: "",
+  require_location_match: false,
+  require_asset_type_match: false,
+  additional_notes: "",
 };
 
 export const initialWizardState: WizardState = {
@@ -86,7 +100,7 @@ export const initialWizardState: WizardState = {
 
 export function parseCurrency(val: string): number | null {
   const n = parseFloat(val.replace(/[^0-9.-]/g, ""));
-  return isNaN(n) ? null : n;
+  return Number.isFinite(n) ? n : null;
 }
 
 export function formatCurrency(n: number | null | undefined): string {
@@ -226,4 +240,41 @@ export function getEstimatedExchangeEconomics(
     estimatedEquity,
     exchangeProceeds,
   };
+}
+
+export const DEFAULT_MAX_REPLACEMENT_LTV_PERCENT = 75;
+
+/** Blank criteria are intentionally a no-op so the original automatic matching
+ * algorithm remains the default. */
+export function hasExchangeCriteria(criteria: CriteriaData): boolean {
+  return Boolean(
+    criteria.target_asset_types.length ||
+    criteria.target_states.length ||
+    criteria.target_metros.length ||
+    criteria.target_price_min.trim() ||
+    criteria.target_price_max.trim() ||
+    criteria.additional_cash_available.trim() ||
+    criteria.max_ltv.trim() ||
+    criteria.min_projected_roe.trim() ||
+    criteria.preferred_monthly_cash_flow.trim() ||
+    criteria.additional_notes.trim(),
+  );
+}
+
+export function getCriteriaPurchasingCapacity(
+  financials: Pick<FinancialsData, "asking_price" | "loan_balance">,
+  criteria: Pick<CriteriaData, "additional_cash_available" | "max_ltv">,
+): { equity: number | null; additionalCash: number; maxLtvPercent: number; capacity: number | null } {
+  const { estimatedEquity } = getEstimatedExchangeEconomics(financials);
+  const additionalCash = Math.max(0, parseCurrency(criteria.additional_cash_available) ?? 0);
+  const parsedMaxLtv = criteria.max_ltv.trim() === "" ? null : Number(criteria.max_ltv);
+  const maxLtvPercent = parsedMaxLtv != null && Number.isFinite(parsedMaxLtv)
+    ? Math.min(DEFAULT_MAX_REPLACEMENT_LTV_PERCENT, Math.max(0, parsedMaxLtv))
+    : DEFAULT_MAX_REPLACEMENT_LTV_PERCENT;
+  const availableEquity = estimatedEquity != null ? estimatedEquity + additionalCash : null;
+  const capacity = availableEquity != null && availableEquity > 0
+    ? availableEquity / (1 - maxLtvPercent / 100)
+    : null;
+
+  return { equity: estimatedEquity, additionalCash, maxLtvPercent, capacity };
 }
