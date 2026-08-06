@@ -1651,8 +1651,6 @@ export type Database = {
           open_to_tics: boolean | null
           preferred_monthly_cash_flow: number | null
           preferred_replacement_value: number | null
-          require_asset_type_match: boolean
-          require_location_match: boolean
           target_asset_types: Database["public"]["Enums"]["asset_type"][]
           target_cap_rate_max: number | null
           target_cap_rate_min: number | null
@@ -1691,8 +1689,6 @@ export type Database = {
           open_to_tics?: boolean | null
           preferred_monthly_cash_flow?: number | null
           preferred_replacement_value?: number | null
-          require_asset_type_match?: boolean
-          require_location_match?: boolean
           target_asset_types: Database["public"]["Enums"]["asset_type"][]
           target_cap_rate_max?: number | null
           target_cap_rate_min?: number | null
@@ -1731,8 +1727,6 @@ export type Database = {
           open_to_tics?: boolean | null
           preferred_monthly_cash_flow?: number | null
           preferred_replacement_value?: number | null
-          require_asset_type_match?: boolean
-          require_location_match?: boolean
           target_asset_types?: Database["public"]["Enums"]["asset_type"][]
           target_cap_rate_max?: number | null
           target_cap_rate_min?: number | null
