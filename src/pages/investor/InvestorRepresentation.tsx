@@ -8,7 +8,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { inviteRepresentingAgent, requestAgentReferral, setDefaultRepresentation, unassignAgentFromExchange } from "@/features/representation/api";
 import { useExchangeAssignments, useRepresentationInvites, useRepresentations } from "@/features/representation/hooks/useRepresentations";
-import { representationStatusLabel, type Representation } from "@/features/representation/types";
+import {
+  representationStatusLabel,
+  type ExchangeAssignment,
+  type Representation,
+  type RepresentationInvite,
+} from "@/features/representation/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,13 +34,17 @@ interface ExchangeOption {
   label: string;
 }
 
+const EMPTY_REPRESENTATIONS: Representation[] = [];
+const EMPTY_ASSIGNMENTS: ExchangeAssignment[] = [];
+const EMPTY_INVITES: RepresentationInvite[] = [];
+
 export default function InvestorRepresentation() {
   const { user } = useAuth();
   const { isDemo } = useWorkspaceMode();
   const queryClient = useQueryClient();
-  const { data: representations = [], isLoading } = useRepresentations("investor");
-  const { data: assignments = [] } = useExchangeAssignments("investor");
-  const { data: invites = [] } = useRepresentationInvites();
+  const { data: representations = EMPTY_REPRESENTATIONS, isLoading } = useRepresentations("investor");
+  const { data: assignments = EMPTY_ASSIGNMENTS } = useExchangeAssignments("investor");
+  const { data: invites = EMPTY_INVITES } = useRepresentationInvites();
   const [exchanges, setExchanges] = useState<ExchangeOption[]>([]);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [agentForm, setAgentForm] = useState({ name: "", email: "", assignFuture: true });

@@ -36,4 +36,13 @@ describe("representation management interfaces", () => {
     expect(agentWorkspace).toContain("exchangeLabels");
     expect(agentWorkspace).toContain("clientAssignments");
   });
+
+  it("uses stable empty query results so loading effects cannot cause render loops", () => {
+    expect(investorWorkspace).toContain("data: representations = EMPTY_REPRESENTATIONS");
+    expect(investorWorkspace).toContain("data: assignments = EMPTY_ASSIGNMENTS");
+    expect(agentWorkspace).toContain("data: representations = EMPTY_REPRESENTATIONS");
+    expect(agentWorkspace).toContain("data: requests = EMPTY_CONTACT_REQUESTS");
+    expect(investorWorkspace).not.toContain("data: representations = []");
+    expect(agentWorkspace).not.toContain("data: representations = []");
+  });
 });

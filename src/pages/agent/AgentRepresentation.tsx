@@ -6,7 +6,14 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useRepresentations, useExchangeAssignments, useAgentContactRequests, useRepresentationInvites } from "@/features/representation/hooks/useRepresentations";
-import { contactRequestStatusLabel, representationStatusLabel, type Representation } from "@/features/representation/types";
+import {
+  contactRequestStatusLabel,
+  representationStatusLabel,
+  type AgentContactRequest,
+  type ExchangeAssignment,
+  type Representation,
+  type RepresentationInvite,
+} from "@/features/representation/types";
 import { startAgentConnection } from "@/features/representation/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,12 +22,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientAgentConversation } from "@/features/representation/components/ClientAgentConversation";
 import { InvitationManagementActions } from "@/features/representation/components/InvitationManagementActions";
 
+const EMPTY_REPRESENTATIONS: Representation[] = [];
+const EMPTY_ASSIGNMENTS: ExchangeAssignment[] = [];
+const EMPTY_CONTACT_REQUESTS: AgentContactRequest[] = [];
+const EMPTY_INVITES: RepresentationInvite[] = [];
+
 export default function AgentRepresentation() {
   const queryClient = useQueryClient();
-  const { data: representations = [], isLoading } = useRepresentations("agent");
-  const { data: assignments = [] } = useExchangeAssignments("agent");
-  const { data: requests = [] } = useAgentContactRequests("agent");
-  const { data: invites = [] } = useRepresentationInvites();
+  const { data: representations = EMPTY_REPRESENTATIONS, isLoading } = useRepresentations("agent");
+  const { data: assignments = EMPTY_ASSIGNMENTS } = useExchangeAssignments("agent");
+  const { data: requests = EMPTY_CONTACT_REQUESTS } = useAgentContactRequests("agent");
+  const { data: invites = EMPTY_INVITES } = useRepresentationInvites();
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [propertyLabels, setPropertyLabels] = useState<Record<string, string>>({});
   const [exchangeLabels, setExchangeLabels] = useState<Record<string, string>>({});
