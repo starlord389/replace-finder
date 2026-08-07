@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { BriefcaseBusiness, CheckCircle2, Clock3, Link2, Search, ShieldCheck, UserRoundPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { inviteRepresentingAgent, requestAgentReferral, setDefaultRepresentation, unassignAgentFromExchange } from "@/features/representation/api";
@@ -34,6 +35,12 @@ interface ExchangeOption {
   label: string;
 }
 
+type AgentProfile = Pick<
+  Tables<"profiles">,
+  "id" | "full_name" | "email" | "phone" | "brokerage_name" | "license_state" | "verification_status"
+>;
+type PropertySummary = Pick<Tables<"pledged_properties_secure">, "id" | "property_name" | "city" | "state">;
+
 const EMPTY_REPRESENTATIONS: Representation[] = [];
 const EMPTY_ASSIGNMENTS: ExchangeAssignment[] = [];
 const EMPTY_INVITES: RepresentationInvite[] = [];
@@ -46,7 +53,7 @@ export default function InvestorRepresentation() {
   const { data: assignments = EMPTY_ASSIGNMENTS } = useExchangeAssignments("investor");
   const { data: invites = EMPTY_INVITES } = useRepresentationInvites();
   const [exchanges, setExchanges] = useState<ExchangeOption[]>([]);
-  const [profiles, setProfiles] = useState<Record<string, any>>({});
+  const [profiles, setProfiles] = useState<Record<string, AgentProfile>>({});
   const [agentForm, setAgentForm] = useState({ name: "", email: "", assignFuture: true });
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [referralForm, setReferralForm] = useState({ exchangeId: "", location: "", propertyType: "", timing: "", notes: "" });
@@ -68,8 +75,8 @@ export default function InvestorRepresentation() {
       const propertyIds = (exchangeRows ?? []).map((row) => row.relinquished_property_id).filter(Boolean) as string[];
       const { data: properties } = propertyIds.length
         ? await supabase.from("pledged_properties_secure").select("id, property_name, city, state").in("id", propertyIds)
-        : { data: [] as any[] };
-      const byId = new Map((properties ?? []).map((property: any) => [property.id, property]));
+        : { data: [] as PropertySummary[] };
+      const byId = new Map((properties ?? []).map((property) => [property.id, property]));
       setExchanges((exchangeRows ?? []).map((row) => {
         const property = row.relinquished_property_id ? byId.get(row.relinquished_property_id) : null;
         return {
@@ -129,8 +136,8 @@ export default function InvestorRepresentation() {
       setAgentForm({ name: "", email: "", assignFuture: true });
       setSelectedExchanges([]);
       await refresh();
-    } catch (error: any) {
-      toast.error(error.message ?? "Unable to invite this agent.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Unable to invite this agent.");
     } finally {
       setBusy(null);
     }
@@ -144,8 +151,8 @@ export default function InvestorRepresentation() {
       toast.success("Your request is with our team. You can keep working while we find your agent.");
       setReferralForm({ exchangeId: "", location: "", propertyType: "", timing: "", notes: "" });
       await refresh();
-    } catch (error: any) {
-      toast.error(error.message ?? "Unable to request an agent.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Unable to request an agent.");
     } finally {
       setBusy(null);
     }
@@ -155,7 +162,7 @@ export default function InvestorRepresentation() {
     const representation = representationById.get(representationId);
     if (!representation) return toast.error("Choose an active agent.");
     setBusy(exchangeId);
-    const { error } = await supabase.rpc("assign_agent_to_exchange" as any, {
+    const { error } = await supabase.rpc("assign_agent_to_exchange", {
       p_representation_id: representation.id,
       p_exchange_id: exchangeId,
     });
@@ -196,7 +203,7 @@ export default function InvestorRepresentation() {
 
   async function confirmReferral(representation: Representation, accept: boolean) {
     setBusy(representation.id);
-    const { error } = await supabase.rpc("confirm_referred_agent" as any, {
+    const { error } = await supabase.rpc("confirm_referred_agent", {
       p_representation_id: representation.id,
       p_accept: accept,
     });
@@ -209,7 +216,7 @@ export default function InvestorRepresentation() {
   async function endRepresentation(representation: Representation) {
     if (!confirm("End this representation? The agent will immediately lose access to future work.")) return;
     setBusy(representation.id);
-    const { error } = await supabase.rpc("revoke_representation" as any, {
+    const { error } = await supabase.rpc("revoke_representation", {
       p_representation_id: representation.id,
       p_reason: "Ended by investor",
     });

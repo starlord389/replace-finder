@@ -23,6 +23,9 @@ verify_jwt = true
 [functions.send-representation-invite]
 verify_jwt = true
 
+[functions.run-representation-e2e]
+verify_jwt = true
+
 [functions.twilio-status-callback]
 verify_jwt = false
 

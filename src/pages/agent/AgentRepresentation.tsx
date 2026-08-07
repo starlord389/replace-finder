@@ -5,6 +5,7 @@ import { CheckCircle2, Clock3, Handshake, MessageSquareText, ShieldCheck, UserRo
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { useRepresentations, useExchangeAssignments, useAgentContactRequests, useRepresentationInvites } from "@/features/representation/hooks/useRepresentations";
 import {
   contactRequestStatusLabel,
@@ -22,6 +23,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientAgentConversation } from "@/features/representation/components/ClientAgentConversation";
 import { InvitationManagementActions } from "@/features/representation/components/InvitationManagementActions";
 
+type InvestorProfile = Pick<Tables<"profiles">, "id" | "full_name" | "email" | "phone" | "company">;
+type PropertySummary = Pick<Tables<"pledged_properties_secure">, "id" | "property_name" | "city" | "state">;
+
 const EMPTY_REPRESENTATIONS: Representation[] = [];
 const EMPTY_ASSIGNMENTS: ExchangeAssignment[] = [];
 const EMPTY_CONTACT_REQUESTS: AgentContactRequest[] = [];
@@ -33,7 +37,7 @@ export default function AgentRepresentation() {
   const { data: assignments = EMPTY_ASSIGNMENTS } = useExchangeAssignments("agent");
   const { data: requests = EMPTY_CONTACT_REQUESTS } = useAgentContactRequests("agent");
   const { data: invites = EMPTY_INVITES } = useRepresentationInvites();
-  const [profiles, setProfiles] = useState<Record<string, any>>({});
+  const [profiles, setProfiles] = useState<Record<string, InvestorProfile>>({});
   const [propertyLabels, setPropertyLabels] = useState<Record<string, string>>({});
   const [exchangeLabels, setExchangeLabels] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
@@ -61,8 +65,8 @@ export default function AgentRepresentation() {
       const propertyIds = (exchangeRows ?? []).map((exchange) => exchange.relinquished_property_id).filter(Boolean) as string[];
       const { data: properties } = propertyIds.length
         ? await supabase.from("pledged_properties_secure").select("id, property_name, city, state").in("id", propertyIds)
-        : { data: [] as any[] };
-      const propertyMap = new Map((properties ?? []).map((property: any) => [property.id, property]));
+        : { data: [] as PropertySummary[] };
+      const propertyMap = new Map((properties ?? []).map((property) => [property.id, property]));
       setExchangeLabels(Object.fromEntries((exchangeRows ?? []).map((exchange) => {
         const property = exchange.relinquished_property_id ? propertyMap.get(exchange.relinquished_property_id) : null;
         return [exchange.id, property?.property_name || [property?.city, property?.state].filter(Boolean).join(", ") || `Exchange ${exchange.id.slice(0, 8)}`];
@@ -82,7 +86,7 @@ export default function AgentRepresentation() {
 
   async function respondToAssignment(representation: Representation, accept: boolean) {
     setBusy(representation.id);
-    const { error } = await supabase.rpc("respond_to_representation_assignment" as any, {
+    const { error } = await supabase.rpc("respond_to_representation_assignment", {
       p_representation_id: representation.id,
       p_accept: accept,
       p_reason: accept ? null : "Agent declined the assignment",
@@ -100,8 +104,8 @@ export default function AgentRepresentation() {
       if (connectionId) toast.success("Connection request sent to the other agent.");
       else toast.info("The other property owner is assigning an agent. This request was saved.");
       await refresh();
-    } catch (error: any) {
-      toast.error(error.message ?? "Unable to start the connection.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Unable to start the connection.");
     } finally {
       setBusy(null);
     }
@@ -110,7 +114,7 @@ export default function AgentRepresentation() {
   async function declineRequest(request: (typeof requests)[number]) {
     const reason = prompt("Add a short explanation for your client (optional):") ?? "";
     setBusy(request.id);
-    const { error } = await supabase.rpc("decline_agent_contact_request" as any, {
+    const { error } = await supabase.rpc("decline_agent_contact_request", {
       p_request_id: request.id,
       p_note: reason || null,
     });
@@ -123,7 +127,7 @@ export default function AgentRepresentation() {
   async function endRepresentation(representation: Representation) {
     if (!confirm("End this representation? Your exchange access and active counterparty work for this client will be removed.")) return;
     setBusy(representation.id);
-    const { error } = await supabase.rpc("revoke_representation" as any, {
+    const { error } = await supabase.rpc("revoke_representation", {
       p_representation_id: representation.id,
       p_reason: "Ended by agent",
     });
