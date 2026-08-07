@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ export default function Login() {
   const [cooldown, setCooldown] = useState(0);
   const cooldownTimer = useRef<number | null>(null);
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const { toast } = useToast();
 
   // Stop the countdown interval if the user leaves the page mid-cooldown.
@@ -104,6 +105,8 @@ export default function Login() {
       }
     }
 
+    const requestedNext = params.get("next");
+    if (requestedNext?.startsWith("/") && !requestedNext.startsWith("//")) target = requestedNext;
     setLoading(false);
     trackEvent("auth_login_success", { target });
     navigate(target, { replace: true });

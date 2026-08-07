@@ -12,6 +12,8 @@ export const ACTION_ICONS: Record<string, LucideIcon> = {
   follow_up_client: Bell,
   client_passed: XCircle,
   message_listing_agent: MessageSquare,
+  request_agent_contact: Handshake,
+  view_agent_request: Bell,
   open_conversation: MessageSquare,
   schedule_call: Phone,
   request_documents: FileText,

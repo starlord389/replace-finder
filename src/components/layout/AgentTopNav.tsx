@@ -39,7 +39,7 @@ const PRIMARY_NAV: NavItem[] = [
     activeMatch: /^\/agent\/(listings|exchanges\/[^/]+\/edit)/,
   },
   { title: "Matches", url: "/agent/matches" },
-  { title: "Investor Leads", url: "/agent/investor-inquiries" },
+  { title: "Client Requests", url: "/agent/representation" },
 ];
 
 function NotificationsBell() {

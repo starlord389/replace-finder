@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { deriveUiStatus, nextActionsForAudience, statusForAudience } from "./inboxHelpers";
 import { useMatchLocalState } from "./useMatchLocalState";
+import { requestAgentContact, startAgentConnection } from "@/features/representation/api";
 
 interface Callbacks {
   onOpenConversation?: () => void;
@@ -18,7 +19,20 @@ export function useMatchActions(
 ) {
   const { state, update } = useMatchLocalState(rel.matchId);
   const status = statusForAudience(deriveUiStatus(rel, state), audience);
-  const { primary, secondary } = nextActionsForAudience(status, audience);
+  const baseActions = nextActionsForAudience(status, audience);
+  const primary = audience === "investor" && rel.agentContactRequestStatus && !["declined", "closed"].includes(rel.agentContactRequestStatus)
+    ? {
+        id: "view_agent_request",
+        label: rel.agentContactRequestStatus === "waiting_for_agent"
+          ? "Agent Needed — Request Saved"
+          : rel.agentContactRequestStatus === "awaiting_counterparty_agent"
+            ? "Other Side Is Assigning an Agent"
+            : rel.agentContactRequestStatus === "contacted"
+              ? "Agents Are Connecting"
+              : "Request Sent to My Agent",
+      }
+    : baseActions.primary;
+  const secondary = baseActions.secondary;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
@@ -53,35 +67,13 @@ export function useMatchActions(
       await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
     }
     if (!rel.connectionId) {
-      if (!rel.sellerAgentId) {
-        toast({
-          title: "Can't start conversation",
-          description: "The listing agent isn't available for this match.",
-          variant: "destructive",
-        });
-        return;
-      }
-      // The connection row requires both agent ids (NOT NULL). On a seller-side
-      // match with no connection yet, the buyer agent is unknown until the buyer
-      // engages — inserting a null buyer_agent_id would violate the constraint.
-      if (!rel.buyerAgentId) {
-        toast({
-          title: "Can't start conversation",
-          description: "The buyer's agent isn't available for this match yet.",
-          variant: "destructive",
-        });
-        return;
-      }
-      const { error } = await supabase.from("exchange_connections").insert({
-        match_id: rel.matchId,
-        buyer_exchange_id: rel.buyerExchangeId,
-        buyer_agent_id: rel.buyerAgentId,
-        seller_agent_id: rel.sellerAgentId,
-        initiated_by: rel.mySide === "seller" ? "seller_agent" : "buyer_agent",
-        status: "accepted",
-        accepted_at: new Date().toISOString(),
-      });
-      if (error) {
+      try {
+        const connectionId = await startAgentConnection(rel.matchId);
+        if (!connectionId) {
+          toast({ title: "Waiting for representation", description: "The property owner is assigning an agent. Your interest has been preserved." });
+          return;
+        }
+      } catch (error: any) {
         toast({
           title: "Couldn't start conversation",
           description: error.message,
@@ -90,7 +82,8 @@ export function useMatchActions(
         return;
       }
       await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
-      toast({ title: "You're connected", description: "Say hello — messages are private and in-app." });
+      toast({ title: "Connection requested", description: "The other agent needs to accept before messaging opens." });
+      return;
     }
     update({ conversationStartedAt: state.conversationStartedAt ?? new Date().toISOString() });
     cb.onOpenConversation?.();
@@ -106,6 +99,14 @@ export function useMatchActions(
         case "message_listing_agent":
         case "open_conversation":
           await startConversation();
+          return;
+        case "request_agent_contact":
+          await requestAgentContact(rel.buyerExchangeId, rel.matchId);
+          await queryClient.invalidateQueries({ queryKey: ["agent-contact-requests"] });
+          toast({ title: "Request sent", description: "Your agent will review the match and handle contact with the listing agent. If you still need an agent, your request will stay saved." });
+          return;
+        case "view_agent_request":
+          toast({ title: "Your request is in progress", description: "Open My Agent to see representation and request status." });
           return;
         case "mark_interested":
           update({ clientInterestedAt: new Date().toISOString() });

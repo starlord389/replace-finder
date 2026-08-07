@@ -47,7 +47,7 @@ export const INVESTOR_LAUNCHPAD_GROUPS: InvestorLaunchpadGroup[] = [
   {
     id: "workflow",
     title: "Run your pipeline",
-    description: "Review qualified matches, connect with listing agents, and move your exchange forward.",
+    description: "Review qualified matches, ask your representing agent to connect, and move your exchange forward.",
     icon: Compass,
     steps: ["matching", "matches", "pipeline"],
   },
@@ -58,7 +58,7 @@ export const INVESTOR_LAUNCHPAD_STEPS: InvestorLaunchpadStepContent[] = [
     id: "profile",
     title: "Complete your profile",
     description: "Add your name, company or ownership entity, and phone number for exchange communications.",
-    tip: "Your contact details stay private until you connect with a listing agent.",
+    tip: "You can keep reviewing matches before choosing an agent. Counterparty contact begins only after representation is active.",
     icon: UserCircle,
     href: "/investor/settings",
   },
@@ -97,8 +97,8 @@ export const INVESTOR_LAUNCHPAD_STEPS: InvestorLaunchpadStepContent[] = [
   {
     id: "pipeline",
     title: "Move deals forward in Pipeline",
-    description: "Track conversations with listing agents from the first message through offer, contract, and close.",
-    tip: "Use Pipeline to keep every active exchange and agent conversation organized.",
+    description: "Track your agent's progress from the first contact request through offer, contract, and close.",
+    tip: "Use Pipeline to keep every active exchange and agent-led deal organized.",
     icon: KanbanSquare,
     href: "/investor/pipeline",
   },

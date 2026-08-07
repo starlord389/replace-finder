@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
+import { inviteInvestorClient } from "@/features/representation/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,21 +28,17 @@ export default function AgentClientDetail() {
     e.preventDefault();
     if (!user || !name.trim()) return;
     setSaving(true);
-    const { error } = await supabase.from("agent_clients").insert({
-      agent_id: user.id,
-      client_name: name.trim(),
-      client_email: email.trim() || null,
-      client_phone: phone.trim() || null,
-      notes: notes.trim() || null,
-      is_demo: isDemo,
-    });
-    setSaving(false);
-    if (error) {
-      toast.error("Failed to add client");
-      return;
+    try {
+      const result = await inviteInvestorClient({
+        name: name.trim(), email: email.trim(), phone: phone.trim(), notes: notes.trim(), isDemo,
+      });
+      toast.success(result.emailWarning ? "Client added, but the invitation email needs attention." : "Client added and invitation sent.");
+      navigate("/agent/clients");
+    } catch (error: any) {
+      toast.error(error.message ?? "Failed to invite client");
+    } finally {
+      setSaving(false);
     }
-    toast.success("Client added successfully");
-    navigate("/agent/clients");
   };
 
   return (
@@ -53,7 +49,7 @@ export default function AgentClientDetail() {
         </Link>
       </Button>
 
-      <h1 className="text-2xl font-bold text-foreground">Add New Client</h1>
+      <div><h1 className="text-2xl font-bold text-foreground">Invite a Client</h1><p className="mt-1 text-sm text-muted-foreground">Your client receives an investor workspace. Once accepted, you can collaborate on assigned exchanges and recommend matches.</p></div>
 
       <Card>
         <CardContent className="pt-6">
@@ -67,8 +63,8 @@ export default function AgentClientDetail() {
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone *</Label>
-              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+              <Label htmlFor="phone">Phone</Label>
+              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
@@ -80,7 +76,7 @@ export default function AgentClientDetail() {
               />
             </div>
             <Button type="submit" disabled={saving || !name.trim()}>
-              {saving ? "Saving…" : "Add Client"}
+              {saving ? "Sending invitation…" : "Invite Client"}
             </Button>
           </form>
         </CardContent>

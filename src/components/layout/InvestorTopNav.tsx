@@ -17,6 +17,7 @@ const NAV = [
   { title: "My Exchanges", url: "/investor/listings", active: /^\/investor\/(listings|exchanges\/)/ },
   { title: "Pipeline", url: "/investor/pipeline" },
   { title: "Matches", url: "/investor/matches" },
+  { title: "My Agent", url: "/investor/representation" },
 ];
 
 function WorkspaceToggle({ full = false }: { full?: boolean }) {

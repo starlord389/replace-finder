@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { MessageSquare, Lock } from "lucide-react";
+import { MessageSquare, Lock, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ThreadView } from "@/features/messages/components/ThreadView";
 import { isConnected, type Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
-import { INVESTOR_QUICK_MESSAGES, QUICK_MESSAGES } from "./inboxHelpers";
+import { QUICK_MESSAGES } from "./inboxHelpers";
 
 interface Props {
   rel: Relationship;
@@ -23,6 +24,17 @@ export function AgentCommsCard({ rel, audience = "agent" }: Props) {
     setDraft(msg);
   }
 
+  if (audience === "investor") {
+    return (
+      <div className="rounded-xl border bg-card p-6 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10"><ShieldCheck className="h-5 w-5 text-primary" /></div>
+        <h3 className="mt-3 text-sm font-semibold">Your agent handles the conversation</h3>
+        <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">You stay in control of the match and receive progress updates. Your representing agent communicates directly with the agent on the other side.</p>
+        <Button asChild size="sm" className="mt-4"><Link to="/investor/representation">Manage my agent</Link></Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-0 flex-col rounded-xl border bg-card">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -39,7 +51,7 @@ export function AgentCommsCard({ rel, audience = "agent" }: Props) {
           Quick messages
         </p>
         <div className="flex flex-wrap gap-1.5">
-          {(audience === "investor" ? INVESTOR_QUICK_MESSAGES : QUICK_MESSAGES).map((m) => (
+          {QUICK_MESSAGES.map((m) => (
             <button
               key={m}
               type="button"

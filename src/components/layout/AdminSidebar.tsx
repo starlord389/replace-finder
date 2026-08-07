@@ -1,4 +1,4 @@
-import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users, Inbox, ThumbsUp, Briefcase, CalendarClock, ServerCog, ChartNoAxesCombined } from "lucide-react";
+import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users, Inbox, ThumbsUp, Briefcase, CalendarClock, ServerCog, ChartNoAxesCombined, Handshake } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +24,7 @@ const operationsItems = [
 
 const managementItems = [
   { title: "Users & Account Roles", url: "/admin/users", icon: Users },
+  { title: "Representations", url: "/admin/representations", icon: Handshake },
   { title: "Demos", url: "/admin/demos", icon: CalendarClock },
   { title: "Growth & Intake", url: "/admin/intake", icon: Inbox },
   { title: "Support", url: "/admin/support", icon: HelpCircle },

@@ -131,7 +131,7 @@ export default function InvestorLaunchpad() {
                 You&apos;re all set, {firstName}.
               </h1>
               <p className="mt-1 text-sm text-green-800/90">
-                Your properties, qualified matches, and listing-agent conversations are ready in your investor workspace.
+                Your properties, qualified matches, and agent-led deal activity are ready in your investor workspace.
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
                 <Button onClick={() => navigate("/investor/dashboard")}>
@@ -290,7 +290,7 @@ function InvestorMatchingExplainer() {
             Connect privately
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Qualified properties appear in Matches, where you can start a direct, private conversation with the listing agent.
+            Qualified properties appear in Matches, where you can ask your representing agent to contact the listing agent.
           </p>
         </div>
       </div>

@@ -31,7 +31,7 @@ export default function InvestorDashboard() {
             {profileName ? `Welcome back, ${profileName.split(" ")[0]}` : "Your exchange dashboard"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage your listed properties, review automatic matches, and connect with listing agents.
+            Manage your listed properties, review automatic matches, and ask your agent to connect with the other side.
           </p>
         </div>
         <Button asChild>

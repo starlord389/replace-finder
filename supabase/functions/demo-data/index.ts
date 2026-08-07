@@ -244,6 +244,7 @@ Deno.serve(async (req) => {
 // can never destroy another admin's data. Live data is never touched (is_demo=true).
 async function clearOwnerDemo(db: any, ownerId: string) {
   // Investor demo activity must be removed before its referenced properties.
+  await db.from("agent_representations").delete().eq("investor_id", ownerId).eq("is_demo", true);
   await db.from("investor_saved_properties").delete().eq("investor_id", ownerId).eq("is_demo", true);
   await db.from("listing_inquiries").delete().eq("investor_id", ownerId).eq("is_demo", true);
   await db.from("notifications").delete().contains("metadata", { demo: true, investor_id: ownerId });
@@ -367,6 +368,31 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   const exFor = (name: string) => own.find((x) => x.clientName === name)!.exId;
   const marcus = exFor("Marcus Rodriguez"), patel = exFor("Patel Family Trust"), wilson = exFor("James Wilson");
 
+  // Investor-owner demo exchange. The same admin user can switch between the
+  // Investor and Agent views, so using the owner as the demo representative
+  // makes the entire handoff and action queue testable without impersonation.
+  const investorProp = await insertProperty(db, ownerId, {
+    ...OWN[0].property,
+    name: "Owner Demo – Riverside Apartments",
+    address: "125 Riverside Drive",
+  }, true, "active");
+  prop["Owner Demo – Riverside Apartments"] = investorProp;
+  const investorEx = await insertOne(db, "exchanges", {
+    agent_id: ownerId,
+    client_id: null,
+    owner_type: "investor",
+    relinquished_property_id: investorProp,
+    is_demo: true,
+    status: "active",
+    exchange_proceeds: 1_500_000,
+    estimated_equity: 1_500_000,
+    identification_deadline: dFrom(35),
+    closing_deadline: dFrom(170),
+  }, "id");
+  const investorCrit = await insertOne(db, "replacement_criteria", { exchange_id: investorEx.id, target_asset_types: [], target_states: [], target_price_min: 0, target_price_max: 0 }, "id");
+  await db.from("exchanges").update({ criteria_id: investorCrit.id }).eq("id", investorEx.id);
+  await db.from("pledged_properties").update({ exchange_id: investorEx.id }).eq("id", investorProp);
+
   // Buyer-side matches (the caller's active/in-ID exchanges x candidates).
   // Seed only pairs that the production engine itself approves. This keeps the
   // demo useful as a QA fixture instead of presenting fabricated scores or
@@ -376,10 +402,68 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     buildEngineMatch(db, patel, prop["Crosspoint Industrial"]),
     buildEngineMatch(db, patel, prop["Westshore Corporate Center"]),
     buildEngineMatch(db, wilson, prop["Westshore Corporate Center"], { buyer_agent_viewed: true, buyer_agent_viewed_at: dFrom(-1) + "T18:00:00Z" }),
+    buildEngineMatch(db, investorEx.id, prop["Westshore Corporate Center"]),
   ]);
   const { data: matches, error: mErr } = await db.from("matches").insert(matchRows).select("id, buyer_exchange_id, seller_property_id");
   if (mErr) throw new Error(`matches insert failed: ${mErr.message}`);
   const matchId = (ex: string, p: string) => (matches ?? []).find((m: any) => m.buyer_exchange_id === ex && m.seller_property_id === p)?.id;
+  const investorMatchId = matchId(investorEx.id, prop["Westshore Corporate Center"]);
+
+  const { data: ownerProfile } = await db.from("profiles").select("email, full_name").eq("id", ownerId).single();
+  const activeRep = await insertOne(db, "agent_representations", {
+    investor_id: ownerId,
+    investor_email: ownerProfile.email,
+    agent_id: ownerId,
+    agent_email: ownerProfile.email,
+    agent_name: ownerProfile.full_name,
+    status: "active",
+    source: "admin_assignment",
+    is_default: true,
+    is_demo: true,
+    invited_by: ownerId,
+    accepted_at: new Date().toISOString(),
+  }, "id");
+  await mustInsert(db, "exchange_agent_assignments", {
+    exchange_id: investorEx.id,
+    representation_id: activeRep.id,
+    investor_id: ownerId,
+    agent_id: ownerId,
+    status: "active",
+    is_primary: true,
+    assigned_by: ownerId,
+  });
+  if (investorMatchId) {
+    await mustInsert(db, "agent_contact_requests", {
+      investor_id: ownerId,
+      exchange_id: investorEx.id,
+      match_id: investorMatchId,
+      property_id: prop["Westshore Corporate Center"],
+      representing_agent_id: ownerId,
+      status: "requested",
+      investor_note: "Please confirm the T-12 supports the projected return before contacting the listing agent.",
+    });
+    await mustInsert(db, "agent_match_recommendations", {
+      agent_id: ownerId,
+      investor_id: ownerId,
+      exchange_id: investorEx.id,
+      match_id: investorMatchId,
+      note: "Strong ROE improvement and a practical fit for the current identification window.",
+      response: "pending",
+    });
+  }
+  await mustInsert(db, "agent_representations", [
+    {
+      investor_id: ownerId, investor_email: ownerProfile.email, agent_id: cpAgent["Elena Vasquez"],
+      agent_email: COUNTERPARTIES.find((agent) => agent.full_name === "Elena Vasquez")!.email,
+      agent_name: "Elena Vasquez", status: "awaiting_acceptance", source: "investor_invite",
+      is_demo: true, invited_by: ownerId,
+    },
+    {
+      investor_id: ownerId, investor_email: ownerProfile.email, agent_id: null, agent_email: "",
+      status: "awaiting_agent", source: "platform_referral", is_demo: true, invited_by: ownerId,
+      request_context: { location: "Houston, TX", property_type: "Multifamily", timing: "Identifying within 35 days", notes: "Demo referral awaiting administrator assignment" },
+    },
+  ]);
 
   // Inbound (seller-side) match: a counterparty buyer wants Houston multifamily,
   // matched against the caller's own Heights listing — exercises "incoming interest".
@@ -430,31 +514,14 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     { user_id: ownerId, type: "connection_accepted", title: "Connection accepted", message: "Elena Vasquez accepted your connection on Westshore Corporate Center.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
   ]);
 
-  // Investor view: a realistic shortlist plus open/responded property inquiries.
+  // Investor view: a realistic shortlist. Direct investor -> listing-agent
+  // inquiries were retired; the seeded contact request above exercises the new
+  // agent-mediated workflow instead.
   await mustInsert(db, "investor_saved_properties", [
     { investor_id: ownerId, property_id: prop["Westshore Corporate Center"], is_demo: true },
     { investor_id: ownerId, property_id: prop["Crosspoint Industrial"], is_demo: true },
   ]);
-  const openInvestorInquiry = await insertOne(db, "listing_inquiries", {
-    investor_id: ownerId,
-    property_id: prop["Westshore Corporate Center"],
-    listing_agent_id: cpAgent["Elena Vasquez"],
-    initial_message: "I am evaluating Westshore as a 1031 replacement. Please send the current rent roll, T-12, and leasing assumptions.",
-    is_demo: true,
-  }, "id");
-  const respondedInvestorInquiry = await insertOne(db, "listing_inquiries", {
-    investor_id: ownerId,
-    property_id: prop["Crosspoint Industrial"],
-    listing_agent_id: cpAgent["Priya Mehta"],
-    initial_message: "The assumable loan and lease term look promising. Is the tenant financial package available, and are tours open next week?",
-    is_demo: true,
-  }, "id");
-  await db.from("listing_inquiries").update({
-    agent_response: "Yes — the tenant package, lease abstract, and OM are ready. Tours are available Tuesday and Thursday afternoon.",
-    status: "responded",
-  }).eq("id", respondedInvestorInquiry.id);
-
-  return { clients: OWN.length + 1, listings: OWN.length, counterpartyProperties: Object.keys(prop).length - OWN.length, matches: matchRows.length + 1, investorSaved: 2, investorInquiries: openInvestorInquiry && respondedInvestorInquiry ? 2 : 0 };
+  return { clients: OWN.length + 1, listings: OWN.length + 1, counterpartyProperties: Object.keys(prop).length - OWN.length - 1, matches: matchRows.length + 1, investorSaved: 2, investorInquiries: 0, representations: 3, contactRequests: investorMatchId ? 1 : 0 };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

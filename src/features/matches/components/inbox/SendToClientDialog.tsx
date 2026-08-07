@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Download } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -6,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { useMatchLocalState } from "./useMatchLocalState";
+import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   rel: Relationship;
@@ -21,13 +24,26 @@ interface Props {
 export function SendToClientDialog({ rel, open, onOpenChange }: Props) {
   const { toast } = useToast();
   const { update } = useMatchLocalState(rel.matchId);
+  const [note, setNote] = useState("");
+  const [sending, setSending] = useState(false);
 
-  function confirmSend() {
+  async function confirmSend() {
+    setSending(true);
+    const { error } = await supabase.rpc("recommend_match_to_client" as any, {
+      p_match_id: rel.matchId,
+      p_note: note.trim() || null,
+    });
+    setSending(false);
+    if (error) {
+      toast({ title: "Couldn't recommend this match", description: error.message, variant: "destructive" });
+      return;
+    }
     update({ sentToClientAt: new Date().toISOString() });
     onOpenChange(false);
+    setNote("");
     toast({
-      title: "Marked as sent to client",
-      description: "Moved to “Sent to Client” in your pipeline.",
+      title: "Recommendation sent",
+      description: "Your client can review it in their investor workspace.",
     });
   }
 
@@ -53,15 +69,17 @@ export function SendToClientDialog({ rel, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Send to client?</DialogTitle>
+          <DialogTitle>Recommend this match?</DialogTitle>
           <DialogDescription>
             {rel.clientName ? (
-              <>This marks <strong>{rel.propertyName}</strong> as shared with <strong>{rel.clientName}</strong> and moves it to <strong>Sent to Client</strong> in your pipeline. Download the one-pager below to send them directly.</>
+              <>Send <strong>{rel.propertyName}</strong> to <strong>{rel.clientName}</strong>'s investor workspace. Their response will return to your action queue.</>
             ) : (
-              <>This marks <strong>{rel.propertyName}</strong> as shared with your client and moves it to <strong>Sent to Client</strong> in your pipeline. Download the one-pager below to send them directly.</>
+              <>Send <strong>{rel.propertyName}</strong> to your client's investor workspace. They must have accepted their client invitation first.</>
             )}
           </DialogDescription>
         </DialogHeader>
+
+        <Textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Why you think this could fit their exchange (optional)" rows={3} />
 
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={downloadOnePager}>
@@ -71,7 +89,7 @@ export function SendToClientDialog({ rel, open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={confirmSend}>Mark as sent</Button>
+          <Button onClick={confirmSend} disabled={sending}>{sending ? "Sending…" : "Recommend to client"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

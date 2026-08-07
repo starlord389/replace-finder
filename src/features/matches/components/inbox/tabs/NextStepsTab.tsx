@@ -183,7 +183,7 @@ export function NextStepsTab({
           <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/70" />
           <span>
             {audience === "investor"
-              ? "Contact details stay private until you connect with the listing agent. All messages happen in-app."
+              ? "Your representing agent handles all contact with the agent on the other side. You can continue reviewing and managing the opportunity here."
               : "Contact details stay private until your client expresses interest and the listing agent accepts the intro. All messages happen in-app."}
           </span>
         </div>

@@ -51,13 +51,16 @@ const AgentConnectionDetail = lazy(() => import("@/pages/agent/AgentConnectionDe
 const AgentSettings = lazy(() => import("@/pages/agent/AgentSettings"));
 const AgentHelp = lazy(() => import("@/pages/agent/AgentHelp"));
 const AgentNotifications = lazy(() => import("@/pages/agent/AgentNotifications"));
-const AgentInvestorInquiries = lazy(() => import("@/pages/agent/AgentInvestorInquiries"));
+const AgentRepresentation = lazy(() => import("@/pages/agent/AgentRepresentation"));
 const InvestorDashboard = lazy(() => import("@/pages/investor/InvestorDashboard"));
 const InvestorLaunchpad = lazy(() => import("@/pages/investor/InvestorLaunchpad"));
 const InvestorListings = lazy(() => import("@/pages/investor/InvestorListings"));
 const InvestorSettings = lazy(() => import("@/pages/investor/InvestorSettings"));
 const InvestorHelp = lazy(() => import("@/pages/investor/InvestorHelp"));
+const InvestorRepresentation = lazy(() => import("@/pages/investor/InvestorRepresentation"));
 const AcceptInvite = lazy(() => import("@/pages/auth/AcceptInvite"));
+const AcceptRepresentationInvite = lazy(() => import("@/pages/auth/AcceptRepresentationInvite"));
+const AdminRepresentations = lazy(() => import("@/pages/admin/AdminRepresentations"));
 const Unsubscribe = lazy(() => import("@/pages/Unsubscribe"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -111,6 +114,7 @@ const App = () => (
             {/* Auth callback — handles email-confirmation redirect, routes to dashboard */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/accept-invite" element={<AcceptInvite />} />
+            <Route path="/representation-invite" element={<AcceptRepresentationInvite />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
 
@@ -150,7 +154,8 @@ const App = () => (
               <Route path="/agent/messages" element={<Navigate to="/agent/pipeline" replace />} />
 
               <Route path="/agent/notifications" element={<AgentNotifications />} />
-              <Route path="/agent/investor-inquiries" element={<AgentInvestorInquiries />} />
+              <Route path="/agent/investor-inquiries" element={<Navigate to="/agent/representation" replace />} />
+              <Route path="/agent/representation" element={<AgentRepresentation />} />
               <Route path="/agent/profile" element={<Navigate to="/agent/settings" replace />} />
               <Route path="/agent/settings" element={<AgentSettings />} />
               <Route path="/agent/help" element={<AgentHelp />} />
@@ -166,13 +171,14 @@ const App = () => (
               <Route path="/investor/matches" element={<AgentMatches audience="investor" />} />
               <Route path="/investor/exchanges/new" element={<NewExchange ownerType="investor" />} />
               <Route path="/investor/exchanges/:id/edit" element={<EditExchange ownerType="investor" />} />
-              <Route path="/investor/connections/:id" element={<AgentConnectionDetail audience="investor" />} />
+              <Route path="/investor/connections/:id" element={<Navigate to="/investor/representation" replace />} />
               <Route path="/investor/notifications" element={<AgentNotifications />} />
               <Route path="/investor/marketplace" element={<Navigate to="/investor/matches" replace />} />
               <Route path="/investor/properties/:propertyId" element={<Navigate to="/investor/matches" replace />} />
               <Route path="/investor/saved" element={<Navigate to="/investor/matches" replace />} />
               <Route path="/investor/inquiries" element={<Navigate to="/investor/pipeline" replace />} />
               <Route path="/investor/settings" element={<InvestorSettings />} />
+              <Route path="/investor/representation" element={<InvestorRepresentation />} />
               <Route path="/investor/help" element={<InvestorHelp />} />
             </Route>
 
@@ -185,6 +191,7 @@ const App = () => (
               <Route path="/admin/deals/connections/:id" element={<AdminConnectionDetail />} />
               <Route path="/admin/demos" element={<AdminDemos />} />
               <Route path="/admin/intake" element={<AdminIntake />} />
+              <Route path="/admin/representations" element={<AdminRepresentations />} />
               <Route path="/admin/support" element={<SupportTickets />} />
               <Route path="/admin/feedback" element={<ArticleFeedback />} />
               <Route path="/admin/reports" element={<AdminReports />} />

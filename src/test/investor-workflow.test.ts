@@ -22,15 +22,21 @@ describe("investor match workflow", () => {
     expect(INVESTOR_FILTER_TABS.map((tab) => tab.key)).not.toContain("client_interested");
   });
 
-  it("routes a new investor match directly to the listing agent", () => {
+  it("routes a new investor match through the investor's representing agent", () => {
     const actions = nextActionsForAudience("new", "investor");
     expect(actions.primary).toEqual({
-      id: "message_listing_agent",
-      label: "Message Listing Agent",
+      id: "request_agent_contact",
+      label: "Ask My Agent to Connect",
     });
     expect(actions.secondary).toEqual([
       { id: "not_a_fit", label: "Not a Fit", tone: "destructive" },
     ]);
+  });
+
+  it("does not expose counterparty deal controls to investors after contact begins", () => {
+    expect(nextActionsForAudience("in_conversation", "investor").primary).toBeNull();
+    expect(nextActionsForAudience("loi", "investor").primary).toBeNull();
+    expect(nextActionsForAudience("under_contract", "investor").primary).toBeNull();
   });
 
   it("normalizes old agent-only demo states for the investor view", () => {

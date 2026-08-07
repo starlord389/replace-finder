@@ -18,6 +18,7 @@ import { MatchHistorySheet } from "./MatchHistorySheet";
 import { SendToClientDialog } from "./SendToClientDialog";
 import { AgentCommsCard } from "./AgentCommsCard";
 import { useMatchActions } from "./useMatchActions";
+import { InvestorRecommendationCard } from "@/features/representation/components/InvestorRecommendationCard";
 
 interface Props {
   rel: Relationship;
@@ -125,6 +126,8 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
         onJumpToMatch={previewMode ? undefined : () => setTab("match")}
         audience={audience}
       />
+
+      {audience === "investor" && !previewMode && <InvestorRecommendationCard matchId={rel.matchId} />}
 
       {/* One clean column: everything lives in the tabs */}
       <div className="px-5 py-6 sm:px-8 sm:py-8">

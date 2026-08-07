@@ -64,12 +64,12 @@ export const STATUS_HINTS: Record<UiStatus, string> = {
 };
 
 export const INVESTOR_STATUS_HINTS: Record<UiStatus, string> = {
-  new: "Fresh qualified match — review the property or contact its listing agent.",
-  sent_to_client: "Review the property and contact its listing agent when you are ready.",
-  client_interested: "You marked this property as interesting — contact the listing agent to continue.",
-  in_conversation: "You're talking with the listing agent. Request documents, schedule a call, or work toward an offer.",
-  loi: "Offer on the table. Update this match once it goes under contract.",
-  under_contract: "Under contract — mark it closed once the exchange completes.",
+  new: "Fresh qualified match — review it, then ask your representing agent to contact the other side.",
+  sent_to_client: "Review the property and tell your agent when you are ready to move forward.",
+  client_interested: "Your interest is recorded. Your agent will handle contact with the listing agent.",
+  in_conversation: "Your agent is communicating with the agent on the other side. Follow progress here.",
+  loi: "Your agent has logged an offer. Follow the deal status here.",
+  under_contract: "Under contract — your agent will keep the exchange milestones current.",
   closed: "Exchange completed.",
   archived: "Archived. Reactivate to resume work on this match.",
 };
@@ -183,10 +183,14 @@ export function nextActionsFor(status: UiStatus): {
 }
 
 export function nextActionsForAudience(status: UiStatus, audience: "agent" | "investor") {
-  if (audience === "investor" && status === "new") {
-    return {
-      primary: { id: "message_listing_agent", label: "Message Listing Agent" },
+  if (audience === "investor") {
+    if (status === "new") return {
+      primary: { id: "request_agent_contact", label: "Ask My Agent to Connect" },
       secondary: [{ id: "not_a_fit", label: "Not a Fit", tone: "destructive" as const }],
+    };
+    if (["in_conversation", "loi", "under_contract"].includes(status)) return {
+      primary: null,
+      secondary: [{ id: "archive", label: "Archive", tone: "destructive" as const }],
     };
   }
   return nextActionsFor(status);

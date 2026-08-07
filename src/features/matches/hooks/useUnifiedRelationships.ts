@@ -142,6 +142,8 @@ export interface Relationship {
   // raw refs for downstream
   buyerAgentId: string;
   sellerAgentId: string | null;
+  agentContactRequestId: string | null;
+  agentContactRequestStatus: string | null;
 }
 
 async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "agent" | "investor"): Promise<Relationship[]> {
@@ -149,11 +151,29 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
   // 1. My exchanges (for buyer-side matches) — scoped to the active workspace
   let exchangeQuery = supabase
     .from("exchanges")
-    .select("id, client_id, relinquished_property_id, owner_type")
+    .select("id, agent_id, client_id, relinquished_property_id, owner_type")
     .eq("agent_id", userId)
     .eq("is_demo", isDemo);
   if (!(isDemo && ownerType === "investor")) exchangeQuery = exchangeQuery.eq("owner_type", ownerType);
-  const { data: exchanges } = await exchangeQuery;
+  const { data: ownedExchanges } = await exchangeQuery;
+  let exchanges: any[] = ownedExchanges ?? [];
+  if (ownerType === "agent") {
+    const { data: assignments } = await (supabase
+      .from("exchange_agent_assignments" as any)
+      .select("exchange_id")
+      .eq("agent_id", userId)
+      .eq("status", "active") as any);
+    const assignedIds = (assignments ?? []).map((assignment: any) => assignment.exchange_id);
+    if (assignedIds.length) {
+      const { data: assignedExchanges } = await supabase
+        .from("exchanges")
+        .select("id, agent_id, client_id, relinquished_property_id, owner_type")
+        .in("id", assignedIds)
+        .eq("is_demo", isDemo);
+      const known = new Set(exchanges.map((exchange) => exchange.id));
+      exchanges = [...exchanges, ...(assignedExchanges ?? []).filter((exchange) => !known.has(exchange.id))];
+    }
+  }
   const myExchangeIds = (exchanges ?? []).map((e) => e.id);
   const relinquishedIds = (exchanges ?? [])
     .map((e: any) => e.relinquished_property_id)
@@ -213,6 +233,10 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     .or(`buyer_agent_id.eq.${userId},seller_agent_id.eq.${userId}`);
   const connByMatch = new Map<string, any>();
   (connections ?? []).forEach((c) => connByMatch.set(c.match_id, c));
+  const { data: contactRequests } = ownerType === "investor"
+    ? await (supabase.from("agent_contact_requests" as any).select("id, match_id, status").eq("investor_id", userId) as any)
+    : { data: [] as any[] };
+  const contactByMatch = new Map((contactRequests ?? []).map((request: any) => [request.match_id, request]));
 
   // 6. Hydrate properties + financials + images (for ALL involved seller properties)
   const allSellerPropIds = Array.from(
@@ -258,7 +282,8 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
   const clientIds = Array.from(
     new Set((exchanges ?? []).map((e) => e.client_id).filter(Boolean)),
   ) as string[];
-  const [clientsRes, relPropsRes] = await Promise.all([
+  const representedInvestorIds = Array.from(new Set((exchanges ?? []).filter((exchange: any) => exchange.owner_type === "investor").map((exchange: any) => exchange.agent_id))) as string[];
+  const [clientsRes, relPropsRes, representedProfilesRes] = await Promise.all([
     clientIds.length
       ? supabase.from("agent_clients").select("id, client_name").in("id", clientIds)
       : Promise.resolve({ data: [] as any[] }),
@@ -268,14 +293,22 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
           .select("id, property_name, city, state, asset_type")
           .in("id", relinquishedIds)
       : Promise.resolve({ data: [] as any[] }),
+    representedInvestorIds.length
+      ? supabase.from("profiles").select("id, full_name, email").in("id", representedInvestorIds)
+      : Promise.resolve({ data: [] as any[] }),
   ]);
   const clientMap = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c.client_name]));
+  const representedNameMap = new Map((representedProfilesRes.data ?? []).map((profile: any) => [profile.id, profile.full_name || profile.email]));
   const exClientNameMap = new Map<string, string>();
   const exClientIdMap = new Map<string, string>();
   (exchanges ?? []).forEach((e: any) => {
     exClientNameMap.set(
       e.id,
-      ownerType === "investor" ? "Your exchange" : (clientMap.get(e.client_id) || "Client"),
+      ownerType === "investor"
+        ? "Your exchange"
+        : e.owner_type === "investor"
+          ? (representedNameMap.get(e.agent_id) || "Represented investor")
+          : (clientMap.get(e.client_id) || "Client"),
     );
     if (e.client_id) exClientIdMap.set(e.id, e.client_id);
   });
@@ -361,6 +394,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
   function build(match: any, mySide: "buyer" | "seller"): Relationship {
     seenMatchIds.add(match.id);
     const conn = connByMatch.get(match.id) ?? null;
+    const contactRequest: any = contactByMatch.get(match.id) ?? null;
     const prop = propMap.get(match.seller_property_id);
     const fin = finMap.get(match.seller_property_id);
     const imgs = imgMap.get(match.seller_property_id) ?? [];
@@ -514,6 +548,8 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
           : myExchangeIds.includes(match.buyer_exchange_id),
       buyerAgentId: conn?.buyer_agent_id ?? (mySide === "buyer" ? userId : null),
       sellerAgentId: conn?.seller_agent_id ?? prop?.agent_id ?? null,
+      agentContactRequestId: contactRequest?.id ?? null,
+      agentContactRequestStatus: contactRequest?.status ?? null,
     };
   }
 
