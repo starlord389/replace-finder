@@ -24,16 +24,14 @@ export interface AgentListing {
 }
 
 async function fetchAgentListings(userId: string, isDemo: boolean, ownerType: "agent" | "investor"): Promise<AgentListing[]> {
-  let query = supabase
+  const query = supabase
     .from("exchanges")
     .select(
       "id, status, created_at, relinquished_property_id, client_id, pipeline_stage_override, agent_clients(client_name)"
     )
     .eq("agent_id", userId)
-    .eq("is_demo", isDemo);
-  // The owner/admin demo account reuses the mature agent demo dataset so the
-  // Investor View is immediately populated. Live workspaces remain separated.
-  if (!(isDemo && ownerType === "investor")) query = query.eq("owner_type", ownerType);
+    .eq("is_demo", isDemo)
+    .eq("owner_type", ownerType);
   const { data, error } = await query.order("created_at", { ascending: false });
   if (error) throw error;
 

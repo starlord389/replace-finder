@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   INVESTOR_FILTER_TABS,
   INVESTOR_LIFECYCLE_ORDER,
@@ -26,6 +28,23 @@ const EMPTY_LOCAL_STATE: MatchLocalState = {
   agentNote: "",
 };
 
+const relationshipSource = readFileSync(
+  resolve(process.cwd(), "src/features/matches/hooks/useUnifiedRelationships.ts"),
+  "utf8",
+);
+const listingSource = readFileSync(
+  resolve(process.cwd(), "src/features/pipeline/hooks/useAgentListings.ts"),
+  "utf8",
+);
+const actionSource = readFileSync(
+  resolve(process.cwd(), "src/features/matches/components/inbox/useMatchActions.ts"),
+  "utf8",
+);
+const demoDataSource = readFileSync(
+  resolve(process.cwd(), "supabase/functions/demo-data/index.ts"),
+  "utf8",
+);
+
 describe("investor match workflow", () => {
   it("removes agent/client-only lifecycle stages", () => {
     expect(INVESTOR_LIFECYCLE_ORDER).toEqual([
@@ -48,6 +67,16 @@ describe("investor match workflow", () => {
     expect(actions.secondary).toEqual([
       { id: "not_a_fit", label: "Not a Fit", tone: "destructive" },
     ]);
+  });
+
+  it("keeps investor demo actions on investor-owned exchanges and refreshes request state", () => {
+    expect(relationshipSource).toContain('.eq("owner_type", ownerType)');
+    expect(listingSource).toContain('.eq("owner_type", ownerType)');
+    expect(relationshipSource).not.toContain('isDemo && ownerType === "investor"');
+    expect(listingSource).not.toContain('isDemo && ownerType === "investor"');
+    expect(actionSource).toContain('queryKey: ["unified-relationships"]');
+    expect(actionSource).toContain("Couldn't complete this action");
+    expect(demoDataSource).toContain('buildEngineMatch(db, investorEx.id, prop["Crosspoint Industrial"])');
   });
 
   it("does not expose counterparty deal controls to investors after contact begins", () => {

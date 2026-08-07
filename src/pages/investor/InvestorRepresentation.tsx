@@ -1,16 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { BriefcaseBusiness, CheckCircle2, Clock3, Link2, Search, ShieldCheck, UserRoundPlus } from "lucide-react";
+import { BriefcaseBusiness, CheckCircle2, Clock3, Link2, MessageSquareText, Search, ShieldCheck, UserRoundPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { inviteRepresentingAgent, requestAgentReferral, setDefaultRepresentation, unassignAgentFromExchange } from "@/features/representation/api";
-import { useExchangeAssignments, useRepresentationInvites, useRepresentations } from "@/features/representation/hooks/useRepresentations";
+import { useAgentContactRequests, useExchangeAssignments, useRepresentationInvites, useRepresentations } from "@/features/representation/hooks/useRepresentations";
 import {
+  investorContactRequestStatusLabel,
   representationStatusLabel,
+  type AgentContactRequest,
   type ExchangeAssignment,
   type Representation,
   type RepresentationInvite,
@@ -44,6 +47,7 @@ type PropertySummary = Pick<Tables<"pledged_properties_secure">, "id" | "propert
 const EMPTY_REPRESENTATIONS: Representation[] = [];
 const EMPTY_ASSIGNMENTS: ExchangeAssignment[] = [];
 const EMPTY_INVITES: RepresentationInvite[] = [];
+const EMPTY_CONTACT_REQUESTS: AgentContactRequest[] = [];
 
 export default function InvestorRepresentation() {
   const { user } = useAuth();
@@ -51,9 +55,11 @@ export default function InvestorRepresentation() {
   const queryClient = useQueryClient();
   const { data: representations = EMPTY_REPRESENTATIONS, isLoading } = useRepresentations("investor");
   const { data: assignments = EMPTY_ASSIGNMENTS } = useExchangeAssignments("investor");
+  const { data: contactRequests = EMPTY_CONTACT_REQUESTS } = useAgentContactRequests("investor");
   const { data: invites = EMPTY_INVITES } = useRepresentationInvites();
   const [exchanges, setExchanges] = useState<ExchangeOption[]>([]);
   const [profiles, setProfiles] = useState<Record<string, AgentProfile>>({});
+  const [requestPropertyLabels, setRequestPropertyLabels] = useState<Record<string, string>>({});
   const [agentForm, setAgentForm] = useState({ name: "", email: "", assignFuture: true });
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [referralForm, setReferralForm] = useState({ exchangeId: "", location: "", propertyType: "", timing: "", notes: "" });
@@ -94,6 +100,16 @@ export default function InvestorRepresentation() {
       .then(({ data }) => setProfiles(Object.fromEntries((data ?? []).map((profile) => [profile.id, profile]))));
   }, [representations]);
 
+  useEffect(() => {
+    const propertyIds = [...new Set(contactRequests.map((request) => request.property_id))];
+    if (!propertyIds.length) return setRequestPropertyLabels({});
+    supabase.from("pledged_properties_secure").select("id, property_name, city, state").in("id", propertyIds)
+      .then(({ data }) => setRequestPropertyLabels(Object.fromEntries((data ?? []).map((property) => [
+        property.id,
+        property.property_name || [property.city, property.state].filter(Boolean).join(", ") || "Matched property",
+      ]))));
+  }, [contactRequests]);
+
   const active = representations.find((representation) => representation.status === "active" && representation.is_default)
     ?? representations.find((representation) => representation.status === "active");
   const activeRepresentations = useMemo(() => representations.filter((representation) => representation.status === "active" && representation.agent_id), [representations]);
@@ -117,6 +133,7 @@ export default function InvestorRepresentation() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["representations"] }),
       queryClient.invalidateQueries({ queryKey: ["exchange-agent-assignments"] }),
+      queryClient.invalidateQueries({ queryKey: ["agent-contact-requests"] }),
       queryClient.invalidateQueries({ queryKey: ["representation-invites"] }),
     ]);
   }
@@ -253,6 +270,42 @@ export default function InvestorRepresentation() {
           <AlertTitle>You can keep building your exchange</AlertTitle>
           <AlertDescription>An agent is only required when you want the other side contacted. Your listings, criteria, saved matches, and analysis remain available.</AlertDescription>
         </Alert>
+      )}
+
+      {contactRequests.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MessageSquareText className="h-5 w-5" /> Match contact requests
+            </CardTitle>
+            <CardDescription>
+              Track the matches you asked your agent to take to the other side.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {contactRequests.map((request) => (
+              <div key={request.id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate font-medium">
+                      {requestPropertyLabels[request.property_id] || "Matched property"}
+                    </p>
+                    <Badge variant={["declined", "closed"].includes(request.status) ? "outline" : "secondary"}>
+                      {investorContactRequestStatusLabel[request.status]}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Requested {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
+                  </p>
+                  {request.agent_note && <p className="mt-2 text-sm text-muted-foreground">Agent note: {request.agent_note}</p>}
+                </div>
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/investor/matches?match=${request.match_id}`}>Review match</Link>
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       )}
 
       {openRepresentations.length > 0 && (

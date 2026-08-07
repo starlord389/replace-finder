@@ -30,6 +30,8 @@ describe("representation management interfaces", () => {
     expect(investorWorkspace).toContain("removeExchangeAgent");
     expect(investorWorkspace).toContain("Default agent");
     expect(investorWorkspace).toContain("Automatically assign to new exchanges");
+    expect(investorWorkspace).toContain("Match contact requests");
+    expect(investorWorkspace).toContain("investorContactRequestStatusLabel");
   });
 
   it("shows agents the exchanges assigned by each represented client", () => {

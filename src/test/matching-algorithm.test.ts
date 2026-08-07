@@ -50,6 +50,26 @@ describe("production matching invariants", () => {
     if ("reason" in worseReturn) expect(worseReturn.reason).toContain("no ROE upgrade");
   });
 
+  it("keeps the unrequested investor demo match eligible for workflow testing", () => {
+    const principal = 1_350_000;
+    const monthlyRate = 0.046 / 12;
+    const payments = 360;
+    const annualDebtService = Math.round(
+      ((principal * monthlyRate * Math.pow(1 + monthlyRate, payments))
+        / (Math.pow(1 + monthlyRate, payments) - 1)) * 12,
+    );
+    const result = scorePairExplained(
+      { exchange_proceeds: 1_500_000, estimated_equity: 1_500_000 },
+      { asking_price: 3_150_000, loan_balance: principal, noi: 166_950, annual_debt_service: annualDebtService },
+      { asset_type: "industrial", strategy_type: "core_plus", city: "Charlotte", state: "NC" },
+      { asking_price: 3_200_000, noi: 224_000 },
+      {},
+      settings,
+    );
+
+    expect(result.ok).toBe(true);
+  });
+
   it("calculates boot from the modeled buyer loan and ignores seller debt", () => {
     const result = calculateBoot(
       {},

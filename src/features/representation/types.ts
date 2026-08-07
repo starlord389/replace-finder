@@ -105,3 +105,13 @@ export const contactRequestStatusLabel: Record<AgentContactRequest["status"], st
   declined: "Agent passed",
   closed: "Closed",
 };
+
+export const investorContactRequestStatusLabel: Record<AgentContactRequest["status"], string> = {
+  waiting_for_agent: "Waiting for an agent",
+  requested: "Sent to your agent",
+  accepted: "Agent reviewing",
+  awaiting_counterparty_agent: "Other side is assigning an agent",
+  contacted: "Agents connecting",
+  declined: "Agent passed",
+  closed: "Closed",
+};

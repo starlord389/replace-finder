@@ -97,7 +97,10 @@ export function useMatchActions(
           return;
         case "request_agent_contact":
           await requestAgentContact(rel.buyerExchangeId, rel.matchId);
-          await queryClient.invalidateQueries({ queryKey: ["agent-contact-requests"] });
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["agent-contact-requests"] }),
+            queryClient.invalidateQueries({ queryKey: ["unified-relationships"] }),
+          ]);
           toast({ title: "Request sent", description: "Your agent will review the match and handle contact with the listing agent. If you still need an agent, your request will stay saved." });
           return;
         case "view_agent_request":
@@ -213,6 +216,16 @@ export function useMatchActions(
         default:
           toast({ title: label });
       }
+    } catch (error: unknown) {
+      toast({
+        title: "Couldn't complete this action",
+        description: error instanceof Error
+          ? error.message
+          : typeof error === "object" && error && "message" in error
+            ? String(error.message)
+            : "Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setBusy(null);
     }

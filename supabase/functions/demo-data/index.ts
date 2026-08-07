@@ -403,6 +403,9 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     buildEngineMatch(db, patel, prop["Westshore Corporate Center"]),
     buildEngineMatch(db, wilson, prop["Westshore Corporate Center"], { buyer_agent_viewed: true, buyer_agent_viewed_at: dFrom(-1) + "T18:00:00Z" }),
     buildEngineMatch(db, investorEx.id, prop["Westshore Corporate Center"]),
+    // Leave this second investor-owned match without a contact request so the
+    // Investor Demo can exercise the complete "Ask My Agent to Connect" flow.
+    buildEngineMatch(db, investorEx.id, prop["Crosspoint Industrial"]),
   ]);
   const { data: matches, error: mErr } = await db.from("matches").insert(matchRows).select("id, buyer_exchange_id, seller_property_id");
   if (mErr) throw new Error(`matches insert failed: ${mErr.message}`);

@@ -151,12 +151,12 @@ export interface Relationship {
 async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "agent" | "investor"): Promise<Relationship[]> {
   const basePath = ownerType === "investor" ? "/investor" : "/agent";
   // 1. My exchanges (for buyer-side matches) — scoped to the active workspace
-  let exchangeQuery = supabase
+  const exchangeQuery = supabase
     .from("exchanges")
     .select("id, agent_id, client_id, relinquished_property_id, owner_type")
     .eq("agent_id", userId)
-    .eq("is_demo", isDemo);
-  if (!(isDemo && ownerType === "investor")) exchangeQuery = exchangeQuery.eq("owner_type", ownerType);
+    .eq("is_demo", isDemo)
+    .eq("owner_type", ownerType);
   const { data: ownedExchanges } = await exchangeQuery;
   let exchanges: any[] = ownedExchanges ?? [];
   if (ownerType === "agent") {

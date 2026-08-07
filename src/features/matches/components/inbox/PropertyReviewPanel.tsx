@@ -20,6 +20,8 @@ import { AgentCommsCard } from "./AgentCommsCard";
 import { useMatchActions } from "./useMatchActions";
 import { InvestorRecommendationCard } from "@/features/representation/components/InvestorRecommendationCard";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
+import { investorContactRequestStatusLabel } from "@/features/representation/types";
 
 interface Props {
   rel: Relationship;
@@ -74,6 +76,9 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
       status === "loi" ||
       status === "under_contract" ||
       status === "closed");
+  const activeInvestorRequest = audience === "investor"
+    && rel.agentContactRequestStatus
+    && !["declined", "closed"].includes(rel.agentContactRequestStatus);
 
   const tabs = [
     { v: "overview", label: "Overview" },
@@ -129,6 +134,19 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
       />
 
       {audience === "investor" && !previewMode && <InvestorRecommendationCard matchId={rel.matchId} />}
+      {activeInvestorRequest && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-blue-200 bg-blue-50/70 px-5 py-3 sm:px-8">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Your agent request is active</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {investorContactRequestStatusLabel[rel.agentContactRequestStatus as keyof typeof investorContactRequestStatusLabel]}
+            </p>
+          </div>
+          <Link className="text-xs font-semibold text-primary hover:underline" to="/investor/representation">
+            Track in My Agent
+          </Link>
+        </div>
+      )}
       {audience === "agent" && !previewMode && rel.clientRecommendationResponse && rel.clientRecommendationResponse !== "pending" && (
         <div className="border-b border-border bg-violet-50/60 px-5 py-3 sm:px-8">
           <div className="flex flex-wrap items-center gap-2">
