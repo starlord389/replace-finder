@@ -194,7 +194,7 @@ export default function InvestorRepresentation() {
           {openRepresentations.filter((representation) => representation.id !== active?.id).map((representation) => (
             <Card key={representation.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-                <div className="flex items-center gap-3"><Clock3 className="h-5 w-5 text-amber-600" /><div><p className="text-sm font-semibold">{profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email || "Agent referral request"}</p><p className="text-xs text-muted-foreground">{representationStatusLabel[representation.status]} · {representation.source.replaceAll("_", " ")}</p></div></div>
+                <div className="flex items-center gap-3"><Clock3 className="h-5 w-5 text-amber-600" /><div><p className="text-sm font-semibold">{profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email || "Agent referral request"}</p><p className="text-xs text-muted-foreground">{representationStatusLabel[representation.status]} · {representation.source.replace(/_/g, " ")}</p></div></div>
                 {representation.status === "awaiting_investor_confirmation" && <div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => confirmReferral(representation, false)} disabled={busy === representation.id}>Request someone else</Button><Button size="sm" onClick={() => confirmReferral(representation, true)} disabled={busy === representation.id}><CheckCircle2 className="mr-1.5 h-4 w-4" />Confirm agent</Button></div>}
                 {representation.status === "active" && <Button size="sm" variant="outline" onClick={() => endRepresentation(representation)} disabled={busy === representation.id}>End representation</Button>}
               </CardContent>
@@ -206,7 +206,7 @@ export default function InvestorRepresentation() {
       {active && unassignedExchanges.length > 0 && (
         <Card>
           <CardHeader><CardTitle className="text-lg">Assign existing exchanges</CardTitle><CardDescription>Give your agent access only to the exchanges they will represent.</CardDescription></CardHeader>
-          <CardContent className="space-y-2">{unassignedExchanges.map((exchange) => <div key={exchange.id} className="flex items-center justify-between gap-3 rounded-lg border p-3"><div><p className="text-sm font-medium">{exchange.label}</p><p className="text-xs capitalize text-muted-foreground">{exchange.status.replaceAll("_", " ")}</p></div><Button size="sm" variant="outline" onClick={() => assignExchange(exchange.id, active)} disabled={busy === exchange.id}>Assign agent</Button></div>)}</CardContent>
+          <CardContent className="space-y-2">{unassignedExchanges.map((exchange) => <div key={exchange.id} className="flex items-center justify-between gap-3 rounded-lg border p-3"><div><p className="text-sm font-medium">{exchange.label}</p><p className="text-xs capitalize text-muted-foreground">{exchange.status.replace(/_/g, " ")}</p></div><Button size="sm" variant="outline" onClick={() => assignExchange(exchange.id, active)} disabled={busy === exchange.id}>Assign agent</Button></div>)}</CardContent>
         </Card>
       )}
 

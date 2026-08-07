@@ -456,7 +456,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
       investor_id: ownerId, investor_email: ownerProfile.email, agent_id: cpAgent["Elena Vasquez"],
       agent_email: COUNTERPARTIES.find((agent) => agent.full_name === "Elena Vasquez")!.email,
       agent_name: "Elena Vasquez", status: "awaiting_acceptance", source: "investor_invite",
-      is_demo: true, invited_by: ownerId,
+      is_demo: true, invited_by: ownerId, request_context: {},
     },
     {
       investor_id: ownerId, investor_email: ownerProfile.email, agent_id: null, agent_email: "",

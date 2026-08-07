@@ -83,6 +83,8 @@ function buildPreviewRel(listing: AgentListing, basePath: string): Relationship 
     buyerAgentId: "",
     sellerAgentId: null,
     isSameAgent: false,
+    agentContactRequestId: null,
+    agentContactRequestStatus: null,
 
   };
 }
