@@ -144,6 +144,8 @@ export interface Relationship {
   sellerAgentId: string | null;
   agentContactRequestId: string | null;
   agentContactRequestStatus: string | null;
+  clientRecommendationResponse: string | null;
+  clientRecommendationNote: string | null;
 }
 
 async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "agent" | "investor"): Promise<Relationship[]> {
@@ -233,10 +235,16 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     .or(`buyer_agent_id.eq.${userId},seller_agent_id.eq.${userId}`);
   const connByMatch = new Map<string, any>();
   (connections ?? []).forEach((c) => connByMatch.set(c.match_id, c));
-  const { data: contactRequests } = ownerType === "investor"
-    ? await (supabase.from("agent_contact_requests" as any).select("id, match_id, status").eq("investor_id", userId) as any)
-    : { data: [] as any[] };
+  const [{ data: contactRequests }, { data: recommendations }] = await Promise.all([
+    ownerType === "investor"
+      ? (supabase.from("agent_contact_requests" as any).select("id, match_id, status").eq("investor_id", userId) as any)
+      : (supabase.from("agent_contact_requests" as any).select("id, match_id, status").eq("representing_agent_id", userId) as any),
+    ownerType === "agent"
+      ? (supabase.from("agent_match_recommendations" as any).select("match_id, response, response_note").eq("agent_id", userId) as any)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
   const contactByMatch = new Map((contactRequests ?? []).map((request: any) => [request.match_id, request]));
+  const recommendationByMatch = new Map((recommendations ?? []).map((recommendation: any) => [recommendation.match_id, recommendation]));
 
   // 6. Hydrate properties + financials + images (for ALL involved seller properties)
   const allSellerPropIds = Array.from(
@@ -395,6 +403,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     seenMatchIds.add(match.id);
     const conn = connByMatch.get(match.id) ?? null;
     const contactRequest: any = contactByMatch.get(match.id) ?? null;
+    const recommendation: any = recommendationByMatch.get(match.id) ?? null;
     const prop = propMap.get(match.seller_property_id);
     const fin = finMap.get(match.seller_property_id);
     const imgs = imgMap.get(match.seller_property_id) ?? [];
@@ -550,6 +559,8 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
       sellerAgentId: conn?.seller_agent_id ?? prop?.agent_id ?? null,
       agentContactRequestId: contactRequest?.id ?? null,
       agentContactRequestStatus: contactRequest?.status ?? null,
+      clientRecommendationResponse: recommendation?.response ?? null,
+      clientRecommendationNote: recommendation?.response_note ?? null,
     };
   }
 
@@ -583,12 +594,22 @@ export function useUnifiedRelationships(ownerType: "agent" | "investor" = "agent
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "messages" },
-        () => qc.invalidateQueries({ queryKey: ["unified-relationships", user.id] }),
+        () => qc.invalidateQueries({ queryKey: ["unified-relationships"] }),
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "exchange_connections" },
-        () => qc.invalidateQueries({ queryKey: ["unified-relationships", user.id] }),
+        () => qc.invalidateQueries({ queryKey: ["unified-relationships"] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "agent_contact_requests" },
+        () => qc.invalidateQueries({ queryKey: ["unified-relationships"] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "agent_match_recommendations" },
+        () => qc.invalidateQueries({ queryKey: ["unified-relationships"] }),
       )
       .subscribe();
     return () => {

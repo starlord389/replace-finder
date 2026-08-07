@@ -19,6 +19,7 @@ import { SendToClientDialog } from "./SendToClientDialog";
 import { AgentCommsCard } from "./AgentCommsCard";
 import { useMatchActions } from "./useMatchActions";
 import { InvestorRecommendationCard } from "@/features/representation/components/InvestorRecommendationCard";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   rel: Relationship;
@@ -128,6 +129,19 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
       />
 
       {audience === "investor" && !previewMode && <InvestorRecommendationCard matchId={rel.matchId} />}
+      {audience === "agent" && !previewMode && rel.clientRecommendationResponse && rel.clientRecommendationResponse !== "pending" && (
+        <div className="border-b border-border bg-violet-50/60 px-5 py-3 sm:px-8">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-foreground">Client response</p>
+            <Badge variant="outline" className="capitalize">
+              {rel.clientRecommendationResponse}
+            </Badge>
+          </div>
+          {rel.clientRecommendationNote && (
+            <p className="mt-1.5 text-sm text-muted-foreground">“{rel.clientRecommendationNote}”</p>
+          )}
+        </div>
+      )}
 
       {/* One clean column: everything lives in the tabs */}
       <div className="px-5 py-6 sm:px-8 sm:py-8">

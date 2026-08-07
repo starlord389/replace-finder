@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
-import { deriveUiStatus, nextActionsForAudience, statusForAudience } from "./inboxHelpers";
+import { deriveUiStatus, nextActionsForRelationship, statusForAudience } from "./inboxHelpers";
 import { useMatchLocalState } from "./useMatchLocalState";
 import { requestAgentContact, startAgentConnection } from "@/features/representation/api";
 
@@ -19,20 +19,9 @@ export function useMatchActions(
 ) {
   const { state, update } = useMatchLocalState(rel.matchId);
   const status = statusForAudience(deriveUiStatus(rel, state), audience);
-  const baseActions = nextActionsForAudience(status, audience);
-  const primary = audience === "investor" && rel.agentContactRequestStatus && !["declined", "closed"].includes(rel.agentContactRequestStatus)
-    ? {
-        id: "view_agent_request",
-        label: rel.agentContactRequestStatus === "waiting_for_agent"
-          ? "Agent Needed — Request Saved"
-          : rel.agentContactRequestStatus === "awaiting_counterparty_agent"
-            ? "Other Side Is Assigning an Agent"
-            : rel.agentContactRequestStatus === "contacted"
-              ? "Agents Are Connecting"
-              : "Request Sent to My Agent",
-      }
-    : baseActions.primary;
-  const secondary = baseActions.secondary;
+  const actions = nextActionsForRelationship(rel, status, audience);
+  const primary = actions.primary;
+  const secondary = actions.secondary;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
@@ -68,20 +57,26 @@ export function useMatchActions(
     }
     if (!rel.connectionId) {
       try {
-        const connectionId = await startAgentConnection(rel.matchId);
+        const connectionId = await startAgentConnection(
+          rel.matchId,
+          audience === "agent" ? rel.agentContactRequestId ?? undefined : undefined,
+        );
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["unified-relationships"] }),
+          queryClient.invalidateQueries({ queryKey: ["agent-contact-requests"] }),
+        ]);
         if (!connectionId) {
           toast({ title: "Waiting for representation", description: "The property owner is assigning an agent. Your interest has been preserved." });
           return;
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         toast({
           title: "Couldn't start conversation",
-          description: error.message,
+          description: error instanceof Error ? error.message : "Unable to start the agent connection.",
           variant: "destructive",
         });
         return;
       }
-      await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
       toast({ title: "Connection requested", description: "The other agent needs to accept before messaging opens." });
       return;
     }
@@ -108,6 +103,25 @@ export function useMatchActions(
         case "view_agent_request":
           toast({ title: "Your request is in progress", description: "Open My Agent to see representation and request status." });
           return;
+        case "decline_client_request": {
+          if (!rel.agentContactRequestId) return;
+          const reason = window.prompt("Add a short explanation for your client (optional):");
+          if (reason === null) return;
+          const { error } = await supabase.rpc("decline_agent_contact_request", {
+            p_request_id: rel.agentContactRequestId,
+            p_note: reason.trim() || null,
+          });
+          if (error) {
+            toast({ title: "Couldn't pass on this request", description: error.message, variant: "destructive" });
+            return;
+          }
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["agent-contact-requests"] }),
+            queryClient.invalidateQueries({ queryKey: ["unified-relationships"] }),
+          ]);
+          toast({ title: "Client request updated", description: "Your client was notified." });
+          return;
+        }
         case "mark_interested":
           update({ clientInterestedAt: new Date().toISOString() });
           toast({ title: audience === "investor" ? "Marked Interested" : "Marked Client Interested" });

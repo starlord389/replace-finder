@@ -37,6 +37,14 @@ describe("representation management interfaces", () => {
     expect(agentWorkspace).toContain("clientAssignments");
   });
 
+  it("reviews client-requested matches in place instead of navigating away", () => {
+    expect(agentWorkspace).toContain("selectedRequestId");
+    expect(agentWorkspace).toContain('searchParams.get("request")');
+    expect(agentWorkspace).toContain("<PropertyReviewPanel rel={selectedRequestRel}");
+    expect(agentWorkspace).toContain("Your client has already reviewed this match");
+    expect(agentWorkspace).not.toContain("to={`/agent/matches?match=${request.match_id}`}");
+  });
+
   it("uses stable empty query results so loading effects cannot cause render loops", () => {
     expect(investorWorkspace).toContain("data: representations = EMPTY_REPRESENTATIONS");
     expect(investorWorkspace).toContain("data: assignments = EMPTY_ASSIGNMENTS");

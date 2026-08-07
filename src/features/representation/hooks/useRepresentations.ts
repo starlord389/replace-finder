@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
@@ -26,16 +27,18 @@ export function useRepresentations(perspective: "investor" | "agent") {
 
 export function useExchangeAssignments(perspective: "investor" | "agent") {
   const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
   return useQuery({
-    queryKey: ["exchange-agent-assignments", perspective, user?.id],
+    queryKey: ["exchange-agent-assignments", perspective, user?.id, isDemo],
     enabled: !!user,
     queryFn: async () => {
       const column = perspective === "investor" ? "investor_id" : "agent_id";
       const { data, error } = await (supabase
         .from("exchange_agent_assignments" as any)
-        .select("*")
+        .select("*, agent_representations!inner(is_demo)")
         .eq(column, user!.id)
-        .eq("status", "active") as any);
+        .eq("status", "active")
+        .eq("agent_representations.is_demo", isDemo) as any);
       if (error) throw error;
       return (data ?? []) as ExchangeAssignment[];
     },
@@ -44,20 +47,43 @@ export function useExchangeAssignments(perspective: "investor" | "agent") {
 
 export function useAgentContactRequests(perspective: "investor" | "agent") {
   const { user } = useAuth();
-  return useQuery({
-    queryKey: ["agent-contact-requests", perspective, user?.id],
+  const { isDemo } = useWorkspaceMode();
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: ["agent-contact-requests", perspective, user?.id, isDemo],
     enabled: !!user,
     queryFn: async () => {
       const column = perspective === "investor" ? "investor_id" : "representing_agent_id";
       const { data, error } = await (supabase
         .from("agent_contact_requests" as any)
-        .select("*")
+        .select("*, exchanges!inner(is_demo)")
         .eq(column, user!.id)
+        .eq("exchanges.is_demo", isDemo)
         .order("requested_at", { ascending: false }) as any);
       if (error) throw error;
       return (data ?? []) as AgentContactRequest[];
     },
   });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`agent-contact-requests-${perspective}-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "agent_contact_requests" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["agent-contact-requests"] });
+          queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [perspective, queryClient, user?.id]);
+
+  return query;
 }
 
 export function useRepresentationInvites() {

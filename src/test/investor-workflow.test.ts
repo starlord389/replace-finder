@@ -2,12 +2,29 @@ import { describe, expect, it } from "vitest";
 import {
   INVESTOR_FILTER_TABS,
   INVESTOR_LIFECYCLE_ORDER,
+  deriveUiStatus,
   nextActionsForAudience,
+  nextActionsForRelationship,
   rankExplanation,
   rankReason,
   statusForAudience,
 } from "@/features/matches/components/inbox/inboxHelpers";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
+import type { MatchLocalState } from "@/features/matches/components/inbox/useMatchLocalState";
+
+const EMPTY_LOCAL_STATE: MatchLocalState = {
+  sentToClientAt: null,
+  clientInterestedAt: null,
+  conversationStartedAt: null,
+  loiSentAt: null,
+  underContractAt: null,
+  closedAt: null,
+  archivedAt: null,
+  notFitAt: null,
+  clientPassedAt: null,
+  sellerUnavailableAt: null,
+  agentNote: "",
+};
 
 describe("investor match workflow", () => {
   it("removes agent/client-only lifecycle stages", () => {
@@ -37,6 +54,43 @@ describe("investor match workflow", () => {
     expect(nextActionsForAudience("in_conversation", "investor").primary).toBeNull();
     expect(nextActionsForAudience("loi", "investor").primary).toBeNull();
     expect(nextActionsForAudience("under_contract", "investor").primary).toBeNull();
+  });
+
+  it("treats an investor-originated contact request as client interest for the agent", () => {
+    const relationship = {
+      agentContactRequestId: "request-1",
+      agentContactRequestStatus: "requested",
+      clientRecommendationResponse: null,
+      stage: "new",
+    } as unknown as Relationship;
+    const status = deriveUiStatus(relationship, EMPTY_LOCAL_STATE);
+
+    expect(status).toBe("client_interested");
+    expect(nextActionsForRelationship(relationship, status, "agent").primary).toEqual({
+      id: "message_listing_agent",
+      label: "Contact Listing Agent",
+    });
+    expect(nextActionsForRelationship(relationship, status, "agent").secondary).toEqual([
+      { id: "decline_client_request", label: "Pass on Client Request", tone: "destructive" },
+    ]);
+    expect(nextActionsForRelationship(relationship, statusForAudience(status, "investor"), "investor").primary).toEqual({
+      id: "view_agent_request",
+      label: "Request Sent to My Agent",
+    });
+  });
+
+  it("uses persisted recommendation responses instead of asking the agent to resend", () => {
+    const interested = {
+      agentContactRequestStatus: null,
+      clientRecommendationResponse: "interested",
+      stage: "new",
+    } as unknown as Relationship;
+    const pending = { ...interested, clientRecommendationResponse: "pending" } as Relationship;
+    const passed = { ...interested, clientRecommendationResponse: "passed" } as Relationship;
+
+    expect(deriveUiStatus(interested, EMPTY_LOCAL_STATE)).toBe("client_interested");
+    expect(deriveUiStatus(pending, EMPTY_LOCAL_STATE)).toBe("sent_to_client");
+    expect(deriveUiStatus(passed, EMPTY_LOCAL_STATE)).toBe("archived");
   });
 
   it("normalizes old agent-only demo states for the investor view", () => {

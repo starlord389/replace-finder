@@ -80,7 +80,11 @@ export function deriveUiStatus(rel: Relationship, local: MatchLocalState): UiSta
   // A real completed deal (DB) wins over local archive/not-a-fit flags so a
   // closed-won match never shows as "Archived" just because it was set aside locally.
   if (rel.stage === "closed_won" || local.closedAt) return "closed";
-  if (local.archivedAt || local.notFitAt || local.clientPassedAt || local.sellerUnavailableAt) {
+  if (
+    local.archivedAt || local.notFitAt || local.clientPassedAt || local.sellerUnavailableAt
+    || rel.agentContactRequestStatus === "declined"
+    || rel.clientRecommendationResponse === "passed"
+  ) {
     return "archived";
   }
   if (rel.stage === "closed_lost") return "archived";
@@ -88,6 +92,19 @@ export function deriveUiStatus(rel: Relationship, local: MatchLocalState): UiSta
   if (local.loiSentAt) return "loi";
   if (rel.stage === "connected" || rel.stage === "conversing" || local.conversationStartedAt) {
     return "in_conversation";
+  }
+  if (
+    rel.agentContactRequestStatus
+    && !["waiting_for_agent", "declined", "closed"].includes(rel.agentContactRequestStatus)
+  ) {
+    // A client-originated contact request is stronger than the old local demo
+    // flags: the client has already reviewed the match and asked their agent to
+    // act, so the agent must never be prompted to send it back to them.
+    return "client_interested";
+  }
+  if (rel.clientRecommendationResponse === "interested") return "client_interested";
+  if (["pending", "question", "saved"].includes(rel.clientRecommendationResponse ?? "")) {
+    return "sent_to_client";
   }
   if (local.clientInterestedAt) return "client_interested";
   if (local.sentToClientAt) return "sent_to_client";
@@ -194,6 +211,55 @@ export function nextActionsForAudience(status: UiStatus, audience: "agent" | "in
     };
   }
   return nextActionsFor(status);
+}
+
+/**
+ * Relationship-aware actions shared by match cards and the full review panel.
+ * This prevents the compact card from offering a different workflow than the
+ * detail view when an investor already has an active agent-contact request.
+ */
+export function nextActionsForRelationship(
+  rel: Relationship,
+  status: UiStatus,
+  audience: "agent" | "investor",
+) {
+  const requestStatus = rel.agentContactRequestStatus;
+  if (
+    audience === "agent"
+    && status === "client_interested"
+    && requestStatus
+    && !["waiting_for_agent", "declined", "closed"].includes(requestStatus)
+  ) {
+    const label = requestStatus === "awaiting_counterparty_agent"
+      ? "Check Listing Agent Availability"
+      : requestStatus === "contacted" && rel.stage === "pending_out"
+        ? "Awaiting Listing Agent"
+        : requestStatus === "contacted"
+          ? "Open Agent Connection"
+          : "Contact Listing Agent";
+    return {
+      primary: { id: "message_listing_agent", label },
+      secondary: ["requested", "accepted"].includes(requestStatus)
+        ? [{ id: "decline_client_request", label: "Pass on Client Request", tone: "destructive" as const }]
+        : [],
+    };
+  }
+  if (audience === "investor" && requestStatus && !["declined", "closed"].includes(requestStatus)) {
+    return {
+      primary: {
+        id: "view_agent_request",
+        label: requestStatus === "waiting_for_agent"
+          ? "Agent Needed — Request Saved"
+          : requestStatus === "awaiting_counterparty_agent"
+            ? "Other Side Is Assigning an Agent"
+            : requestStatus === "contacted"
+              ? "Agents Are Connecting"
+              : "Request Sent to My Agent",
+      },
+      secondary: nextActionsForAudience(status, audience).secondary,
+    };
+  }
+  return nextActionsForAudience(status, audience);
 }
 
 // Shared display precision for cap rate so cards and the financials tab agree.

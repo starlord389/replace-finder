@@ -85,6 +85,8 @@ function buildPreviewRel(listing: AgentListing, basePath: string): Relationship 
     isSameAgent: false,
     agentContactRequestId: null,
     agentContactRequestStatus: null,
+    clientRecommendationResponse: null,
+    clientRecommendationNote: null,
 
   };
 }

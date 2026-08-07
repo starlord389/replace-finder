@@ -6,7 +6,7 @@ import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationsh
 import {
   deriveUiStatus,
   formatCapRate,
-  nextActionsForAudience,
+  nextActionsForRelationship,
   statusForAudience,
   UI_STATUS_CLASS,
   UI_STATUS_LABEL,
@@ -31,7 +31,7 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClie
   useMatchLocalStateVersion();
   const local = readMatchLocalState(rel.matchId);
   const status = statusForAudience(deriveUiStatus(rel, local), audience);
-  const action = nextActionsForAudience(status, audience).primary;
+  const action = nextActionsForRelationship(rel, status, audience).primary;
 
   const assetLabel = assetType
     ? ASSET_TYPE_LABELS[assetType as keyof typeof ASSET_TYPE_LABELS] ?? assetType

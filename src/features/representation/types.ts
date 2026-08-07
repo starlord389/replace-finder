@@ -98,9 +98,9 @@ export const representationStatusLabel: Record<RepresentationStatus, string> = {
 
 export const contactRequestStatusLabel: Record<AgentContactRequest["status"], string> = {
   waiting_for_agent: "Agent needed",
-  requested: "Waiting for your agent",
-  accepted: "Agent reviewing",
-  awaiting_counterparty_agent: "Other owner is assigning an agent",
+  requested: "Ready for your review",
+  accepted: "In review",
+  awaiting_counterparty_agent: "Waiting for the other owner's agent",
   contacted: "Agents connecting",
   declined: "Agent passed",
   closed: "Closed",
