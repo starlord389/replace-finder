@@ -30,13 +30,17 @@ describe("representation management interfaces", () => {
     expect(investorWorkspace).toContain('value="messages"');
     expect(investorWorkspace).toContain('value="agents"');
     expect(investorWorkspace).toContain("Exchange assignments");
-    expect(investorWorkspace).toContain("Reassign");
+    expect(investorWorkspace).toContain("Change agent");
     expect(investorWorkspace).toContain("removeExchangeAgent");
     expect(investorWorkspace).toContain("Default agent");
     expect(investorWorkspace).toContain("Automatically cover new exchanges");
     expect(investorWorkspace).toContain("Match outreach");
     expect(investorWorkspace).toContain("contactRequestGuidance");
     expect(investorWorkspace).toContain("investorContactRequestStatusLabel");
+    expect(investorWorkspace).toContain("Needs your attention");
+    expect(investorWorkspace).toContain("Most investors only need one agent");
+    expect(investorWorkspace).toContain("activeRepresentations.length > 1");
+    expect(investorWorkspace).toContain("onlyRepresentation");
   });
 
   it("shows agents the exchanges assigned by each represented client", () => {

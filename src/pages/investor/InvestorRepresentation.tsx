@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ClientAgentConversation } from "@/features/representation/components/ClientAgentConversation";
 import { InvitationManagementActions } from "@/features/representation/components/InvitationManagementActions";
 
@@ -146,7 +147,10 @@ export default function InvestorRepresentation() {
   const active = representations.find((representation) => representation.status === "active" && representation.is_default)
     ?? representations.find((representation) => representation.status === "active");
   const activeRepresentations = useMemo(() => representations.filter((representation) => representation.status === "active" && representation.agent_id), [representations]);
-  const openRepresentations = representations.filter((representation) => !["revoked", "declined", "expired"].includes(representation.status));
+  const openRepresentations = useMemo(
+    () => representations.filter((representation) => !["revoked", "declined", "expired"].includes(representation.status)),
+    [representations],
+  );
   const assignmentByExchange = useMemo(() => new Map(assignments.map((assignment) => [assignment.exchange_id, assignment])), [assignments]);
   const representationById = useMemo(() => new Map(representations.map((representation) => [representation.id, representation])), [representations]);
   const inviteByRepresentation = useMemo(() => new Map(invites.map((invite) => [invite.representation_id, invite])), [invites]);
@@ -165,6 +169,16 @@ export default function InvestorRepresentation() {
   const activeAgentAssignments = active
     ? assignments.filter((assignment) => assignment.representation_id === active.id).length
     : 0;
+  const unassignedExchanges = useMemo(
+    () => exchanges.filter((exchange) => !assignmentByExchange.has(exchange.id)),
+    [assignmentByExchange, exchanges],
+  );
+  const actionRequiredCount = useMemo(() => {
+    const confirmations = pendingRepresentations.filter((representation) => representation.status === "awaiting_investor_confirmation").length;
+    const failedInvitations = pendingRepresentations.filter((representation) => inviteByRepresentation.get(representation.id)?.delivery_status === "failed").length;
+    const requestsNeedingAgent = contactRequests.filter((request) => request.status === "waiting_for_agent").length;
+    return confirmations + failedInvitations + (active ? unassignedExchanges.length : 0) + requestsNeedingAgent;
+  }, [active, contactRequests, inviteByRepresentation, pendingRepresentations, unassignedExchanges.length]);
 
   useEffect(() => {
     const selectedDefault = representations.find((representation) => representation.status === "active" && representation.is_default);
@@ -279,7 +293,14 @@ export default function InvestorRepresentation() {
   }
 
   async function endRepresentation(representation: Representation) {
-    if (!confirm("End this representation? The agent will immediately lose access to future work.")) return;
+    const assignedCount = assignments.filter((assignment) => assignment.representation_id === representation.id).length;
+    const assignmentWarning = assignedCount
+      ? ` They will be removed from ${assignedCount} exchange${assignedCount === 1 ? "" : "s"}, and active counterparty work on those exchanges may stop.`
+      : " They currently have no exchange assignments.";
+    const defaultWarning = representation.is_default && activeRepresentations.length > 1
+      ? " You will also need to choose a new default agent."
+      : "";
+    if (!confirm(`End this agent relationship?${assignmentWarning}${defaultWarning} Historical activity will remain available.`)) return;
     setBusy(representation.id);
     const { error } = await supabase.rpc("revoke_representation", {
       p_representation_id: representation.id,
@@ -307,7 +328,7 @@ export default function InvestorRepresentation() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-semibold">{activeAgentName}</h2>
-                    <Badge className="bg-emerald-600 hover:bg-emerald-600">Default agent</Badge>
+                    <Badge className="bg-emerald-600 hover:bg-emerald-600">{active.is_default ? "Default agent" : "Active agent"}</Badge>
                     {activeAgentProfile?.verification_status === "verified" && <Badge variant="outline" className="border-emerald-200 bg-background/70 text-emerald-800"><ShieldCheck className="mr-1 h-3.5 w-3.5" />Verified</Badge>}
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{activeAgentProfile?.brokerage_name || active.agent_email}{activeAgentProfile?.license_state ? " · Licensed in " + activeAgentProfile.license_state : ""}</p>
@@ -316,13 +337,13 @@ export default function InvestorRepresentation() {
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
                 <Button size="sm" onClick={() => { setActiveView("messages"); window.setTimeout(() => document.getElementById("agent-conversation")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }}><MessageSquareText className="mr-2 h-4 w-4" />Message agent</Button>
-                <Button size="sm" variant="outline" onClick={() => setActiveView("agents")}><UserRoundPlus className="mr-2 h-4 w-4" />Add an agent</Button>
+                <Button size="sm" variant="outline" onClick={() => setActiveView("agents")}><ShieldCheck className="mr-2 h-4 w-4" />Agent details</Button>
               </div>
             </div>
             <div className="grid grid-cols-3 border-t bg-background/60 lg:border-l lg:border-t-0">
               <div className="flex flex-col justify-center border-r p-4 text-center"><span className="text-xl font-semibold">{activeAgentAssignments}</span><span className="mt-1 text-xs text-muted-foreground">Exchange{activeAgentAssignments === 1 ? "" : "s"} covered</span></div>
               <div className="flex flex-col justify-center border-r p-4 text-center"><span className="text-xl font-semibold">{activeContactRequests.length}</span><span className="mt-1 text-xs text-muted-foreground">Open request{activeContactRequests.length === 1 ? "" : "s"}</span></div>
-              <div className="flex flex-col justify-center p-4 text-center"><span className="text-xl font-semibold">{activeRepresentations.length}</span><span className="mt-1 text-xs text-muted-foreground">Connected agent{activeRepresentations.length === 1 ? "" : "s"}</span></div>
+              <div className="flex flex-col justify-center p-4 text-center"><span className="text-xl font-semibold">{actionRequiredCount}</span><span className="mt-1 text-xs text-muted-foreground">Need{actionRequiredCount === 1 ? "s" : ""} attention</span></div>
             </div>
           </CardContent>
         </Card>
@@ -335,14 +356,48 @@ export default function InvestorRepresentation() {
       )}
 
       <Tabs value={activeView} onValueChange={setActiveView}>
-        <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl p-1 sm:grid-cols-4">
-          <TabsTrigger value="overview" className="gap-2 py-2.5"><CircleDot className="h-4 w-4" />Activity{pendingRepresentations.length > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-100 px-1.5 text-[11px] font-semibold text-amber-800">{pendingRepresentations.length}</span>}</TabsTrigger>
-          <TabsTrigger value="exchanges" className="gap-2 py-2.5"><Building2 className="h-4 w-4" />Exchange access</TabsTrigger>
-          <TabsTrigger value="messages" className="gap-2 py-2.5"><MessageSquareText className="h-4 w-4" />Messages</TabsTrigger>
-          <TabsTrigger value="agents" className="gap-2 py-2.5"><UsersRound className="h-4 w-4" />Add agent</TabsTrigger>
+        <TabsList className={active ? "grid h-auto w-full grid-cols-2 rounded-xl p-1 sm:grid-cols-4" : "grid h-auto w-full grid-cols-2 rounded-xl p-1"}>
+          <TabsTrigger value="overview" className="gap-2 py-2.5"><CircleDot className="h-4 w-4" />Overview{actionRequiredCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-100 px-1.5 text-[11px] font-semibold text-amber-800">{actionRequiredCount}</span>}</TabsTrigger>
+          {active && <TabsTrigger value="messages" className="gap-2 py-2.5"><MessageSquareText className="h-4 w-4" />Messages</TabsTrigger>}
+          {active && <TabsTrigger value="exchanges" className="gap-2 py-2.5"><Building2 className="h-4 w-4" />Exchange coverage</TabsTrigger>}
+          <TabsTrigger value="agents" className="gap-2 py-2.5"><UsersRound className="h-4 w-4" />{active ? "Agent details" : "Connect an agent"}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-5 space-y-5">
+      {actionRequiredCount > 0 && (
+        <Card className="border-amber-200 bg-amber-50/40">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg"><Clock3 className="h-5 w-5 text-amber-700" />Needs your attention</CardTitle>
+            <CardDescription>These items need a decision before your agent workflow can move forward.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {active && unassignedExchanges.length > 0 && (
+              <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-background p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div><p className="font-medium">{unassignedExchanges.length} exchange{unassignedExchanges.length === 1 ? " needs" : "s need"} an agent</p><p className="mt-1 text-sm text-muted-foreground">Assign representation before asking an agent to contact a match.</p></div>
+                <Button size="sm" variant="outline" onClick={() => setActiveView("exchanges")}>Review coverage</Button>
+              </div>
+            )}
+            {pendingRepresentations.some((representation) => representation.status === "awaiting_investor_confirmation") && (
+              <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-background p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div><p className="font-medium">A referred agent is waiting for approval</p><p className="mt-1 text-sm text-muted-foreground">Confirm the relationship before the agent receives access.</p></div>
+                <Button size="sm" variant="outline" onClick={() => setActiveView("agents")}>Review agent</Button>
+              </div>
+            )}
+            {pendingRepresentations.some((representation) => inviteByRepresentation.get(representation.id)?.delivery_status === "failed") && (
+              <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-background p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div><p className="font-medium">An agent invitation was not delivered</p><p className="mt-1 text-sm text-muted-foreground">Correct the email or resend the invitation.</p></div>
+                <Button size="sm" variant="outline" onClick={() => setActiveView("agents")}>Fix invitation</Button>
+              </div>
+            )}
+            {contactRequests.some((request) => request.status === "waiting_for_agent") && (
+              <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-background p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div><p className="font-medium">A match request is waiting for representation</p><p className="mt-1 text-sm text-muted-foreground">Connect or assign an agent so outreach can begin.</p></div>
+                <Button size="sm" variant="outline" onClick={() => setActiveView(active ? "exchanges" : "agents")}>Resolve request</Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
       {contactRequests.length > 0 && (
         <Card>
           <CardHeader>
@@ -389,16 +444,15 @@ export default function InvestorRepresentation() {
         </Card>
       )}
 
-      {openRepresentations.length > 0 && (
+      {pendingRepresentations.length > 0 && (
         <div className="space-y-3">
-          <div><h2 className="text-lg font-semibold">Agent updates</h2><p className="mt-1 text-sm text-muted-foreground">Track invitations, referrals, and any additional agent relationships.</p></div>
+          <div><h2 className="text-lg font-semibold">Representation setup</h2><p className="mt-1 text-sm text-muted-foreground">Track invitations and referral requests that are still in progress.</p></div>
           <div className="grid gap-3">
-          {openRepresentations.filter((representation) => representation.id !== active?.id).map((representation) => (
+          {pendingRepresentations.map((representation) => (
             <Card key={representation.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div className="flex items-start gap-3"><Clock3 className="mt-0.5 h-5 w-5 text-amber-600" /><div><p className="text-sm font-semibold">{profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email || "Agent referral request"}</p><p className="text-xs text-muted-foreground">{representationStatusLabel[representation.status]} · {representation.source.replace(/_/g, " ")}</p><InvitationManagementActions representation={representation} invite={inviteByRepresentation.get(representation.id)} onChanged={refresh} /></div></div>
                 {representation.status === "awaiting_investor_confirmation" && <div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => confirmReferral(representation, false)} disabled={busy === representation.id}>Request someone else</Button><Button size="sm" onClick={() => confirmReferral(representation, true)} disabled={busy === representation.id}><CheckCircle2 className="mr-1.5 h-4 w-4" />Confirm agent</Button></div>}
-                {representation.status === "active" && <Button size="sm" variant="outline" onClick={() => endRepresentation(representation)} disabled={busy === representation.id}>End representation</Button>}
               </CardContent>
             </Card>
           ))}
@@ -408,7 +462,7 @@ export default function InvestorRepresentation() {
         </TabsContent>
 
         <TabsContent value="exchanges" className="mt-5 space-y-5">
-      {activeRepresentations.length > 0 && (
+      {activeRepresentations.length > 1 && (
         <Card>
           <CardHeader><CardTitle className="text-lg">Agent for new exchanges</CardTitle><CardDescription>Choose who should be suggested when you create an exchange. Current assignments stay unchanged.</CardDescription></CardHeader>
           <CardContent className="space-y-4">
@@ -430,9 +484,43 @@ export default function InvestorRepresentation() {
               const assignedRepresentation = assignment ? representationById.get(assignment.representation_id) : undefined;
               const selectedId = assignmentSelections[exchange.id] ?? assignedRepresentation?.id ?? defaultRepresentationId;
               const assignedName = assignedRepresentation ? (profiles[assignedRepresentation.agent_id ?? ""]?.full_name || assignedRepresentation.agent_name || assignedRepresentation.agent_email) : null;
-              return <div key={exchange.id} className="rounded-lg border p-4"><div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{exchange.label}</p><Badge variant={assignment ? "default" : "secondary"}>{assignment ? "Agent assigned" : "No agent"}</Badge></div><p className="mt-1 text-xs capitalize text-muted-foreground">{exchange.status.replace(/_/g, " ")}{assignedName ? ` · currently ${assignedName}` : ""}</p></div><div className="flex flex-col gap-2 sm:flex-row sm:items-center"><select aria-label={`Agent for ${exchange.label}`} className="h-9 min-w-[220px] rounded-md border bg-background px-3 text-sm" value={selectedId} onChange={(event) => setAssignmentSelections((current) => ({ ...current, [exchange.id]: event.target.value }))} disabled={!activeRepresentations.length}><option value="">Choose an active agent</option>{activeRepresentations.map((representation) => <option key={representation.id} value={representation.id}>{profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email}</option>)}</select><Button size="sm" variant="outline" onClick={() => assignExchange(exchange.id, selectedId)} disabled={busy === exchange.id || !selectedId || selectedId === assignedRepresentation?.id}>{assignment ? "Reassign" : "Assign"}</Button>{assignment && <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeExchangeAgent(exchange.id)} disabled={busy === exchange.id}>Remove</Button>}</div></div></div>;
+              const onlyRepresentation = activeRepresentations.length === 1 ? activeRepresentations[0] : null;
+              return (
+                <div key={exchange.id} className="rounded-xl border p-4">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2"><p className="font-medium">{exchange.label}</p><Badge variant={assignment ? "default" : "secondary"}>{assignment ? "Covered" : "Needs an agent"}</Badge></div>
+                      <p className="mt-1 text-sm text-muted-foreground">{assignedName ? assignedName + " can contact matches for this exchange." : "Assign representation before requesting outreach on a match."}</p>
+                    </div>
+                    {activeRepresentations.length > 1 ? (
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <select aria-label={`Agent for ${exchange.label}`} className="h-9 min-w-[220px] rounded-md border bg-background px-3 text-sm" value={selectedId} onChange={(event) => setAssignmentSelections((current) => ({ ...current, [exchange.id]: event.target.value }))}><option value="">Choose an active agent</option>{activeRepresentations.map((representation) => <option key={representation.id} value={representation.id}>{profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email}</option>)}</select>
+                        <Button size="sm" variant="outline" onClick={() => assignExchange(exchange.id, selectedId)} disabled={busy === exchange.id || !selectedId || selectedId === assignedRepresentation?.id}>{assignment ? "Change agent" : "Assign"}</Button>
+                        {assignment && <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeExchangeAgent(exchange.id)} disabled={busy === exchange.id}>Remove coverage</Button>}
+                      </div>
+                    ) : onlyRepresentation ? (
+                      assignment
+                        ? <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeExchangeAgent(exchange.id)} disabled={busy === exchange.id}>Remove coverage</Button>
+                        : <Button size="sm" variant="outline" onClick={() => assignExchange(exchange.id, onlyRepresentation.id)} disabled={busy === exchange.id}>Assign {profiles[onlyRepresentation.agent_id ?? ""]?.full_name || onlyRepresentation.agent_name || "my agent"}</Button>
+                    ) : (
+                      <Button size="sm" variant="outline" onClick={() => setActiveView("agents")}>Connect an agent</Button>
+                    )}
+                  </div>
+                </div>
+              );
             })}
             {!activeRepresentations.length && <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">Invite an agent or request a referral before assigning exchange access.</p>}
+          </CardContent>
+        </Card>
+      )}
+
+      {exchanges.length === 0 && (
+        <Card>
+          <CardContent className="px-5 py-10 text-center">
+            <Building2 className="mx-auto h-8 w-8 text-muted-foreground/60" />
+            <p className="mt-3 font-medium">No exchanges need coverage yet</p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">Create an exchange first. You can then decide which agent represents it.</p>
+            <Button asChild size="sm" variant="outline" className="mt-4"><Link to="/investor/listings">Go to My Exchanges</Link></Button>
           </CardContent>
         </Card>
       )}
@@ -444,7 +532,48 @@ export default function InvestorRepresentation() {
         </TabsContent>
 
         <TabsContent value="agents" className="mt-5 space-y-5">
-          <div><h2 className="text-lg font-semibold">Connect an agent</h2><p className="mt-1 text-sm text-muted-foreground">Invite an agent you already trust, or ask the platform to help find one.</p></div>
+          {activeRepresentations.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{activeRepresentations.length === 1 ? "Your agent" : "Your agents"}</CardTitle>
+                <CardDescription>
+                  {activeRepresentations.length === 1
+                    ? "This agent can represent you on assigned exchanges and communicate with the other side."
+                    : "Each agent only receives access to the exchanges assigned to them."}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {activeRepresentations.map((representation) => {
+                  const name = profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email || "Agent";
+                  const assignmentCount = assignments.filter((assignment) => assignment.representation_id === representation.id).length;
+                  return (
+                    <div key={representation.id} className="flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Avatar className="h-10 w-10"><AvatarFallback className="bg-primary/10 font-semibold text-primary">{initials(name)}</AvatarFallback></Avatar>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2"><p className="font-medium">{name}</p>{representation.is_default && <Badge variant="secondary">Default agent</Badge>}</div>
+                          <p className="mt-0.5 truncate text-sm text-muted-foreground">{profiles[representation.agent_id ?? ""]?.brokerage_name || representation.agent_email}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">Covers {assignmentCount} exchange{assignmentCount === 1 ? "" : "s"}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {representation.id === active?.id && <Button size="sm" variant="outline" onClick={() => setActiveView("messages")}><MessageSquareText className="mr-1.5 h-4 w-4" />Message</Button>}
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => endRepresentation(representation)} disabled={busy === representation.id}>End relationship</Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
+
+          <Accordion type="single" collapsible defaultValue={active ? undefined : "connect-agent"}>
+            <AccordionItem value="connect-agent" className="rounded-xl border px-5">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <span><span className="block font-semibold">{active ? "Change or add representation" : "Connect an agent"}</span><span className="mt-1 block text-sm font-normal text-muted-foreground">{active ? "Only needed when replacing your agent or using different representation for another exchange." : "Invite your agent or ask the platform to help find one."}</span></span>
+              </AccordionTrigger>
+              <AccordionContent>
+                {active && <Alert className="mb-5"><ShieldCheck className="h-4 w-4" /><AlertTitle>Most investors only need one agent</AlertTitle><AlertDescription>Add another only when a separate exchange requires different representation, or end the current relationship before replacing your agent.</AlertDescription></Alert>}
       <Tabs defaultValue="invite">
         <TabsList className="grid w-full max-w-lg grid-cols-2"><TabsTrigger value="invite"><UserRoundPlus className="mr-2 h-4 w-4" />Invite my agent</TabsTrigger><TabsTrigger value="referral"><Search className="mr-2 h-4 w-4" />Help me find an agent</TabsTrigger></TabsList>
         <TabsContent value="invite">
@@ -469,6 +598,9 @@ export default function InvestorRepresentation() {
           </CardContent></Card>
         </TabsContent>
       </Tabs>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
       {!isLoading && representations.filter((representation) => ["revoked", "declined", "expired"].includes(representation.status)).length > 0 && <p className="text-xs text-muted-foreground">Previous relationships remain in the audit history. The most recent was updated {formatDistanceToNow(new Date(representations.at(-1)!.created_at), { addSuffix: true })}.</p>}
         </TabsContent>
