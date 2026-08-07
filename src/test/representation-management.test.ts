@@ -25,12 +25,17 @@ describe("representation management interfaces", () => {
   });
 
   it("lets investors manage agents independently for every exchange", () => {
-    expect(investorWorkspace).toContain("Exchange agent access");
+    expect(investorWorkspace).toContain('value="overview"');
+    expect(investorWorkspace).toContain('value="exchanges"');
+    expect(investorWorkspace).toContain('value="messages"');
+    expect(investorWorkspace).toContain('value="agents"');
+    expect(investorWorkspace).toContain("Exchange assignments");
     expect(investorWorkspace).toContain("Reassign");
     expect(investorWorkspace).toContain("removeExchangeAgent");
     expect(investorWorkspace).toContain("Default agent");
-    expect(investorWorkspace).toContain("Automatically assign to new exchanges");
-    expect(investorWorkspace).toContain("Match contact requests");
+    expect(investorWorkspace).toContain("Automatically cover new exchanges");
+    expect(investorWorkspace).toContain("Match outreach");
+    expect(investorWorkspace).toContain("contactRequestGuidance");
     expect(investorWorkspace).toContain("investorContactRequestStatusLabel");
   });
 

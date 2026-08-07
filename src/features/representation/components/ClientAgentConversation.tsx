@@ -55,7 +55,7 @@ export function ClientAgentConversation({ representation, counterpartName }: { r
 
   return (
     <Card>
-      <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><MessageSquareText className="h-5 w-5" />Private collaboration</CardTitle><CardDescription>Only you and {counterpartName} can see these messages. Counterparty agents cannot access this conversation.</CardDescription></CardHeader>
+      <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><MessageSquareText className="h-5 w-5" />Messages with {counterpartName}</CardTitle><CardDescription>This conversation is private to you and {counterpartName}. The agent on the other side cannot see it.</CardDescription></CardHeader>
       <CardContent className="space-y-4">
         <div className="max-h-72 space-y-2 overflow-y-auto rounded-xl border bg-muted/20 p-3">
           {messages.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">No messages yet. Use this space to discuss matches, timing, and next steps.</p> : messages.map((message) => <div key={message.id} className={cn("flex", message.sender_id === user?.id ? "justify-end" : "justify-start")}><div className={cn("max-w-[85%] rounded-xl px-3 py-2 text-sm", message.sender_id === user?.id ? "bg-primary text-primary-foreground" : "border bg-background")}><p>{message.content}</p><p className={cn("mt-1 text-[10px]", message.sender_id === user?.id ? "text-primary-foreground/70" : "text-muted-foreground")}>{new Date(message.created_at).toLocaleString()}</p></div></div>)}
