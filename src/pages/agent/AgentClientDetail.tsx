@@ -33,7 +33,7 @@ export default function AgentClientDetail() {
         name: name.trim(), email: email.trim(), phone: phone.trim(), notes: notes.trim(), isDemo,
       });
       toast.success(result.emailWarning ? "Client added, but the invitation email needs attention." : "Client added and invitation sent.");
-      navigate("/agent/clients");
+      navigate("/agent/representation");
     } catch (error: any) {
       toast.error(error.message ?? "Failed to invite client");
     } finally {

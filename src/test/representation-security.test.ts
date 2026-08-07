@@ -6,6 +6,10 @@ const migration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20260807120000_agent_representation_workflow.sql"),
   "utf8",
 );
+const managementMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20260807144500_invitation_and_exchange_agent_management.sql"),
+  "utf8",
+);
 
 describe("agent-mediated representation security", () => {
   it("blocks the retired direct investor inquiry channel", () => {
@@ -37,5 +41,19 @@ describe("agent-mediated representation security", () => {
     expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.client_agent_messages");
     expect(migration).toContain('CREATE POLICY "Client and agent can send private collaboration messages"');
     expect(migration).toContain('CREATE POLICY "Verified agents can send connection messages"');
+  });
+
+  it("limits invitation management to the sender and rotates corrected links", () => {
+    expect(managementMigration).toContain("Only the invitation sender can deliver this invitation");
+    expect(managementMigration).toContain("Wait one minute before resending this invitation");
+    expect(managementMigration).toContain("token = gen_random_uuid()::text");
+    expect(managementMigration).toContain("Invitation cancelled by sender");
+  });
+
+  it("keeps per-exchange assignment control with the investor", () => {
+    expect(managementMigration).toContain("Only the investor or an administrator can remove exchange access");
+    expect(managementMigration).toContain("Only the investor or an administrator can change the default agent");
+    expect(managementMigration).toContain("CREATE OR REPLACE FUNCTION public.unassign_agent_from_exchange");
+    expect(managementMigration).toContain("CREATE OR REPLACE FUNCTION public.set_default_representation");
   });
 });

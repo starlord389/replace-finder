@@ -4,6 +4,14 @@ function firstRow<T>(data: unknown): T {
   return (Array.isArray(data) ? data[0] : data) as T;
 }
 
+export async function sendRepresentationInvite(representationId: string) {
+  const result = await supabase.functions.invoke("send-representation-invite", {
+    body: { representationId },
+  });
+  if (result.error) throw result.error;
+  return result.data;
+}
+
 export async function inviteRepresentingAgent(input: {
   email: string;
   name?: string;
@@ -20,10 +28,12 @@ export async function inviteRepresentingAgent(input: {
   });
   if (error) throw error;
   const row = firstRow<{ representation_id: string; invite_token: string; invite_status: string }>(data);
-  const emailResult = await supabase.functions.invoke("send-representation-invite", {
-    body: { representationId: row.representation_id },
-  });
-  return { ...row, emailWarning: emailResult.error?.message ?? null };
+  try {
+    await sendRepresentationInvite(row.representation_id);
+    return { ...row, emailWarning: null };
+  } catch (error) {
+    return { ...row, emailWarning: error instanceof Error ? error.message : "Email delivery failed" };
+  }
 }
 
 export async function inviteInvestorClient(input: {
@@ -42,10 +52,12 @@ export async function inviteInvestorClient(input: {
   });
   if (error) throw error;
   const row = firstRow<{ representation_id: string; invite_token: string; invite_status: string; client_id: string }>(data);
-  const emailResult = await supabase.functions.invoke("send-representation-invite", {
-    body: { representationId: row.representation_id },
-  });
-  return { ...row, emailWarning: emailResult.error?.message ?? null };
+  try {
+    await sendRepresentationInvite(row.representation_id);
+    return { ...row, emailWarning: null };
+  } catch (error) {
+    return { ...row, emailWarning: error instanceof Error ? error.message : "Email delivery failed" };
+  }
 }
 
 export async function requestAgentReferral(input: {
@@ -85,4 +97,41 @@ export async function startAgentConnection(matchId: string, requestId?: string) 
   });
   if (error) throw error;
   return data as string | null;
+}
+
+export async function cancelRepresentationInvite(representationId: string) {
+  const { error } = await supabase.rpc("cancel_representation_invite" as any, {
+    p_representation_id: representationId,
+  });
+  if (error) throw error;
+}
+
+export async function updateRepresentationInvite(input: {
+  representationId: string;
+  email: string;
+  name?: string;
+}) {
+  const { error } = await supabase.rpc("update_representation_invite_email" as any, {
+    p_representation_id: input.representationId,
+    p_email: input.email,
+    p_name: input.name || null,
+  });
+  if (error) throw error;
+  await sendRepresentationInvite(input.representationId);
+}
+
+export async function unassignAgentFromExchange(exchangeId: string, reason?: string) {
+  const { error } = await supabase.rpc("unassign_agent_from_exchange" as any, {
+    p_exchange_id: exchangeId,
+    p_reason: reason || null,
+  });
+  if (error) throw error;
+}
+
+export async function setDefaultRepresentation(representationId: string, assignFuture: boolean) {
+  const { error } = await supabase.rpc("set_default_representation" as any, {
+    p_representation_id: representationId,
+    p_assign_future: assignFuture,
+  });
+  if (error) throw error;
 }

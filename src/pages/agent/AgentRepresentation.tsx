@@ -5,7 +5,7 @@ import { CheckCircle2, Clock3, Handshake, MessageSquareText, ShieldCheck, UserRo
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useRepresentations, useExchangeAssignments, useAgentContactRequests } from "@/features/representation/hooks/useRepresentations";
+import { useRepresentations, useExchangeAssignments, useAgentContactRequests, useRepresentationInvites } from "@/features/representation/hooks/useRepresentations";
 import { contactRequestStatusLabel, representationStatusLabel, type Representation } from "@/features/representation/types";
 import { startAgentConnection } from "@/features/representation/api";
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientAgentConversation } from "@/features/representation/components/ClientAgentConversation";
+import { InvitationManagementActions } from "@/features/representation/components/InvitationManagementActions";
 
 export default function AgentRepresentation() {
   const queryClient = useQueryClient();
   const { data: representations = [], isLoading } = useRepresentations("agent");
   const { data: assignments = [] } = useExchangeAssignments("agent");
   const { data: requests = [] } = useAgentContactRequests("agent");
+  const { data: invites = [] } = useRepresentationInvites();
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [propertyLabels, setPropertyLabels] = useState<Record<string, string>>({});
+  const [exchangeLabels, setExchangeLabels] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
@@ -38,12 +41,30 @@ export default function AgentRepresentation() {
       .then(({ data }) => setPropertyLabels(Object.fromEntries((data ?? []).map((property) => [property.id, property.property_name || [property.city, property.state].filter(Boolean).join(", ") || "Matched property"]))));
   }, [requests]);
 
+  useEffect(() => {
+    const exchangeIds = [...new Set(assignments.map((assignment) => assignment.exchange_id))];
+    if (!exchangeIds.length) return setExchangeLabels({});
+    (async () => {
+      const { data: exchangeRows } = await supabase.from("exchanges").select("id, relinquished_property_id").in("id", exchangeIds);
+      const propertyIds = (exchangeRows ?? []).map((exchange) => exchange.relinquished_property_id).filter(Boolean) as string[];
+      const { data: properties } = propertyIds.length
+        ? await supabase.from("pledged_properties_secure").select("id, property_name, city, state").in("id", propertyIds)
+        : { data: [] as any[] };
+      const propertyMap = new Map((properties ?? []).map((property: any) => [property.id, property]));
+      setExchangeLabels(Object.fromEntries((exchangeRows ?? []).map((exchange) => {
+        const property = exchange.relinquished_property_id ? propertyMap.get(exchange.relinquished_property_id) : null;
+        return [exchange.id, property?.property_name || [property?.city, property?.state].filter(Boolean).join(", ") || `Exchange ${exchange.id.slice(0, 8)}`];
+      })));
+    })();
+  }, [assignments]);
+
   async function refresh() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["representations"] }),
       queryClient.invalidateQueries({ queryKey: ["exchange-agent-assignments"] }),
       queryClient.invalidateQueries({ queryKey: ["agent-contact-requests"] }),
       queryClient.invalidateQueries({ queryKey: ["unified-relationships"] }),
+      queryClient.invalidateQueries({ queryKey: ["representation-invites"] }),
     ]);
   }
 
@@ -107,6 +128,7 @@ export default function AgentRepresentation() {
   const outgoingInvites = representations.filter((representation) =>
     representation.source === "agent_invite" && ["pending_signup", "awaiting_acceptance"].includes(representation.status),
   );
+  const inviteByRepresentation = useMemo(() => new Map(invites.map((invite) => [invite.representation_id, invite])), [invites]);
   const activeRepresentations = representations.filter((representation) => representation.status === "active");
   const actionableRequests = requests.filter((request) => ["requested", "accepted", "awaiting_counterparty_agent"].includes(request.status));
 
@@ -136,6 +158,7 @@ export default function AgentRepresentation() {
               <div>
                 <p className="font-semibold">Invitation sent to {representation.investor_email}</p>
                 <p className="mt-1 text-sm text-muted-foreground">They will appear as an active represented client after accepting the invitation.</p>
+                <InvitationManagementActions representation={representation} invite={inviteByRepresentation.get(representation.id)} onChanged={refresh} />
               </div>
             </div>
             <Badge variant="outline">Awaiting investor</Badge>
@@ -155,8 +178,9 @@ export default function AgentRepresentation() {
         <TabsContent value="clients" className="grid gap-3">
           {!isLoading && activeRepresentations.length === 0 ? <Card className="border-dashed"><CardContent className="py-12 text-center"><p className="font-semibold">No represented investors yet</p><p className="mt-1 text-sm text-muted-foreground">Invite a client from My Clients or accept a referral here.</p><Button asChild className="mt-4"><Link to="/agent/clients/new">Invite a client</Link></Button></CardContent></Card> : activeRepresentations.map((representation) => {
             const investor = representation.investor_id ? profiles[representation.investor_id] : null;
-            const count = assignments.filter((assignment) => assignment.representation_id === representation.id).length;
-            return <Card key={representation.id}><CardContent className="flex items-center justify-between gap-4 p-4"><div className="flex items-center gap-3"><div className="rounded-full bg-primary/10 p-2"><CheckCircle2 className="h-5 w-5 text-primary" /></div><div><p className="font-semibold">{investor?.full_name || representation.investor_email}</p><p className="text-xs text-muted-foreground">{investor?.company || representation.investor_email}</p></div></div><div className="flex items-center gap-3"><div className="text-right"><p className="text-sm font-semibold">{count} exchange{count === 1 ? "" : "s"}</p><p className="text-xs text-muted-foreground">Active representation</p></div><Button size="sm" variant="outline" onClick={() => setSelectedClientId(selectedClientId === representation.id ? null : representation.id)}>{selectedClientId === representation.id ? "Close chat" : "Message client"}</Button><Button size="sm" variant="ghost" onClick={() => endRepresentation(representation)} disabled={busy === representation.id}>End</Button></div></CardContent>{selectedClientId === representation.id && <div className="border-t p-4"><ClientAgentConversation representation={representation} counterpartName={investor?.full_name || "your client"} /></div>}</Card>;
+            const clientAssignments = assignments.filter((assignment) => assignment.representation_id === representation.id);
+            const count = clientAssignments.length;
+            return <Card key={representation.id}><CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between"><div className="flex items-start gap-3"><div className="rounded-full bg-primary/10 p-2"><CheckCircle2 className="h-5 w-5 text-primary" /></div><div><p className="font-semibold">{investor?.full_name || representation.investor_email}</p><p className="text-xs text-muted-foreground">{investor?.company || representation.investor_email}</p>{clientAssignments.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{clientAssignments.map((assignment) => <Badge key={assignment.id} variant="outline">{exchangeLabels[assignment.exchange_id] || `Exchange ${assignment.exchange_id.slice(0, 8)}`}</Badge>)}</div>}</div></div><div className="flex flex-wrap items-center gap-3"><div className="text-right"><p className="text-sm font-semibold">{count} exchange{count === 1 ? "" : "s"}</p><p className="text-xs text-muted-foreground">Active representation</p></div><Button size="sm" variant="outline" onClick={() => setSelectedClientId(selectedClientId === representation.id ? null : representation.id)}>{selectedClientId === representation.id ? "Close chat" : "Message client"}</Button><Button size="sm" variant="ghost" onClick={() => endRepresentation(representation)} disabled={busy === representation.id}>End</Button></div></CardContent>{selectedClientId === representation.id && <div className="border-t p-4"><ClientAgentConversation representation={representation} counterpartName={investor?.full_name || "your client"} /></div>}</Card>;
           })}
         </TabsContent>
       </Tabs>

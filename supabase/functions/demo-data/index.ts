@@ -451,19 +451,42 @@ async function buildOwnerDemo(db: any, ownerId: string) {
       response: "pending",
     });
   }
-  await mustInsert(db, "agent_representations", [
-    {
-      investor_id: ownerId, investor_email: ownerProfile.email, agent_id: cpAgent["Elena Vasquez"],
-      agent_email: COUNTERPARTIES.find((agent) => agent.full_name === "Elena Vasquez")!.email,
-      agent_name: "Elena Vasquez", status: "awaiting_acceptance", source: "investor_invite",
-      is_demo: true, invited_by: ownerId, request_context: {},
-    },
-    {
-      investor_id: ownerId, investor_email: ownerProfile.email, agent_id: null, agent_email: "",
-      status: "awaiting_agent", source: "platform_referral", is_demo: true, invited_by: ownerId,
-      request_context: { location: "Houston, TX", property_type: "Multifamily", timing: "Identifying within 35 days", notes: "Demo referral awaiting administrator assignment" },
-    },
-  ]);
+  await mustInsert(db, "agent_representations", {
+    investor_id: ownerId,
+    investor_email: ownerProfile.email,
+    agent_id: cpAgent["Priya Mehta"],
+    agent_email: COUNTERPARTIES.find((agent) => agent.full_name === "Priya Mehta")!.email,
+    agent_name: "Priya Mehta",
+    status: "active",
+    source: "admin_assignment",
+    is_default: false,
+    assign_future_exchanges: false,
+    is_demo: true,
+    invited_by: ownerId,
+    accepted_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+  });
+  const pendingAgentRep = await insertOne(db, "agent_representations", {
+    investor_id: ownerId, investor_email: ownerProfile.email, agent_id: cpAgent["Elena Vasquez"],
+    agent_email: COUNTERPARTIES.find((agent) => agent.full_name === "Elena Vasquez")!.email,
+    agent_name: "Elena Vasquez", status: "awaiting_acceptance", source: "investor_invite",
+    is_demo: true, invited_by: ownerId, request_context: {},
+  }, "id");
+  await mustInsert(db, "representation_invites", {
+    representation_id: pendingAgentRep.id,
+    direction: "investor_to_agent",
+    email: COUNTERPARTIES.find((agent) => agent.full_name === "Elena Vasquez")!.email,
+    status: "pending",
+    metadata: { exchange_ids: [investorEx.id], assign_future: false, is_demo: true },
+    created_by: ownerId,
+    last_sent_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    send_count: 1,
+    delivery_status: "sent",
+  });
+  await mustInsert(db, "agent_representations", {
+    investor_id: ownerId, investor_email: ownerProfile.email, agent_id: null, agent_email: "",
+    status: "awaiting_agent", source: "platform_referral", is_demo: true, invited_by: ownerId,
+    request_context: { location: "Houston, TX", property_type: "Multifamily", timing: "Identifying within 35 days", notes: "Demo referral awaiting administrator assignment" },
+  });
 
   // Inbound (seller-side) match: a counterparty buyer wants Houston multifamily,
   // matched against the caller's own Heights listing — exercises "incoming interest".
@@ -521,7 +544,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     { investor_id: ownerId, property_id: prop["Westshore Corporate Center"], is_demo: true },
     { investor_id: ownerId, property_id: prop["Crosspoint Industrial"], is_demo: true },
   ]);
-  return { clients: OWN.length + 1, listings: OWN.length + 1, counterpartyProperties: Object.keys(prop).length - OWN.length - 1, matches: matchRows.length + 1, investorSaved: 2, investorInquiries: 0, representations: 3, contactRequests: investorMatchId ? 1 : 0 };
+  return { clients: OWN.length + 1, listings: OWN.length + 1, counterpartyProperties: Object.keys(prop).length - OWN.length - 1, matches: matchRows.length + 1, investorSaved: 2, investorInquiries: 0, representations: 4, representationInvites: 1, contactRequests: investorMatchId ? 1 : 0 };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

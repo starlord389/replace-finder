@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
-import { inviteRepresentingAgent, requestAgentReferral } from "@/features/representation/api";
-import { useExchangeAssignments, useRepresentations } from "@/features/representation/hooks/useRepresentations";
+import { inviteRepresentingAgent, requestAgentReferral, setDefaultRepresentation, unassignAgentFromExchange } from "@/features/representation/api";
+import { useExchangeAssignments, useRepresentationInvites, useRepresentations } from "@/features/representation/hooks/useRepresentations";
 import { representationStatusLabel, type Representation } from "@/features/representation/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ClientAgentConversation } from "@/features/representation/components/ClientAgentConversation";
+import { InvitationManagementActions } from "@/features/representation/components/InvitationManagementActions";
 
 interface ExchangeOption {
   id: string;
@@ -34,12 +35,16 @@ export default function InvestorRepresentation() {
   const queryClient = useQueryClient();
   const { data: representations = [], isLoading } = useRepresentations("investor");
   const { data: assignments = [] } = useExchangeAssignments("investor");
+  const { data: invites = [] } = useRepresentationInvites();
   const [exchanges, setExchanges] = useState<ExchangeOption[]>([]);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [agentForm, setAgentForm] = useState({ name: "", email: "", assignFuture: true });
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [referralForm, setReferralForm] = useState({ exchangeId: "", location: "", propertyType: "", timing: "", notes: "" });
   const [busy, setBusy] = useState<string | null>(null);
+  const [assignmentSelections, setAssignmentSelections] = useState<Record<string, string>>({});
+  const [defaultRepresentationId, setDefaultRepresentationId] = useState("");
+  const [assignFuture, setAssignFuture] = useState(true);
 
   useEffect(() => {
     if (!user) return;
@@ -75,14 +80,28 @@ export default function InvestorRepresentation() {
 
   const active = representations.find((representation) => representation.status === "active" && representation.is_default)
     ?? representations.find((representation) => representation.status === "active");
+  const activeRepresentations = useMemo(() => representations.filter((representation) => representation.status === "active" && representation.agent_id), [representations]);
   const openRepresentations = representations.filter((representation) => !["revoked", "declined", "expired"].includes(representation.status));
-  const assignedExchangeIds = new Set(assignments.map((assignment) => assignment.exchange_id));
-  const unassignedExchanges = exchanges.filter((exchange) => !assignedExchangeIds.has(exchange.id));
+  const assignmentByExchange = useMemo(() => new Map(assignments.map((assignment) => [assignment.exchange_id, assignment])), [assignments]);
+  const representationById = useMemo(() => new Map(representations.map((representation) => [representation.id, representation])), [representations]);
+  const inviteByRepresentation = useMemo(() => new Map(invites.map((invite) => [invite.representation_id, invite])), [invites]);
+
+  useEffect(() => {
+    const selectedDefault = representations.find((representation) => representation.status === "active" && representation.is_default);
+    if (selectedDefault) {
+      setDefaultRepresentationId(selectedDefault.id);
+      setAssignFuture(selectedDefault.assign_future_exchanges);
+    } else if (activeRepresentations[0] && !defaultRepresentationId) {
+      setDefaultRepresentationId(activeRepresentations[0].id);
+      setAssignFuture(activeRepresentations[0].assign_future_exchanges);
+    }
+  }, [representations, activeRepresentations, defaultRepresentationId]);
 
   async function refresh() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["representations"] }),
       queryClient.invalidateQueries({ queryKey: ["exchange-agent-assignments"] }),
+      queryClient.invalidateQueries({ queryKey: ["representation-invites"] }),
     ]);
   }
 
@@ -123,7 +142,9 @@ export default function InvestorRepresentation() {
     }
   }
 
-  async function assignExchange(exchangeId: string, representation: Representation) {
+  async function assignExchange(exchangeId: string, representationId: string) {
+    const representation = representationById.get(representationId);
+    if (!representation) return toast.error("Choose an active agent.");
     setBusy(exchangeId);
     const { error } = await supabase.rpc("assign_agent_to_exchange" as any, {
       p_representation_id: representation.id,
@@ -131,8 +152,37 @@ export default function InvestorRepresentation() {
     });
     setBusy(null);
     if (error) return toast.error(error.message);
-    toast.success("Agent assigned to the exchange.");
+    toast.success(assignmentByExchange.has(exchangeId) ? "Exchange reassigned to the selected agent." : "Agent assigned to the exchange.");
     await refresh();
+  }
+
+  async function removeExchangeAgent(exchangeId: string) {
+    if (!confirm("Remove this agent from the exchange? Active counterparty work for this exchange will be cancelled, while history remains available.")) return;
+    setBusy(exchangeId);
+    try {
+      await unassignAgentFromExchange(exchangeId, "Removed from this exchange by investor");
+      toast.success("Agent access removed from this exchange.");
+      setAssignmentSelections((current) => ({ ...current, [exchangeId]: "" }));
+      await refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to remove this assignment.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function saveDefaultAgent() {
+    if (!defaultRepresentationId) return toast.error("Choose an active agent.");
+    setBusy("default-agent");
+    try {
+      await setDefaultRepresentation(defaultRepresentationId, assignFuture);
+      toast.success(assignFuture ? "Default agent saved for future exchanges." : "Preferred agent saved without automatic assignment.");
+      await refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update the default agent.");
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function confirmReferral(representation: Representation, accept: boolean) {
@@ -194,7 +244,7 @@ export default function InvestorRepresentation() {
           {openRepresentations.filter((representation) => representation.id !== active?.id).map((representation) => (
             <Card key={representation.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-                <div className="flex items-center gap-3"><Clock3 className="h-5 w-5 text-amber-600" /><div><p className="text-sm font-semibold">{profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email || "Agent referral request"}</p><p className="text-xs text-muted-foreground">{representationStatusLabel[representation.status]} · {representation.source.replace(/_/g, " ")}</p></div></div>
+                <div className="flex items-start gap-3"><Clock3 className="mt-0.5 h-5 w-5 text-amber-600" /><div><p className="text-sm font-semibold">{profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email || "Agent referral request"}</p><p className="text-xs text-muted-foreground">{representationStatusLabel[representation.status]} · {representation.source.replace(/_/g, " ")}</p><InvitationManagementActions representation={representation} invite={inviteByRepresentation.get(representation.id)} onChanged={refresh} /></div></div>
                 {representation.status === "awaiting_investor_confirmation" && <div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => confirmReferral(representation, false)} disabled={busy === representation.id}>Request someone else</Button><Button size="sm" onClick={() => confirmReferral(representation, true)} disabled={busy === representation.id}><CheckCircle2 className="mr-1.5 h-4 w-4" />Confirm agent</Button></div>}
                 {representation.status === "active" && <Button size="sm" variant="outline" onClick={() => endRepresentation(representation)} disabled={busy === representation.id}>End representation</Button>}
               </CardContent>
@@ -203,10 +253,32 @@ export default function InvestorRepresentation() {
         </div>
       )}
 
-      {active && unassignedExchanges.length > 0 && (
+      {activeRepresentations.length > 0 && (
         <Card>
-          <CardHeader><CardTitle className="text-lg">Assign existing exchanges</CardTitle><CardDescription>Give your agent access only to the exchanges they will represent.</CardDescription></CardHeader>
-          <CardContent className="space-y-2">{unassignedExchanges.map((exchange) => <div key={exchange.id} className="flex items-center justify-between gap-3 rounded-lg border p-3"><div><p className="text-sm font-medium">{exchange.label}</p><p className="text-xs capitalize text-muted-foreground">{exchange.status.replace(/_/g, " ")}</p></div><Button size="sm" variant="outline" onClick={() => assignExchange(exchange.id, active)} disabled={busy === exchange.id}>Assign agent</Button></div>)}</CardContent>
+          <CardHeader><CardTitle className="text-lg">Default agent</CardTitle><CardDescription>Choose the agent suggested for new exchanges. Existing exchange assignments will not be changed.</CardDescription></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+              <div className="space-y-2"><Label htmlFor="default-agent">Preferred agent</Label><select id="default-agent" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={defaultRepresentationId} onChange={(event) => { const next = activeRepresentations.find((item) => item.id === event.target.value); setDefaultRepresentationId(event.target.value); setAssignFuture(next?.assign_future_exchanges ?? true); }}>{activeRepresentations.map((representation) => <option key={representation.id} value={representation.id}>{profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email}</option>)}</select></div>
+              <Button onClick={saveDefaultAgent} disabled={busy === "default-agent"}>{busy === "default-agent" ? "Saving…" : "Save default"}</Button>
+            </div>
+            <label className="flex items-start gap-2 text-sm"><Checkbox checked={assignFuture} onCheckedChange={(checked) => setAssignFuture(checked === true)} /><span><strong>Automatically assign to new exchanges</strong><span className="block text-xs text-muted-foreground">Turn this off if you want to choose an agent manually every time.</span></span></label>
+          </CardContent>
+        </Card>
+      )}
+
+      {exchanges.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Exchange agent access</CardTitle><CardDescription>Each exchange can have its own agent. Reassigning one exchange does not affect your other exchanges.</CardDescription></CardHeader>
+          <CardContent className="space-y-3">
+            {exchanges.map((exchange) => {
+              const assignment = assignmentByExchange.get(exchange.id);
+              const assignedRepresentation = assignment ? representationById.get(assignment.representation_id) : undefined;
+              const selectedId = assignmentSelections[exchange.id] ?? assignedRepresentation?.id ?? defaultRepresentationId;
+              const assignedName = assignedRepresentation ? (profiles[assignedRepresentation.agent_id ?? ""]?.full_name || assignedRepresentation.agent_name || assignedRepresentation.agent_email) : null;
+              return <div key={exchange.id} className="rounded-lg border p-4"><div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{exchange.label}</p><Badge variant={assignment ? "default" : "secondary"}>{assignment ? "Agent assigned" : "No agent"}</Badge></div><p className="mt-1 text-xs capitalize text-muted-foreground">{exchange.status.replace(/_/g, " ")}{assignedName ? ` · currently ${assignedName}` : ""}</p></div><div className="flex flex-col gap-2 sm:flex-row sm:items-center"><select aria-label={`Agent for ${exchange.label}`} className="h-9 min-w-[220px] rounded-md border bg-background px-3 text-sm" value={selectedId} onChange={(event) => setAssignmentSelections((current) => ({ ...current, [exchange.id]: event.target.value }))} disabled={!activeRepresentations.length}><option value="">Choose an active agent</option>{activeRepresentations.map((representation) => <option key={representation.id} value={representation.id}>{profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email}</option>)}</select><Button size="sm" variant="outline" onClick={() => assignExchange(exchange.id, selectedId)} disabled={busy === exchange.id || !selectedId || selectedId === assignedRepresentation?.id}>{assignment ? "Reassign" : "Assign"}</Button>{assignment && <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeExchangeAgent(exchange.id)} disabled={busy === exchange.id}>Remove</Button>}</div></div></div>;
+            })}
+            {!activeRepresentations.length && <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">Invite an agent or request a referral before assigning exchange access.</p>}
+          </CardContent>
         </Card>
       )}
 

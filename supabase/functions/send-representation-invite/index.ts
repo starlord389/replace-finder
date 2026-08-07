@@ -29,6 +29,16 @@ Deno.serve(async (req) => {
   const representationId = typeof body.representationId === 'string' ? body.representationId : ''
   if (!UUID_RE.test(representationId)) return json(400, { error: 'invalid representation id' })
 
+  const { data: preparedData, error: preparedError } = await auth.rpc('prepare_representation_invite_delivery', {
+    p_representation_id: representationId,
+  })
+  const prepared = Array.isArray(preparedData) ? preparedData[0] : preparedData
+  if (preparedError || !prepared) {
+    const message = preparedError?.message || 'pending invitation not found'
+    const status = message.toLowerCase().includes('one minute') ? 429 : 400
+    return json(status, { error: message })
+  }
+
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
   const { data: representation, error: repError } = await admin
     .from('agent_representations')
@@ -36,30 +46,24 @@ Deno.serve(async (req) => {
     .eq('id', representationId)
     .maybeSingle()
   if (repError || !representation) return json(404, { error: 'invitation not found' })
-  if (representation.invited_by !== authData.user.id) return json(403, { error: 'not invitation creator' })
 
-  const { data: invite } = await admin
-    .from('representation_invites')
-    .select('token, direction, email, status, expires_at')
-    .eq('representation_id', representationId)
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-  if (!invite) return json(404, { error: 'pending invitation not found' })
-
-  const { data: inviter } = await admin.from('profiles').select('full_name, company, brokerage_name').eq('id', authData.user.id).maybeSingle()
+  const { data: inviter } = await admin.from('profiles').select('full_name, company, brokerage_name').eq('id', representation.invited_by).maybeSingle()
   const siteUrl = (Deno.env.get('SITE_URL') || 'https://1031exchangeup.com').replace(/\/$/, '')
   const result = await sendTransactionalEmail({
     templateName: 'representation-invite',
-    recipientEmail: invite.email,
-    idempotencyKey: `representation-invite-${representationId}-${invite.token}`,
+    recipientEmail: prepared.email,
+    idempotencyKey: `representation-invite-${prepared.invite_id}-${prepared.send_count}`,
     templateData: {
       inviterName: inviter?.full_name || inviter?.brokerage_name || inviter?.company || undefined,
-      recipientRole: invite.direction === 'investor_to_agent' ? 'agent' : 'investor',
-      inviteUrl: `${siteUrl}/representation-invite?token=${encodeURIComponent(invite.token)}`,
+      recipientRole: prepared.direction === 'investor_to_agent' ? 'agent' : 'investor',
+      inviteUrl: `${siteUrl}/representation-invite?token=${encodeURIComponent(prepared.token)}`,
     },
   })
+  await admin.from('representation_invites').update({
+    delivery_status: result.ok ? 'sent' : 'failed',
+    delivery_error_code: result.ok ? null : (result.errorCode || 'email_delivery_failed'),
+    updated_at: new Date().toISOString(),
+  }).eq('id', prepared.invite_id)
   if (!result.ok) return json(502, { error: result.errorCode || 'email delivery failed' })
   return json(200, { ok: true })
 })

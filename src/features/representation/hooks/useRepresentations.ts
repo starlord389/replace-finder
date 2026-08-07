@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
-import type { AgentContactRequest, ExchangeAssignment, Representation } from "../types";
+import type { AgentContactRequest, ExchangeAssignment, Representation, RepresentationInvite } from "../types";
 
 export function useRepresentations(perspective: "investor" | "agent") {
   const { user } = useAuth();
@@ -56,6 +56,23 @@ export function useAgentContactRequests(perspective: "investor" | "agent") {
         .order("requested_at", { ascending: false }) as any);
       if (error) throw error;
       return (data ?? []) as AgentContactRequest[];
+    },
+  });
+}
+
+export function useRepresentationInvites() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["representation-invites", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await (supabase
+        .from("representation_invites" as any)
+        .select("id, representation_id, direction, email, token, status, expires_at, last_sent_at, send_count, delivery_status, delivery_error_code, created_by, created_at")
+        .eq("created_by", user!.id)
+        .order("created_at", { ascending: false }) as any);
+      if (error) throw error;
+      return (data ?? []) as RepresentationInvite[];
     },
   });
 }

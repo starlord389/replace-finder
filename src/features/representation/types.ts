@@ -46,6 +46,22 @@ export interface ExchangeAssignment {
   can_view_documents: boolean;
 }
 
+export interface RepresentationInvite {
+  id: string;
+  representation_id: string;
+  direction: "agent_to_investor" | "investor_to_agent";
+  email: string;
+  token: string;
+  status: "pending" | "accepted" | "declined" | "cancelled" | "expired";
+  expires_at: string;
+  last_sent_at: string | null;
+  send_count: number;
+  delivery_status: "unknown" | "not_sent" | "sending" | "sent" | "failed";
+  delivery_error_code: string | null;
+  created_by: string;
+  created_at: string;
+}
+
 export interface AgentContactRequest {
   id: string;
   investor_id: string;
