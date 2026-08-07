@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
   });
 
   try {
-    await requireAdmin(req, db, supabaseUrl, anonKey);
+    await requireAdmin(req, db, supabaseUrl, anonKey, serviceRoleKey);
 
     const password = `E2e-${crypto.randomUUID()}-Aa1!`;
     const identities = {
@@ -359,9 +359,10 @@ Deno.serve(async (req) => {
   return json({ ok, run_id: runId, checks, cleanup, error: failure }, ok ? 200 : 500);
 });
 
-async function requireAdmin(req: Request, db: any, supabaseUrl: string, anonKey: string) {
+async function requireAdmin(req: Request, db: any, supabaseUrl: string, anonKey: string, serviceRoleKey: string) {
   const authHeader = req.headers.get("Authorization") ?? "";
   if (!authHeader.startsWith("Bearer ")) throw new Error("Unauthorized");
+  if (authHeader.slice("Bearer ".length) === serviceRoleKey) return;
   const caller = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: authHeader } },
     auth: { persistSession: false, autoRefreshToken: false },

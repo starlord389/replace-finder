@@ -14,6 +14,7 @@ const adminWorkspace = readFileSync(
 describe("representation multi-account diagnostic contract", () => {
   it("requires an administrator and uses isolated authenticated identities", () => {
     expect(diagnostic).toContain("requireAdmin");
+    expect(diagnostic).toContain("serviceRoleKey");
     expect(diagnostic).toContain("Five isolated authenticated accounts created");
     expect(diagnostic).toContain("signInWithPassword");
     expect(diagnostic).toContain('"investor"');
