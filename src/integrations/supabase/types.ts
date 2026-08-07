@@ -194,6 +194,230 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_contact_requests: {
+        Row: {
+          acted_at: string | null
+          agent_note: string | null
+          connection_id: string | null
+          created_at: string
+          exchange_id: string
+          id: string
+          investor_id: string
+          investor_note: string | null
+          match_id: string
+          property_id: string
+          representing_agent_id: string | null
+          requested_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          acted_at?: string | null
+          agent_note?: string | null
+          connection_id?: string | null
+          created_at?: string
+          exchange_id: string
+          id?: string
+          investor_id: string
+          investor_note?: string | null
+          match_id: string
+          property_id: string
+          representing_agent_id?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          acted_at?: string | null
+          agent_note?: string | null
+          connection_id?: string | null
+          created_at?: string
+          exchange_id?: string
+          id?: string
+          investor_id?: string
+          investor_note?: string | null
+          match_id?: string
+          property_id?: string
+          representing_agent_id?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_contact_requests_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_contact_requests_exchange_id_fkey"
+            columns: ["exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_contact_requests_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_contact_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_match_recommendations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          exchange_id: string
+          id: string
+          investor_id: string
+          match_id: string
+          note: string | null
+          responded_at: string | null
+          response: string
+          response_note: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          exchange_id: string
+          id?: string
+          investor_id: string
+          match_id: string
+          note?: string | null
+          responded_at?: string | null
+          response?: string
+          response_note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          exchange_id?: string
+          id?: string
+          investor_id?: string
+          match_id?: string
+          note?: string | null
+          responded_at?: string | null
+          response?: string
+          response_note?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_match_recommendations_exchange_id_fkey"
+            columns: ["exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_match_recommendations_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_representations: {
+        Row: {
+          accepted_at: string | null
+          agent_email: string
+          agent_id: string | null
+          agent_name: string | null
+          assign_future_exchanges: boolean
+          created_at: string
+          ended_reason: string | null
+          id: string
+          investor_email: string
+          investor_id: string | null
+          invited_by: string | null
+          is_default: boolean
+          is_demo: boolean
+          referral_id: string | null
+          request_context: Json
+          requested_exchange_id: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          agent_email: string
+          agent_id?: string | null
+          agent_name?: string | null
+          assign_future_exchanges?: boolean
+          created_at?: string
+          ended_reason?: string | null
+          id?: string
+          investor_email: string
+          investor_id?: string | null
+          invited_by?: string | null
+          is_default?: boolean
+          is_demo?: boolean
+          referral_id?: string | null
+          request_context?: Json
+          requested_exchange_id?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          source: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          agent_email?: string
+          agent_id?: string | null
+          agent_name?: string | null
+          assign_future_exchanges?: boolean
+          created_at?: string
+          ended_reason?: string | null
+          id?: string
+          investor_email?: string
+          investor_id?: string | null
+          invited_by?: string | null
+          is_default?: boolean
+          is_demo?: boolean
+          referral_id?: string | null
+          request_context?: Json
+          requested_exchange_id?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_representations_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_representations_requested_exchange_id_fkey"
+            columns: ["requested_exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           created_at: string
@@ -289,6 +513,96 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      client_agent_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_agent_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "client_agent_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_agent_threads: {
+        Row: {
+          agent_id: string
+          created_at: string
+          exchange_id: string | null
+          id: string
+          investor_id: string
+          match_id: string | null
+          representation_id: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          exchange_id?: string | null
+          id?: string
+          investor_id: string
+          match_id?: string | null
+          representation_id: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          exchange_id?: string | null
+          id?: string
+          investor_id?: string
+          match_id?: string | null
+          representation_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_agent_threads_exchange_id_fkey"
+            columns: ["exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_agent_threads_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_agent_threads_representation_id_fkey"
+            columns: ["representation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_representations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_invites: {
         Row: {
@@ -523,6 +837,75 @@ export type Database = {
           role?: string
         }
         Relationships: []
+      }
+      exchange_agent_assignments: {
+        Row: {
+          agent_id: string
+          assigned_at: string
+          assigned_by: string | null
+          can_manage_exchange: boolean
+          can_manage_listing: boolean
+          can_view_documents: boolean
+          created_at: string
+          exchange_id: string
+          id: string
+          investor_id: string
+          is_primary: boolean
+          representation_id: string
+          revoked_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          assigned_at?: string
+          assigned_by?: string | null
+          can_manage_exchange?: boolean
+          can_manage_listing?: boolean
+          can_view_documents?: boolean
+          created_at?: string
+          exchange_id: string
+          id?: string
+          investor_id: string
+          is_primary?: boolean
+          representation_id: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          assigned_at?: string
+          assigned_by?: string | null
+          can_manage_exchange?: boolean
+          can_manage_listing?: boolean
+          can_view_documents?: boolean
+          created_at?: string
+          exchange_id?: string
+          id?: string
+          investor_id?: string
+          is_primary?: boolean
+          representation_id?: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exchange_agent_assignments_exchange_id_fkey"
+            columns: ["exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exchange_agent_assignments_representation_id_fkey"
+            columns: ["representation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_representations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       exchange_connections: {
         Row: {
@@ -878,6 +1261,41 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legacy_investor_communications_audit: {
+        Row: {
+          archived_at: string
+          connection_id: string
+          id: string
+          investor_id: string
+          previous_status: string
+          reason: string
+        }
+        Insert: {
+          archived_at?: string
+          connection_id: string
+          id?: string
+          investor_id: string
+          previous_status: string
+          reason?: string
+        }
+        Update: {
+          archived_at?: string
+          connection_id?: string
+          id?: string
+          investor_id?: string
+          previous_status?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legacy_investor_communications_audit_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_connections"
             referencedColumns: ["id"]
           },
         ]
@@ -1763,6 +2181,62 @@ export type Database = {
           },
         ]
       }
+      representation_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_user_id: string | null
+          created_at: string
+          created_by: string
+          direction: string
+          email: string
+          expires_at: string
+          id: string
+          metadata: Json
+          representation_id: string
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_user_id?: string | null
+          created_at?: string
+          created_by: string
+          direction: string
+          email: string
+          expires_at?: string
+          id?: string
+          metadata?: Json
+          representation_id: string
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_user_id?: string | null
+          created_at?: string
+          created_by?: string
+          direction?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          metadata?: Json
+          representation_id?: string
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "representation_invites_representation_id_fkey"
+            columns: ["representation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_representations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       request_images: {
         Row: {
           created_at: string | null
@@ -2104,6 +2578,14 @@ export type Database = {
     }
     Functions: {
       accept_client_invite: { Args: { p_token: string }; Returns: string }
+      accept_representation_invite: {
+        Args: { p_token: string }
+        Returns: string
+      }
+      admin_assign_representation: {
+        Args: { p_agent_id: string; p_representation_id: string }
+        Returns: undefined
+      }
       admin_email_activity: {
         Args: { p_limit?: number; p_offset?: number; p_status?: string }
         Returns: {
@@ -2116,6 +2598,10 @@ export type Database = {
         }[]
       }
       admin_system_health: { Args: never; Returns: Json }
+      assign_agent_to_exchange: {
+        Args: { p_exchange_id: string; p_representation_id: string }
+        Returns: string
+      }
       claim_admin_dispatch: {
         Args: {
           p_fingerprint: string
@@ -2128,6 +2614,14 @@ export type Database = {
           claimed: boolean
           current_status: string
         }[]
+      }
+      confirm_referred_agent: {
+        Args: { p_accept: boolean; p_representation_id: string }
+        Returns: undefined
+      }
+      decline_agent_contact_request: {
+        Args: { p_note?: string; p_request_id: string }
+        Returns: undefined
       }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -2157,6 +2651,21 @@ export type Database = {
           status: string
         }[]
       }
+      get_representation_invite: {
+        Args: { p_token: string }
+        Returns: {
+          direction: string
+          email: string
+          expires_at: string
+          inviter_company: string
+          inviter_name: string
+          status: string
+        }[]
+      }
+      has_active_exchange_assignment: {
+        Args: { p_agent_id: string; p_exchange_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2164,10 +2673,40 @@ export type Database = {
         }
         Returns: boolean
       }
+      invite_investor_client: {
+        Args: {
+          p_client_email: string
+          p_client_name: string
+          p_client_phone?: string
+          p_is_demo?: boolean
+          p_notes?: string
+        }
+        Returns: {
+          client_id: string
+          invite_status: string
+          invite_token: string
+          representation_id: string
+        }[]
+      }
+      invite_representing_agent: {
+        Args: {
+          p_agent_email: string
+          p_agent_name?: string
+          p_assign_future?: boolean
+          p_exchange_ids?: string[]
+          p_is_demo?: boolean
+        }
+        Returns: {
+          invite_status: string
+          invite_token: string
+          representation_id: string
+        }[]
+      }
       is_exchange_agent: {
         Args: { _exchange_id: string; _user_id: string }
         Returns: boolean
       }
+      is_verified_agent: { Args: { p_user_id: string }; Returns: boolean }
       log_admin_action: {
         Args: {
           p_action: string
@@ -2293,9 +2832,52 @@ export type Database = {
           read_ct: number
         }[]
       }
+      recommend_match_to_client: {
+        Args: { p_match_id: string; p_note?: string }
+        Returns: string
+      }
+      request_agent_contact: {
+        Args: { p_exchange_id: string; p_match_id: string; p_note?: string }
+        Returns: string
+      }
+      request_agent_referral: {
+        Args: {
+          p_exchange_id?: string
+          p_is_demo?: boolean
+          p_notes?: string
+          p_property_location?: string
+          p_property_type?: string
+          p_timing?: string
+        }
+        Returns: string
+      }
+      respond_to_match_recommendation: {
+        Args: {
+          p_note?: string
+          p_recommendation_id: string
+          p_response: string
+        }
+        Returns: undefined
+      }
+      respond_to_representation_assignment: {
+        Args: {
+          p_accept: boolean
+          p_reason?: string
+          p_representation_id: string
+        }
+        Returns: undefined
+      }
+      revoke_representation: {
+        Args: { p_reason?: string; p_representation_id: string }
+        Returns: undefined
+      }
       set_my_sms_consent: {
         Args: { p_consented: boolean; p_phone?: string }
         Returns: undefined
+      }
+      start_agent_connection: {
+        Args: { p_match_id: string; p_request_id?: string }
+        Returns: string
       }
       users_share_active_connection: {
         Args: { _user_a: string; _user_b: string }
