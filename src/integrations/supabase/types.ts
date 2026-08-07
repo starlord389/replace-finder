@@ -2185,14 +2185,20 @@ export type Database = {
         Row: {
           accepted_at: string | null
           accepted_user_id: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
           created_by: string
+          delivery_error_code: string | null
+          delivery_status: string
           direction: string
           email: string
           expires_at: string
           id: string
+          last_sent_at: string | null
           metadata: Json
           representation_id: string
+          send_count: number
           status: string
           token: string
           updated_at: string
@@ -2200,14 +2206,20 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           accepted_user_id?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           created_by: string
+          delivery_error_code?: string | null
+          delivery_status?: string
           direction: string
           email: string
           expires_at?: string
           id?: string
+          last_sent_at?: string | null
           metadata?: Json
           representation_id: string
+          send_count?: number
           status?: string
           token?: string
           updated_at?: string
@@ -2215,14 +2227,20 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           accepted_user_id?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           created_by?: string
+          delivery_error_code?: string | null
+          delivery_status?: string
           direction?: string
           email?: string
           expires_at?: string
           id?: string
+          last_sent_at?: string | null
           metadata?: Json
           representation_id?: string
+          send_count?: number
           status?: string
           token?: string
           updated_at?: string
@@ -2602,6 +2620,10 @@ export type Database = {
         Args: { p_exchange_id: string; p_representation_id: string }
         Returns: string
       }
+      cancel_representation_invite: {
+        Args: { p_representation_id: string }
+        Returns: undefined
+      }
       claim_admin_dispatch: {
         Args: {
           p_fingerprint: string
@@ -2824,6 +2846,17 @@ export type Database = {
           zoning: string
         }[]
       }
+      prepare_representation_invite_delivery: {
+        Args: { p_representation_id: string }
+        Returns: {
+          direction: string
+          email: string
+          expires_at: string
+          invite_id: string
+          send_count: number
+          token: string
+        }[]
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -2871,6 +2904,10 @@ export type Database = {
         Args: { p_reason?: string; p_representation_id: string }
         Returns: undefined
       }
+      set_default_representation: {
+        Args: { p_assign_future?: boolean; p_representation_id: string }
+        Returns: undefined
+      }
       set_my_sms_consent: {
         Args: { p_consented: boolean; p_phone?: string }
         Returns: undefined
@@ -2878,6 +2915,14 @@ export type Database = {
       start_agent_connection: {
         Args: { p_match_id: string; p_request_id?: string }
         Returns: string
+      }
+      unassign_agent_from_exchange: {
+        Args: { p_exchange_id: string; p_reason?: string }
+        Returns: undefined
+      }
+      update_representation_invite_email: {
+        Args: { p_email: string; p_name?: string; p_representation_id: string }
+        Returns: undefined
       }
       users_share_active_connection: {
         Args: { _user_a: string; _user_b: string }
