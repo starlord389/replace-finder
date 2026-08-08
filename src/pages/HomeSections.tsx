@@ -299,70 +299,7 @@ function Sec_investors() {
 }
 
 
-function Sec_who() {
-  return (
-<section id="who" data-nb className="w-full py-20 sm:py-24" style={{ background: "#eef3fb" }}>
-  <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
-    <div className="nb-who-head">
-      <h2 className="nb-h2">One Network. Two Purpose-Built Workspaces.</h2>
-      <p className="nb-lead mt-4">Agents and investors/property owners see the same matched property network, with the tools each role actually needs.</p>
-    </div>
 
-    <div className="nb-who-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))" }}>
-      {/* Real Estate Agents */}
-      <div className="nb-who-card nb-who-card--blue">
-        <div className="nb-who-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-        </div>
-        <h3 className="nb-who-title">Real Estate Agents</h3>
-        <ul className="nb-who-list">
-          {["Manage multiple client exchanges", "Publish authorized listings", "Receive automatic replacement matches", "Connect with buyers and listing agents"].map((b) => (
-            <li className="nb-who-li" key={b}>
-              <span className="nb-who-check" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-              </span>
-              {b}
-            </li>
-          ))}
-        </ul>
-        <a className="nb-who-link" href="/signup">Create an Agent Account <span aria-hidden="true">&rarr;</span></a>
-      </div>
-
-      {/* Investors and property owners are one audience and one account type. */}
-      <div className="nb-who-card nb-who-card--green">
-        <div className="nb-who-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 21V8l9-5 9 5v13" />
-            <path d="M3 21h18" />
-            <rect x="8" y="13" width="3" height="4" />
-            <rect x="13" y="13" width="3" height="4" />
-            <path d="M9.5 8.5h5" />
-          </svg>
-        </div>
-        <h3 className="nb-who-title">Investors / Property Owners</h3>
-        <ul className="nb-who-list">
-          {["List your own exchange property", "Run multiple active exchanges", "See only matched replacement opportunities", "Compare return on equity", "Connect directly with the listing agent"].map((b) => (
-            <li className="nb-who-li" key={b}>
-              <span className="nb-who-check" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-              </span>
-              {b}
-            </li>
-          ))}
-        </ul>
-        <a className="nb-who-link" href="/signup">Create an Investor / Owner Account <span aria-hidden="true">&rarr;</span></a>
-      </div>
-
-    </div>
-  </div>
-</section>
-  );
-}
 
 function RoeMiniCalc() {
   const [value, setValue] = useState(1000000);
