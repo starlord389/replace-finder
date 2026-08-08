@@ -101,6 +101,7 @@ const NB_STYLE = `
   [data-nb] .nb-own.rev { flex-direction: row-reverse; }
   [data-nb] .nb-own-ico { width: 34px; height: 34px; border-radius: 999px; background: #16284a; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
   [data-nb] .nb-own-ico svg { width: 17px; height: 17px; stroke: #5cc15f; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  [data-nb] .nb-own-txt { flex: 1 1 auto; min-width: 0; }
   [data-nb] .nb-own.rev .nb-own-txt { text-align: right; }
   [data-nb] .nb-own-role { display: block; font-size: 10px; font-weight: 800; letter-spacing: .09em; color: #16284a; line-height: 1.1; text-transform: uppercase; }
   [data-nb] .nb-own-prop { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; line-height: 1.15; color: #16284a; white-space: nowrap; }
