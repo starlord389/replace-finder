@@ -70,42 +70,77 @@ const NB_STYLE = `
   [data-nb] .nb-sky-net .nb-pulse:nth-of-type(3n) { animation-duration: 6s; animation-delay: 1.2s; }
   [data-nb] .nb-sky-net .nb-pulse:nth-of-type(3n+1) { animation-duration: 5.2s; animation-delay: .6s; }
 
-  /* ===== hero matchmaking network graphic (.nb-net) ===== */
-  [data-nb] .nb-net { position: relative; width: 100%; max-width: 560px; margin-left: auto; aspect-ratio: 1.06 / 1; }
+  /* ===== hero network graphic (.nb-net) — owners → monitoring hub → opportunities ===== */
+  [data-nb] .nb-net { position: relative; width: 100%; max-width: 560px; margin-left: auto; aspect-ratio: 1.02 / 1; }
   [data-nb] .nb-net-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; pointer-events: none; }
-  [data-nb] .nb-cw-line { stroke: #33d6c9; fill: none; stroke-width: .9; stroke-linecap: round; opacity: .8; filter: drop-shadow(0 0 1.5px rgba(51,214,201,.9)); }
-  [data-nb] .nb-web-line { stroke: #33d6c9; fill: none; stroke-width: .7; stroke-linecap: round; opacity: .5; filter: drop-shadow(0 0 1.1px rgba(51,214,201,.8)); }
+  [data-nb] .nb-cw-line { stroke: #33d6c9; fill: none; stroke-width: 1; stroke-linecap: round; opacity: .72; filter: drop-shadow(0 0 1.5px rgba(51,214,201,.9)); }
+  [data-nb] .nb-out-line { stroke: #5cc15f; fill: none; stroke-width: 1; stroke-linecap: round; opacity: .7; stroke-dasharray: 3 3; filter: drop-shadow(0 0 1.5px rgba(92,193,95,.7)); }
+  [data-nb] .nb-web-line { stroke: #33d6c9; fill: none; stroke-width: .7; stroke-linecap: round; opacity: .32; }
   [data-nb] .nb-cw-dot { fill: #7ff0e4; filter: drop-shadow(0 0 1.8px rgba(51,214,201,.95)); }
-  [data-nb] .nb-net-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 134px; height: 134px; border-radius: 999px; background: #fff; box-shadow: 0 16px 50px rgba(4,14,30,.5), 0 0 0 8px rgba(255,255,255,.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 4; }
-  [data-nb] .nb-hub-1031 { font-size: 28px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.02em; }
-  [data-nb] .nb-hub-ex { margin-top: 1px; font-size: 16px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.01em; display: inline-flex; align-items: center; }
+  @keyframes nb-flow-in { 0% { offset-distance: 0%; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+  [data-nb] .nb-flow { r: .95; fill: #7ff0e4; filter: drop-shadow(0 0 2px rgba(51,214,201,.95)); animation: nb-flow-in 3.2s linear infinite; }
+  [data-nb] .nb-flow-out { fill: #7bdf7e; filter: drop-shadow(0 0 2px rgba(92,193,95,.9)); }
+  @keyframes nb-ring { 0% { transform: scale(.72); opacity: .5; } 100% { transform: scale(1.5); opacity: 0; } }
+  [data-nb] .nb-ring { position: absolute; left: 50%; top: 50%; width: 152px; height: 152px; margin: -76px 0 0 -76px; border-radius: 999px; border: 1px solid rgba(51,214,201,.55); animation: nb-ring 4s ease-out infinite; z-index: 0; }
+  [data-nb] .nb-ring.b { animation-delay: 1.33s; }
+  [data-nb] .nb-ring.c { animation-delay: 2.66s; }
+
+  /* center hub */
+  [data-nb] .nb-net-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 168px; border-radius: 20px; background: #fff; padding: 14px 12px 12px; box-shadow: 0 18px 50px rgba(4,14,30,.5), 0 0 0 8px rgba(255,255,255,.08); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 5; }
+  [data-nb] .nb-hub-1031 { font-size: 26px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.02em; }
+  [data-nb] .nb-hub-ex { margin-top: 2px; font-size: 15px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.01em; display: inline-flex; align-items: center; }
   [data-nb] .nb-hub-ex .up { color: #43a047; text-transform: uppercase; }
   [data-nb] .nb-hub-arrow { width: 10px; height: 10px; margin-left: 1px; transform: translateY(-2px); }
-  [data-nb] .nb-cap { position: absolute; transform: translate(-50%,-50%); z-index: 3; width: max-content; display: inline-flex; align-items: center; gap: 11px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.5); border-radius: 999px; padding: 6px 18px 6px 6px; box-shadow: 0 12px 26px rgba(4,14,30,.4); }
-  [data-nb] .nb-cap-desc { white-space: nowrap; }
-  [data-nb] .nb-cap.rev { flex-direction: row-reverse; padding: 6px 6px 6px 18px; }
-  [data-nb] .nb-cap-ico { width: 46px; height: 46px; border-radius: 999px; background: #16284a; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
-  [data-nb] .nb-cap-ico svg { width: 23px; height: 23px; stroke: #5cc15f; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  [data-nb] .nb-cap-txt { max-width: 132px; }
-  [data-nb] .nb-cap.rev .nb-cap-txt { text-align: right; }
-  [data-nb] .nb-cap-role { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .09em; color: #16284a; line-height: 1.1; }
-  [data-nb] .nb-cap-desc { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; line-height: 1.25; color: #56657a; }
-  [data-nb] .nb-prop { position: absolute; transform: translate(-50%,-50%); z-index: 2; border-radius: 999px; border: 3px solid rgba(255,255,255,.92); background-color: #14305a; background-size: cover; background-position: center; box-shadow: 0 8px 22px rgba(4,14,30,.45); }
-  [data-nb] .nb-prop::after { content: ''; position: absolute; inset: 0; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(46,211,198,.35); }
-  @media (max-width: 1023px) { [data-nb] .nb-net { margin: 0 auto; max-width: 470px; } }
-  @media (max-width: 480px) {
-    [data-nb] .nb-net-center { width: 102px; height: 102px; box-shadow: 0 12px 34px rgba(4,14,30,.5), 0 0 0 6px rgba(255,255,255,.1); }
+  [data-nb] .nb-hub-sub { margin-top: 8px; font-size: 8.5px; font-weight: 800; letter-spacing: .1em; line-height: 1.35; color: #56657a; text-transform: uppercase; }
+  [data-nb] .nb-hub-status { margin-top: 9px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: #eef7ef; padding: 4px 10px; font-size: 9px; font-weight: 800; letter-spacing: .08em; color: #2f7d33; text-transform: uppercase; }
+  @keyframes nb-blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+  [data-nb] .nb-hub-dot { width: 6px; height: 6px; border-radius: 999px; background: #43a047; animation: nb-blink 2s ease-in-out infinite; }
+
+  /* owner cards */
+  [data-nb] .nb-own { position: absolute; transform: translate(-50%,-50%); z-index: 3; width: 228px; display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.5); border-radius: 14px; padding: 8px 12px; box-shadow: 0 12px 26px rgba(4,14,30,.4); }
+  [data-nb] .nb-own.rev { flex-direction: row-reverse; }
+  [data-nb] .nb-own-ico { width: 34px; height: 34px; border-radius: 999px; background: #16284a; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  [data-nb] .nb-own-ico svg { width: 17px; height: 17px; stroke: #5cc15f; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  [data-nb] .nb-own-txt { flex: 1 1 auto; min-width: 0; }
+  [data-nb] .nb-own.rev .nb-own-txt { text-align: right; }
+  [data-nb] .nb-own-role { display: block; white-space: nowrap; font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: #16284a; line-height: 1.1; text-transform: uppercase; }
+  [data-nb] .nb-own-prop { display: block; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; font-size: 10.5px; font-weight: 700; line-height: 1.15; color: #16284a; white-space: nowrap; }
+  [data-nb] .nb-own-meta { display: block; margin-top: 2px; font-size: 9px; font-weight: 600; line-height: 1.15; color: #7b8798; white-space: nowrap; }
+  [data-nb] .nb-own-agent { white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 8px; font-weight: 800; letter-spacing: .06em; color: #2f7d33; text-transform: uppercase; }
+  [data-nb] .nb-own-agent i { width: 5px; height: 5px; border-radius: 999px; background: #43a047; display: inline-block; }
+  [data-nb] .nb-own-thumb { width: 40px; height: 40px; border-radius: 10px; border: 2px solid rgba(255,255,255,.92); background-color: #14305a; background-size: cover; background-position: center; flex: 0 0 auto; box-shadow: 0 6px 16px rgba(4,14,30,.4); }
+
+  /* opportunity alert card */
+  [data-nb] .nb-alert { position: absolute; transform: translate(-50%,-50%); z-index: 4; width: 176px; background: #fff; border: 1px solid rgba(150,190,225,.5); border-left: 3px solid #43a047; border-radius: 12px; padding: 9px 11px; box-shadow: 0 14px 30px rgba(4,14,30,.45); }
+  [data-nb] .nb-alert-t { display: flex; align-items: center; gap: 5px; font-size: 8.5px; font-weight: 800; letter-spacing: .08em; color: #2f7d33; text-transform: uppercase; }
+  [data-nb] .nb-alert-t i { width: 5px; height: 5px; border-radius: 999px; background: #43a047; display: inline-block; animation: nb-blink 2s ease-in-out infinite; }
+  [data-nb] .nb-alert-b { display: block; margin-top: 4px; font-size: 10.5px; font-weight: 600; line-height: 1.35; color: #33405a; }
+
+  /* faint perimeter network nodes */
+  [data-nb] .nb-ghost { position: absolute; transform: translate(-50%,-50%); z-index: 1; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.35); background-color: #14305a; background-size: cover; background-position: center; opacity: .38; }
+
+  @media (max-width: 1023px) { [data-nb] .nb-net { margin: 34px auto 0; max-width: 480px; } }
+  @media (max-width: 560px) {
+    [data-nb] .nb-net { aspect-ratio: .92 / 1; max-width: 380px; }
+    [data-nb] .nb-net-center { width: 132px; padding: 11px 9px 10px; border-radius: 16px; }
     [data-nb] .nb-hub-1031 { font-size: 21px; }
-    [data-nb] .nb-hub-ex { font-size: 13px; }
-    [data-nb] .nb-cap { gap: 8px; padding: 4px 12px 4px 4px; }
-    [data-nb] .nb-cap.rev { padding: 4px 4px 4px 12px; }
-    [data-nb] .nb-cap-ico { width: 36px; height: 36px; }
-    [data-nb] .nb-cap-ico svg { width: 18px; height: 18px; }
-    [data-nb] .nb-cap-txt { max-width: 92px; }
-    [data-nb] .nb-cap-role { font-size: 9.5px; }
-    [data-nb] .nb-cap-desc { font-size: 8px; }
-    [data-nb] .nb-prop { transform: translate(-50%,-50%) scale(.78); }
+    [data-nb] .nb-hub-ex { font-size: 12.5px; }
+    [data-nb] .nb-hub-sub { font-size: 7.2px; }
+    [data-nb] .nb-hub-status { font-size: 7.5px; padding: 3px 8px; }
+    [data-nb] .nb-ring { width: 118px; height: 118px; margin: -59px 0 0 -59px; }
+    [data-nb] .nb-own { width: 172px; gap: 6px; padding: 6px 8px; border-radius: 11px; }
+    [data-nb] .nb-own-ico { width: 26px; height: 26px; }
+    [data-nb] .nb-own-ico svg { width: 13px; height: 13px; }
+    [data-nb] .nb-own-thumb { width: 30px; height: 30px; border-radius: 8px; }
+    [data-nb] .nb-own-role { font-size: 8px; }
+    [data-nb] .nb-own-prop { font-size: 9px; }
+    [data-nb] .nb-own-meta { font-size: 7.5px; }
+    [data-nb] .nb-own-agent { font-size: 6.5px; }
+    [data-nb] .nb-alert { width: 150px; padding: 7px 9px; }
+    [data-nb] .nb-alert-t { font-size: 7.5px; }
+    [data-nb] .nb-alert-b { font-size: 9px; }
   }
+
 
   /* ===== hero CTAs + trust badges ===== */
   [data-nb] .nb-cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
@@ -213,41 +248,41 @@ const LOGO_BRANDS = [
   { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 40, mobileHeight: 30 },
 ];
 
-const NODES = [
-  { tag: "INVESTOR", lbl: ["Exchanging an", "Owned Property"], x: 44, y: 16, rev: false },
-  { tag: "AGENT", lbl: ["Investor-Focused", "Real Estate Agent"], x: 17, y: 49, rev: true },
-  { tag: "PROPERTY", lbl: ["Matched", "Replacement Property"], x: 84, y: 49, rev: false },
+const OWNER_ICON = (
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" /></svg>
+);
+
+/* three property owners feeding the monitoring hub */
+const OWNERS = [
+  { tag: "Property Owner 1", prop: "Property A · $850K", meta: "Property added", photo: "/mf-1.jpg", x: 29, y: 13, rev: false },
+  { tag: "Property Owner 2", prop: "Property B · $1.1M", meta: "Property added", photo: "/mf-2.jpg", x: 69, y: 27, rev: true },
+  { tag: "Property Owner 3", prop: "Property C · $1.4M", meta: "Property added", photo: "/mf-3.jpg", x: 29, y: 79, rev: false },
 ];
 
-const ROLE_ICON: Record<string, JSX.Element> = {
-  INVESTOR: (
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><line x1="20.5" y1="20.5" x2="15.4" y2="15.4" /></svg>
-  ),
-  AGENT: (
-    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>
-  ),
-  PROPERTY: (
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>
-  ),
-};
-const NET_PROPS = [
-  { x: 75, y: 19, size: 54, photo: "/mf-1.jpg" },
-  { x: 92, y: 64, size: 48, photo: "/mf-2.jpg" },
-  { x: 70, y: 86, size: 62, photo: "/mf-3.jpg" },
-  { x: 48, y: 92, size: 56, photo: "/mf-4.jpg" },
-  { x: 25, y: 84, size: 58, photo: "/mf-5.jpg" },
-  { x: 10, y: 72, size: 46, photo: "/mf-6.jpg" },
+/* opportunity alert flowing back out of the platform */
+const ALERTS = [
+  { x: 72, y: 79, title: "New Opportunity", body: "Property B may align with Owner 1’s replacement criteria." },
 ];
-/* dense teal "circuit" web fanning out from the hub edge */
+
+/* faint perimeter nodes suggesting the wider network */
+const GHOSTS = [
+  { x: 6, y: 40, size: 30, photo: "/mf-4.jpg" },
+  { x: 95, y: 56, size: 26, photo: "/mf-5.jpg" },
+  { x: 52, y: 96, size: 28, photo: "/mf-6.jpg" },
+  { x: 92, y: 8, size: 22, photo: "/mf-4.jpg" },
+];
+
+/* faint circuit web fanning out from the hub edge */
 const WEB = Array.from({ length: 34 }, (_, i) => {
   const a = (i / 34) * Math.PI * 2 + 0.12;
-  const r1 = 12.5;
-  const r2 = 15.5 + ((i * 13) % 15);
+  const r1 = 14;
+  const r2 = 17 + ((i * 13) % 13);
   return {
     x1: 50 + Math.cos(a) * r1, y1: 50 + Math.sin(a) * r1,
     x2: 50 + Math.cos(a) * r2, y2: 50 + Math.sin(a) * r2,
   };
 });
+
 
 function LogoArrow() {
   return (
@@ -316,35 +351,66 @@ function SkyBackdrop() {
 
 function HeroNetwork() {
   return (
-    <div className="nb-net">
+    <div className="nb-net" role="img" aria-label="Property owners add their investment properties to 1031 ExchangeUP, which continuously monitors the network and alerts the right owner or agent when an opportunity is identified.">
       <svg className="nb-net-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {/* dense teal circuit web fanning from the hub edge */}
+        {/* faint circuit web fanning from the hub edge */}
         {WEB.map((w, i) => (
           <g key={`w-${i}`}>
             <line className="nb-web-line" x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2} vectorEffect="non-scaling-stroke" />
-            <circle className="nb-cw-dot" cx={w.x2} cy={w.y2} r="0.5" />
           </g>
         ))}
-        {/* connectors from the hub to each person + property */}
-        {[...NODES, ...NET_PROPS].map((n, i) => (
-          <g key={`m-${i}`}>
-            <line className="nb-cw-line" x1="50" y1="50" x2={n.x} y2={n.y} vectorEffect="non-scaling-stroke" />
-            <circle className="nb-cw-dot" cx={50 + (n.x - 50) * 0.5} cy={50 + (n.y - 50) * 0.5} r="0.7" />
+
+        {/* faint perimeter network links */}
+        {GHOSTS.map((g, i) => (
+          <line key={`g-${i}`} className="nb-web-line" x1="50" y1="50" x2={g.x} y2={g.y} vectorEffect="non-scaling-stroke" />
+        ))}
+
+        {/* owners → hub (properties added, flowing inward) */}
+        {OWNERS.map((o, i) => (
+          <g key={`in-${i}`}>
+            <line className="nb-cw-line" x1={o.x + (50 - o.x) * 0.34} y1={o.y + (50 - o.y) * 0.34} x2={o.x + (50 - o.x) * 0.78} y2={o.y + (50 - o.y) * 0.78} vectorEffect="non-scaling-stroke" />
+            <circle className="nb-flow" r="0.95">
+              <animateMotion dur="3.2s" begin={`${i * 0.9}s`} repeatCount="indefinite" path={`M${o.x + (50 - o.x) * 0.34},${o.y + (50 - o.y) * 0.34} L${o.x + (50 - o.x) * 0.78},${o.y + (50 - o.y) * 0.78}`} />
+            </circle>
+          </g>
+        ))}
+
+        {/* hub → opportunity alerts (flowing outward) */}
+        {ALERTS.map((a, i) => (
+          <g key={`out-${i}`}>
+            <line className="nb-out-line" x1={50 + (a.x - 50) * 0.24} y1={50 + (a.y - 50) * 0.24} x2={50 + (a.x - 50) * 0.66} y2={50 + (a.y - 50) * 0.66} vectorEffect="non-scaling-stroke" />
+            <circle className="nb-flow nb-flow-out" r="0.95">
+              <animateMotion dur="2.6s" begin={`${1.2 + i * 0.8}s`} repeatCount="indefinite" path={`M${50 + (a.x - 50) * 0.24},${50 + (a.y - 50) * 0.24} L${50 + (a.x - 50) * 0.66},${50 + (a.y - 50) * 0.66}`} />
+            </circle>
           </g>
         ))}
       </svg>
 
-      {NET_PROPS.map((p, i) => (
-        <div key={`p-${i}`} className="nb-prop" style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.size}px`, height: `${p.size}px`, backgroundImage: `url(${p.photo})` }} />
+      {GHOSTS.map((g, i) => (
+        <div key={`gh-${i}`} className="nb-ghost" style={{ left: `${g.x}%`, top: `${g.y}%`, width: `${g.size}px`, height: `${g.size}px`, backgroundImage: `url(${g.photo})` }} />
       ))}
 
-      {NODES.map((n) => (
-        <div key={n.tag} className={`nb-cap${n.rev ? " rev" : ""}`} style={{ left: `${n.x}%`, top: `${n.y}%` }}>
-          <span className="nb-cap-ico">{ROLE_ICON[n.tag]}</span>
-          <span className="nb-cap-txt">
-            <span className="nb-cap-role">{n.tag}</span>
-            <span className="nb-cap-desc">{n.lbl[0]}<br />{n.lbl[1]}</span>
+      <span className="nb-ring" aria-hidden="true" />
+      <span className="nb-ring b" aria-hidden="true" />
+      <span className="nb-ring c" aria-hidden="true" />
+
+      {OWNERS.map((o) => (
+        <div key={o.tag} className={`nb-own${o.rev ? " rev" : ""}`} style={{ left: `${o.x}%`, top: `${o.y}%` }}>
+          <span className="nb-own-ico" aria-hidden="true">{OWNER_ICON}</span>
+          <span className="nb-own-txt">
+            <span className="nb-own-role">{o.tag}</span>
+            <span className="nb-own-prop">{o.prop}</span>
+            <span className="nb-own-meta">{o.meta}</span>
+            <span className="nb-own-agent"><i />Agent connected</span>
           </span>
+          <span className="nb-own-thumb" style={{ backgroundImage: `url(${o.photo})` }} aria-hidden="true" />
+        </div>
+      ))}
+
+      {ALERTS.map((a) => (
+        <div key={a.title} className="nb-alert" style={{ left: `${a.x}%`, top: `${a.y}%` }}>
+          <span className="nb-alert-t"><i />{a.title}</span>
+          <span className="nb-alert-b">{a.body}</span>
         </div>
       ))}
 
@@ -353,10 +419,13 @@ function HeroNetwork() {
         <span className="nb-hub-ex">Exchange<span className="up">UP</span>
           <svg className="nb-hub-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><polyline points="3,17 9.5,11 13.5,14 21,5.5" stroke="#43a047" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /><polygon points="21,5.5 14.6,5.7 21,12.1" fill="#43a047" /></svg>
         </span>
+        <span className="nb-hub-sub">Constant intelligent<br />opportunity monitoring</span>
+        <span className="nb-hub-status"><i className="nb-hub-dot" />Monitoring active</span>
       </div>
     </div>
   );
 }
+
 
 const BADGES = [
   { txt: ["Free for Everyone", "Investors & Agents"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="m8.5 12 2.5 2.5L16 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
