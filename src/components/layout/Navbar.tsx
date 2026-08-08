@@ -14,7 +14,7 @@ interface NavbarProps {
 /** Marketing links, mirroring the homepage nav. They point at the home page
  *  sections so they work from any sub-page. */
 const NAV_LINKS = [
-  { label: "How It Works", href: "/#how" },
+  { label: "How It Works", href: "/#steps" },
   { label: "For Agents", href: "/agents" },
   { label: "For Investors", href: "/investors" },
   { label: "Resources", href: "/#resources" },

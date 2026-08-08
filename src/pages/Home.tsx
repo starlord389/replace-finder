@@ -197,7 +197,7 @@ const NB_STYLE = `
 
 
 const NAV_LINKS = [
-  { label: "How It Works", href: "#how" },
+  { label: "How It Works", href: "#steps" },
   { label: "For Agents", href: "#agents" },
   { label: "Resources", href: "#resources" },
   { label: "For Investors", href: "#investors" },
@@ -523,6 +523,23 @@ export default function Home() {
       );
     }
   }, []);
+
+  // Scroll to the hash target once sections have mounted (deep links like /#steps).
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    let tries = 0;
+    const tick = () => {
+      const el = document.getElementById(hash);
+      if (el) {
+        el.scrollIntoView({ block: "start" });
+        return;
+      }
+      if (tries++ < 20) window.setTimeout(tick, 100);
+    };
+    tick();
+  }, []);
+
 
   return (
     <div data-nb className="min-h-screen bg-white">
