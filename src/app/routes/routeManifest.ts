@@ -3,6 +3,8 @@ export type AppRouteRole = "public" | "agent" | "investor" | "admin";
 export const ROUTES = {
   home: "/",
   forLandlords: "/landlords",
+  forAgents: "/agents",
+  forInvestors: "/investors",
   bookDemo: "/book-demo",
   login: "/login",
   signup: "/signup",
