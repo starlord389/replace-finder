@@ -408,30 +408,23 @@ function NbHero() {
       <SkyBackdrop />
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
-          <h1 className="nb-hero-h1 max-w-[600px]">
-            Your Next Investment Opportunity<br />May Already Be in the Network.
+          <h1 className="nb-hero-h1 max-w-[620px]">
+            Your Investments. Constantly Monitored<br />for Smarter Opportunities.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[540px]">
-            1031ExchangeUp intelligently connects properties, investors, investment criteria and investor-friendly
-            agents — so opportunities that would otherwise stay hidden actually surface.
+            Add your property once. Exchange IQ keeps watching the network — properties, investors, investment
+            criteria and investor-friendly agents — and tells you when a better opportunity appears.
           </p>
           <p className="nb-hero-sub mt-3 max-w-[540px]">
-            You don’t have to be doing a 1031 exchange today. Register once and we keep watching the network for you.
+            You don’t have to be doing a 1031 exchange today. A 1031 exchange is simply the mechanism to move your
+            equity when the right opportunity shows up.
           </p>
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find Opportunities</Link>
-            <a href="#how" className="nb-btn-demo">See How It Works</a>
+            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Start Monitoring — Free</Link>
+            <a href="#steps" className="nb-btn-demo">See How It Works</a>
           </div>
 
-
-
-          <div className="nb-cta-row" style={{ marginTop: 14 }}>
-            <a href="#how" className="nb-hero-link">
-              <span>See how it works</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
-            </a>
-          </div>
 
           <div className="nb-badges">
             {BADGES.map((b, i) => (
