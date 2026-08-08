@@ -107,11 +107,12 @@ export default function ActivateResultDialog({
         <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           {isSuccess ? (
             <>
-              <Button variant="outline" onClick={onViewListing}>View listing</Button>
+              <Button variant="outline" onClick={onViewListing}>Edit monitoring criteria</Button>
               <Button onClick={onGoToMatches}>
-                Go to matches <ArrowRight className="ml-1 h-4 w-4" />
+                View opportunities <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </>
+
           ) : (
             <>
               <Button variant="outline" onClick={onSaveAsDraft}>Save as draft</Button>
