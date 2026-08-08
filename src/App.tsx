@@ -14,6 +14,8 @@ import InvestorLayout from "@/components/layout/InvestorLayout";
 import RequireGuest from "@/components/layout/RequireGuest";
 
 const Home = lazy(() => import("@/pages/Home"));
+const ForAgents = lazy(() => import("@/pages/ForAgents"));
+const ForInvestors = lazy(() => import("@/pages/ForInvestors"));
 const ForLandlords = lazy(() => import("@/pages/ForLandlords"));
 const BookDemo = lazy(() => import("@/pages/BookDemo"));
 const Login = lazy(() => import("@/pages/auth/Login"));
