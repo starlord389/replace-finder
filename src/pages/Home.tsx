@@ -350,35 +350,66 @@ function SkyBackdrop() {
 
 function HeroNetwork() {
   return (
-    <div className="nb-net">
+    <div className="nb-net" role="img" aria-label="Property owners add their investment properties to 1031 ExchangeUP, which continuously monitors the network and alerts the right owner or agent when an opportunity is identified.">
       <svg className="nb-net-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {/* dense teal circuit web fanning from the hub edge */}
+        {/* faint circuit web fanning from the hub edge */}
         {WEB.map((w, i) => (
           <g key={`w-${i}`}>
             <line className="nb-web-line" x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2} vectorEffect="non-scaling-stroke" />
-            <circle className="nb-cw-dot" cx={w.x2} cy={w.y2} r="0.5" />
           </g>
         ))}
-        {/* connectors from the hub to each person + property */}
-        {[...NODES, ...NET_PROPS].map((n, i) => (
-          <g key={`m-${i}`}>
-            <line className="nb-cw-line" x1="50" y1="50" x2={n.x} y2={n.y} vectorEffect="non-scaling-stroke" />
-            <circle className="nb-cw-dot" cx={50 + (n.x - 50) * 0.5} cy={50 + (n.y - 50) * 0.5} r="0.7" />
+
+        {/* faint perimeter network links */}
+        {GHOSTS.map((g, i) => (
+          <line key={`g-${i}`} className="nb-web-line" x1="50" y1="50" x2={g.x} y2={g.y} vectorEffect="non-scaling-stroke" />
+        ))}
+
+        {/* owners → hub (properties added, flowing inward) */}
+        {OWNERS.map((o, i) => (
+          <g key={`in-${i}`}>
+            <line className="nb-cw-line" x1={o.x} y1={o.y} x2="50" y2="50" vectorEffect="non-scaling-stroke" />
+            <circle className="nb-flow" r="0.95">
+              <animateMotion dur="3.2s" begin={`${i * 0.9}s`} repeatCount="indefinite" path={`M${o.x},${o.y} L50,50`} />
+            </circle>
+          </g>
+        ))}
+
+        {/* hub → opportunity alerts (flowing outward) */}
+        {ALERTS.map((a, i) => (
+          <g key={`out-${i}`}>
+            <line className="nb-out-line" x1="50" y1="50" x2={a.x} y2={a.y} vectorEffect="non-scaling-stroke" />
+            <circle className="nb-flow nb-flow-out" r="0.95">
+              <animateMotion dur="2.6s" begin={`${1.2 + i * 0.8}s`} repeatCount="indefinite" path={`M50,50 L${a.x},${a.y}`} />
+            </circle>
           </g>
         ))}
       </svg>
 
-      {NET_PROPS.map((p, i) => (
-        <div key={`p-${i}`} className="nb-prop" style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.size}px`, height: `${p.size}px`, backgroundImage: `url(${p.photo})` }} />
+      {GHOSTS.map((g, i) => (
+        <div key={`gh-${i}`} className="nb-ghost" style={{ left: `${g.x}%`, top: `${g.y}%`, width: `${g.size}px`, height: `${g.size}px`, backgroundImage: `url(${g.photo})` }} />
       ))}
 
-      {NODES.map((n) => (
-        <div key={n.tag} className={`nb-cap${n.rev ? " rev" : ""}`} style={{ left: `${n.x}%`, top: `${n.y}%` }}>
-          <span className="nb-cap-ico">{ROLE_ICON[n.tag]}</span>
-          <span className="nb-cap-txt">
-            <span className="nb-cap-role">{n.tag}</span>
-            <span className="nb-cap-desc">{n.lbl[0]}<br />{n.lbl[1]}</span>
+      <span className="nb-ring" aria-hidden="true" />
+      <span className="nb-ring b" aria-hidden="true" />
+      <span className="nb-ring c" aria-hidden="true" />
+
+      {OWNERS.map((o) => (
+        <div key={o.tag} className={`nb-own${o.rev ? " rev" : ""}`} style={{ left: `${o.x}%`, top: `${o.y}%` }}>
+          <span className="nb-own-ico" aria-hidden="true">{OWNER_ICON}</span>
+          <span className="nb-own-txt">
+            <span className="nb-own-role">{o.tag}</span>
+            <span className="nb-own-prop">{o.prop}</span>
+            <span className="nb-own-meta">{o.meta}</span>
+            <span className="nb-own-agent"><i />Agent connected</span>
           </span>
+          <span className="nb-own-thumb" style={{ backgroundImage: `url(${o.photo})` }} aria-hidden="true" />
+        </div>
+      ))}
+
+      {ALERTS.map((a) => (
+        <div key={a.title} className="nb-alert" style={{ left: `${a.x}%`, top: `${a.y}%` }}>
+          <span className="nb-alert-t"><i />{a.title}</span>
+          <span className="nb-alert-b">{a.body}</span>
         </div>
       ))}
 
@@ -387,10 +418,13 @@ function HeroNetwork() {
         <span className="nb-hub-ex">Exchange<span className="up">UP</span>
           <svg className="nb-hub-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><polyline points="3,17 9.5,11 13.5,14 21,5.5" stroke="#43a047" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /><polygon points="21,5.5 14.6,5.7 21,12.1" fill="#43a047" /></svg>
         </span>
+        <span className="nb-hub-sub">Constant intelligent<br />opportunity monitoring</span>
+        <span className="nb-hub-status"><i className="nb-hub-dot" />Monitoring active</span>
       </div>
     </div>
   );
 }
+
 
 const BADGES = [
   { txt: ["Free for Everyone", "Investors & Agents"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="m8.5 12 2.5 2.5L16 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
