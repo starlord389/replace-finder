@@ -180,8 +180,8 @@ function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         </div>
-        <h3 className="nb-how-title">Exchange IQ Searches</h3>
-        <p className="nb-how-desc">Exchange IQ, our proprietary algorithm, continuously compares relevant opportunities across the network.</p>
+        <h3 className="nb-how-title">Intelligent Opportunity Monitoring</h3>
+        <p className="nb-how-desc">Intelligent opportunity monitoring with our Exchange IQ technology continuously compares relevant opportunities across the network.</p>
       </div>
 
       <div className="nb-how-card">
