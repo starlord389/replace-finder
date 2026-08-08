@@ -112,7 +112,7 @@ export default function LandingFooter() {
         <div className="nbf-grid">
           <div>
             <div className="nbf-logo">1031Exchange<b>UP</b></div>
-            <p className="nbf-tag">Exchange IQ — proprietary matchmaking, built for 1031 exchange success.</p>
+            <p className="nbf-tag">Intelligent opportunity monitoring with our Exchange IQ technology, built for 1031 exchange success.</p>
           </div>
 
           {FOOTER_COLS.map((col) => (
