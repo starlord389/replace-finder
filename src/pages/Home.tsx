@@ -97,14 +97,14 @@ const NB_STYLE = `
   [data-nb] .nb-hub-dot { width: 6px; height: 6px; border-radius: 999px; background: #43a047; animation: nb-blink 2s ease-in-out infinite; }
 
   /* owner cards */
-  [data-nb] .nb-own { position: absolute; transform: translate(-50%,-50%); z-index: 3; width: 210px; display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.5); border-radius: 14px; padding: 8px 12px; box-shadow: 0 12px 26px rgba(4,14,30,.4); }
+  [data-nb] .nb-own { position: absolute; transform: translate(-50%,-50%); z-index: 3; width: 228px; display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.5); border-radius: 14px; padding: 8px 12px; box-shadow: 0 12px 26px rgba(4,14,30,.4); }
   [data-nb] .nb-own.rev { flex-direction: row-reverse; }
   [data-nb] .nb-own-ico { width: 34px; height: 34px; border-radius: 999px; background: #16284a; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
   [data-nb] .nb-own-ico svg { width: 17px; height: 17px; stroke: #5cc15f; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
   [data-nb] .nb-own-txt { flex: 1 1 auto; min-width: 0; }
   [data-nb] .nb-own.rev .nb-own-txt { text-align: right; }
   [data-nb] .nb-own-role { display: block; white-space: nowrap; font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: #16284a; line-height: 1.1; text-transform: uppercase; }
-  [data-nb] .nb-own-prop { display: block; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; font-size: 11px; font-weight: 700; line-height: 1.15; color: #16284a; white-space: nowrap; }
+  [data-nb] .nb-own-prop { display: block; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; font-size: 10.5px; font-weight: 700; line-height: 1.15; color: #16284a; white-space: nowrap; }
   [data-nb] .nb-own-meta { display: block; margin-top: 2px; font-size: 9px; font-weight: 600; line-height: 1.15; color: #7b8798; white-space: nowrap; }
   [data-nb] .nb-own-agent { white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 8px; font-weight: 800; letter-spacing: .06em; color: #2f7d33; text-transform: uppercase; }
   [data-nb] .nb-own-agent i { width: 5px; height: 5px; border-radius: 999px; background: #43a047; display: inline-block; }
