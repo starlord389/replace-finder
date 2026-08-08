@@ -14,6 +14,8 @@ import InvestorLayout from "@/components/layout/InvestorLayout";
 import RequireGuest from "@/components/layout/RequireGuest";
 
 const Home = lazy(() => import("@/pages/Home"));
+const ForAgents = lazy(() => import("@/pages/ForAgents"));
+const ForInvestors = lazy(() => import("@/pages/ForInvestors"));
 const ForLandlords = lazy(() => import("@/pages/ForLandlords"));
 const BookDemo = lazy(() => import("@/pages/BookDemo"));
 const Login = lazy(() => import("@/pages/auth/Login"));
@@ -92,15 +94,15 @@ const App = () => (
           <Routes>
             {/* Public (marketing + auth entry) — signed-in users are redirected to their dashboard */}
             <Route element={<RequireGuest />}>
-              <Route element={<PublicLayout />}>
-                <Route path={ROUTES.home} element={<Home />} />
-                {/* Agent page merged into the homepage — keep the old URL alive */}
-                <Route path="/agents" element={<Navigate to={ROUTES.home} replace />} />
-                <Route path={ROUTES.forLandlords} element={<ForLandlords />} />
-                <Route path={ROUTES.bookDemo} element={<BookDemo />} />
-                <Route path={ROUTES.login} element={<Login />} />
-                <Route path={ROUTES.signup} element={<Signup />} />
-              </Route>
+            <Route element={<PublicLayout />}>
+              <Route path={ROUTES.home} element={<Home />} />
+              <Route path={ROUTES.forAgents} element={<ForAgents />} />
+              <Route path={ROUTES.forInvestors} element={<ForInvestors />} />
+              <Route path={ROUTES.forLandlords} element={<ForLandlords />} />
+              <Route path={ROUTES.bookDemo} element={<BookDemo />} />
+              <Route path={ROUTES.login} element={<Login />} />
+              <Route path={ROUTES.signup} element={<Signup />} />
+            </Route>
             </Route>
 
             {/* Recovery / informational routes — accessible whether signed in or not */}

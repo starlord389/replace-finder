@@ -172,6 +172,8 @@ const NB_STYLE = `
   [data-nb] .nb-aud-ico svg { width: 22px; height: 22px; stroke: #43a047; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
   [data-nb] .nb-aud-tag { font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #43a047; }
   [data-nb] .nb-aud-txt { margin-top: 8px; font-size: 16px; line-height: 1.5; font-weight: 600; color: #16284a; }
+  [data-nb] .nb-hero-link { display: inline-flex; align-items: center; gap: 8px; color: #c4d2e6; font-size: 14.5px; font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 2px; transition: color .15s ease, border-color .15s ease; }
+  [data-nb] .nb-hero-link:hover { color: #fff; border-color: rgba(255,255,255,.65); }
 `;
 
 
@@ -396,10 +398,14 @@ function NbHero() {
           </p>
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Join Free</Link>
-            <a href="#how" className="nb-btn-demo">
-              <span>See How It Works</span>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            <Link to={ROUTES.forAgents} className="nb-btn nb-btn-green">I’m an Agent</Link>
+            <Link to={ROUTES.forInvestors} className="nb-btn-demo">I’m an Investor</Link>
+          </div>
+
+          <div className="nb-cta-row" style={{ marginTop: 14 }}>
+            <a href="#how" className="nb-hero-link">
+              <span>See how it works</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
             </a>
           </div>
 
@@ -469,4 +475,7 @@ export default function Home() {
     </div>
   );
 }
+
+export { NB_STYLE, SkyBackdrop, HeroNetwork };
+
 

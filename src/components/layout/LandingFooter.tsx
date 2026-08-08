@@ -38,8 +38,8 @@ const FOOTER_COLS = [
     title: "Platform",
     links: [
       { label: "How It Works", to: "/#how" },
-      { label: "Who It's For", to: "/#who" },
-      { label: "Why Join", to: "/#why" },
+      { label: "For Agents", to: "/agents" },
+      { label: "For Investors", to: "/investors" },
       { label: "Resources", to: "/#resources" },
     ],
   },
