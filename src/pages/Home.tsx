@@ -455,13 +455,13 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[620px]">
-            Your Investments. Constantly Monitored for Smarter Opportunities.
+            The 1031 Exchange Process Just Got Easier.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[540px]">
-            1031ExchangeUp is an intelligent opportunity monitoring system for real estate investors and agents. Add a
-            property, tell us what you’re looking for, and ExchangeUp continuously monitors the network for relevant
-            investment and 1031 exchange opportunities.
+            Add your property once and 1031ExchangeUp keeps watching. Exchange IQ continuously monitors the network for
+            investors, agents and replacement properties — so your next exchange is ready before the clock starts.
           </p>
+
 
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
