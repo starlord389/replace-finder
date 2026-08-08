@@ -515,7 +515,7 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp — Register Your Property, We Watch for Better Opportunities";
+    document.title = "1031ExchangeUp — Continuous Opportunity Monitoring for Investment Property";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
@@ -532,7 +532,9 @@ export default function Home() {
       <style>{SECTIONS_CSS}</style>
       <NbNav />
       <NbHero />
+      <NbMonitorSteps />
       <NbAudienceCards />
+
       <NbLogoMarquee />
       <LandingSections />
     </div>
