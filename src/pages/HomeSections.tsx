@@ -137,7 +137,7 @@ export function Sec_how() {
   return (
 <section id="how" data-nb className="bg-white">
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
-    <h2 className="nb-h2 text-center">Register → Monitor → Opportunity → Exchange Up</h2>
+    <h2 className="nb-h2 text-center">Add → Set → Monitor → Alert</h2>
     <p className="nb-lead text-center mt-4 max-w-[720px] mx-auto">
       You don’t need to be planning an exchange today. Put your property on our radar and we’ll tell you when
       something better shows up.
@@ -150,35 +150,35 @@ export function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
         </div>
-        <h3 className="nb-how-title">Register Your Property</h3>
-        <p className="nb-how-desc">Add an investment property, client or investment criteria in a few minutes. Free.</p>
+        <h3 className="nb-how-title">Add</h3>
+        <p className="nb-how-desc">Your property, your client, or your investment criteria. A few minutes, free.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">2</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/></svg>
         </div>
-        <h3 className="nb-how-title">Exchange IQ Monitors the Network</h3>
-        <p className="nb-how-desc">Our technology continuously compares what you own against opportunities across the network.</p>
+        <h3 className="nb-how-title">Set</h3>
+        <p className="nb-how-desc">Your investment goals — what a smarter position would look like for you.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">3</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         </div>
-        <h3 className="nb-how-title">Opportunity Identified</h3>
-        <p className="nb-how-desc">When a potentially better home for your equity appears, you get notified.</p>
+        <h3 className="nb-how-title">Monitor</h3>
+        <p className="nb-how-desc">ExchangeUp keeps watching — continuously evaluating the network as it changes.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">4</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M4 18.5 9.5 12l4 3.2L20 6.5"/><path d="M15 6.5h5v5"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
-        <h3 className="nb-how-title">Decide Whether to Exchange Up</h3>
-        <p className="nb-how-desc">Review it with your agent. A 1031 exchange is simply the mechanism to move equity tax-deferred — there’s no obligation.</p>
+        <h3 className="nb-how-title">Alert</h3>
+        <p className="nb-how-desc">You or your agent are alerted when a relevant opportunity appears. A 1031 exchange can move the equity tax-deferred if you choose to act.</p>
       </div>
 
 
