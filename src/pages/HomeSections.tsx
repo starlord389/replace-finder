@@ -763,7 +763,7 @@ function Sec_diff() {
         </div>
 
         {[
-          ["Spreadsheets & email chains", "Exchange IQ matching"],
+          ["Spreadsheets & email chains", "Intelligent opportunity monitoring"],
           ["Countless phone calls", "Instant notifications"],
           ["Searching everywhere", "One focused network"],
           ["Waiting & hoping", "Real-time opportunities"],
