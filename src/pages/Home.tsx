@@ -162,7 +162,18 @@ const NB_STYLE = `
     [data-nb] .nb-badge-txt br { display: none; }
     [data-nb] .nb-badge-txt > span::after { content: " "; }
   }
+
+  /* ===== audience cards directly under the hero ===== */
+  [data-nb] .nb-aud { background: #fff; padding: 44px 20px 8px; }
+  [data-nb] .nb-aud-grid { margin: 0 auto; max-width: 1240px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  @media (max-width: 900px) { [data-nb] .nb-aud-grid { grid-template-columns: 1fr; } }
+  [data-nb] .nb-aud-card { border: 1px solid #e8edf3; border-radius: 16px; background: #fff; padding: 24px 22px; box-shadow: 0 2px 12px rgba(14,42,77,.06); }
+  [data-nb] .nb-aud-ico { width: 44px; height: 44px; border-radius: 12px; background: #eef6ef; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  [data-nb] .nb-aud-ico svg { width: 22px; height: 22px; stroke: #43a047; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  [data-nb] .nb-aud-tag { font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #43a047; }
+  [data-nb] .nb-aud-txt { margin-top: 8px; font-size: 16px; line-height: 1.5; font-weight: 600; color: #16284a; }
 `;
+
 
 const NAV_LINKS = [
   { label: "How It Works", href: "#how" },
