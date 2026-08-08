@@ -220,7 +220,7 @@ export function Sec_agents() {
         </ul>
 
         <p className="nb-ag-note">
-          You already built the database. Let ExchangeUp find the opportunities inside it.
+          You already built the database. Let ExchangeUp find the opportunities inside it. ExchangeUp does not replace the agent — it makes the agent&rsquo;s network more powerful.
         </p>
 
         <a href="/signup" className="nb-sec-cta">Add My First Opportunity</a>
