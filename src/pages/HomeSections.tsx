@@ -223,11 +223,12 @@ export function Sec_agents() {
     <div className="nb-ag-grid">
       <div>
         <div className="nb-eyebrow">For Agents</div>
-        <h2 className="nb-h2 mt-3">Your Database Could Already Contain Your Next Transaction.</h2>
+        <h2 className="nb-h2 mt-3">Turn Your Existing Database Into Continuous Deal Flow.</h2>
         <p className="nb-lead mt-4">
-          Add a client, property or investor criteria to 1031ExchangeUp. Exchange IQ continuously looks
-          across the network for relevant opportunities and alerts you when a potential match appears.
+          Add a client, property or investor criteria once. Exchange IQ monitors the network in the background and
+          alerts you the moment a relevant opportunity appears — including matches between two of your own clients.
         </p>
+
 
         <ul className="nb-ag-list">
           {[
@@ -277,11 +278,12 @@ export function Sec_investors() {
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
     <div className="text-center max-w-[760px] mx-auto">
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
-      <h2 className="nb-h2 mt-3">Know When Your Equity Could Be Working Harder.</h2>
+      <h2 className="nb-h2 mt-3">Your Property, Monitored for Better Opportunities.</h2>
       <p className="nb-lead mt-4">
-        Register your investment property and what you’d want next — once. From then on, 1031ExchangeUp keeps
-        looking for opportunities that could put that equity to better use.
+        Tell us what you own and what you’d want next — once. From then on 1031ExchangeUp keeps monitoring the
+        network and only reaches out when your equity could genuinely be working harder somewhere else.
       </p>
+
 
     </div>
 
@@ -1271,17 +1273,17 @@ export function LandingSections() {
   return (
     <>
       <style>{EXTRA_CSS}</style>
-      <Sec_engine />
       <Sec_agents />
       <Sec_investors />
       <Sec_why />
-      <Sec_how />
-      <Sec_example />
       <Sec_diff />
+      <Sec_engine />
+      <Sec_example />
       <Sec_network />
       <Sec_trust />
       <Sec_resources />
       <Sec_faqcta />
+
     </>
   );
 }
