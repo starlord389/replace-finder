@@ -368,9 +368,9 @@ function HeroNetwork() {
         {/* owners → hub (properties added, flowing inward) */}
         {OWNERS.map((o, i) => (
           <g key={`in-${i}`}>
-            <line className="nb-cw-line" x1={o.x} y1={o.y} x2="50" y2="50" vectorEffect="non-scaling-stroke" />
+            <line className="nb-cw-line" x1={o.x + (50 - o.x) * 0.34} y1={o.y + (50 - o.y) * 0.34} x2={o.x + (50 - o.x) * 0.78} y2={o.y + (50 - o.y) * 0.78} vectorEffect="non-scaling-stroke" />
             <circle className="nb-flow" r="0.95">
-              <animateMotion dur="3.2s" begin={`${i * 0.9}s`} repeatCount="indefinite" path={`M${o.x},${o.y} L50,50`} />
+              <animateMotion dur="3.2s" begin={`${i * 0.9}s`} repeatCount="indefinite" path={`M${o.x + (50 - o.x) * 0.34},${o.y + (50 - o.y) * 0.34} L${o.x + (50 - o.x) * 0.78},${o.y + (50 - o.y) * 0.78}`} />
             </circle>
           </g>
         ))}
@@ -378,9 +378,9 @@ function HeroNetwork() {
         {/* hub → opportunity alerts (flowing outward) */}
         {ALERTS.map((a, i) => (
           <g key={`out-${i}`}>
-            <line className="nb-out-line" x1="50" y1="50" x2={a.x} y2={a.y} vectorEffect="non-scaling-stroke" />
+            <line className="nb-out-line" x1={50 + (a.x - 50) * 0.24} y1={50 + (a.y - 50) * 0.24} x2={50 + (a.x - 50) * 0.66} y2={50 + (a.y - 50) * 0.66} vectorEffect="non-scaling-stroke" />
             <circle className="nb-flow nb-flow-out" r="0.95">
-              <animateMotion dur="2.6s" begin={`${1.2 + i * 0.8}s`} repeatCount="indefinite" path={`M50,50 L${a.x},${a.y}`} />
+              <animateMotion dur="2.6s" begin={`${1.2 + i * 0.8}s`} repeatCount="indefinite" path={`M${50 + (a.x - 50) * 0.24},${50 + (a.y - 50) * 0.24} L${50 + (a.x - 50) * 0.66},${50 + (a.y - 50) * 0.66}`} />
             </circle>
           </g>
         ))}
