@@ -369,19 +369,20 @@ const BADGES = [
 const AUDIENCE_CARDS = [
   {
     tag: "I Own Investment Property",
-    txt: "Register it free. Exchange IQ keeps watching for a better place for your equity.",
-    cta: "Register My Property",
+    txt: "Add it once. ExchangeUp keeps monitoring for a smarter place for your equity.",
+    cta: "Monitor My Property",
     to: ROUTES.forInvestors,
     svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>),
   },
   {
     tag: "I’m a Real Estate Agent",
-    txt: "Your database may already hold your next transaction. Add clients and criteria — monitored free.",
-    cta: "See How Agents Use It",
+    txt: "Your database may already hold your next transaction. Add clients and properties — monitored continuously.",
+    cta: "Monitor My Database",
     to: ROUTES.forAgents,
     svg: (<svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>),
   },
 ];
+
 
 
 
