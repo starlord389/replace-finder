@@ -455,17 +455,14 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[620px]">
-            The 1031 Exchange Process Just Got Easier.
+            Finding Your 1031 Replacement Property Just Got a Lot Easier.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[540px]">
-            Add your property once and 1031ExchangeUp keeps watching. Exchange IQ continuously monitors the network for
-            investors, agents and replacement properties — so your next exchange is ready before the clock starts.
+            Register your property. Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.
           </p>
 
-
-
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Monitor My Property</Link>
+            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find My Replacement Property</Link>
             <a href="#steps" className="nb-btn-demo">See How It Works</a>
           </div>
 
@@ -562,15 +559,13 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp — The 1031 Exchange Process Just Got Easier";
+    document.title = "1031ExchangeUp — Finding Your 1031 Replacement Property Just Got a Lot Easier";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
         "content",
-        "The 1031 exchange process just got easier. Add your property once and Exchange IQ continuously monitors the network for investors, agents and replacement property opportunities.",
+        "Register your property. Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.",
       );
-
-
     }
   }, []);
 
