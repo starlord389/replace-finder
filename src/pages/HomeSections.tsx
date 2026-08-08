@@ -75,7 +75,7 @@ function Sec_engine() {
     <div className="text-center max-w-[760px] mx-auto">
       <h2 className="nb-h2">One Property Can Create Multiple Opportunities.</h2>
       <p className="nb-lead mt-4">
-        Add a property, client or investment goal once. Exchange IQ, our proprietary matching algorithm, continuously compares it with relevant
+        Add a property, client or investment goal once. Intelligent opportunity monitoring with our Exchange IQ technology continuously compares it with relevant
         opportunities across the network.
       </p>
     </div>
