@@ -75,7 +75,7 @@ function Sec_engine() {
     <div className="text-center max-w-[760px] mx-auto">
       <h2 className="nb-h2">One Property Can Create Multiple Opportunities.</h2>
       <p className="nb-lead mt-4">
-        Add a property, client or investment goal once. 1031ExchangeUp continuously compares it with relevant
+        Add a property, client or investment goal once. Exchange IQ, our proprietary matching algorithm, continuously compares it with relevant
         opportunities across the network.
       </p>
     </div>
@@ -83,7 +83,7 @@ function Sec_engine() {
     <div className="nb-flow">
       <div className="nb-flow-box">Property / Client / Investment Criteria</div>
       <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
-      <div className="nb-flow-box engine">1031Exchange<span>Up</span> Matching Engine</div>
+      <div className="nb-flow-box engine">Exchange <span>IQ</span></div>
       <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
       <div className="nb-flow-out">
         <div>Potential Buyer</div>
@@ -123,7 +123,7 @@ function Sec_example() {
       </div>
 
       <div className="nb-ex-mid" aria-hidden="true">
-        <div className="nb-ex-mid-label">1031ExchangeUp compares it across the network</div>
+        <div className="nb-ex-mid-label">Exchange IQ compares it across the network</div>
         <span style={{ fontSize: 26 }}>&rarr;</span>
       </div>
 
@@ -180,8 +180,8 @@ function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         </div>
-        <h3 className="nb-how-title">ExchangeUp Searches</h3>
-        <p className="nb-how-desc">Our matching engine continuously compares relevant opportunities across the network.</p>
+        <h3 className="nb-how-title">Exchange IQ Searches</h3>
+        <p className="nb-how-desc">Exchange IQ, our proprietary algorithm, continuously compares relevant opportunities across the network.</p>
       </div>
 
       <div className="nb-how-card">
@@ -217,7 +217,7 @@ function Sec_agents() {
         <div className="nb-eyebrow">For Agents</div>
         <h2 className="nb-h2 mt-3">Your Database Could Already Contain Your Next Transaction.</h2>
         <p className="nb-lead mt-4">
-          Add a client, property or investor criteria to 1031ExchangeUp. Our matching engine continuously looks
+          Add a client, property or investor criteria to 1031ExchangeUp. Exchange IQ continuously looks
           across the network for relevant opportunities and alerts you when a potential match appears.
         </p>
 
@@ -763,7 +763,7 @@ function Sec_diff() {
         </div>
 
         {[
-          ["Spreadsheets & email chains", "Our proprietary matching engine"],
+          ["Spreadsheets & email chains", "Exchange IQ matching"],
           ["Countless phone calls", "Instant notifications"],
           ["Searching everywhere", "One focused network"],
           ["Waiting & hoping", "Real-time opportunities"],
@@ -1039,11 +1039,11 @@ function Sec_faqcta() {
           },
           {
             q: 'Do I have to share property addresses?',
-            a: 'No. You can keep specifics private and share only the high-level details the matching engine needs.',
+            a: 'No. You can keep specifics private and share only the high-level details Exchange IQ needs.',
           },
           {
-            q: 'How does the matching engine work?',
-            a: 'Our proprietary engine reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
+            q: 'How does Exchange IQ work?',
+            a: 'Exchange IQ, our proprietary matching algorithm, reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
           },
           {
             q: 'Does 1031ExchangeUp replace my agent?',

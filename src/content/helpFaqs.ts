@@ -20,7 +20,7 @@ export const AGENT_FAQS: FaqCategory[] = [
   {
     category: "Exchanges",
     items: [
-      { q: "What's the difference between draft and active?", a: "Draft exchanges aren't visible to the matching engine — use them while you collect property details. Active exchanges are queued for matching as soon as you publish them." },
+      { q: "What's the difference between draft and active?", a: "Draft exchanges aren't visible to Exchange IQ — use them while you collect property details. Active exchanges are queued for matching as soon as you publish them." },
       { q: "How do I edit an exchange after creating it?", a: "Open the exchange detail page and click Edit. The wizard re-opens prefilled with everything except the client (the client is locked once an exchange exists)." },
       { q: "Can I move an active exchange back to draft?", a: "Yes, as long as no agent has accepted a connection on it yet. Use the Save as Draft button on the detail page." },
       { q: "Why can't I publish my exchange?", a: "Publishing requires a relinquished property and replacement criteria to be filled in. The Review step shows what's missing." },

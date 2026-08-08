@@ -323,7 +323,7 @@ export default function AdminExchangeDetail() {
               <div className="flex items-start gap-2 rounded-md border border-green-200 bg-green-50 p-2.5 text-xs text-green-900">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
-                  <span className="font-medium">The matching engine completed successfully.</span>{" "}
+                  <span className="font-medium">Exchange IQ completed successfully.</span>{" "}
                   {matchResult.matches_for_exchange + matchResult.matches_from_property === 0
                     ? "Zero eligible matches is a valid result: the table below shows which rule rejected each available candidate."
                     : "The eligible recommendations and every rejected candidate are shown below."}
