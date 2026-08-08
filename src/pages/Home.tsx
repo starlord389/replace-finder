@@ -561,12 +561,12 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp — Continuous Opportunity Monitoring for Investment Property";
+    document.title = "1031ExchangeUp — Constant Opportunity Monitoring for Investors & Agents";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
         "content",
-        "Register your investment property free. 1031ExchangeUp continuously monitors the network and alerts you when your equity could be working harder somewhere else.",
+        "1031ExchangeUp is an intelligent opportunity monitoring system for real estate investors and agents. Add a property and goals once — we continuously monitor the network for relevant investment and 1031 exchange opportunities.",
       );
 
     }
