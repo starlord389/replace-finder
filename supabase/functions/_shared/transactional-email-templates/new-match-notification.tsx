@@ -35,8 +35,9 @@ const Email = ({
   return (
     <Html lang="en" dir="ltr">
       <Head />
-        <Preview>New opportunity detected{matchedPropertyLabel ? `: ${matchedPropertyLabel}` : ''}</Preview>
-        <Body style={main}>
+      <Preview>New opportunity detected{matchedPropertyLabel ? `: ${matchedPropertyLabel}` : ''}</Preview>
+      <Body style={main}>
+
         <Container style={container}>
           <Section style={brandBar}>
             <Text style={brandText}>
