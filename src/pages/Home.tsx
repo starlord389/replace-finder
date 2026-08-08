@@ -343,7 +343,7 @@ function HeroNetwork() {
 }
 
 const BADGES = [
-  { txt: ["Free to Register"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="m8.5 12 2.5 2.5L16 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
+  { txt: ["Free for Investors", "Always"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="m8.5 12 2.5 2.5L16 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
   { txt: ["Continuous Monitoring", "with Exchange IQ"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["No Obligation", "to Exchange"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><circle cx="17" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.8" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["Register a Property", "in Minutes"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
@@ -353,19 +353,20 @@ const BADGES = [
 const AUDIENCE_CARDS = [
   {
     tag: "I Own Investment Property",
-    txt: "Register your property and let Exchange IQ monitor the network for a potentially better place for your equity.",
+    txt: "Put your equity to work. Register your property free and Exchange IQ keeps watching for a potentially better place for it.",
     cta: "Register My Property",
     to: ROUTES.forInvestors,
     svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>),
   },
   {
     tag: "I’m a Real Estate Agent",
-    txt: "Add your clients, properties and investment criteria and let Exchange IQ uncover opportunities inside the database you already have.",
+    txt: "Your database may already contain your next transaction. Add clients, properties and criteria — your first one is monitored free.",
     cta: "See How Agents Use It",
     to: ROUTES.forAgents,
     svg: (<svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>),
   },
 ];
+
 
 function NbAudienceCards() {
   return (
@@ -392,21 +393,21 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[600px]">
-            Your Property Could Be<br />Making You More Money.
+            Your Next Investment Opportunity<br />May Already Be in the Network.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[540px]">
-            Register your investment property in minutes. 1031ExchangeUp continuously compares it against
-            opportunities across the network and alerts you when it finds a potentially better place for your equity.
+            1031ExchangeUp intelligently connects properties, investors, investment criteria and investor-friendly
+            agents — so opportunities that would otherwise stay hidden actually surface.
           </p>
           <p className="nb-hero-sub mt-3 max-w-[540px]">
-            You don’t have to be doing a 1031 exchange today. Put your property on our radar and we’ll tell you when
-            your equity could be working harder somewhere else.
+            You don’t have to be doing a 1031 exchange today. Register once and we keep watching the network for you.
           </p>
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Register My Property — Free</Link>
-            <Link to={ROUTES.forAgents} className="nb-btn-demo">I’m a Real Estate Agent</Link>
+            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find Opportunities</Link>
+            <a href="#how" className="nb-btn-demo">See How It Works</a>
           </div>
+
 
 
           <div className="nb-cta-row" style={{ marginTop: 14 }}>

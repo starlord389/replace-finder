@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { UPCOMING_EVENT } from "@/content/events";
+
 
 /* AUTO-ASSEMBLED landing sections (navy+green brand). Person/expert photos are placeholders. */
 
@@ -73,27 +75,27 @@ function Sec_engine() {
 <section id="engine" className="bg-white">
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
     <div className="text-center max-w-[760px] mx-auto">
-      <h2 className="nb-h2">An Intelligent Monitoring Network for Investment Real Estate.</h2>
+      <h2 className="nb-h2">How a Match Actually Happens.</h2>
       <p className="nb-lead mt-4">
-        Property owners and agents register properties and investment criteria. Exchange IQ continuously looks for
-        opportunities to put that equity to better use — and when it finds one, we let you know.
+        A property, an investor's goals and everything already in the network are compared continuously. When the
+        numbers line up, the agent hears about it — and reaches out to the client.
       </p>
     </div>
 
     <div className="nb-flow">
-      <div className="nb-flow-box">Property / Client / Investment Criteria</div>
-      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
-      <div className="nb-flow-box engine">Exchange <span>IQ</span></div>
-      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
-      <div className="nb-flow-out">
-        <div>Potential Replacement Property</div>
-        <div>Potential Buyer</div>
-        <div>Potential Seller</div>
-        <div>Potential Agent Collaboration</div>
+      <div className="nb-flow-out" style={{ marginBottom: 0 }}>
+        <div>Property</div>
+        <div>Investor Goals</div>
+        <div>Network Opportunities</div>
       </div>
+      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
+      <div className="nb-flow-box engine">Intelligent Match by Exchange <span>IQ</span></div>
+      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
+      <div className="nb-flow-box">Agent Alert &rarr; Conversation with the Client</div>
     </div>
 
     <p className="nb-flow-note">Register once. We keep watching.</p>
+
 
   </div>
 </section>
@@ -312,11 +314,13 @@ export function Sec_investors() {
 function RoeMiniCalc() {
   const [value, setValue] = useState(1000000);
   const [loan, setLoan] = useState(0);
-  const [income, setIncome] = useState(60000);
+  const [rent, setRent] = useState(6000);
   const [shown, setShown] = useState(false);
 
   const PLATFORM = 8; // healthy return-on-equity benchmark
+  const NET_FACTOR = 0.6; // typical share of gross rent left after operating expenses
   const equity = Math.max(0, value - loan);
+  const income = rent * 12 * NET_FACTOR;
   const roe = equity > 0 ? (income / equity) * 100 : 0;
   const potential = equity * (PLATFORM / 100);
   const uplift = potential - income;
@@ -327,17 +331,20 @@ function RoeMiniCalc() {
   const tone = roe < 5 ? "low" : roe < 8 ? "mid" : "high";
   const numColor = tone === "low" ? "#b8543a" : tone === "mid" ? "#16284a" : "#43a047";
 
+  const signupHref =
+    `/signup?role=investor&value=${Math.round(value)}&loan=${Math.round(loan)}&rent=${Math.round(rent)}`;
+
   const FIELDS: { id: string; label: string; val: number; set: (n: number) => void }[] = [
     { id: "cv", label: "Estimated Property Value", val: value, set: setValue },
-    { id: "ni", label: "Annual Net Rental Income", val: income, set: setIncome },
-    { id: "lb", label: "Mortgage Balance", val: loan, set: setLoan },
+    { id: "lb", label: "Current Loan Balance", val: loan, set: setLoan },
+    { id: "gr", label: "Gross Monthly Rent", val: rent, set: setRent },
   ];
 
   return (
     <div className="nb-why-card">
       <h3 className="nb-why-card-title">Return on Equity Calculator</h3>
       <p className="nb-why-card-sub">
-        See how efficiently your equity is currently working, measured against an 8% reference return.
+        Three numbers is all it takes. See how hard your equity is working today, measured against an 8% reference return.
       </p>
 
       <div className="nb-why-inputs">
@@ -362,22 +369,55 @@ function RoeMiniCalc() {
 
       {shown && (
         <div className="nb-why-result">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0,1fr))",
+              gap: 12,
+              marginBottom: 14,
+              textAlign: "center",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>Equity</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#16284a" }}>{usd(equity)}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>Current ROE</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: numColor }}>{roe.toFixed(1)}%</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>At 8% Reference</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#43a047" }}>{usd(potential)}/yr</div>
+            </div>
+          </div>
+
           <p className="nb-why-result-note">
             {uplift > 0 ? (
-              <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>. Compared with an 8% reference return, the same <b>{usd(equity)}</b> of equity would represent about <b>{usd(potential)}/yr</b> — roughly <b>{usd(uplift)}</b> more per year.</>
+              <>Based on an estimated <b>{usd(income)}/yr</b> of net income, the same <b>{usd(equity)}</b> of equity
+              could represent roughly <b>{usd(uplift)}</b> more per year at the reference return. Register your property
+              and Exchange IQ will keep watching the network for opportunities that could put that equity to better use.</>
             ) : (
-              <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the 8% reference return used here.</>
+              <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the
+              8% reference return used here. Register it anyway — we'll only reach out if something genuinely better shows up.</>
             )}
           </p>
+
+          <a href={signupHref} className="nb-why-calc" style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14 }}>
+            Register My Property — Free
+          </a>
+
           <p className="nb-why-fine">
-            This calculator is for educational purposes only and does not constitute financial, tax or investment advice.
-            Results are estimates and do not predict or guarantee any outcome.
+            Net income is estimated at 60% of gross rent, a common operating-expense assumption. This calculator is for
+            educational purposes only and does not constitute financial, tax or investment advice. Results are estimates
+            and do not predict or guarantee any outcome.
           </p>
         </div>
       )}
     </div>
   );
 }
+
 
 
 
@@ -863,25 +903,22 @@ function SummitEventCard() {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
           Monthly Event Series
         </span>
-        <h3 className="nb-ev-title">1031 Exchange Summit</h3>
-        <p className="nb-ev-copy">
-          1031 Exchange Summit powered by 1031 Exchange Up and our partnered vendors.
-          Learn about tax saving strategies, DST, bonus depreciation, and how you can
-          leverage the 1031 Exchange Up platform to unlock more deal flow.
-        </p>
+        <h3 className="nb-ev-title">{UPCOMING_EVENT.title}</h3>
+        <p className="nb-ev-copy">{UPCOMING_EVENT.description}</p>
         <div className="nb-ev-meta">
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
-            Next session: August 11, 2026
+            Next session: {UPCOMING_EVENT.dateLabel}
           </span>
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
-            12:00 PM
+            {UPCOMING_EVENT.timeLabel}
           </span>
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M15 10l5-5M15 10l5 5M15 10H3" /></svg>
-            Zoom
+            {UPCOMING_EVENT.platform}
           </span>
+
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" /><circle cx="17" cy="9" r="2.4" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" /></svg>
             Agents &amp; investors welcome
@@ -911,7 +948,7 @@ function SummitEventCard() {
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#43a047" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9.5" /><path d="M8 12.3l2.6 2.6L16.5 9" /></svg>
             </span>
             <h4>You're registered!</h4>
-            <p>We'll email you the details for the August 11, 2026 session — and every monthly summit after it.</p>
+            <p>We'll email you the details for the {UPCOMING_EVENT.dateLabel} session — and every monthly summit after it.</p>
           </div>
         ) : (
           <form onSubmit={handleRegister} noValidate>
@@ -949,7 +986,7 @@ function Sec_resources() {
           <ul className="nb-res-list">
             <li className="nb-res-li">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="#43a047" strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              <span><strong>1031 Exchange Summit</strong> · August 11, 2026</span>
+              <span><strong>{UPCOMING_EVENT.title}</strong> · {UPCOMING_EVENT.dateLabel}</span>
             </li>
             <li className="nb-res-li">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="12" rx="2" stroke="#43a047" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round"/></svg>
@@ -1002,11 +1039,17 @@ function Sec_resources() {
           <a href="/signup" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>Meet All Our Experts →</a>
         </div>
 
-        {/* (3) Become a Founding Member */}
+        {/* (3) Pricing / early access */}
         <div className="nb-res-card nb-res-dark">
-          <h3 className="nb-res-title">Become a Founding Member</h3>
+          <h3 className="nb-res-title">Simple, Honest Pricing</h3>
           <ul className="nb-res-clist">
-            {['Founding Agents & Investors','First 75 Registered Properties','Free to Join — No Card Required','Help Shape the Platform','Be Part of Something Big'].map((t) => (
+            {[
+              'Investors: free, always',
+              'Agents: first client or property monitored free',
+              'Paid agent plan only to monitor more',
+              'No card required to start',
+              'Early members help shape the platform',
+            ].map((t) => (
               <li className="nb-res-cli" key={t}>
                 <span className="nb-res-check">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#5cc15f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -1015,9 +1058,10 @@ function Sec_resources() {
               </li>
             ))}
           </ul>
-          <a href="/signup" className="nb-btn nb-btn-green nb-res-btn">Join as a Founding Member</a>
-          <div className="nb-res-cap">Spots Are Limited!</div>
+          <a href="/signup" className="nb-btn nb-btn-green nb-res-btn">Add Your First Opportunity</a>
+          <div className="nb-res-cap">Free to start</div>
         </div>
+
       </div>
     </div>
   </div>
@@ -1048,8 +1092,9 @@ function Sec_faqcta() {
           },
           {
             q: 'How much does it cost?',
-            a: 'Joining the network is free. You only consider a paid plan once you start closing matched exchanges.',
+            a: 'Investors are free — always. Agents monitor their first client or property free, and only move to a paid plan when they want ExchangeUp monitoring additional clients and properties.',
           },
+
           {
             q: 'Do I need a 1031 exchange client right now?',
             a: 'No. Many members add properties and criteria early so relevant opportunities can surface over time.',
@@ -1227,18 +1272,18 @@ export function LandingSections() {
     <>
       <style>{EXTRA_CSS}</style>
       <Sec_engine />
-      <Sec_how />
-      <Sec_why />
-      <Sec_investors />
       <Sec_agents />
+      <Sec_investors />
+      <Sec_why />
+      <Sec_how />
       <Sec_example />
-      <Sec_network />
       <Sec_diff />
+      <Sec_network />
       <Sec_trust />
       <Sec_resources />
       <Sec_faqcta />
-
     </>
   );
 }
+
 
