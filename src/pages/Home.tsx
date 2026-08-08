@@ -403,6 +403,50 @@ function NbAudienceCards() {
 }
 
 
+const MONITOR_PANEL_CSS = `
+  [data-nb] .nb-mon { margin-top: 26px; max-width: 480px; border-radius: 16px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.45); box-shadow: 0 18px 44px rgba(4,14,30,.38); padding: 16px 18px; }
+  [data-nb] .nb-mon-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  [data-nb] .nb-mon-title { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #16284a; }
+  [data-nb] .nb-mon-status { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 800; letter-spacing: .08em; color: #2f7a33; background: #e3f1e4; border-radius: 999px; padding: 4px 11px; }
+  [data-nb] .nb-mon-dot { width: 7px; height: 7px; border-radius: 999px; background: #43a047; }
+  [data-nb] .nb-mon-grid { margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+  [data-nb] .nb-mon-cell { border: 1px solid #e8edf3; border-radius: 11px; padding: 9px 11px; background: #fff; }
+  [data-nb] .nb-mon-k { font-size: 9.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: #8794a6; }
+  [data-nb] .nb-mon-v { margin-top: 3px; font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: #16284a; }
+  [data-nb] .nb-mon-v.green { color: #2f7a33; }
+  @media (max-width: 480px) { [data-nb] .nb-mon { padding: 14px; } }
+`;
+
+function NbMonitorPanel() {
+  return (
+    <div className="nb-mon" aria-label="Opportunity monitoring status">
+      <style>{MONITOR_PANEL_CSS}</style>
+      <div className="nb-mon-head">
+        <span className="nb-mon-title">Opportunity Monitoring</span>
+        <span className="nb-mon-status"><span className="nb-mon-dot" aria-hidden="true" />ACTIVE</span>
+      </div>
+      <div className="nb-mon-grid">
+        <div className="nb-mon-cell">
+          <div className="nb-mon-k">Properties Monitored</div>
+          <div className="nb-mon-v">1</div>
+        </div>
+        <div className="nb-mon-cell">
+          <div className="nb-mon-k">Last Network Check</div>
+          <div className="nb-mon-v">Today</div>
+        </div>
+        <div className="nb-mon-cell">
+          <div className="nb-mon-k">New Opportunities</div>
+          <div className="nb-mon-v green">2</div>
+        </div>
+        <div className="nb-mon-cell">
+          <div className="nb-mon-k">Monitoring Criteria</div>
+          <div className="nb-mon-v">Active</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NbHero() {
   return (
     <section className="nb-hero">
@@ -410,18 +454,21 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[620px]">
-            Your Property. Monitored for Better Opportunities.
+            Your Investments. Constantly Monitored for Smarter Opportunities.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[540px]">
-            Register free. Exchange IQ alerts you when your equity could be working harder.
+            1031ExchangeUp is an intelligent opportunity monitoring system for real estate investors and agents. Add a
+            property, tell us what you’re looking for, and ExchangeUp continuously monitors the network for relevant
+            investment and 1031 exchange opportunities.
           </p>
 
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Start Monitoring — Free</Link>
+            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Monitor My Property</Link>
             <a href="#steps" className="nb-btn-demo">See How It Works</a>
           </div>
 
+          <NbMonitorPanel />
 
           <div className="nb-badges">
             {BADGES.map((b, i) => (
@@ -443,25 +490,26 @@ function NbHero() {
 const MONITOR_STEPS = [
   {
     t: "Add Your Property",
-    d: "A few details about what you own — or, for agents, a client and their criteria. Minutes, and free.",
+    d: "What you own — or, for agents, a client and their criteria. Minutes, and free.",
     svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><path d="M12 13v5M9.5 15.5h5" /></svg>),
   },
   {
-    t: "We Monitor Continuously",
-    d: "Exchange IQ compares it against properties, buyers and criteria across the network, every day.",
+    t: "Set Your Goals",
+    d: "Tell us what a better position looks like for you. Change it any time.",
+    svg: (<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3.6" /><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" /></svg>),
+  },
+  {
+    t: "We Keep Watching",
+    d: "Exchange IQ continuously evaluates the network as properties, investors and criteria change.",
     svg: (<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>),
   },
   {
-    t: "You Get an Opportunity",
-    d: "When a better home for your equity appears, you and your agent are alerted with the numbers.",
+    t: "Get Alerted",
+    d: "When a relevant opportunity appears, you and your agent are alerted with the numbers.",
     svg: (<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>),
   },
-  {
-    t: "Exchange Up — If You Want To",
-    d: "The 1031 moves your equity tax-deferred. Review it with your agent. No obligation.",
-    svg: (<svg viewBox="0 0 24 24"><path d="M4 18.5 9.5 12l4 3.2L20 6.5" /><path d="M15 6.5h5v5" /></svg>),
-  },
 ];
+
 
 
 function NbMonitorSteps() {
