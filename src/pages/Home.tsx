@@ -410,12 +410,10 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[620px]">
-            Your Investments. Constantly Monitored<br />for Smarter Opportunities.
+            Your Property. Monitored for Better Opportunities.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[540px]">
-            Add your property once. Exchange IQ watches the network — properties, investors, criteria and
-            investor-friendly agents — and tells you when a better opportunity appears. You don’t need to be doing a
-            1031 exchange today; it’s simply the mechanism to move your equity when one does.
+            Register free. Exchange IQ alerts you when your equity could be working harder.
           </p>
 
 

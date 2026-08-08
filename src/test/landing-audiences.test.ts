@@ -7,8 +7,8 @@ const sectionsSource = readFileSync(join(process.cwd(), "src/pages/HomeSections.
 
 describe("public landing-page audiences", () => {
   it("leads with the continuous opportunity-monitoring value proposition", () => {
-    expect(homeSource).toContain("Your Investments. Constantly Monitored");
-    expect(homeSource).toContain("for Smarter Opportunities.");
+    expect(homeSource).toContain("Your Property. Monitored for Better Opportunities.");
+    expect(homeSource).toContain("Register free. Exchange IQ alerts you when your equity could be working harder.");
     expect(homeSource).toContain("Start Monitoring — Free");
     expect(homeSource).toContain("See How It Works");
     expect(homeSource).toContain("Add it once. We keep watching.");
