@@ -109,9 +109,10 @@ const FAQS = [
     a: "That's what the network is built for. Once your agent enters the building you own and its numbers, the system automatically surfaces other owners' buildings that could earn you a better return and that you can afford. No wish-list is required: the return math runs automatically, while optional replacement preferences can refine the results. We can't promise one specific building, but getting real, better-returning options in front of you fast is exactly what this is for, and that's the part where most owners run out of time on their own.",
   },
   {
-    q: "What's the catch? Why is this free for me?",
-    a: "Agents pay to be in the network. Owners never do. We're paid by the agent side, so the introduction costs you nothing and carries no obligation. If your situation isn't a fit, we'll just tell you that straight.",
+    q: "What's the catch? Why is this free?",
+    a: "There's no catch — 1031ExchangeUp is free for everyone, owners and agents alike. The introduction costs you nothing and carries no obligation. If your situation isn't a fit, we'll just tell you that straight.",
   },
+
   {
     q: "Is any of this public?",
     a: "No. Nothing goes on a public site. Your name and your building's address stay hidden, and a match only becomes a conversation when both sides choose to connect. Tenants, competitors, and lenders learn nothing unless and until you decide to take it further.",
@@ -132,7 +133,7 @@ const FAQS = [
 
 const FORM_BENEFITS = [
   "Better-returning buildings, surfaced by the return math",
-  "Free for owners — agents pay, you never do",
+  "Free for everyone — owners and agents alike",
   "Connected by hand to one vetted agent, not a buyer pool",
   "Nothing public — your name and address stay private",
 ] as const;
