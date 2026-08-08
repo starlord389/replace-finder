@@ -865,25 +865,22 @@ function SummitEventCard() {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
           Monthly Event Series
         </span>
-        <h3 className="nb-ev-title">1031 Exchange Summit</h3>
-        <p className="nb-ev-copy">
-          1031 Exchange Summit powered by 1031 Exchange Up and our partnered vendors.
-          Learn about tax saving strategies, DST, bonus depreciation, and how you can
-          leverage the 1031 Exchange Up platform to unlock more deal flow.
-        </p>
+        <h3 className="nb-ev-title">{UPCOMING_EVENT.title}</h3>
+        <p className="nb-ev-copy">{UPCOMING_EVENT.description}</p>
         <div className="nb-ev-meta">
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
-            Next session: August 11, 2026
+            Next session: {UPCOMING_EVENT.dateLabel}
           </span>
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
-            12:00 PM
+            {UPCOMING_EVENT.timeLabel}
           </span>
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M15 10l5-5M15 10l5 5M15 10H3" /></svg>
-            Zoom
+            {UPCOMING_EVENT.platform}
           </span>
+
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" /><circle cx="17" cy="9" r="2.4" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" /></svg>
             Agents &amp; investors welcome
