@@ -1196,19 +1196,14 @@ export function Sec_network() {
   <div className="mx-auto" style={{ maxWidth: 1240 }}>
     <div className="text-center max-w-[760px] mx-auto">
       <h2 className="nb-h2" style={{ color: "#fff" }}>The More Connected the Network, the More Opportunities Appear.</h2>
-      <p className="nb-lead mt-4" style={{ color: "#c4d2e6" }}>
-        Every property, investor and set of criteria added to 1031ExchangeUp increases the chance that a
-        meaningful connection surfaces.
-      </p>
     </div>
 
     <div className="nb-net-grid">
-      <div className="nb-net-card">More properties means more potential replacement options.</div>
+      <div className="nb-net-card">More properties means more replacement options.</div>
       <div className="nb-net-card">More investors means more potential buyers.</div>
-      <div className="nb-net-card">More agents means more potential collaboration.</div>
+      <div className="nb-net-card">More agents means more collaboration.</div>
     </div>
 
-    <p className="nb-net-close">Opportunity grows with the network.</p>
   </div>
 </section>
   );
