@@ -392,21 +392,21 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[600px]">
-            Your Property Could Be<br />Making You More Money.
+            Your Next Investment Opportunity<br />May Already Be in the Network.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[540px]">
-            Register your investment property in minutes. 1031ExchangeUp continuously compares it against
-            opportunities across the network and alerts you when it finds a potentially better place for your equity.
+            1031ExchangeUp intelligently connects properties, investors, investment criteria and investor-friendly
+            agents — so opportunities that would otherwise stay hidden actually surface.
           </p>
           <p className="nb-hero-sub mt-3 max-w-[540px]">
-            You don’t have to be doing a 1031 exchange today. Put your property on our radar and we’ll tell you when
-            your equity could be working harder somewhere else.
+            You don’t have to be doing a 1031 exchange today. Register once and we keep watching the network for you.
           </p>
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Register My Property — Free</Link>
-            <Link to={ROUTES.forAgents} className="nb-btn-demo">I’m a Real Estate Agent</Link>
+            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find Opportunities</Link>
+            <a href="#how" className="nb-btn-demo">See How It Works</a>
           </div>
+
 
 
           <div className="nb-cta-row" style={{ marginTop: 14 }}>
