@@ -443,6 +443,51 @@ function NbHero() {
 }
 
 
+const MONITOR_STEPS = [
+  {
+    t: "Add Your Property",
+    d: "A few details about what you own — or, for agents, a client and their criteria. Takes minutes and it’s free.",
+    svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><path d="M12 13v5M9.5 15.5h5" /></svg>),
+  },
+  {
+    t: "We Monitor Continuously",
+    d: "Exchange IQ compares it against properties, buyers and criteria across the network — every day, in the background.",
+    svg: (<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>),
+  },
+  {
+    t: "You Get an Opportunity",
+    d: "When a potentially better home for your equity appears, you and your agent are alerted with the numbers.",
+    svg: (<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>),
+  },
+  {
+    t: "Exchange Up — If You Want To",
+    d: "A 1031 exchange is just the mechanism to move equity tax-deferred. Review it with your agent. No obligation.",
+    svg: (<svg viewBox="0 0 24 24"><path d="M4 18.5 9.5 12l4 3.2L20 6.5" /><path d="M15 6.5h5v5" /></svg>),
+  },
+];
+
+function NbMonitorSteps() {
+  return (
+    <section id="steps" className="nb-steps" aria-label="How monitoring works">
+      <div className="nb-steps-inner">
+        <p className="nb-steps-kicker">Register → Monitor → Opportunity → Exchange Up</p>
+        <div className="nb-steps-row">
+          {MONITOR_STEPS.map((s, i) => (
+            <div className="nb-step" key={s.t}>
+              <div className="nb-step-n">STEP {i + 1}</div>
+              <span className="nb-step-ico" aria-hidden="true">{s.svg}</span>
+              <div className="nb-step-t">{s.t}</div>
+              <p className="nb-step-d">{s.d}</p>
+            </div>
+          ))}
+        </div>
+        <p className="nb-steps-tag">Add it once. We keep watching.</p>
+      </div>
+    </section>
+  );
+}
+
+
 function NbLogoMarquee() {
   return (
     <section className="nb-mq">
