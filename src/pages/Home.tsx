@@ -423,8 +423,6 @@ function NbHero() {
             <a href="#steps" className="nb-btn-demo">See How It Works</a>
           </div>
 
-          <NbMonitorPanel />
-
           <div className="nb-badges">
             {BADGES.map((b, i) => (
               <div key={i} className="nb-badge">
