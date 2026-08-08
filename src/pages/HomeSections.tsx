@@ -70,37 +70,8 @@ export const EXTRA_CSS = `
 [data-nb] .nb-sec-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:50px;padding:0 26px;margin-top:30px;border-radius:10px;background:#43a047;color:#fff;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 8px 20px rgba(67,160,71,.28)}
 `;
 
-function Sec_engine() {
-  return (
-<section id="engine" className="bg-white">
-  <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
-    <div className="text-center max-w-[760px] mx-auto">
-      <h2 className="nb-h2">How a Match Actually Happens.</h2>
-      <p className="nb-lead mt-4">
-        A property, an investor's goals and everything already in the network are compared continuously. When the
-        numbers line up, the agent hears about it — and reaches out to the client.
-      </p>
-    </div>
-
-    <div className="nb-flow">
-      <div className="nb-flow-out" style={{ marginBottom: 0 }}>
-        <div>Property</div>
-        <div>Investor Goals</div>
-        <div>Network Opportunities</div>
-      </div>
-      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
-      <div className="nb-flow-box engine">Intelligent Match by Exchange <span>IQ</span></div>
-      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
-      <div className="nb-flow-box">Agent Alert &rarr; Conversation with the Client</div>
-    </div>
-
-    <p className="nb-flow-note">Register once. We keep watching.</p>
 
 
-  </div>
-</section>
-  );
-}
 
 
 function Sec_example() {
@@ -108,10 +79,11 @@ function Sec_example() {
 <section id="example" style={{ background: "#eef3fb" }}>
   <div className="max-w-[1240px] mx-auto px-5 sm:px-8 py-20 sm:py-24">
     <div className="text-center max-w-[720px] mx-auto">
-      <h2 className="nb-h2">See It With a Real Example</h2>
+      <h2 className="nb-h2">How a Match Actually Happens.</h2>
       <p className="nb-lead mt-4">
-        Here is what happens when a single property enters the network.
+        One property enters the network. Here is what Exchange IQ surfaces.
       </p>
+
     </div>
 
     <div className="nb-ex-grid">
@@ -225,19 +197,18 @@ export function Sec_agents() {
         <div className="nb-eyebrow">For Agents</div>
         <h2 className="nb-h2 mt-3">Turn Your Existing Database Into Continuous Deal Flow.</h2>
         <p className="nb-lead mt-4">
-          Add a client, property or investor criteria once. Exchange IQ monitors the network in the background and
-          alerts you the moment a relevant opportunity appears — including matches between two of your own clients.
+          Add a client, property or criteria once. Exchange IQ monitors the network in the background and alerts you
+          when a relevant opportunity appears — including matches between two of your own clients.
         </p>
 
 
         <ul className="nb-ag-list">
           {[
-            "Unlock opportunities from clients you already know.",
-            "Discover potential buyers and replacement properties.",
+            "Surface deals inside the database you already have.",
+            "Find potential buyers and replacement properties.",
             "Collaborate with investor-friendly agents.",
-            "Keep your existing client relationship.",
-            "Create opportunities between clients already inside your own database or brokerage.",
-            "Spend less time manually searching for the other side of a transaction.",
+            "Keep your client relationship, always.",
+
           ].map((b) => (
             <li className="nb-ag-li" key={b}>
               <span className="nb-ag-check" aria-hidden="true">
@@ -280,9 +251,9 @@ export function Sec_investors() {
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
       <h2 className="nb-h2 mt-3">Your Property, Monitored for Better Opportunities.</h2>
       <p className="nb-lead mt-4">
-        Tell us what you own and what you’d want next — once. From then on 1031ExchangeUp keeps monitoring the
-        network and only reaches out when your equity could genuinely be working harder somewhere else.
+        Tell us what you own once. We only reach out when your equity could genuinely be working harder somewhere else.
       </p>
+
 
 
     </div>
@@ -436,8 +407,7 @@ export function Sec_why() {
             Is Your Equity Working<span className="nb-why-up"> Hard Enough</span>?
           </h2>
           <p style={{ color: "#c4d2e6", fontSize: 16, lineHeight: 1.6, margin: "-14px 0 26px" }}>
-            Run the numbers on what you own today. If your equity could be doing more somewhere else, that’s exactly
-            what 1031ExchangeUp watches for.
+            Run the numbers on what you own today. If your equity could be doing more elsewhere, that’s what we watch for.
           </p>
 
           <div className="nb-why-list">
@@ -447,10 +417,8 @@ export function Sec_why() {
               "Private, Network-Wide Opportunities",
               "Agent & Investor Workspaces",
               "Educational Webinars & Events",
-              "Exchange Resources",
-              "Growing Community",
-              "Future Integrations",
               "And Much More...",
+
             ].map((item) => (
               <div className="nb-why-item" key={item}>
                 <span className="nb-why-check" aria-hidden="true">
@@ -1228,19 +1196,14 @@ export function Sec_network() {
   <div className="mx-auto" style={{ maxWidth: 1240 }}>
     <div className="text-center max-w-[760px] mx-auto">
       <h2 className="nb-h2" style={{ color: "#fff" }}>The More Connected the Network, the More Opportunities Appear.</h2>
-      <p className="nb-lead mt-4" style={{ color: "#c4d2e6" }}>
-        Every property, investor and set of criteria added to 1031ExchangeUp increases the chance that a
-        meaningful connection surfaces.
-      </p>
     </div>
 
     <div className="nb-net-grid">
-      <div className="nb-net-card">More properties means more potential replacement options.</div>
+      <div className="nb-net-card">More properties means more replacement options.</div>
       <div className="nb-net-card">More investors means more potential buyers.</div>
-      <div className="nb-net-card">More agents means more potential collaboration.</div>
+      <div className="nb-net-card">More agents means more collaboration.</div>
     </div>
 
-    <p className="nb-net-close">Opportunity grows with the network.</p>
   </div>
 </section>
   );
@@ -1280,7 +1243,7 @@ export function LandingSections() {
       <Sec_investors />
       <Sec_why />
       <Sec_diff />
-      <Sec_engine />
+      
       <Sec_example />
       <Sec_network />
       <Sec_trust />
