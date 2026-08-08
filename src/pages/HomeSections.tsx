@@ -79,10 +79,11 @@ function Sec_example() {
 <section id="example" style={{ background: "#eef3fb" }}>
   <div className="max-w-[1240px] mx-auto px-5 sm:px-8 py-20 sm:py-24">
     <div className="text-center max-w-[720px] mx-auto">
-      <h2 className="nb-h2">See It With a Real Example</h2>
+      <h2 className="nb-h2">How a Match Actually Happens.</h2>
       <p className="nb-lead mt-4">
-        Here is what happens when a single property enters the network.
+        One property enters the network. Here is what Exchange IQ surfaces.
       </p>
+
     </div>
 
     <div className="nb-ex-grid">
@@ -196,19 +197,18 @@ export function Sec_agents() {
         <div className="nb-eyebrow">For Agents</div>
         <h2 className="nb-h2 mt-3">Turn Your Existing Database Into Continuous Deal Flow.</h2>
         <p className="nb-lead mt-4">
-          Add a client, property or investor criteria once. Exchange IQ monitors the network in the background and
-          alerts you the moment a relevant opportunity appears — including matches between two of your own clients.
+          Add a client, property or criteria once. Exchange IQ monitors the network in the background and alerts you
+          when a relevant opportunity appears — including matches between two of your own clients.
         </p>
 
 
         <ul className="nb-ag-list">
           {[
-            "Unlock opportunities from clients you already know.",
-            "Discover potential buyers and replacement properties.",
+            "Surface deals inside the database you already have.",
+            "Find potential buyers and replacement properties.",
             "Collaborate with investor-friendly agents.",
-            "Keep your existing client relationship.",
-            "Create opportunities between clients already inside your own database or brokerage.",
-            "Spend less time manually searching for the other side of a transaction.",
+            "Keep your client relationship, always.",
+
           ].map((b) => (
             <li className="nb-ag-li" key={b}>
               <span className="nb-ag-check" aria-hidden="true">
@@ -251,9 +251,9 @@ export function Sec_investors() {
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
       <h2 className="nb-h2 mt-3">Your Property, Monitored for Better Opportunities.</h2>
       <p className="nb-lead mt-4">
-        Tell us what you own and what you’d want next — once. From then on 1031ExchangeUp keeps monitoring the
-        network and only reaches out when your equity could genuinely be working harder somewhere else.
+        Tell us what you own once. We only reach out when your equity could genuinely be working harder somewhere else.
       </p>
+
 
 
     </div>
