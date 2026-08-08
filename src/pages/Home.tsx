@@ -179,7 +179,7 @@ const NAV_LINKS = [
   { label: "How It Works", href: "#how" },
   { label: "For Agents", href: "#agents" },
   { label: "Resources", href: "#resources" },
-  { label: "About", href: "#meet" },
+  { label: "For Investors", href: "#investors" },
   { label: "FAQ", href: "#faq" },
 ];
 
