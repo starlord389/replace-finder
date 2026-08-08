@@ -314,11 +314,13 @@ export function Sec_investors() {
 function RoeMiniCalc() {
   const [value, setValue] = useState(1000000);
   const [loan, setLoan] = useState(0);
-  const [income, setIncome] = useState(60000);
+  const [rent, setRent] = useState(6000);
   const [shown, setShown] = useState(false);
 
   const PLATFORM = 8; // healthy return-on-equity benchmark
+  const NET_FACTOR = 0.6; // typical share of gross rent left after operating expenses
   const equity = Math.max(0, value - loan);
+  const income = rent * 12 * NET_FACTOR;
   const roe = equity > 0 ? (income / equity) * 100 : 0;
   const potential = equity * (PLATFORM / 100);
   const uplift = potential - income;
@@ -329,17 +331,20 @@ function RoeMiniCalc() {
   const tone = roe < 5 ? "low" : roe < 8 ? "mid" : "high";
   const numColor = tone === "low" ? "#b8543a" : tone === "mid" ? "#16284a" : "#43a047";
 
+  const signupHref =
+    `/signup?role=investor&value=${Math.round(value)}&loan=${Math.round(loan)}&rent=${Math.round(rent)}`;
+
   const FIELDS: { id: string; label: string; val: number; set: (n: number) => void }[] = [
     { id: "cv", label: "Estimated Property Value", val: value, set: setValue },
-    { id: "ni", label: "Annual Net Rental Income", val: income, set: setIncome },
-    { id: "lb", label: "Mortgage Balance", val: loan, set: setLoan },
+    { id: "lb", label: "Current Loan Balance", val: loan, set: setLoan },
+    { id: "gr", label: "Gross Monthly Rent", val: rent, set: setRent },
   ];
 
   return (
     <div className="nb-why-card">
       <h3 className="nb-why-card-title">Return on Equity Calculator</h3>
       <p className="nb-why-card-sub">
-        See how efficiently your equity is currently working, measured against an 8% reference return.
+        Three numbers is all it takes. See how hard your equity is working today, measured against an 8% reference return.
       </p>
 
       <div className="nb-why-inputs">
@@ -364,22 +369,55 @@ function RoeMiniCalc() {
 
       {shown && (
         <div className="nb-why-result">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0,1fr))",
+              gap: 12,
+              marginBottom: 14,
+              textAlign: "center",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>Equity</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#16284a" }}>{usd(equity)}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>Current ROE</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: numColor }}>{roe.toFixed(1)}%</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>At 8% Reference</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#43a047" }}>{usd(potential)}/yr</div>
+            </div>
+          </div>
+
           <p className="nb-why-result-note">
             {uplift > 0 ? (
-              <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>. Compared with an 8% reference return, the same <b>{usd(equity)}</b> of equity would represent about <b>{usd(potential)}/yr</b> — roughly <b>{usd(uplift)}</b> more per year.</>
+              <>Based on an estimated <b>{usd(income)}/yr</b> of net income, the same <b>{usd(equity)}</b> of equity
+              could represent roughly <b>{usd(uplift)}</b> more per year at the reference return. Register your property
+              and Exchange IQ will keep watching the network for opportunities that could put that equity to better use.</>
             ) : (
-              <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the 8% reference return used here.</>
+              <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the
+              8% reference return used here. Register it anyway — we'll only reach out if something genuinely better shows up.</>
             )}
           </p>
+
+          <a href={signupHref} className="nb-why-calc" style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14 }}>
+            Register My Property — Free
+          </a>
+
           <p className="nb-why-fine">
-            This calculator is for educational purposes only and does not constitute financial, tax or investment advice.
-            Results are estimates and do not predict or guarantee any outcome.
+            Net income is estimated at 60% of gross rent, a common operating-expense assumption. This calculator is for
+            educational purposes only and does not constitute financial, tax or investment advice. Results are estimates
+            and do not predict or guarantee any outcome.
           </p>
         </div>
       )}
     </div>
   );
 }
+
 
 
 
