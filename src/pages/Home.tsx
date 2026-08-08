@@ -460,13 +460,14 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp — More 1031 Opportunities From One Smarter Network";
+    document.title = "1031ExchangeUp — Register Your Property, We Watch for Better Opportunities";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
         "content",
-        "1031ExchangeUp connects investors, properties and investor-friendly agents to surface potential exchanges and replacement properties. Join free.",
+        "Register your investment property free. 1031ExchangeUp continuously monitors the network and alerts you when your equity could be working harder somewhere else.",
       );
+
     }
   }, []);
 
