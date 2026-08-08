@@ -249,9 +249,10 @@ export function Sec_investors() {
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
     <div className="text-center max-w-[760px] mx-auto">
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
-      <h2 className="nb-h2 mt-3">Your Property, Monitored for Better Opportunities.</h2>
+      <h2 className="nb-h2 mt-3">Your Investment. Constantly Monitored for What’s Next.</h2>
       <p className="nb-lead mt-4">
-        Tell us what you own once. We only reach out when your equity could genuinely be working harder somewhere else.
+        Add your investment property and goals once. ExchangeUp continuously monitors for opportunities that may better
+        align with your equity position and investment strategy.
       </p>
 
 
@@ -260,10 +261,10 @@ export function Sec_investors() {
 
     <div className="nb-inv-grid">
       {[
-        ["Understand Your Equity", "See how efficiently the equity in your current property is performing."],
-        ["Discover Potential Upgrades", "Find opportunities that may better align with your investment criteria."],
-        ["Prepare Before You Sell", "Explore potential replacement properties before entering the 45-day identification window."],
-        ["Stay Connected to Opportunity", "Keep your property and criteria in the network so relevant matches can surface over time."],
+        ["Add Your Property", "A few details about what you own — that’s the whole setup."],
+        ["Understand Your Position", "See how efficiently the equity in your current property is performing."],
+        ["Set What You’re Looking For", "Tell us what a smarter position looks like, and change it any time."],
+        ["Activate Monitoring", "We keep watching and alert you when something relevant appears."],
       ].map(([t, d]) => (
         <div className="nb-inv-card" key={t}>
           <div className="nb-inv-title">{t}</div>
@@ -273,7 +274,7 @@ export function Sec_investors() {
     </div>
 
     <div className="text-center">
-      <a href="/signup" className="nb-sec-cta">Register My Property — Free</a>
+      <a href="/signup" className="nb-sec-cta">Monitor My Property</a>
     </div>
 
   </div>
