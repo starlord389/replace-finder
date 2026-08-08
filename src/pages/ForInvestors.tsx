@@ -20,6 +20,7 @@ export default function ForInvestors() {
     <div data-nb className="min-h-screen bg-white">
       <style>{NB_STYLE}</style>
       <style>{SECTIONS_CSS}</style>
+      <style>{EXTRA_CSS}</style>
 
       <section className="nb-hero">
         <SkyBackdrop />
