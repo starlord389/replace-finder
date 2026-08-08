@@ -407,8 +407,7 @@ export function Sec_why() {
             Is Your Equity Working<span className="nb-why-up"> Hard Enough</span>?
           </h2>
           <p style={{ color: "#c4d2e6", fontSize: 16, lineHeight: 1.6, margin: "-14px 0 26px" }}>
-            Run the numbers on what you own today. If your equity could be doing more somewhere else, that’s exactly
-            what 1031ExchangeUp watches for.
+            Run the numbers on what you own today. If your equity could be doing more elsewhere, that’s what we watch for.
           </p>
 
           <div className="nb-why-list">
@@ -418,10 +417,8 @@ export function Sec_why() {
               "Private, Network-Wide Opportunities",
               "Agent & Investor Workspaces",
               "Educational Webinars & Events",
-              "Exchange Resources",
-              "Growing Community",
-              "Future Integrations",
               "And Much More...",
+
             ].map((item) => (
               <div className="nb-why-item" key={item}>
                 <span className="nb-why-check" aria-hidden="true">
