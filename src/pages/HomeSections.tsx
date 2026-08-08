@@ -1043,7 +1043,7 @@ function Sec_faqcta() {
           },
           {
             q: 'How does Exchange IQ work?',
-            a: 'Exchange IQ, our proprietary matching algorithm, reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
+            a: 'Intelligent opportunity monitoring with our Exchange IQ technology reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
           },
           {
             q: 'Does 1031ExchangeUp replace my agent?',
