@@ -859,11 +859,15 @@ function SummitEventCard() {
         <div className="nb-ev-meta">
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
-            Next session: July 22, 2026
+            Next session: August 11, 2026
           </span>
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
-            1:00 PM
+            12:00 PM
+          </span>
+          <span className="nb-ev-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M15 10l5-5M15 10l5 5M15 10H3" /></svg>
+            Zoom
           </span>
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" /><circle cx="17" cy="9" r="2.4" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" /></svg>
@@ -894,7 +898,7 @@ function SummitEventCard() {
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#43a047" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9.5" /><path d="M8 12.3l2.6 2.6L16.5 9" /></svg>
             </span>
             <h4>You're registered!</h4>
-            <p>We'll email you the details for the July 22, 2026 session — and every monthly summit after it.</p>
+            <p>We'll email you the details for the August 11, 2026 session — and every monthly summit after it.</p>
           </div>
         ) : (
           <form onSubmit={handleRegister} noValidate>
@@ -932,7 +936,7 @@ function Sec_resources() {
           <ul className="nb-res-list">
             <li className="nb-res-li">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="#43a047" strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              <span><strong>1031 Exchange Summit</strong> · July 22, 2026</span>
+              <span><strong>1031 Exchange Summit</strong> · August 11, 2026</span>
             </li>
             <li className="nb-res-li">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="12" rx="2" stroke="#43a047" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round"/></svg>
