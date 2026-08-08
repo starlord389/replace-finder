@@ -1042,16 +1042,16 @@ function Sec_resources() {
           <a href="/signup" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>Meet All Our Experts →</a>
         </div>
 
-        {/* (3) Pricing / early access */}
+        {/* (3) Pricing */}
         <div className="nb-res-card nb-res-dark">
-          <h3 className="nb-res-title">Simple, Honest Pricing</h3>
+          <h3 className="nb-res-title">Free for Everyone</h3>
           <ul className="nb-res-clist">
             {[
-              'Investors: free, always',
-              'Agents: first client or property monitored free',
-              'Paid agent plan only to monitor more',
-              'No card required to start',
-              'Early members help shape the platform',
+              'Free for investors and property owners',
+              'Free for agents — every client, every property',
+              'No plans, no tiers, no upsells',
+              'No card required, ever',
+              'Members help shape the platform',
             ].map((t) => (
               <li className="nb-res-cli" key={t}>
                 <span className="nb-res-check">
@@ -1062,8 +1062,9 @@ function Sec_resources() {
             ))}
           </ul>
           <a href="/signup" className="nb-btn nb-btn-green nb-res-btn">Add Your First Opportunity</a>
-          <div className="nb-res-cap">Free to start</div>
+          <div className="nb-res-cap">Completely free</div>
         </div>
+
 
       </div>
     </div>
@@ -1095,8 +1096,9 @@ function Sec_faqcta() {
           },
           {
             q: 'How much does it cost?',
-            a: 'Investors are free — always. Agents monitor their first client or property free, and only move to a paid plan when they want ExchangeUp monitoring additional clients and properties.',
+            a: 'Nothing. 1031ExchangeUp is free for everyone — investors, property owners and agents alike. Every client, property and criteria you add is monitored free, with no plans, tiers or card required.',
           },
+
 
           {
             q: 'Do I need a 1031 exchange client right now?',
