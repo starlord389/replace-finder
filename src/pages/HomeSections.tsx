@@ -1025,30 +1025,35 @@ function Sec_faqcta() {
       {/* (B) Accordion */}
       <div className="nb-fct-acc">
         {[
+        {
+            q: 'What is 1031ExchangeUp?',
+            a: 'A network that connects properties, investors, investment criteria and investor-friendly agents so more potential transaction opportunities can surface.',
+          },
           {
             q: 'How much does it cost?',
-            a: 'Joining the network is completely free — you only consider a paid plan once you start closing matched exchanges.',
+            a: 'Joining the network is free. You only consider a paid plan once you start closing matched exchanges.',
           },
           {
-            q: 'Who can join 1031ExchangeUp?',
-            a: 'Licensed agents and real estate investors / property owners active in 1031 exchanges are all welcome to create an account.',
+            q: 'Do I need a 1031 exchange client right now?',
+            a: 'No. Many members add properties and criteria early so relevant opportunities can surface over time.',
           },
           {
-            q: 'Do I have to upload property addresses?',
-            a: 'No — you can keep specifics private and share only the high-level details needed for the platform to surface relevant matches.',
+            q: 'Do I have to share property addresses?',
+            a: 'No. You can keep specifics private and share only the high-level details the matching engine needs.',
           },
           {
-            q: 'How does your proprietary matching technology work?',
-            a: 'Our in-house engine reads the current property\'s equity, debt, and return profile, estimates purchasing capacity, and surfaces network properties that fit the exchange math and can improve return on equity.',
+            q: 'How does the matching engine work?',
+            a: 'Our proprietary engine reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
           },
           {
-            q: "What if I don't have a 1031 client today?",
-            a: 'That is fine — many members join early to build their network so the right match is waiting when a client does come along.',
+            q: 'Does 1031ExchangeUp replace my agent?',
+            a: 'No. Agents keep their client relationships — the platform simply makes their network more powerful.',
           },
           {
-            q: 'Can investors and property owners join?',
-            a: 'Yes — property owners are investors and use the same account. They can list their own property, run multiple active exchanges, see only replacement properties matched to those exchanges, and connect directly with the listing agent.',
+            q: 'Are matches guaranteed transactions?',
+            a: 'No. A match is a potential opportunity to explore. No investment outcome or completed transaction is implied or guaranteed.',
           },
+
         ].map((item, i) => (
           <details className="nb-fct-item" key={i}>
             <summary className="nb-fct-q">
