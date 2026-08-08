@@ -94,15 +94,15 @@ const App = () => (
           <Routes>
             {/* Public (marketing + auth entry) — signed-in users are redirected to their dashboard */}
             <Route element={<RequireGuest />}>
-              <Route element={<PublicLayout />}>
-                <Route path={ROUTES.home} element={<Home />} />
-                {/* Agent page merged into the homepage — keep the old URL alive */}
-                <Route path="/agents" element={<Navigate to={ROUTES.home} replace />} />
-                <Route path={ROUTES.forLandlords} element={<ForLandlords />} />
-                <Route path={ROUTES.bookDemo} element={<BookDemo />} />
-                <Route path={ROUTES.login} element={<Login />} />
-                <Route path={ROUTES.signup} element={<Signup />} />
-              </Route>
+            <Route element={<PublicLayout />}>
+              <Route path={ROUTES.home} element={<Home />} />
+              <Route path={ROUTES.forAgents} element={<ForAgents />} />
+              <Route path={ROUTES.forInvestors} element={<ForInvestors />} />
+              <Route path={ROUTES.forLandlords} element={<ForLandlords />} />
+              <Route path={ROUTES.bookDemo} element={<BookDemo />} />
+              <Route path={ROUTES.login} element={<Login />} />
+              <Route path={ROUTES.signup} element={<Signup />} />
+            </Route>
             </Route>
 
             {/* Recovery / informational routes — accessible whether signed in or not */}
