@@ -298,7 +298,7 @@ export function whyThisMatched(rel: Relationship): string[] {
   if (rel.roeImprovementPp != null) {
     out.push(`Projected return on equity improves by ${rel.roeImprovementPp.toFixed(1)} percentage points.`);
   } else {
-    out.push("The matching engine projects a better return on equity than the current property.");
+    out.push("Exchange IQ projects a better return on equity than the current property.");
   }
   if (rel.estimatedPurchasingCapacity != null) {
     out.push(`Asking price is within the ${formatMoney(rel.estimatedPurchasingCapacity)} purchasing ceiling at the platform's 75% maximum LTV.`);
