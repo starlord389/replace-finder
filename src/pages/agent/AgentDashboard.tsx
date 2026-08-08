@@ -414,7 +414,7 @@ export default function AgentDashboard() {
                       <div className="mb-2 flex items-center justify-between">
                         <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                           <Handshake className="h-4 w-4 text-primary" />
-                          New matches to review ({attention.unreviewedMatches.length})
+                          New opportunities to review ({attention.unreviewedMatches.length})
                         </h3>
                         <Link
                           to="/agent/matches"

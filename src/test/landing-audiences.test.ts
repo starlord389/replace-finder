@@ -6,26 +6,33 @@ const homeSource = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8
 const sectionsSource = readFileSync(join(process.cwd(), "src/pages/HomeSections.tsx"), "utf8");
 
 describe("public landing-page audiences", () => {
-  it("leads with the continuous opportunity-monitoring value proposition", () => {
-    expect(homeSource).toContain("Your Property. Monitored for Better Opportunities.");
-    expect(homeSource).toContain("Register free. Exchange IQ alerts you when your equity could be working harder.");
-    expect(homeSource).toContain("Start Monitoring — Free");
+  it("leads with constant intelligent opportunity monitoring", () => {
+    expect(homeSource).toContain("Your Investments. Constantly Monitored for Smarter Opportunities.");
+    expect(homeSource).toContain("intelligent opportunity monitoring system for real estate investors and agents");
+    expect(homeSource).toContain("Monitor My Property");
     expect(homeSource).toContain("See How It Works");
+    expect(homeSource).toContain("Add → Set → Monitor → Alert");
     expect(homeSource).toContain("Add it once. We keep watching.");
+    expect(homeSource).toContain("Opportunity Monitoring");
+    expect(homeSource).toContain("Don’t Wait for the 45-Day Clock to Start.");
     expect(homeSource).toContain("I Own Investment Property");
     expect(homeSource).toContain("I’m a Real Estate Agent");
   });
 
   it("explains agent and investor value without becoming an open marketplace", () => {
     expect(sectionsSource).toContain("How a Match Actually Happens.");
-    expect(sectionsSource).toContain("Exchange IQ compares it across the network");
-    expect(sectionsSource).toContain("Turn Your Existing Database Into Continuous Deal Flow.");
-    expect(sectionsSource).toContain("Your Property, Monitored for Better Opportunities.");
+    expect(sectionsSource).toContain("Your Database. Constantly Monitored for New Opportunities.");
+    expect(sectionsSource).toContain("You already built the database.");
+    expect(sectionsSource).toContain("Internal Opportunity Detected");
+    expect(sectionsSource).toContain("Your Investment. Constantly Monitored for What’s Next.");
     expect(sectionsSource).toContain("does not replace the agent");
     expect(sectionsSource).not.toContain("matches against thousands of opportunities");
   });
 
-
+  it("routes the ROE calculator into monitoring activation", () => {
+    expect(sectionsSource).toContain("Is your equity working as hard as it could?");
+    expect(sectionsSource).toContain("Monitor My Opportunities");
+  });
 
   it("keeps pricing consistent and non-guaranteeing language on matches", () => {
     expect(sectionsSource).toContain("not guaranteed transactions");
@@ -33,4 +40,3 @@ describe("public landing-page audiences", () => {
     expect(sectionsSource).not.toContain("6 Months Free");
   });
 });
-

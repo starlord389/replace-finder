@@ -12,7 +12,7 @@ export type UiStatus =
   | "archived";
 
 export const UI_STATUS_LABEL: Record<UiStatus, string> = {
-  new: "New Match",
+  new: "New Opportunity",
   sent_to_client: "Sent to Client",
   client_interested: "Client Interested",
   in_conversation: "In Conversation",

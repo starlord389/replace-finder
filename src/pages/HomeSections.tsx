@@ -137,7 +137,7 @@ export function Sec_how() {
   return (
 <section id="how" data-nb className="bg-white">
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
-    <h2 className="nb-h2 text-center">Register → Monitor → Opportunity → Exchange Up</h2>
+    <h2 className="nb-h2 text-center">Add → Set → Monitor → Alert</h2>
     <p className="nb-lead text-center mt-4 max-w-[720px] mx-auto">
       You don’t need to be planning an exchange today. Put your property on our radar and we’ll tell you when
       something better shows up.
@@ -150,35 +150,35 @@ export function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
         </div>
-        <h3 className="nb-how-title">Register Your Property</h3>
-        <p className="nb-how-desc">Add an investment property, client or investment criteria in a few minutes. Free.</p>
+        <h3 className="nb-how-title">Add</h3>
+        <p className="nb-how-desc">Your property, your client, or your investment criteria. A few minutes, free.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">2</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/></svg>
         </div>
-        <h3 className="nb-how-title">Exchange IQ Monitors the Network</h3>
-        <p className="nb-how-desc">Our technology continuously compares what you own against opportunities across the network.</p>
+        <h3 className="nb-how-title">Set</h3>
+        <p className="nb-how-desc">Your investment goals — what a smarter position would look like for you.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">3</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         </div>
-        <h3 className="nb-how-title">Opportunity Identified</h3>
-        <p className="nb-how-desc">When a potentially better home for your equity appears, you get notified.</p>
+        <h3 className="nb-how-title">Monitor</h3>
+        <p className="nb-how-desc">ExchangeUp keeps watching — continuously evaluating the network as it changes.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">4</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M4 18.5 9.5 12l4 3.2L20 6.5"/><path d="M15 6.5h5v5"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
-        <h3 className="nb-how-title">Decide Whether to Exchange Up</h3>
-        <p className="nb-how-desc">Review it with your agent. A 1031 exchange is simply the mechanism to move equity tax-deferred — there’s no obligation.</p>
+        <h3 className="nb-how-title">Alert</h3>
+        <p className="nb-how-desc">You or your agent are alerted when a relevant opportunity appears. A 1031 exchange can move the equity tax-deferred if you choose to act.</p>
       </div>
 
 
@@ -195,18 +195,18 @@ export function Sec_agents() {
     <div className="nb-ag-grid">
       <div>
         <div className="nb-eyebrow">For Agents</div>
-        <h2 className="nb-h2 mt-3">Turn Your Existing Database Into Continuous Deal Flow.</h2>
+        <h2 className="nb-h2 mt-3">Your Database. Constantly Monitored for New Opportunities.</h2>
         <p className="nb-lead mt-4">
-          Add a client, property or criteria once. Exchange IQ monitors the network in the background and alerts you
-          when a relevant opportunity appears — including matches between two of your own clients.
+          Add investor clients and investment properties to ExchangeUp. The system continuously evaluates your database
+          and the broader ExchangeUp network for potential transactions.
         </p>
 
 
         <ul className="nb-ag-list">
           {[
-            "Surface deals inside the database you already have.",
-            "Find potential buyers and replacement properties.",
-            "Collaborate with investor-friendly agents.",
+            "Opportunities between two of your own clients surface as an Internal Opportunity Detected — no need to connect with yourself.",
+            "Opportunities across your brokerage and other participating agents.",
+            "Potential buyers and replacement properties across the network.",
             "Keep your client relationship, always.",
 
           ].map((b) => (
@@ -220,10 +220,10 @@ export function Sec_agents() {
         </ul>
 
         <p className="nb-ag-note">
-          1031ExchangeUp does not replace the agent. It makes the agent&rsquo;s network more powerful.
+          You already built the database. Let ExchangeUp find the opportunities inside it. ExchangeUp does not replace the agent — it makes the agent&rsquo;s network more powerful.
         </p>
 
-        <a href="/signup" className="nb-sec-cta">Add Your First Opportunity</a>
+        <a href="/signup" className="nb-sec-cta">Add My First Opportunity</a>
       </div>
 
       <div className="nb-ag-chain" aria-hidden="true">
@@ -249,9 +249,10 @@ export function Sec_investors() {
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
     <div className="text-center max-w-[760px] mx-auto">
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
-      <h2 className="nb-h2 mt-3">Your Property, Monitored for Better Opportunities.</h2>
+      <h2 className="nb-h2 mt-3">Your Investment. Constantly Monitored for What’s Next.</h2>
       <p className="nb-lead mt-4">
-        Tell us what you own once. We only reach out when your equity could genuinely be working harder somewhere else.
+        Add your investment property and goals once. ExchangeUp continuously monitors for opportunities that may better
+        align with your equity position and investment strategy.
       </p>
 
 
@@ -260,10 +261,10 @@ export function Sec_investors() {
 
     <div className="nb-inv-grid">
       {[
-        ["Understand Your Equity", "See how efficiently the equity in your current property is performing."],
-        ["Discover Potential Upgrades", "Find opportunities that may better align with your investment criteria."],
-        ["Prepare Before You Sell", "Explore potential replacement properties before entering the 45-day identification window."],
-        ["Stay Connected to Opportunity", "Keep your property and criteria in the network so relevant matches can surface over time."],
+        ["Add Your Property", "A few details about what you own — that’s the whole setup."],
+        ["Understand Your Position", "See how efficiently the equity in your current property is performing."],
+        ["Set What You’re Looking For", "Tell us what a smarter position looks like, and change it any time."],
+        ["Activate Monitoring", "We keep watching and alert you when something relevant appears."],
       ].map(([t, d]) => (
         <div className="nb-inv-card" key={t}>
           <div className="nb-inv-title">{t}</div>
@@ -273,7 +274,7 @@ export function Sec_investors() {
     </div>
 
     <div className="text-center">
-      <a href="/signup" className="nb-sec-cta">Register My Property — Free</a>
+      <a href="/signup" className="nb-sec-cta">Monitor My Property</a>
     </div>
 
   </div>
@@ -365,20 +366,26 @@ function RoeMiniCalc() {
             </div>
           </div>
 
+          <p className="nb-why-result-note" style={{ fontWeight: 800, color: "#16284a" }}>
+            Is your equity working as hard as it could?
+          </p>
+
           <p className="nb-why-result-note">
             {uplift > 0 ? (
               <>Based on an estimated <b>{usd(income)}/yr</b> of net income, the same <b>{usd(equity)}</b> of equity
-              could represent roughly <b>{usd(uplift)}</b> more per year at the reference return. Register your property
-              and Exchange IQ will keep watching the network for opportunities that could put that equity to better use.</>
+              could represent roughly <b>{usd(uplift)}</b> more per year at the reference return. ExchangeUp can
+              continuously monitor for investment opportunities that may better align with your goals.</>
             ) : (
               <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the
-              8% reference return used here. Register it anyway — we'll only reach out if something genuinely better shows up.</>
+              8% reference return used here. ExchangeUp can keep monitoring anyway — we only reach out if something
+              genuinely better appears.</>
             )}
           </p>
 
           <a href={signupHref} className="nb-why-calc" style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14 }}>
-            Start Monitoring This Property — Free
+            Monitor My Opportunities
           </a>
+
 
 
           <p className="nb-why-fine">

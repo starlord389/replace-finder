@@ -623,7 +623,7 @@ export function useUnifiedRelationships(ownerType: "agent" | "investor" = "agent
 // ── Helpers (exported for components) ───────────────────────────
 
 export const STAGE_LABELS: Record<RelationshipStage, string> = {
-  new: "New match",
+  new: "New opportunity",
   incoming: "Incoming interest",
   pending_out: "Awaiting response",
   pending_in: "Needs your reply",
