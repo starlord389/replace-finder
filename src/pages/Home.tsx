@@ -353,19 +353,20 @@ const BADGES = [
 const AUDIENCE_CARDS = [
   {
     tag: "I Own Investment Property",
-    txt: "Register your property and let Exchange IQ monitor the network for a potentially better place for your equity.",
+    txt: "Put your equity to work. Register your property free and Exchange IQ keeps watching for a potentially better place for it.",
     cta: "Register My Property",
     to: ROUTES.forInvestors,
     svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>),
   },
   {
     tag: "I’m a Real Estate Agent",
-    txt: "Add your clients, properties and investment criteria and let Exchange IQ uncover opportunities inside the database you already have.",
+    txt: "Your database may already contain your next transaction. Add clients, properties and criteria — your first one is monitored free.",
     cta: "See How Agents Use It",
     to: ROUTES.forAgents,
     svg: (<svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>),
   },
 ];
+
 
 function NbAudienceCards() {
   return (
