@@ -195,9 +195,10 @@ export function Sec_agents() {
     <div className="nb-ag-grid">
       <div>
         <div className="nb-eyebrow">For Agents</div>
-        <h2 className="nb-h2 mt-3">Your Database. Constantly Monitored for New Opportunities.</h2>
+        <h2 className="nb-h2 mt-3">Exchanges Made Easier Across Your Whole Database.</h2>
         <p className="nb-lead mt-4">
           Add investor clients and investment properties to ExchangeUp. The system continuously evaluates your database
+
           and the broader ExchangeUp network for potential transactions.
         </p>
 
@@ -249,11 +250,12 @@ export function Sec_investors() {
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
     <div className="text-center max-w-[760px] mx-auto">
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
-      <h2 className="nb-h2 mt-3">Your Investment. Constantly Monitored for What’s Next.</h2>
+      <h2 className="nb-h2 mt-3">Your Next Exchange, Made Easier.</h2>
       <p className="nb-lead mt-4">
-        Add your investment property and goals once. ExchangeUp continuously monitors for opportunities that may better
-        align with your equity position and investment strategy.
+        Add your investment property and goals once. ExchangeUp keeps watching for opportunities that may better align
+        with your equity position — so the exchange is simple when the timing is right.
       </p>
+
 
 
 
