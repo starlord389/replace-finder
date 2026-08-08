@@ -15,9 +15,9 @@ interface NavbarProps {
  *  sections so they work from any sub-page. */
 const NAV_LINKS = [
   { label: "How It Works", href: "/#how" },
-  { label: "Who It's For", href: "/#who" },
+  { label: "For Agents", href: "/agents" },
+  { label: "For Investors", href: "/investors" },
   { label: "Resources", href: "/#resources" },
-  { label: "About", href: "/#meet" },
   { label: "FAQ", href: "/#faq" },
 ];
 
