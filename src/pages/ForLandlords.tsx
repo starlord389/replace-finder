@@ -69,9 +69,10 @@ const TRUST_POINTS = [
     body: "The replacement search, the negotiation, the close, and any fee all sit with a licensed agent. That's why we connect you with one instead of trying to act as one ourselves. We're not a brokerage and we don't touch the deal.",
   },
   {
-    title: "Agents pay, owners never do",
-    body: "Agents pay to be in the network. You don't, ever. The introduction costs you nothing and commits you to nothing, so our advice has no angle on you.",
+    title: "Free for everyone",
+    body: "Owners and agents both use 1031ExchangeUp free. The introduction costs you nothing and commits you to nothing, so our advice has no angle on you.",
   },
+
   {
     title: "Free, private, no obligation",
     body: "Your details go to one vetted agent, not a pool of buyers. Nothing is public, nothing is resold, and every next step is your call.",
