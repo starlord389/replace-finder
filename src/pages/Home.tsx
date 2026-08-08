@@ -398,10 +398,14 @@ function NbHero() {
           </p>
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Join Free</Link>
-            <a href="#how" className="nb-btn-demo">
-              <span>See How It Works</span>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            <Link to={ROUTES.forAgents} className="nb-btn nb-btn-green">I’m an Agent</Link>
+            <Link to={ROUTES.forInvestors} className="nb-btn-demo">I’m an Investor</Link>
+          </div>
+
+          <div className="nb-cta-row" style={{ marginTop: 14 }}>
+            <a href="#how" className="nb-hero-link">
+              <span>See how it works</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
             </a>
           </div>
 
