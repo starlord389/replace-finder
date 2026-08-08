@@ -1,43 +1,103 @@
-## What's going on
+# 1031ExchangeUp: Opportunity Network Update
 
-The matching engine is working — it deliberately refused to match your two properties because **they're both under the same agent account**.
+Goal: make the product immediately understandable to agents and investors, and make the
+underlying flows (ROE entry, progressive criteria, same-agent matching, alerts) actually
+support the "continuous opportunity monitoring" promise. Existing visual identity, layout
+system and working features are kept — this modifies what exists rather than rebuilding.
 
-I checked the live data for `steve@multifamilyproperties.com` (agent `e4b7d15b…`). That account has three active listings, all in MA, all non-demo:
+## 1. Homepage restructure (copy + hierarchy)
 
-| Property | Asset | Ask | Loan | NOI |
-|---|---|---|---|---|
-| Manchester | other | $550,000 | $250,000 | $38,400 |
-| Manchester | multifamily | $1,300,000 | $775,000 | $60,000 |
-| Gloucester | multifamily | $2,590,000 | $1,300,000 | $180,000 |
+New section order, reusing existing section components where they already exist:
 
-All three belong to the **same** `agent_id`. Both scan directions in the matching core explicitly exclude the caller's own inventory (`.neq("agent_id", userId)` on the buyer-side property scan and on the seller-side exchange scan). So with only one agent in the live workspace, the candidate pool is empty every run and zero matches are produced — no error, no notification, nothing to see.
+```text
+HERO              Your next investment opportunity may already be in the network.
+                  CTAs: Find Opportunities  /  See How It Works
+MATCH VISUAL      Property + Investor goals + Network -> Intelligent match -> Agent alert
+AGENT OPPORTUNITY "Your database may already contain your next transaction."
+INVESTOR          "Put your equity to work."
+ROE CALCULATOR    3 inputs, result screen, funnel into criteria
+HOW IT WORKS      Add -> Analyze -> Match -> Alert -> Connect
+PRODUCT PREVIEW   Existing dashboard mockup + a realistic match-alert card
+NETWORK / TRUST   Existing logos + experts
+EDUCATION/EVENTS  Existing summit card, demoted
+FINAL CTA         Add your first opportunity
+```
 
-That exclusion is intentional: the product is a cross-agent network, and a match is meant to introduce two different agents. It is not a bug, but it does mean **you can never test matching from a single account.**
+Removals/merges: duplicate "who it's for" and repeated 1031-explainer blocks collapse into
+the two audience sections. AI stays as a supporting mention, not the headline claim.
 
-For what it's worth, the underlying economics would have produced a match if the accounts were different: the Manchester multifamily buyer (equity $525k, current ROE ≈2.5%) paired against the Gloucester listing clears the affordability ceiling and improves ROE to ≈2.9%, which passes the eligibility gate. The $550k listing would still be correctly rejected — it lowers ROE.
+## 2. Trust and consistency fixes
 
-Secondary note: all three exchanges have **empty replacement criteria** (no target states, no asset types, price min/max = 0). That doesn't block matching — blank preferences fall back to pure ROE ranking — but it means fit scoring contributes nothing and your matches would rank on ROE alone.
+- Single source of truth for events: `src/content/events.ts` exporting the upcoming summit
+  (date, time, platform, registration link). The homepage card, resources list and success
+  message all read from it, so a date is never stale in two places again.
+- Remove any "thousands of opportunities" style claims; replace with "continuously searches
+  the ExchangeUp network".
+- One pricing story everywhere (hero badges, agent section, FAQ, final CTA):
+  investors free; agents free for their first monitored client/property; paid plan to monitor
+  additional clients/properties; founding-member language reframed as early-access, not a
+  separate price.
 
-## Proposed work
+## 3. ROE calculator as an acquisition funnel
 
-**1. Make single-account testing possible (admin-only)**
+Rework the existing `RoeMiniCalc` (no new page):
 
-Add an admin-only "match as if cross-agent" toggle to the existing Matching QA card on the admin exchange detail page. It passes a flag through `run-auto-matching` (already admin-gated, already supports `dry_run` + `explain`) into `computeMatchesForExchange`, which skips the `neq("agent_id")` filter. Dry-run only by default, so nothing is persisted and no emails fire — you get the full diagnostics table showing exactly why each candidate matched or was skipped.
+- Inputs reduced to three: estimated fair market value, outstanding loan balance,
+  total gross monthly rent. Net income is removed from the entry step.
+- Result screen: large equity figure, a simplified return-on-equity percentage, then
+  "Is that equity working as hard as it could?" and a primary CTA "See my opportunities".
+- CTA carries the entered figures into signup/onboarding so the numbers are not re-typed.
 
-**2. Surface "no counterparties" instead of silence**
+## 4. Progressive criteria (investor onboarding)
 
-Right now an activation with an empty candidate pool looks identical to a broken engine. After activation, when matching returns zero, the activate result dialog should say plainly that the listing is live and being scanned, but there are currently no counterparty listings in the network to match against — rather than just "activated".
+Replace the single long intake with a short multi-step flow, one decision per screen,
+mobile-first, with a light progress indicator. Steps: replacement market, property type,
+target replacement value, objective, timeline, exchange status. Every step skippable, with
+"the more ExchangeUp knows, the smarter your matches" messaging. Values persist to the
+existing investor preferences / replacement criteria records and stay editable in settings.
 
-**3. Empty-criteria warning in the wizard**
+Onboarding also asks: "Are you currently working with a real estate agent?"
+- Yes -> collect the agent email and send the existing representation invite in the
+  background; onboarding continues immediately.
+- No -> continue, and flag the investor for an investor-focused agent referral.
 
-Flag at review time when target states / asset types / price range are all blank, explaining that the listing will be ranked on ROE alone. Non-blocking.
+Both paths use the representation and referral machinery that already exists.
 
-## Technical details
+## 5. Matching engine
 
-- `supabase/functions/_shared/matching-core.ts` — add an optional `includeSameAgent` param to `computeMatchesForExchange`, applied to both the `pledged_properties` and `exchanges` candidate queries. Default `false`; no behavior change for the normal path.
-- `supabase/functions/run-auto-matching/index.ts` — accept `include_same_agent`, honored **only** when the caller passed the admin check that's already there, and force `dry_run` when it's set so self-matches can never be persisted or emailed.
-- `src/pages/admin/AdminExchangeDetail.tsx` — checkbox in the Matching QA card wired to the new flag.
-- `src/components/exchange/ActivateResultDialog.tsx` — zero-match copy.
-- `src/components/exchange/StepReview.tsx` — blank-criteria notice.
+- Confirm and, where needed, remove suppression of same-agent / same-brokerage matches.
+  These surface as an internal opportunity on the agent's own dashboard rather than a
+  connection request to themselves.
+- Keep the trade-up rule as an eligibility gate (replacement value >= relinquished value),
+  and separate it visually and in data from investment-quality scoring (market, type,
+  preferences, returns, equity deployment, cash flow, timing).
+- Match cards and alerts show eligibility status and quality score as two distinct signals.
 
-No database migration, no change to the live matching rules, and the cross-agent exclusion stays in force for every real run.
+## 6. Alerts and continuous monitoring
+
+- Agent-facing alert copy standardised: opportunity summary, property value, target range,
+  market match, profile match percentage, "View opportunity" — no confidential investor or
+  address detail before parties engage.
+- Persistent "ExchangeUp is monitoring in the background" state on exchange, listing and
+  investor detail surfaces, showing last-evaluated time so the product feels active between
+  matches.
+
+## Technical notes
+
+- Homepage work is confined to `src/pages/Home.tsx` and `src/pages/HomeSections.tsx`, plus a
+  new `src/content/events.ts`.
+- ROE changes are inside the existing `RoeMiniCalc` component; result state handled locally.
+- Investor onboarding modifies `src/pages/investor/InvestorLaunchpad.tsx` and the existing
+  investor preferences hook; no new tables are required — `investor_preferences`,
+  `replacement_criteria`, `agent_representations` and `referrals` already cover the fields.
+- Matching changes live in `supabase/functions/_shared/matching-core.ts` and are covered by
+  the existing unit tests, which will be extended for the same-agent case.
+- No visual system, token or font changes.
+
+## Suggested sequencing
+
+1. Events source + trust/pricing consistency (small, unblocks the rest of the copy)
+2. Homepage restructure and copy
+3. ROE calculator funnel
+4. Investor progressive onboarding + agent question
+5. Matching engine same-agent + eligibility/quality split, alerts and monitoring states
