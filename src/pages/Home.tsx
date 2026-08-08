@@ -177,7 +177,23 @@ const NB_STYLE = `
   [data-nb] .nb-aud-link { display: inline-flex; margin-top: 16px; font-size: 15px; font-weight: 800; color: #43a047; text-decoration: none; }
   [data-nb] .nb-hero-link { display: inline-flex; align-items: center; gap: 8px; color: #c4d2e6; font-size: 14.5px; font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 2px; transition: color .15s ease, border-color .15s ease; }
   [data-nb] .nb-hero-link:hover { color: #fff; border-color: rgba(255,255,255,.65); }
+
+  /* ===== four-step monitoring strip ===== */
+  [data-nb] .nb-steps { background: #f7f9fc; border-bottom: 1px solid #e8edf3; padding: 40px 20px 44px; }
+  [data-nb] .nb-steps-inner { margin: 0 auto; max-width: 1240px; }
+  [data-nb] .nb-steps-kicker { text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #43a047; margin: 0 0 22px; }
+  [data-nb] .nb-steps-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; align-items: stretch; }
+  [data-nb] .nb-step { position: relative; background: #fff; border: 1px solid #e8edf3; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 12px rgba(14,42,77,.06); text-align: left; }
+  [data-nb] .nb-step-n { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: #9fb0c8; }
+  [data-nb] .nb-step-ico { width: 40px; height: 40px; border-radius: 11px; background: #eef6ef; display: flex; align-items: center; justify-content: center; margin: 10px 0 12px; }
+  [data-nb] .nb-step-ico svg { width: 20px; height: 20px; stroke: #43a047; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  [data-nb] .nb-step-t { font-size: 15.5px; font-weight: 800; color: #16284a; letter-spacing: -.01em; line-height: 1.25; }
+  [data-nb] .nb-step-d { margin-top: 6px; font-size: 13.5px; line-height: 1.45; color: #56657a; }
+  [data-nb] .nb-steps-tag { margin: 22px auto 0; text-align: center; font-size: 15px; font-weight: 800; color: #16284a; letter-spacing: -.01em; }
+  @media (max-width: 900px) { [data-nb] .nb-steps-row { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  @media (max-width: 480px) { [data-nb] .nb-steps-row { grid-template-columns: 1fr; gap: 10px; } [data-nb] .nb-step { padding: 16px 16px; } }
 `;
+
 
 
 const NAV_LINKS = [
@@ -392,30 +408,23 @@ function NbHero() {
       <SkyBackdrop />
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
-          <h1 className="nb-hero-h1 max-w-[600px]">
-            Your Next Investment Opportunity<br />May Already Be in the Network.
+          <h1 className="nb-hero-h1 max-w-[620px]">
+            Your Investments. Constantly Monitored<br />for Smarter Opportunities.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[540px]">
-            1031ExchangeUp intelligently connects properties, investors, investment criteria and investor-friendly
-            agents — so opportunities that would otherwise stay hidden actually surface.
+            Add your property once. Exchange IQ keeps watching the network — properties, investors, investment
+            criteria and investor-friendly agents — and tells you when a better opportunity appears.
           </p>
           <p className="nb-hero-sub mt-3 max-w-[540px]">
-            You don’t have to be doing a 1031 exchange today. Register once and we keep watching the network for you.
+            You don’t have to be doing a 1031 exchange today. A 1031 exchange is simply the mechanism to move your
+            equity when the right opportunity shows up.
           </p>
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find Opportunities</Link>
-            <a href="#how" className="nb-btn-demo">See How It Works</a>
+            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Start Monitoring — Free</Link>
+            <a href="#steps" className="nb-btn-demo">See How It Works</a>
           </div>
 
-
-
-          <div className="nb-cta-row" style={{ marginTop: 14 }}>
-            <a href="#how" className="nb-hero-link">
-              <span>See how it works</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
-            </a>
-          </div>
 
           <div className="nb-badges">
             {BADGES.map((b, i) => (
@@ -428,6 +437,51 @@ function NbHero() {
         </div>
 
         <HeroNetwork />
+      </div>
+    </section>
+  );
+}
+
+
+const MONITOR_STEPS = [
+  {
+    t: "Add Your Property",
+    d: "A few details about what you own — or, for agents, a client and their criteria. Takes minutes and it’s free.",
+    svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><path d="M12 13v5M9.5 15.5h5" /></svg>),
+  },
+  {
+    t: "We Monitor Continuously",
+    d: "Exchange IQ compares it against properties, buyers and criteria across the network — every day, in the background.",
+    svg: (<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>),
+  },
+  {
+    t: "You Get an Opportunity",
+    d: "When a potentially better home for your equity appears, you and your agent are alerted with the numbers.",
+    svg: (<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>),
+  },
+  {
+    t: "Exchange Up — If You Want To",
+    d: "A 1031 exchange is just the mechanism to move equity tax-deferred. Review it with your agent. No obligation.",
+    svg: (<svg viewBox="0 0 24 24"><path d="M4 18.5 9.5 12l4 3.2L20 6.5" /><path d="M15 6.5h5v5" /></svg>),
+  },
+];
+
+function NbMonitorSteps() {
+  return (
+    <section id="steps" className="nb-steps" aria-label="How monitoring works">
+      <div className="nb-steps-inner">
+        <p className="nb-steps-kicker">Register → Monitor → Opportunity → Exchange Up</p>
+        <div className="nb-steps-row">
+          {MONITOR_STEPS.map((s, i) => (
+            <div className="nb-step" key={s.t}>
+              <div className="nb-step-n">STEP {i + 1}</div>
+              <span className="nb-step-ico" aria-hidden="true">{s.svg}</span>
+              <div className="nb-step-t">{s.t}</div>
+              <p className="nb-step-d">{s.d}</p>
+            </div>
+          ))}
+        </div>
+        <p className="nb-steps-tag">Add it once. We keep watching.</p>
       </div>
     </section>
   );
@@ -461,7 +515,7 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp — Register Your Property, We Watch for Better Opportunities";
+    document.title = "1031ExchangeUp — Continuous Opportunity Monitoring for Investment Property";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
@@ -478,7 +532,9 @@ export default function Home() {
       <style>{SECTIONS_CSS}</style>
       <NbNav />
       <NbHero />
+      <NbMonitorSteps />
       <NbAudienceCards />
+
       <NbLogoMarquee />
       <LandingSections />
     </div>

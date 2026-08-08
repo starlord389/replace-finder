@@ -41,11 +41,20 @@ export default function InvestorDashboard() {
 
       <DemoDataControls />
 
+      <div className="rounded-xl border bg-muted/40 p-4">
+        <p className="text-sm font-semibold text-foreground">Exchange IQ is monitoring in the background</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Your active properties and criteria are compared against the network continuously. You'll be alerted here
+          and by email the moment a better opportunity appears — no action needed in between.
+        </p>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-3">
-        <Card><CardContent className="p-4"><Building2 className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{listingsLoading ? "—" : activeListings}</p><p className="text-xs text-muted-foreground">Active exchanges</p></CardContent></Card>
-        <Card><CardContent className="p-4"><TrendingUp className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{matchesLoading ? "—" : buyerMatches.length}</p><p className="text-xs text-muted-foreground">Qualified matches</p></CardContent></Card>
+        <Card><CardContent className="p-4"><Building2 className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{listingsLoading ? "—" : activeListings}</p><p className="text-xs text-muted-foreground">Properties monitored</p></CardContent></Card>
+        <Card><CardContent className="p-4"><TrendingUp className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{matchesLoading ? "—" : buyerMatches.length}</p><p className="text-xs text-muted-foreground">Opportunities detected</p></CardContent></Card>
         <Card><CardContent className="p-4"><Handshake className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{matchesLoading ? "—" : connected}</p><p className="text-xs text-muted-foreground">Agent connections</p></CardContent></Card>
       </div>
+
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

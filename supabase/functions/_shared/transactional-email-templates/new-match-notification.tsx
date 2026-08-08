@@ -35,8 +35,9 @@ const Email = ({
   return (
     <Html lang="en" dir="ltr">
       <Head />
-      <Preview>New 1031 match{matchedPropertyLabel ? `: ${matchedPropertyLabel}` : ''}</Preview>
+      <Preview>New opportunity detected{matchedPropertyLabel ? `: ${matchedPropertyLabel}` : ''}</Preview>
       <Body style={main}>
+
         <Container style={container}>
           <Section style={brandBar}>
             <Text style={brandText}>
@@ -44,12 +45,13 @@ const Email = ({
             </Text>
           </Section>
 
-          <Heading style={h1}>You've got a new match</Heading>
+          <Heading style={h1}>New opportunity detected</Heading>
           <Text style={paragraph}>{greeting}</Text>
           <Text style={paragraph}>
-            A new match just came in on the 1031ExchangeUp network. Open it to review
-            the fit, the numbers, and reach out to the other agent.
+            Exchange IQ monitors your properties and criteria continuously. A new opportunity just surfaced on the
+            1031ExchangeUp network — open it to review the fit, the numbers, and reach out to the other agent.
           </Text>
+
 
           <Section style={card}>
             {yourListingLabel && (
@@ -64,19 +66,19 @@ const Email = ({
           </Section>
 
           <Section style={{ textAlign: 'center', margin: '24px 0' }}>
-            <Button href={matchUrl} style={button}>Open this match</Button>
+            <Button href={matchUrl} style={button}>View this opportunity</Button>
           </Section>
 
           <Text style={paragraph}>
-            Or view all your matches: <Link href={matchesUrl || matchUrl} style={link}>Go to Matches</Link>
+            Or view everything Exchange IQ has surfaced: <Link href={matchesUrl || matchUrl} style={link}>Go to Matches</Link>
           </Text>
 
           <Hr style={hr} />
           <Text style={footer}>
-            You're getting this because a new match was found for one of your active listings.
+            You're getting this because Exchange IQ is monitoring one of your active properties or criteria.
           </Text>
           <Text style={footerSmall}>
-            1031ExchangeUp · Agent-to-agent sourcing & referral network
+            1031ExchangeUp · Continuous opportunity monitoring for investors and agents
           </Text>
         </Container>
       </Body>
@@ -88,8 +90,9 @@ export const template = {
   component: Email,
   subject: (data: any) =>
     data?.matchedPropertyLabel
-      ? `New 1031 match: ${data.matchedPropertyLabel}`
-      : 'New 1031 match on your listing',
+      ? `New opportunity detected: ${data.matchedPropertyLabel}`
+      : 'New opportunity detected on your property',
+
   displayName: 'New match notification',
   previewData: {
     firstName: 'Alex',
