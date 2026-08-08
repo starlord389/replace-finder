@@ -73,10 +73,10 @@ function Sec_engine() {
 <section id="engine" className="bg-white">
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
     <div className="text-center max-w-[760px] mx-auto">
-      <h2 className="nb-h2">One Property Can Create Multiple Opportunities.</h2>
+      <h2 className="nb-h2">An Intelligent Monitoring Network for Investment Real Estate.</h2>
       <p className="nb-lead mt-4">
-        Add a property, client or investment goal once. Intelligent opportunity monitoring with our Exchange IQ technology continuously compares it with relevant
-        opportunities across the network.
+        Property owners and agents register properties and investment criteria. Exchange IQ continuously looks for
+        opportunities to put that equity to better use — and when it finds one, we let you know.
       </p>
     </div>
 
@@ -86,14 +86,15 @@ function Sec_engine() {
       <div className="nb-flow-box engine">Exchange <span>IQ</span></div>
       <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
       <div className="nb-flow-out">
+        <div>Potential Replacement Property</div>
         <div>Potential Buyer</div>
         <div>Potential Seller</div>
-        <div>Potential Replacement Property</div>
         <div>Potential Agent Collaboration</div>
       </div>
     </div>
 
-    <p className="nb-flow-note">One piece of information can unlock an entirely new connection.</p>
+    <p className="nb-flow-note">Register once. We keep watching.</p>
+
   </div>
 </section>
   );
@@ -162,7 +163,11 @@ export function Sec_how() {
   return (
 <section id="how" data-nb className="bg-white">
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
-    <h2 className="nb-h2 text-center">How It Works</h2>
+    <h2 className="nb-h2 text-center">Register → Monitor → Opportunity → Exchange Up</h2>
+    <p className="nb-lead text-center mt-4 max-w-[720px] mx-auto">
+      You don’t need to be planning an exchange today. Put your property on our radar and we’ll tell you when
+      something better shows up.
+    </p>
 
     <div className="nb-how-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7">
 
@@ -171,8 +176,8 @@ export function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
         </div>
-        <h3 className="nb-how-title">Add an Opportunity</h3>
-        <p className="nb-how-desc">Enter a property, client need or investment criteria.</p>
+        <h3 className="nb-how-title">Register Your Property</h3>
+        <p className="nb-how-desc">Add an investment property, client or investment criteria in a few minutes. Free.</p>
       </div>
 
       <div className="nb-how-card">
@@ -180,8 +185,8 @@ export function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         </div>
-        <h3 className="nb-how-title">Intelligent Opportunity Monitoring</h3>
-        <p className="nb-how-desc">Intelligent opportunity monitoring with our Exchange IQ technology continuously compares relevant opportunities across the network.</p>
+        <h3 className="nb-how-title">Exchange IQ Monitors the Network</h3>
+        <p className="nb-how-desc">Our technology continuously compares what you own against opportunities across the network.</p>
       </div>
 
       <div className="nb-how-card">
@@ -189,18 +194,19 @@ export function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
-        <h3 className="nb-how-title">Get Matched</h3>
-        <p className="nb-how-desc">Receive alerts when a promising connection appears.</p>
+        <h3 className="nb-how-title">Opportunity Identified</h3>
+        <p className="nb-how-desc">When a potentially better home for your equity appears, you get notified.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">4</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M4 18.5 9.5 12l4 3.2L20 6.5"/><path d="M15 6.5h5v5"/></svg>
         </div>
-        <h3 className="nb-how-title">Connect</h3>
-        <p className="nb-how-desc">Agents and investors decide whether the opportunity is worth exploring.</p>
+        <h3 className="nb-how-title">Decide Whether to Exchange Up</h3>
+        <p className="nb-how-desc">Review it with your agent. A 1031 exchange is simply the mechanism to move equity tax-deferred — there’s no obligation.</p>
       </div>
+
 
     </div>
   </div>
@@ -271,9 +277,10 @@ export function Sec_investors() {
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
       <h2 className="nb-h2 mt-3">Know When Your Equity Could Be Working Harder.</h2>
       <p className="nb-lead mt-4">
-        Add your investment property and investment goals once. 1031ExchangeUp can continue searching for
-        opportunities that better align with what you want next.
+        Register your investment property and what you’d want next — once. From then on, 1031ExchangeUp keeps
+        looking for opportunities that could put that equity to better use.
       </p>
+
     </div>
 
     <div className="nb-inv-grid">
@@ -291,8 +298,9 @@ export function Sec_investors() {
     </div>
 
     <div className="text-center">
-      <a href="/signup" className="nb-sec-cta">Add My Property</a>
+      <a href="/signup" className="nb-sec-cta">Register My Property — Free</a>
     </div>
+
   </div>
 </section>
   );
@@ -382,8 +390,13 @@ export function Sec_why() {
         {/* LEFT */}
         <div>
           <h2 className="nb-why-h2">
-            Why Join 1031Exchange<span className="nb-why-up">Up</span>?
+            Is Your Equity Working<span className="nb-why-up"> Hard Enough</span>?
           </h2>
+          <p style={{ color: "#c4d2e6", fontSize: 16, lineHeight: 1.6, margin: "-14px 0 26px" }}>
+            Run the numbers on what you own today. If your equity could be doing more somewhere else, that’s exactly
+            what 1031ExchangeUp watches for.
+          </p>
+
           <div className="nb-why-list">
             {[
               "Automatic Return-on-Equity Matching",
@@ -993,7 +1006,7 @@ function Sec_resources() {
         <div className="nb-res-card nb-res-dark">
           <h3 className="nb-res-title">Become a Founding Member</h3>
           <ul className="nb-res-clist">
-            {['Founding Agents & Investors','First 75 Exchange Properties','6 Months Free','Help Shape the Platform','Be Part of Something Big'].map((t) => (
+            {['Founding Agents & Investors','First 75 Registered Properties','Free to Join — No Card Required','Help Shape the Platform','Be Part of Something Big'].map((t) => (
               <li className="nb-res-cli" key={t}>
                 <span className="nb-res-check">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#5cc15f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -1079,10 +1092,10 @@ function Sec_faqcta() {
 
       {/* RIGHT — CTA card */}
       <div className="nb-fct-cta">
-        <h3 className="nb-fct-cta-h">Ready to Exchange Up?</h3>
-        <p className="nb-fct-cta-sub">Whether you are exchanging a property yourself or guiding a client, start with a workspace built around the same private matching network.</p>
+        <h3 className="nb-fct-cta-h">Register Your Property. There’s No Obligation to Exchange.</h3>
+        <p className="nb-fct-cta-sub">It takes a few minutes and it’s free. From there, we keep watching the network and let you know if something better shows up for your equity.</p>
         <div className="nb-fct-cta-btns">
-          <a href="/signup" className="nb-fct-btn nb-fct-btn-green">Join the Network (Free)</a>
+          <a href="/signup" className="nb-fct-btn nb-fct-btn-green">Register My Property — Free</a>
           <a href="/book-demo" className="nb-fct-btn nb-fct-btn-out">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
             Schedule a Demo
@@ -1214,16 +1227,17 @@ export function LandingSections() {
     <>
       <style>{EXTRA_CSS}</style>
       <Sec_engine />
-      <Sec_example />
       <Sec_how />
-      <Sec_agents />
-      <Sec_investors />
       <Sec_why />
+      <Sec_investors />
+      <Sec_agents />
+      <Sec_example />
       <Sec_network />
       <Sec_diff />
       <Sec_trust />
       <Sec_resources />
       <Sec_faqcta />
+
     </>
   );
 }
