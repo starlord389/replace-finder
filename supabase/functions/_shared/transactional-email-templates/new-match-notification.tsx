@@ -35,8 +35,8 @@ const Email = ({
   return (
     <Html lang="en" dir="ltr">
       <Head />
-      <Preview>New 1031 match{matchedPropertyLabel ? `: ${matchedPropertyLabel}` : ''}</Preview>
-      <Body style={main}>
+        <Preview>New opportunity detected{matchedPropertyLabel ? `: ${matchedPropertyLabel}` : ''}</Preview>
+        <Body style={main}>
         <Container style={container}>
           <Section style={brandBar}>
             <Text style={brandText}>
@@ -44,12 +44,13 @@ const Email = ({
             </Text>
           </Section>
 
-          <Heading style={h1}>You've got a new match</Heading>
+          <Heading style={h1}>New opportunity detected</Heading>
           <Text style={paragraph}>{greeting}</Text>
           <Text style={paragraph}>
-            A new match just came in on the 1031ExchangeUp network. Open it to review
-            the fit, the numbers, and reach out to the other agent.
+            Exchange IQ monitors your properties and criteria continuously. A new opportunity just surfaced on the
+            1031ExchangeUp network — open it to review the fit, the numbers, and reach out to the other agent.
           </Text>
+
 
           <Section style={card}>
             {yourListingLabel && (
