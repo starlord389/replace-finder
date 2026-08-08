@@ -1004,11 +1004,17 @@ function Sec_resources() {
           <a href="/signup" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>Meet All Our Experts →</a>
         </div>
 
-        {/* (3) Become a Founding Member */}
+        {/* (3) Pricing / early access */}
         <div className="nb-res-card nb-res-dark">
-          <h3 className="nb-res-title">Become a Founding Member</h3>
+          <h3 className="nb-res-title">Simple, Honest Pricing</h3>
           <ul className="nb-res-clist">
-            {['Founding Agents & Investors','First 75 Registered Properties','Free to Join — No Card Required','Help Shape the Platform','Be Part of Something Big'].map((t) => (
+            {[
+              'Investors: free, always',
+              'Agents: first client or property monitored free',
+              'Paid agent plan only to monitor more',
+              'No card required to start',
+              'Early members help shape the platform',
+            ].map((t) => (
               <li className="nb-res-cli" key={t}>
                 <span className="nb-res-check">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#5cc15f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -1017,9 +1023,10 @@ function Sec_resources() {
               </li>
             ))}
           </ul>
-          <a href="/signup" className="nb-btn nb-btn-green nb-res-btn">Join as a Founding Member</a>
-          <div className="nb-res-cap">Spots Are Limited!</div>
+          <a href="/signup" className="nb-btn nb-btn-green nb-res-btn">Add Your First Opportunity</a>
+          <div className="nb-res-cap">Free to start</div>
         </div>
+
       </div>
     </div>
   </div>
