@@ -66,19 +66,19 @@ const Email = ({
           </Section>
 
           <Section style={{ textAlign: 'center', margin: '24px 0' }}>
-            <Button href={matchUrl} style={button}>Open this match</Button>
+            <Button href={matchUrl} style={button}>View this opportunity</Button>
           </Section>
 
           <Text style={paragraph}>
-            Or view all your matches: <Link href={matchesUrl || matchUrl} style={link}>Go to Matches</Link>
+            Or view everything Exchange IQ has surfaced: <Link href={matchesUrl || matchUrl} style={link}>Go to Matches</Link>
           </Text>
 
           <Hr style={hr} />
           <Text style={footer}>
-            You're getting this because a new match was found for one of your active listings.
+            You're getting this because Exchange IQ is monitoring one of your active properties or criteria.
           </Text>
           <Text style={footerSmall}>
-            1031ExchangeUp · Agent-to-agent sourcing & referral network
+            1031ExchangeUp · Continuous opportunity monitoring for investors and agents
           </Text>
         </Container>
       </Body>
@@ -90,8 +90,9 @@ export const template = {
   component: Email,
   subject: (data: any) =>
     data?.matchedPropertyLabel
-      ? `New 1031 match: ${data.matchedPropertyLabel}`
-      : 'New 1031 match on your listing',
+      ? `New opportunity detected: ${data.matchedPropertyLabel}`
+      : 'New opportunity detected on your property',
+
   displayName: 'New match notification',
   previewData: {
     firstName: 'Alex',
