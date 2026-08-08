@@ -247,41 +247,41 @@ const LOGO_BRANDS = [
   { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 40, mobileHeight: 30 },
 ];
 
-const NODES = [
-  { tag: "INVESTOR", lbl: ["Exchanging an", "Owned Property"], x: 44, y: 16, rev: false },
-  { tag: "AGENT", lbl: ["Investor-Focused", "Real Estate Agent"], x: 17, y: 49, rev: true },
-  { tag: "PROPERTY", lbl: ["Matched", "Replacement Property"], x: 84, y: 49, rev: false },
+const OWNER_ICON = (
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" /></svg>
+);
+
+/* three property owners feeding the monitoring hub */
+const OWNERS = [
+  { tag: "Property Owner 1", prop: "Property A", meta: "Current investment · $850K", photo: "/mf-1.jpg", x: 28, y: 12, rev: false },
+  { tag: "Property Owner 2", prop: "Property B", meta: "Current investment · $1.1M", photo: "/mf-2.jpg", x: 74, y: 29, rev: true },
+  { tag: "Property Owner 3", prop: "Property C", meta: "Current investment · $1.4M", photo: "/mf-3.jpg", x: 26, y: 77, rev: false },
 ];
 
-const ROLE_ICON: Record<string, JSX.Element> = {
-  INVESTOR: (
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><line x1="20.5" y1="20.5" x2="15.4" y2="15.4" /></svg>
-  ),
-  AGENT: (
-    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>
-  ),
-  PROPERTY: (
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>
-  ),
-};
-const NET_PROPS = [
-  { x: 75, y: 19, size: 54, photo: "/mf-1.jpg" },
-  { x: 92, y: 64, size: 48, photo: "/mf-2.jpg" },
-  { x: 70, y: 86, size: 62, photo: "/mf-3.jpg" },
-  { x: 48, y: 92, size: 56, photo: "/mf-4.jpg" },
-  { x: 25, y: 84, size: 58, photo: "/mf-5.jpg" },
-  { x: 10, y: 72, size: 46, photo: "/mf-6.jpg" },
+/* opportunity alert flowing back out of the platform */
+const ALERTS = [
+  { x: 76, y: 79, title: "New Opportunity", body: "Property B may align with Owner 1’s replacement criteria." },
 ];
-/* dense teal "circuit" web fanning out from the hub edge */
+
+/* faint perimeter nodes suggesting the wider network */
+const GHOSTS = [
+  { x: 6, y: 40, size: 30, photo: "/mf-4.jpg" },
+  { x: 95, y: 56, size: 26, photo: "/mf-5.jpg" },
+  { x: 52, y: 96, size: 28, photo: "/mf-6.jpg" },
+  { x: 92, y: 8, size: 22, photo: "/mf-4.jpg" },
+];
+
+/* faint circuit web fanning out from the hub edge */
 const WEB = Array.from({ length: 34 }, (_, i) => {
   const a = (i / 34) * Math.PI * 2 + 0.12;
-  const r1 = 12.5;
-  const r2 = 15.5 + ((i * 13) % 15);
+  const r1 = 14;
+  const r2 = 17 + ((i * 13) % 13);
   return {
     x1: 50 + Math.cos(a) * r1, y1: 50 + Math.sin(a) * r1,
     x2: 50 + Math.cos(a) * r2, y2: 50 + Math.sin(a) * r2,
   };
 });
+
 
 function LogoArrow() {
   return (
