@@ -1111,7 +1111,7 @@ function Sec_faqcta() {
           <h4>Platform</h4>
           <ul>
             <li><a href="#how">How It Works</a></li>
-            <li><a href="#who">Who It's For</a></li>
+            <li><a href="#agents">For Agents</a></li>
             <li><a href="#why">Why Join</a></li>
             <li><a href="#resources">Resources</a></li>
           </ul>
