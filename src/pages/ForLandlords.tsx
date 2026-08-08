@@ -15,7 +15,7 @@ const HERO = {
   eyebrow: "For landlords",
   headline: "Line up a better-returning building before you ever have to sell.",
   subheadline:
-    "The hard part of a 1031 isn't selling — it's having somewhere worth moving into before the tax clock starts. So we built a private network of agents who do these exchanges for their owner-clients. Your agent enters the building you own now and its numbers, and the network automatically surfaces other owners' buildings that would earn you a better return and that you can afford. No wish-list is required, but optional preferences can refine the search. At the same time, your building is quietly surfaced to owners looking for a better return of their own. Nothing is public — names and addresses stay hidden until both sides choose to connect. Owners pay nothing, so tell us where you are and we'll connect you with a vetted agent, in confidence.",
+    "The hard part of a 1031 isn't selling — it's having somewhere worth moving into before the tax clock starts. So we built a private network of agents who do these exchanges for their owner-clients. Your agent enters the building you own now and its numbers, and the network automatically surfaces other owners' buildings that would earn you a better return and that you can afford. No wish-list is required, but optional preferences can refine the search. At the same time, your building is quietly surfaced to owners looking for a better return of their own. Nothing is public — names and addresses stay hidden until both sides choose to connect. The platform is free for everyone, so tell us where you are and we'll connect you with a vetted agent, in confidence.",
 };
 
 /* Hero match card — a replacement that out-earns the owner's current building. */

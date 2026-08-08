@@ -56,7 +56,7 @@ export const AGENT_FAQS: FaqCategory[] = [
     ],
   },
   {
-    category: "Billing & Account",
+    category: "Pricing & Account",
     items: [
       { q: "How is the platform priced?", a: "It isn't — 1031ExchangeUp is free for everyone. Investors, property owners and agents all get unlimited exchanges, criteria and matching at no cost, with no card required." },
       { q: "Can I close my account anytime?", a: "Yes — close your account from Settings. Your workspace stays read-only for 30 days afterwards so you can export data." },
