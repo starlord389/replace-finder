@@ -73,10 +73,10 @@ function Sec_engine() {
 <section id="engine" className="bg-white">
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
     <div className="text-center max-w-[760px] mx-auto">
-      <h2 className="nb-h2">One Property Can Create Multiple Opportunities.</h2>
+      <h2 className="nb-h2">An Intelligent Monitoring Network for Investment Real Estate.</h2>
       <p className="nb-lead mt-4">
-        Add a property, client or investment goal once. Intelligent opportunity monitoring with our Exchange IQ technology continuously compares it with relevant
-        opportunities across the network.
+        Property owners and agents register properties and investment criteria. Exchange IQ continuously looks for
+        opportunities to put that equity to better use — and when it finds one, we let you know.
       </p>
     </div>
 
@@ -86,14 +86,15 @@ function Sec_engine() {
       <div className="nb-flow-box engine">Exchange <span>IQ</span></div>
       <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
       <div className="nb-flow-out">
+        <div>Potential Replacement Property</div>
         <div>Potential Buyer</div>
         <div>Potential Seller</div>
-        <div>Potential Replacement Property</div>
         <div>Potential Agent Collaboration</div>
       </div>
     </div>
 
-    <p className="nb-flow-note">One piece of information can unlock an entirely new connection.</p>
+    <p className="nb-flow-note">Register once. We keep watching.</p>
+
   </div>
 </section>
   );
