@@ -75,27 +75,27 @@ function Sec_engine() {
 <section id="engine" className="bg-white">
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
     <div className="text-center max-w-[760px] mx-auto">
-      <h2 className="nb-h2">An Intelligent Monitoring Network for Investment Real Estate.</h2>
+      <h2 className="nb-h2">How a Match Actually Happens.</h2>
       <p className="nb-lead mt-4">
-        Property owners and agents register properties and investment criteria. Exchange IQ continuously looks for
-        opportunities to put that equity to better use — and when it finds one, we let you know.
+        A property, an investor's goals and everything already in the network are compared continuously. When the
+        numbers line up, the agent hears about it — and reaches out to the client.
       </p>
     </div>
 
     <div className="nb-flow">
-      <div className="nb-flow-box">Property / Client / Investment Criteria</div>
-      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
-      <div className="nb-flow-box engine">Exchange <span>IQ</span></div>
-      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
-      <div className="nb-flow-out">
-        <div>Potential Replacement Property</div>
-        <div>Potential Buyer</div>
-        <div>Potential Seller</div>
-        <div>Potential Agent Collaboration</div>
+      <div className="nb-flow-out" style={{ marginBottom: 0 }}>
+        <div>Property</div>
+        <div>Investor Goals</div>
+        <div>Network Opportunities</div>
       </div>
+      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
+      <div className="nb-flow-box engine">Intelligent Match by Exchange <span>IQ</span></div>
+      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
+      <div className="nb-flow-box">Agent Alert &rarr; Conversation with the Client</div>
     </div>
 
     <p className="nb-flow-note">Register once. We keep watching.</p>
+
 
   </div>
 </section>
