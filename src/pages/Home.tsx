@@ -255,7 +255,7 @@ const OWNER_ICON = (
 /* three property owners feeding the monitoring hub */
 const OWNERS = [
   { tag: "Property Owner 1", prop: "Property A · $850K", meta: "Property added", photo: "/mf-1.jpg", x: 29, y: 13, rev: false },
-  { tag: "Property Owner 2", prop: "Property B · $1.1M", meta: "Property added", photo: "/mf-2.jpg", x: 69, y: 30, rev: true },
+  { tag: "Property Owner 2", prop: "Property B · $1.1M", meta: "Property added", photo: "/mf-2.jpg", x: 69, y: 27, rev: true },
   { tag: "Property Owner 3", prop: "Property C · $1.4M", meta: "Property added", photo: "/mf-3.jpg", x: 29, y: 79, rev: false },
 ];
 
