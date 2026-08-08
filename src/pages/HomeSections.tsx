@@ -70,37 +70,8 @@ export const EXTRA_CSS = `
 [data-nb] .nb-sec-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:50px;padding:0 26px;margin-top:30px;border-radius:10px;background:#43a047;color:#fff;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 8px 20px rgba(67,160,71,.28)}
 `;
 
-function Sec_engine() {
-  return (
-<section id="engine" className="bg-white">
-  <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
-    <div className="text-center max-w-[760px] mx-auto">
-      <h2 className="nb-h2">How a Match Actually Happens.</h2>
-      <p className="nb-lead mt-4">
-        A property, an investor's goals and everything already in the network are compared continuously. When the
-        numbers line up, the agent hears about it — and reaches out to the client.
-      </p>
-    </div>
-
-    <div className="nb-flow">
-      <div className="nb-flow-out" style={{ marginBottom: 0 }}>
-        <div>Property</div>
-        <div>Investor Goals</div>
-        <div>Network Opportunities</div>
-      </div>
-      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
-      <div className="nb-flow-box engine">Intelligent Match by Exchange <span>IQ</span></div>
-      <div className="nb-flow-arrow" aria-hidden="true">&darr;</div>
-      <div className="nb-flow-box">Agent Alert &rarr; Conversation with the Client</div>
-    </div>
-
-    <p className="nb-flow-note">Register once. We keep watching.</p>
 
 
-  </div>
-</section>
-  );
-}
 
 
 function Sec_example() {
