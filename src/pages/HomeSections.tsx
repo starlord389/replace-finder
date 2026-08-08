@@ -158,7 +158,7 @@ function Sec_example() {
   );
 }
 
-function Sec_how() {
+export function Sec_how() {
   return (
 <section id="how" data-nb className="bg-white">
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
@@ -208,7 +208,7 @@ function Sec_how() {
   );
 }
 
-function Sec_agents() {
+export function Sec_agents() {
   return (
 <section id="agents" data-nb className="w-full py-20 sm:py-24" style={{ background: "#eef3fb" }}>
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
@@ -263,7 +263,7 @@ function Sec_agents() {
   );
 }
 
-function Sec_investors() {
+export function Sec_investors() {
   return (
 <section id="investors" data-nb className="w-full py-20 sm:py-24 bg-white">
   <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
@@ -373,7 +373,7 @@ function RoeMiniCalc() {
 
 
 
-function Sec_why() {
+export function Sec_why() {
   return (
 <section id="why" className="px-5 sm:px-8 py-20 sm:py-24">
   <div className="mx-auto" style={{ maxWidth: 1240 }}>
@@ -1155,7 +1155,7 @@ function Sec_faqcta() {
   );
 }
 
-function Sec_network() {
+export function Sec_network() {
   return (
 <section id="network" className="w-full px-5 sm:px-8 py-20 sm:py-24" style={{ background: "#16284a" }}>
   <div className="mx-auto" style={{ maxWidth: 1240 }}>
@@ -1179,7 +1179,7 @@ function Sec_network() {
   );
 }
 
-function Sec_trust() {
+export function Sec_trust() {
   const items: [string, JSX.Element][] = [
     ["You control what you share.", (<svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.2" /><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9" /></svg>)],
     ["Sensitive property details stay private until you choose to share them.", (<svg viewBox="0 0 24 24"><path d="M12 3.5 20 7v5.2c0 4.6-3.3 7.4-8 8.8-4.7-1.4-8-4.2-8-8.8V7z" /></svg>)],
