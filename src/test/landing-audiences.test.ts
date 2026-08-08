@@ -6,9 +6,9 @@ const homeSource = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8
 const sectionsSource = readFileSync(join(process.cwd(), "src/pages/HomeSections.tsx"), "utf8");
 
 describe("public landing-page audiences", () => {
-  it("leads with constant intelligent opportunity monitoring", () => {
-    expect(homeSource).toContain("Your Investments. Constantly Monitored for Smarter Opportunities.");
-    expect(homeSource).toContain("intelligent opportunity monitoring system for real estate investors and agents");
+  it("leads with an easier 1031 exchange process", () => {
+    expect(homeSource).toContain("The 1031 Exchange Process Just Got Easier.");
+    expect(homeSource).toContain("Exchange IQ continuously monitors the network");
     expect(homeSource).toContain("Monitor My Property");
     expect(homeSource).toContain("See How It Works");
     expect(homeSource).toContain("Add → Set → Monitor → Alert");
@@ -21,13 +21,14 @@ describe("public landing-page audiences", () => {
 
   it("explains agent and investor value without becoming an open marketplace", () => {
     expect(sectionsSource).toContain("How a Match Actually Happens.");
-    expect(sectionsSource).toContain("Your Database. Constantly Monitored for New Opportunities.");
+    expect(sectionsSource).toContain("Exchanges Made Easier Across Your Whole Database.");
     expect(sectionsSource).toContain("You already built the database.");
     expect(sectionsSource).toContain("Internal Opportunity Detected");
-    expect(sectionsSource).toContain("Your Investment. Constantly Monitored for What’s Next.");
+    expect(sectionsSource).toContain("Your Next Exchange, Made Easier.");
     expect(sectionsSource).toContain("does not replace the agent");
     expect(sectionsSource).not.toContain("matches against thousands of opportunities");
   });
+
 
   it("routes the ROE calculator into monitoring activation", () => {
     expect(sectionsSource).toContain("Is your equity working as hard as it could?");
