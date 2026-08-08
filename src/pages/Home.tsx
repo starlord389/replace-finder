@@ -392,7 +392,7 @@ function NbHero() {
           </p>
           <p className="nb-hero-sub mt-3 max-w-[540px]">
             1031ExchangeUp intelligently connects investors, properties and investor-friendly agents, helping
-            surface potential exchanges and replacement properties that may otherwise never cross paths.
+            surface potential exchanges and replacement properties that may otherwise be opportunities left on the table.
           </p>
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
