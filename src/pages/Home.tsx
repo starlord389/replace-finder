@@ -447,7 +447,14 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUP — 1031 Exchange Matching for Investors and Agents";
+    document.title = "1031ExchangeUp — More 1031 Opportunities From One Smarter Network";
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc) {
+      desc.setAttribute(
+        "content",
+        "1031ExchangeUp connects investors, properties and investor-friendly agents to surface potential exchanges and replacement properties. Join free.",
+      );
+    }
   }, []);
 
   return (
@@ -456,8 +463,10 @@ export default function Home() {
       <style>{SECTIONS_CSS}</style>
       <NbNav />
       <NbHero />
+      <NbAudienceCards />
       <NbLogoMarquee />
       <LandingSections />
     </div>
   );
 }
+
