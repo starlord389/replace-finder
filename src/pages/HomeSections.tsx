@@ -1229,18 +1229,18 @@ export function LandingSections() {
     <>
       <style>{EXTRA_CSS}</style>
       <Sec_engine />
-      <Sec_how />
-      <Sec_why />
-      <Sec_investors />
       <Sec_agents />
+      <Sec_investors />
+      <Sec_why />
+      <Sec_how />
       <Sec_example />
-      <Sec_network />
       <Sec_diff />
+      <Sec_network />
       <Sec_trust />
       <Sec_resources />
       <Sec_faqcta />
-
     </>
   );
 }
+
 
