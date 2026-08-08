@@ -390,8 +390,13 @@ export function Sec_why() {
         {/* LEFT */}
         <div>
           <h2 className="nb-why-h2">
-            Why Join 1031Exchange<span className="nb-why-up">Up</span>?
+            Is Your Equity Working<span className="nb-why-up"> Hard Enough</span>?
           </h2>
+          <p style={{ color: "#c4d2e6", fontSize: 16, lineHeight: 1.6, margin: "-14px 0 26px" }}>
+            Run the numbers on what you own today. If your equity could be doing more somewhere else, that’s exactly
+            what 1031ExchangeUp watches for.
+          </p>
+
           <div className="nb-why-list">
             {[
               "Automatic Return-on-Equity Matching",
