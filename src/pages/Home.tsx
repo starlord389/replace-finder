@@ -516,7 +516,7 @@ function NbMonitorSteps() {
   return (
     <section id="steps" className="nb-steps" aria-label="How monitoring works">
       <div className="nb-steps-inner">
-        <p className="nb-steps-kicker">Register → Monitor → Opportunity → Exchange Up</p>
+        <p className="nb-steps-kicker">Add → Set → Monitor → Alert</p>
         <div className="nb-steps-row">
           {MONITOR_STEPS.map((s, i) => (
             <div className="nb-step" key={s.t}>
