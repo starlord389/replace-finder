@@ -75,7 +75,7 @@ function Sec_engine() {
     <div className="text-center max-w-[760px] mx-auto">
       <h2 className="nb-h2">One Property Can Create Multiple Opportunities.</h2>
       <p className="nb-lead mt-4">
-        Add a property, client or investment goal once. Exchange IQ, our proprietary matching algorithm, continuously compares it with relevant
+        Add a property, client or investment goal once. Intelligent opportunity monitoring with our Exchange IQ technology continuously compares it with relevant
         opportunities across the network.
       </p>
     </div>
@@ -180,8 +180,8 @@ function Sec_how() {
         <div className="nb-how-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         </div>
-        <h3 className="nb-how-title">Exchange IQ Searches</h3>
-        <p className="nb-how-desc">Exchange IQ, our proprietary algorithm, continuously compares relevant opportunities across the network.</p>
+        <h3 className="nb-how-title">Intelligent Opportunity Monitoring</h3>
+        <p className="nb-how-desc">Intelligent opportunity monitoring with our Exchange IQ technology continuously compares relevant opportunities across the network.</p>
       </div>
 
       <div className="nb-how-card">
@@ -763,7 +763,7 @@ function Sec_diff() {
         </div>
 
         {[
-          ["Spreadsheets & email chains", "Exchange IQ matching"],
+          ["Spreadsheets & email chains", "Intelligent opportunity monitoring"],
           ["Countless phone calls", "Instant notifications"],
           ["Searching everywhere", "One focused network"],
           ["Waiting & hoping", "Real-time opportunities"],
@@ -1043,7 +1043,7 @@ function Sec_faqcta() {
           },
           {
             q: 'How does Exchange IQ work?',
-            a: 'Exchange IQ, our proprietary matching algorithm, reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
+            a: 'Intelligent opportunity monitoring with our Exchange IQ technology reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
           },
           {
             q: 'Does 1031ExchangeUp replace my agent?',

@@ -279,7 +279,7 @@ export default function StepCriteria({ criteria, financials, onChange, onNext, o
           <Badge variant="outline">Optional</Badge>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add preferences to refine the results, or leave everything blank to use the standard automatic matching algorithm.
+          Add preferences to refine the results, or leave everything blank to use standard intelligent opportunity monitoring with our Exchange IQ technology.
         </p>
       </div>
 
