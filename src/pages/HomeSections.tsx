@@ -298,8 +298,9 @@ export function Sec_investors() {
     </div>
 
     <div className="text-center">
-      <a href="/signup" className="nb-sec-cta">Add My Property</a>
+      <a href="/signup" className="nb-sec-cta">Register My Property — Free</a>
     </div>
+
   </div>
 </section>
   );
