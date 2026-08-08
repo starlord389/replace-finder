@@ -580,6 +580,7 @@ export default function Home() {
       <NbNav />
       <NbHero />
       <NbMonitorSteps />
+      <NbWhyNow />
       <NbAudienceCards />
 
       <NbLogoMarquee />
@@ -587,6 +588,48 @@ export default function Home() {
     </div>
   );
 }
+
+const WHY_NOW_CSS = `
+  [data-nb] .nb-now { background: #eef3fb; border-top: 1px solid #e3eaf4; border-bottom: 1px solid #e3eaf4; }
+  [data-nb] .nb-now-inner { margin: 0 auto; max-width: 1240px; padding: 46px 20px; display: grid; gap: 22px; align-items: center; }
+  @media (min-width: 900px) { [data-nb] .nb-now-inner { grid-template-columns: 1fr 1fr; padding: 54px 32px; gap: 40px; } }
+  [data-nb] .nb-now-h { font-size: clamp(23px, 2.4vw, 31px); font-weight: 800; letter-spacing: -.02em; color: #16284a; line-height: 1.15; }
+  [data-nb] .nb-now-p { margin-top: 12px; font-size: 16px; line-height: 1.6; color: #56657a; }
+  [data-nb] .nb-now-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  [data-nb] .nb-now-li { display: flex; align-items: flex-start; gap: 10px; font-size: 15.5px; line-height: 1.45; color: #33405a; font-weight: 600; }
+  [data-nb] .nb-now-x { flex: none; width: 20px; height: 20px; border-radius: 999px; background: #43a047; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+`;
+
+function NbWhyNow() {
+  return (
+    <section id="why-now" className="nb-now" aria-label="Why start monitoring now">
+      <style>{WHY_NOW_CSS}</style>
+      <div className="nb-now-inner">
+        <div>
+          <h2 className="nb-now-h">Don’t Wait for the 45-Day Clock to Start.</h2>
+          <p className="nb-now-p">
+            ExchangeUp can monitor for smarter opportunities long before you decide to sell. Add your property today and
+            let the system continuously evaluate opportunities as the network changes.
+          </p>
+        </div>
+        <ul className="nb-now-list">
+          {[
+            "You don’t need to be actively selling.",
+            "You don’t need to already be in a 1031 exchange.",
+            "You don’t need to keep coming back to search.",
+            "We monitor the opportunity landscape continuously.",
+          ].map((t) => (
+            <li className="nb-now-li" key={t}>
+              <span className="nb-now-x" aria-hidden="true">✓</span>
+              {t}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 
 export { NB_STYLE, SkyBackdrop, HeroNetwork };
 
