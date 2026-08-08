@@ -104,7 +104,7 @@ const NB_STYLE = `
   [data-nb] .nb-own-txt { flex: 1 1 auto; min-width: 0; }
   [data-nb] .nb-own.rev .nb-own-txt { text-align: right; }
   [data-nb] .nb-own-role { display: block; white-space: nowrap; font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: #16284a; line-height: 1.1; text-transform: uppercase; }
-  [data-nb] .nb-own-prop { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; line-height: 1.15; color: #16284a; white-space: nowrap; }
+  [data-nb] .nb-own-prop { display: block; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; font-size: 11px; font-weight: 700; line-height: 1.15; color: #16284a; white-space: nowrap; }
   [data-nb] .nb-own-meta { display: block; margin-top: 2px; font-size: 9px; font-weight: 600; line-height: 1.15; color: #7b8798; white-space: nowrap; }
   [data-nb] .nb-own-agent { white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 8px; font-weight: 800; letter-spacing: .06em; color: #2f7d33; text-transform: uppercase; }
   [data-nb] .nb-own-agent i { width: 5px; height: 5px; border-radius: 999px; background: #43a047; display: inline-block; }
@@ -128,12 +128,12 @@ const NB_STYLE = `
     [data-nb] .nb-hub-sub { font-size: 7.2px; }
     [data-nb] .nb-hub-status { font-size: 7.5px; padding: 3px 8px; }
     [data-nb] .nb-ring { width: 118px; height: 118px; margin: -59px 0 0 -59px; }
-    [data-nb] .nb-own { width: 164px; gap: 6px; padding: 6px 8px; border-radius: 11px; }
+    [data-nb] .nb-own { width: 172px; gap: 6px; padding: 6px 8px; border-radius: 11px; }
     [data-nb] .nb-own-ico { width: 26px; height: 26px; }
     [data-nb] .nb-own-ico svg { width: 13px; height: 13px; }
     [data-nb] .nb-own-thumb { width: 30px; height: 30px; border-radius: 8px; }
     [data-nb] .nb-own-role { font-size: 8px; }
-    [data-nb] .nb-own-prop { font-size: 9.5px; }
+    [data-nb] .nb-own-prop { font-size: 9px; }
     [data-nb] .nb-own-meta { font-size: 7.5px; }
     [data-nb] .nb-own-agent { font-size: 6.5px; }
     [data-nb] .nb-alert { width: 150px; padding: 7px 9px; }
@@ -254,14 +254,14 @@ const OWNER_ICON = (
 
 /* three property owners feeding the monitoring hub */
 const OWNERS = [
-  { tag: "Property Owner 1", prop: "Property A · $850K", meta: "Property added", photo: "/mf-1.jpg", x: 27, y: 13, rev: false },
-  { tag: "Property Owner 2", prop: "Property B · $1.1M", meta: "Property added", photo: "/mf-2.jpg", x: 73, y: 30, rev: true },
-  { tag: "Property Owner 3", prop: "Property C · $1.4M", meta: "Property added", photo: "/mf-3.jpg", x: 27, y: 79, rev: false },
+  { tag: "Property Owner 1", prop: "Property A · $850K", meta: "Property added", photo: "/mf-1.jpg", x: 29, y: 13, rev: false },
+  { tag: "Property Owner 2", prop: "Property B · $1.1M", meta: "Property added", photo: "/mf-2.jpg", x: 71, y: 30, rev: true },
+  { tag: "Property Owner 3", prop: "Property C · $1.4M", meta: "Property added", photo: "/mf-3.jpg", x: 29, y: 79, rev: false },
 ];
 
 /* opportunity alert flowing back out of the platform */
 const ALERTS = [
-  { x: 75, y: 79, title: "New Opportunity", body: "Property B may align with Owner 1’s replacement criteria." },
+  { x: 73, y: 79, title: "New Opportunity", body: "Property B may align with Owner 1’s replacement criteria." },
 ];
 
 /* faint perimeter nodes suggesting the wider network */
