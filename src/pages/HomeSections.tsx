@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { UPCOMING_EVENT } from "@/content/events";
+
 
 /* AUTO-ASSEMBLED landing sections (navy+green brand). Person/expert photos are placeholders. */
 
