@@ -18,6 +18,7 @@ describe("public landing-page audiences", () => {
 
   it("explains agent and investor value without becoming an open marketplace", () => {
     expect(sectionsSource).toContain("How a Match Actually Happens.");
+    expect(sectionsSource).toContain("Exchange IQ compares it across the network");
     expect(sectionsSource).toContain("Turn Your Existing Database Into Continuous Deal Flow.");
     expect(sectionsSource).toContain("Your Property, Monitored for Better Opportunities.");
     expect(sectionsSource).toContain("does not replace the agent");
