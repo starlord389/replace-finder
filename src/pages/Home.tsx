@@ -97,7 +97,7 @@ const NB_STYLE = `
   [data-nb] .nb-hub-dot { width: 6px; height: 6px; border-radius: 999px; background: #43a047; animation: nb-blink 2s ease-in-out infinite; }
 
   /* owner cards */
-  [data-nb] .nb-own { position: absolute; transform: translate(-50%,-50%); z-index: 3; width: max-content; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.5); border-radius: 14px; padding: 8px 12px; box-shadow: 0 12px 26px rgba(4,14,30,.4); }
+  [data-nb] .nb-own { position: absolute; transform: translate(-50%,-50%); z-index: 3; width: 196px; display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.5); border-radius: 14px; padding: 8px 12px; box-shadow: 0 12px 26px rgba(4,14,30,.4); }
   [data-nb] .nb-own.rev { flex-direction: row-reverse; }
   [data-nb] .nb-own-ico { width: 34px; height: 34px; border-radius: 999px; background: #16284a; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
   [data-nb] .nb-own-ico svg { width: 17px; height: 17px; stroke: #5cc15f; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -127,7 +127,7 @@ const NB_STYLE = `
     [data-nb] .nb-hub-sub { font-size: 7.2px; }
     [data-nb] .nb-hub-status { font-size: 7.5px; padding: 3px 8px; }
     [data-nb] .nb-ring { width: 118px; height: 118px; margin: -59px 0 0 -59px; }
-    [data-nb] .nb-own { gap: 7px; padding: 6px 8px; border-radius: 11px; }
+    [data-nb] .nb-own { width: 156px; gap: 6px; padding: 6px 8px; border-radius: 11px; }
     [data-nb] .nb-own-ico { width: 26px; height: 26px; }
     [data-nb] .nb-own-ico svg { width: 13px; height: 13px; }
     [data-nb] .nb-own-thumb { width: 30px; height: 30px; border-radius: 8px; }
@@ -253,14 +253,14 @@ const OWNER_ICON = (
 
 /* three property owners feeding the monitoring hub */
 const OWNERS = [
-  { tag: "Property Owner 1", prop: "Property A", meta: "Current investment · $850K", photo: "/mf-1.jpg", x: 28, y: 12, rev: false },
-  { tag: "Property Owner 2", prop: "Property B", meta: "Current investment · $1.1M", photo: "/mf-2.jpg", x: 74, y: 29, rev: true },
-  { tag: "Property Owner 3", prop: "Property C", meta: "Current investment · $1.4M", photo: "/mf-3.jpg", x: 26, y: 77, rev: false },
+  { tag: "Property Owner 1", prop: "Property A", meta: "Current investment · $850K", photo: "/mf-1.jpg", x: 27, y: 13, rev: false },
+  { tag: "Property Owner 2", prop: "Property B", meta: "Current investment · $1.1M", photo: "/mf-2.jpg", x: 73, y: 30, rev: true },
+  { tag: "Property Owner 3", prop: "Property C", meta: "Current investment · $1.4M", photo: "/mf-3.jpg", x: 27, y: 79, rev: false },
 ];
 
 /* opportunity alert flowing back out of the platform */
 const ALERTS = [
-  { x: 76, y: 79, title: "New Opportunity", body: "Property B may align with Owner 1’s replacement criteria." },
+  { x: 75, y: 79, title: "New Opportunity", body: "Property B may align with Owner 1’s replacement criteria." },
 ];
 
 /* faint perimeter nodes suggesting the wider network */
