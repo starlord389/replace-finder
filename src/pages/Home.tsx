@@ -162,13 +162,24 @@ const NB_STYLE = `
     [data-nb] .nb-badge-txt br { display: none; }
     [data-nb] .nb-badge-txt > span::after { content: " "; }
   }
+
+  /* ===== audience cards directly under the hero ===== */
+  [data-nb] .nb-aud { background: #fff; padding: 44px 20px 8px; }
+  [data-nb] .nb-aud-grid { margin: 0 auto; max-width: 1240px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  @media (max-width: 900px) { [data-nb] .nb-aud-grid { grid-template-columns: 1fr; } }
+  [data-nb] .nb-aud-card { border: 1px solid #e8edf3; border-radius: 16px; background: #fff; padding: 24px 22px; box-shadow: 0 2px 12px rgba(14,42,77,.06); }
+  [data-nb] .nb-aud-ico { width: 44px; height: 44px; border-radius: 12px; background: #eef6ef; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  [data-nb] .nb-aud-ico svg { width: 22px; height: 22px; stroke: #43a047; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  [data-nb] .nb-aud-tag { font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #43a047; }
+  [data-nb] .nb-aud-txt { margin-top: 8px; font-size: 16px; line-height: 1.5; font-weight: 600; color: #16284a; }
 `;
+
 
 const NAV_LINKS = [
   { label: "How It Works", href: "#how" },
-  { label: "Who It's For", href: "#who" },
+  { label: "For Agents", href: "#agents" },
   { label: "Resources", href: "#resources" },
-  { label: "About", href: "#meet" },
+  { label: "For Investors", href: "#investors" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -327,11 +338,45 @@ function HeroNetwork() {
 }
 
 const BADGES = [
-  { txt: ["Proprietary Tech"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
-  { txt: ["Free for", "Founding Members"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="5" stroke="currentColor" strokeWidth="1.8" /><path d="M9 13.2 7.5 21l4.5-2.6L16.5 21 15 13.2" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>) },
+  { txt: ["Join Free"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="m8.5 12 2.5 2.5L16 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
+  { txt: ["Proprietary", "Matching Engine"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["Built for", "Agents & Investors"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><circle cx="17" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.8" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
-  { txt: ["Takes Less Than", "5 Minutes"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
+  { txt: ["Add a Property", "in Minutes"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
 ];
+
+const AUDIENCE_CARDS = [
+  {
+    tag: "For Agents",
+    txt: "Unlock more opportunities from your existing database.",
+    svg: (<svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>),
+  },
+  {
+    tag: "For Investors",
+    txt: "See when a better investment opportunity matches what you own and what you want next.",
+    svg: (<svg viewBox="0 0 24 24"><path d="M4 18.5 9.5 12l4 3.2L20 6.5" /><path d="M15 6.5h5v5" /></svg>),
+  },
+  {
+    tag: "For Property Owners",
+    txt: "Understand your equity and explore what moving it into a better-performing property could look like.",
+    svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>),
+  },
+];
+
+function NbAudienceCards() {
+  return (
+    <section className="nb-aud" aria-label="Who 1031ExchangeUp is for">
+      <div className="nb-aud-grid">
+        {AUDIENCE_CARDS.map((c) => (
+          <div className="nb-aud-card" key={c.tag}>
+            <span className="nb-aud-ico" aria-hidden="true">{c.svg}</span>
+            <div className="nb-aud-tag">{c.tag}</div>
+            <p className="nb-aud-txt">{c.txt}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function NbHero() {
   return (
@@ -340,20 +385,22 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[600px]">
-            The 1031 Exchange Matching Platform for Property Owners and Their Agents.
+            More Opportunities.<br />One Smarter Network.
           </h1>
-          <p className="nb-hero-sub mt-5 max-w-[510px]">
-            Investors list the property they own, see replacement properties matched to their purchasing
-            capacity and return on equity, and connect with the listing agent. Agents manage the same process
-            for their clients—all in one private network.
+          <p className="nb-hero-sub mt-5 max-w-[540px]">
+            Turn the properties, clients and investment goals you already have into new 1031 opportunities.
+          </p>
+          <p className="nb-hero-sub mt-3 max-w-[540px]">
+            1031ExchangeUp intelligently connects investors, properties and investor-friendly agents, helping
+            surface potential exchanges and replacement properties that may otherwise never cross paths.
           </p>
 
           <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Join the Network (Free)</Link>
-            <Link to={ROUTES.bookDemo} className="nb-btn-demo">
-              <span>Book a Demo</span>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
-            </Link>
+            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Join Free</Link>
+            <a href="#how" className="nb-btn-demo">
+              <span>See How It Works</span>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </a>
           </div>
 
           <div className="nb-badges">
@@ -371,6 +418,7 @@ function NbHero() {
     </section>
   );
 }
+
 
 function NbLogoMarquee() {
   return (
@@ -399,7 +447,14 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUP — 1031 Exchange Matching for Investors and Agents";
+    document.title = "1031ExchangeUp — More 1031 Opportunities From One Smarter Network";
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc) {
+      desc.setAttribute(
+        "content",
+        "1031ExchangeUp connects investors, properties and investor-friendly agents to surface potential exchanges and replacement properties. Join free.",
+      );
+    }
   }, []);
 
   return (
@@ -408,8 +463,10 @@ export default function Home() {
       <style>{SECTIONS_CSS}</style>
       <NbNav />
       <NbHero />
+      <NbAudienceCards />
       <NbLogoMarquee />
       <LandingSections />
     </div>
   );
 }
+

@@ -6,16 +6,24 @@ const homeSource = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8
 const sectionsSource = readFileSync(join(process.cwd(), "src/pages/HomeSections.tsx"), "utf8");
 
 describe("public landing-page audiences", () => {
-  it("leads with the shared value for property owners and agents", () => {
-    expect(homeSource).toContain("The 1031 Exchange Matching Platform for Property Owners and Their Agents.");
-    expect(homeSource).toContain("Investors list the property they own");
-    expect(homeSource).toContain("Agents manage the same process");
+  it("leads with the opportunity-network value proposition", () => {
+    expect(homeSource).toContain("More Opportunities.");
+    expect(homeSource).toContain("One Smarter Network.");
+    expect(homeSource).toContain("For Agents");
+    expect(homeSource).toContain("For Investors");
+    expect(homeSource).toContain("For Property Owners");
   });
 
-  it("describes distinct workspaces without turning the product into an open marketplace", () => {
-    expect(sectionsSource).toContain("One Network. Two Purpose-Built Workspaces.");
-    expect(sectionsSource).toContain("See only matched replacement opportunities");
-    expect(sectionsSource).toContain("Connect directly with the listing agent");
+  it("explains agent and investor value without becoming an open marketplace", () => {
+    expect(sectionsSource).toContain("One Property Can Create Multiple Opportunities.");
+    expect(sectionsSource).toContain("Your Database Could Already Contain Your Next Transaction.");
+    expect(sectionsSource).toContain("Know When Your Equity Could Be Working Harder.");
+    expect(sectionsSource).toContain("does not replace the agent");
     expect(sectionsSource).not.toContain("matches against thousands of opportunities");
+  });
+
+  it("keeps compliant, non-guaranteeing language on matches and the calculator", () => {
+    expect(sectionsSource).toContain("not guaranteed transactions");
+    expect(sectionsSource).toContain("does not constitute financial, tax or investment advice");
   });
 });
