@@ -100,76 +100,59 @@ function Sec_engine() {
 }
 
 
-function Sec_meet() {
+function Sec_example() {
   return (
-<section id="meet">
+<section id="example" style={{ background: "#eef3fb" }}>
   <div className="max-w-[1240px] mx-auto px-5 sm:px-8 py-20 sm:py-24">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-
-      <div className="max-w-xl">
-        <h2 className="nb-h2">Meet 1031Exchange<span style={{ color: '#43a047' }}>Up</span></h2>
-        <p className="nb-lead mt-5">One private matching network where investors/property owners can run their own exchanges and agents can manage exchanges for their clients.</p>
-        <a href="#how" className="nb-meet-btn mt-8">
-          <span className="nb-meet-play" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
-          </span>
-          See How It Works
-        </a>
-      </div>
-
-      <div className="nb-meet-flow">
-        <div className="nb-meet-step">
-          <div className="nb-meet-circle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#16284a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M7 18a4 4 0 0 1-.8-7.92A5.5 5.5 0 0 1 17 8.5a3.5 3.5 0 0 1 1.5 6.66" />
-              <path d="M12 13v6" />
-              <path d="M9 15.5 12 12.5l3 3" />
-            </svg>
-          </div>
-          <div className="nb-meet-label">Create an Exchange &amp; List the Property</div>
-        </div>
-
-        <div className="nb-meet-arrow" aria-hidden="true">&rarr;</div>
-
-        <div className="nb-meet-step">
-          <div className="nb-meet-circle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#16284a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M9.5 4.5a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0-1.5 4.3A2.5 2.5 0 0 0 7 15.8 2.5 2.5 0 0 0 9.5 19 2 2 0 0 0 12 17V6a2 2 0 0 0-2.5-1.5Z" />
-              <path d="M14.5 4.5a2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1 1.5 4.3A2.5 2.5 0 0 1 17 15.8 2.5 2.5 0 0 1 14.5 19 2 2 0 0 1 12 17" />
-              <path d="M9 9.5h1.5M15 9.5h-1.5M9 13h1.5" />
-            </svg>
-          </div>
-          <div className="nb-meet-label">The Engine Compares Equity &amp; Returns</div>
-        </div>
-
-        <div className="nb-meet-arrow" aria-hidden="true">&rarr;</div>
-
-        <div className="nb-meet-step">
-          <div className="nb-meet-circle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#16284a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="9" cy="8" r="2.6" />
-              <path d="M4 18.5a5 5 0 0 1 10 0" />
-              <circle cx="16.5" cy="9" r="2.2" />
-              <path d="M14.5 13.2a4.4 4.4 0 0 1 5.5 4.3" />
-            </svg>
-          </div>
-          <div className="nb-meet-label">Investors &amp; Agents Connect</div>
-        </div>
-
-        <div className="nb-meet-arrow" aria-hidden="true">&rarr;</div>
-
-        <div className="nb-meet-step">
-          <div className="nb-meet-circle nb-meet-circle-done">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#43a047" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <path d="m8.5 12 2.5 2.5L16 9" />
-            </svg>
-          </div>
-          <div className="nb-meet-label">Move the Exchange Forward</div>
-        </div>
-      </div>
-
+    <div className="text-center max-w-[720px] mx-auto">
+      <h2 className="nb-h2">See It With a Real Example</h2>
+      <p className="nb-lead mt-4">
+        Here is what happens when a single property enters the network.
+      </p>
     </div>
+
+    <div className="nb-ex-grid">
+      <div className="nb-ex-card">
+        <div className="nb-ex-tag">Current Property</div>
+        <div className="nb-ex-place">Salem, Massachusetts</div>
+        <div className="nb-ex-rows">
+          <div className="nb-ex-row"><span>Estimated Value</span><b>$925,000</b></div>
+          <div className="nb-ex-row"><span>Mortgage Balance</span><b>$325,000</b></div>
+          <div className="nb-ex-row"><span>Gross Monthly Rent</span><b>$6,200</b></div>
+        </div>
+      </div>
+
+      <div className="nb-ex-mid" aria-hidden="true">
+        <div className="nb-ex-mid-label">1031ExchangeUp compares it across the network</div>
+        <span style={{ fontSize: 26 }}>&rarr;</span>
+      </div>
+
+      <div className="nb-ex-right">
+        <div className="nb-ex-card hl">
+          <div className="nb-ex-tag">Potential Replacement</div>
+          <div className="nb-ex-place">Beverly, Massachusetts</div>
+          <div className="nb-ex-rows">
+            <div className="nb-ex-row"><span>$1.1M Multifamily</span></div>
+            <div className="nb-ex-row"><span>Potentially stronger income opportunity</span></div>
+            <div className="nb-ex-row"><span>Matches investor criteria</span></div>
+          </div>
+        </div>
+
+        <div className="nb-ex-card hl">
+          <div className="nb-ex-tag">Potential Buyer</div>
+          <div className="nb-ex-place">Investor seeking North Shore multifamily</div>
+          <div className="nb-ex-rows">
+            <div className="nb-ex-row"><span>Budget up to $950K</span></div>
+            <div className="nb-ex-row"><span>Exploring a 1031 exchange</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p className="nb-ex-fine">
+      Illustrative example. Matches shown are possible opportunities only — no investment performance or completed
+      transaction is implied or guaranteed.
+    </p>
   </div>
 </section>
   );
@@ -186,37 +169,37 @@ function Sec_how() {
       <div className="nb-how-card">
         <span className="nb-how-num">1</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
         </div>
-        <h3 className="nb-how-title">Choose Your Workspace</h3>
-        <p className="nb-how-desc">Join as an investor/property owner or as a licensed real estate agent</p>
+        <h3 className="nb-how-title">Add an Opportunity</h3>
+        <p className="nb-how-desc">Enter a property, client need or investment criteria.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">2</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         </div>
-        <h3 className="nb-how-title">Create the Exchange</h3>
-        <p className="nb-how-desc">List the current property and add the financial details that drive its exchange</p>
+        <h3 className="nb-how-title">ExchangeUp Searches</h3>
+        <p className="nb-how-desc">Our matching engine continuously compares relevant opportunities across the network.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">3</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M9.5 11h5M9.5 13.5h5"/><path d="M9 3v2M12 3v2M15 3v2M9 19v2M12 19v2M15 19v2M3 9h2M3 12h2M3 15h2M19 9h2M19 12h2M19 15h2"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
-        <h3 className="nb-how-title">The Engine Runs the Math</h3>
-        <p className="nb-how-desc">It compares purchasing capacity and return on equity across the private property network</p>
+        <h3 className="nb-how-title">Get Matched</h3>
+        <p className="nb-how-desc">Receive alerts when a promising connection appears.</p>
       </div>
 
       <div className="nb-how-card">
         <span className="nb-how-num">4</span>
         <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6"/></svg>
         </div>
-        <h3 className="nb-how-title">Review Matches &amp; Connect</h3>
-        <p className="nb-how-desc">See focused replacement matches and move forward through agent-to-agent contact</p>
+        <h3 className="nb-how-title">Connect</h3>
+        <p className="nb-how-desc">Agents and investors decide whether the opportunity is worth exploring.</p>
       </div>
 
     </div>
@@ -224,6 +207,97 @@ function Sec_how() {
 </section>
   );
 }
+
+function Sec_agents() {
+  return (
+<section id="agents" data-nb className="w-full py-20 sm:py-24" style={{ background: "#eef3fb" }}>
+  <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
+    <div className="nb-ag-grid">
+      <div>
+        <div className="nb-eyebrow">For Agents</div>
+        <h2 className="nb-h2 mt-3">Your Database Could Already Contain Your Next Transaction.</h2>
+        <p className="nb-lead mt-4">
+          Add a client, property or investor criteria to 1031ExchangeUp. Our matching engine continuously looks
+          across the network for relevant opportunities and alerts you when a potential match appears.
+        </p>
+
+        <ul className="nb-ag-list">
+          {[
+            "Unlock opportunities from clients you already know.",
+            "Discover potential buyers and replacement properties.",
+            "Collaborate with investor-friendly agents.",
+            "Keep your existing client relationship.",
+            "Create opportunities between clients already inside your own database or brokerage.",
+            "Spend less time manually searching for the other side of a transaction.",
+          ].map((b) => (
+            <li className="nb-ag-li" key={b}>
+              <span className="nb-ag-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+              </span>
+              {b}
+            </li>
+          ))}
+        </ul>
+
+        <p className="nb-ag-note">
+          1031ExchangeUp does not replace the agent. It makes the agent&rsquo;s network more powerful.
+        </p>
+
+        <a href="/signup" className="nb-sec-cta">Add Your First Opportunity</a>
+      </div>
+
+      <div className="nb-ag-chain" aria-hidden="true">
+        <div className="nb-ag-step first">One Client</div>
+        <div className="nb-flow-arrow">&darr;</div>
+        <div className="nb-ag-step">Seller Opportunity</div>
+        <div className="nb-flow-arrow">&darr;</div>
+        <div className="nb-ag-step">Replacement Property Match</div>
+        <div className="nb-flow-arrow">&darr;</div>
+        <div className="nb-ag-step">Agent Collaboration</div>
+        <div className="nb-flow-arrow">&darr;</div>
+        <div className="nb-ag-step last">Potential Transaction</div>
+      </div>
+    </div>
+  </div>
+</section>
+  );
+}
+
+function Sec_investors() {
+  return (
+<section id="investors" data-nb className="w-full py-20 sm:py-24 bg-white">
+  <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
+    <div className="text-center max-w-[760px] mx-auto">
+      <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
+      <h2 className="nb-h2 mt-3">Know When Your Equity Could Be Working Harder.</h2>
+      <p className="nb-lead mt-4">
+        Add your investment property and investment goals once. 1031ExchangeUp can continue searching for
+        opportunities that better align with what you want next.
+      </p>
+    </div>
+
+    <div className="nb-inv-grid">
+      {[
+        ["Understand Your Equity", "See how efficiently the equity in your current property is performing."],
+        ["Discover Potential Upgrades", "Find opportunities that may better align with your investment criteria."],
+        ["Prepare Before You Sell", "Explore potential replacement properties before entering the 45-day identification window."],
+        ["Stay Connected to Opportunity", "Keep your property and criteria in the network so relevant matches can surface over time."],
+      ].map(([t, d]) => (
+        <div className="nb-inv-card" key={t}>
+          <div className="nb-inv-title">{t}</div>
+          <p className="nb-inv-txt">{d}</p>
+        </div>
+      ))}
+    </div>
+
+    <div className="text-center">
+      <a href="/signup" className="nb-sec-cta">Add My Property</a>
+    </div>
+  </div>
+</section>
+  );
+}
+
 
 function Sec_who() {
   return (
