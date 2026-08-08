@@ -1006,7 +1006,7 @@ function Sec_resources() {
         <div className="nb-res-card nb-res-dark">
           <h3 className="nb-res-title">Become a Founding Member</h3>
           <ul className="nb-res-clist">
-            {['Founding Agents & Investors','First 75 Exchange Properties','6 Months Free','Help Shape the Platform','Be Part of Something Big'].map((t) => (
+            {['Founding Agents & Investors','First 75 Registered Properties','Free to Join — No Card Required','Help Shape the Platform','Be Part of Something Big'].map((t) => (
               <li className="nb-res-cli" key={t}>
                 <span className="nb-res-check">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#5cc15f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
