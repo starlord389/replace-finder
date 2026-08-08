@@ -1050,8 +1050,9 @@ function Sec_faqcta() {
           },
           {
             q: 'How much does it cost?',
-            a: 'Joining the network is free. You only consider a paid plan once you start closing matched exchanges.',
+            a: 'Investors are free — always. Agents monitor their first client or property free, and only move to a paid plan when they want ExchangeUp monitoring additional clients and properties.',
           },
+
           {
             q: 'Do I need a 1031 exchange client right now?',
             a: 'No. Many members add properties and criteria early so relevant opportunities can surface over time.',
