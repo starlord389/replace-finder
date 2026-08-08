@@ -195,18 +195,18 @@ export function Sec_agents() {
     <div className="nb-ag-grid">
       <div>
         <div className="nb-eyebrow">For Agents</div>
-        <h2 className="nb-h2 mt-3">Turn Your Existing Database Into Continuous Deal Flow.</h2>
+        <h2 className="nb-h2 mt-3">Your Database. Constantly Monitored for New Opportunities.</h2>
         <p className="nb-lead mt-4">
-          Add a client, property or criteria once. Exchange IQ monitors the network in the background and alerts you
-          when a relevant opportunity appears — including matches between two of your own clients.
+          Add investor clients and investment properties to ExchangeUp. The system continuously evaluates your database
+          and the broader ExchangeUp network for potential transactions.
         </p>
 
 
         <ul className="nb-ag-list">
           {[
-            "Surface deals inside the database you already have.",
-            "Find potential buyers and replacement properties.",
-            "Collaborate with investor-friendly agents.",
+            "Opportunities between two of your own clients surface as an Internal Opportunity Detected — no need to connect with yourself.",
+            "Opportunities across your brokerage and other participating agents.",
+            "Potential buyers and replacement properties across the network.",
             "Keep your client relationship, always.",
 
           ].map((b) => (
@@ -220,10 +220,10 @@ export function Sec_agents() {
         </ul>
 
         <p className="nb-ag-note">
-          1031ExchangeUp does not replace the agent. It makes the agent&rsquo;s network more powerful.
+          You already built the database. Let ExchangeUp find the opportunities inside it.
         </p>
 
-        <a href="/signup" className="nb-sec-cta">Add Your First Opportunity</a>
+        <a href="/signup" className="nb-sec-cta">Add My First Opportunity</a>
       </div>
 
       <div className="nb-ag-chain" aria-hidden="true">
