@@ -1251,7 +1251,7 @@ export function LandingSections() {
       <Sec_investors />
       <Sec_why />
       <Sec_diff />
-      <Sec_engine />
+      
       <Sec_example />
       <Sec_network />
       <Sec_trust />
