@@ -404,49 +404,6 @@ function NbAudienceCards() {
 }
 
 
-const MONITOR_PANEL_CSS = `
-  [data-nb] .nb-mon { margin-top: 26px; max-width: 480px; border-radius: 16px; background: rgba(255,255,255,.97); border: 1px solid rgba(150,190,225,.45); box-shadow: 0 18px 44px rgba(4,14,30,.38); padding: 16px 18px; }
-  [data-nb] .nb-mon-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  [data-nb] .nb-mon-title { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #16284a; }
-  [data-nb] .nb-mon-status { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 800; letter-spacing: .08em; color: #2f7a33; background: #e3f1e4; border-radius: 999px; padding: 4px 11px; }
-  [data-nb] .nb-mon-dot { width: 7px; height: 7px; border-radius: 999px; background: #43a047; }
-  [data-nb] .nb-mon-grid { margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
-  [data-nb] .nb-mon-cell { border: 1px solid #e8edf3; border-radius: 11px; padding: 9px 11px; background: #fff; }
-  [data-nb] .nb-mon-k { font-size: 9.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: #8794a6; }
-  [data-nb] .nb-mon-v { margin-top: 3px; font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: #16284a; }
-  [data-nb] .nb-mon-v.green { color: #2f7a33; }
-  @media (max-width: 480px) { [data-nb] .nb-mon { padding: 14px; } }
-`;
-
-function NbMonitorPanel() {
-  return (
-    <div className="nb-mon" aria-label="Opportunity monitoring status">
-      <style>{MONITOR_PANEL_CSS}</style>
-      <div className="nb-mon-head">
-        <span className="nb-mon-title">Opportunity Monitoring</span>
-        <span className="nb-mon-status"><span className="nb-mon-dot" aria-hidden="true" />ACTIVE</span>
-      </div>
-      <div className="nb-mon-grid">
-        <div className="nb-mon-cell">
-          <div className="nb-mon-k">Properties Monitored</div>
-          <div className="nb-mon-v">1</div>
-        </div>
-        <div className="nb-mon-cell">
-          <div className="nb-mon-k">Last Network Check</div>
-          <div className="nb-mon-v">Today</div>
-        </div>
-        <div className="nb-mon-cell">
-          <div className="nb-mon-k">New Opportunities</div>
-          <div className="nb-mon-v green">2</div>
-        </div>
-        <div className="nb-mon-cell">
-          <div className="nb-mon-k">Monitoring Criteria</div>
-          <div className="nb-mon-v">Active</div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function NbHero() {
   return (
@@ -465,8 +422,6 @@ function NbHero() {
             <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find My Replacement Property</Link>
             <a href="#steps" className="nb-btn-demo">See How It Works</a>
           </div>
-
-          <NbMonitorPanel />
 
           <div className="nb-badges">
             {BADGES.map((b, i) => (
