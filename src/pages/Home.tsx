@@ -113,7 +113,7 @@ const NB_STYLE = `
   [data-nb] .nb-alert { position: absolute; transform: translate(-50%,-50%); z-index: 4; width: 176px; background: #fff; border: 1px solid rgba(150,190,225,.5); border-left: 3px solid #43a047; border-radius: 12px; padding: 9px 11px; box-shadow: 0 14px 30px rgba(4,14,30,.45); }
   [data-nb] .nb-alert-t { display: flex; align-items: center; gap: 5px; font-size: 8.5px; font-weight: 800; letter-spacing: .08em; color: #2f7d33; text-transform: uppercase; }
   [data-nb] .nb-alert-t i { width: 5px; height: 5px; border-radius: 999px; background: #43a047; display: inline-block; animation: nb-blink 2s ease-in-out infinite; }
-  [data-nb] .nb-alert-b { margin-top: 4px; font-size: 10.5px; font-weight: 600; line-height: 1.35; color: #33405a; }
+  [data-nb] .nb-alert-b { display: block; margin-top: 4px; font-size: 10.5px; font-weight: 600; line-height: 1.35; color: #33405a; }
 
   /* faint perimeter network nodes */
   [data-nb] .nb-ghost { position: absolute; transform: translate(-50%,-50%); z-index: 1; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.35); background-color: #14305a; background-size: cover; background-position: center; opacity: .38; }
