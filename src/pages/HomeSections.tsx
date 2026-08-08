@@ -951,7 +951,7 @@ function Sec_resources() {
           <ul className="nb-res-list">
             <li className="nb-res-li">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="#43a047" strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              <span><strong>1031 Exchange Summit</strong> · August 11, 2026</span>
+              <span><strong>{UPCOMING_EVENT.title}</strong> · {UPCOMING_EVENT.dateLabel}</span>
             </li>
             <li className="nb-res-li">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="12" rx="2" stroke="#43a047" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round"/></svg>
