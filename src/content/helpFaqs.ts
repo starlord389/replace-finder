@@ -56,10 +56,11 @@ export const AGENT_FAQS: FaqCategory[] = [
     ],
   },
   {
-    category: "Billing & Account",
+    category: "Pricing & Account",
     items: [
-      { q: "How is the platform priced?", a: "See the Pricing page for current plans. Active plans during the beta period include unlimited exchanges and matching." },
-      { q: "Can I cancel anytime?", a: "Yes — cancel from Settings → Billing. Your workspace stays read-only for 30 days after cancellation so you can export data." },
+      { q: "How is the platform priced?", a: "It isn't — 1031ExchangeUp is free for everyone. Investors, property owners and agents all get unlimited exchanges, criteria and matching at no cost, with no card required." },
+      { q: "Can I close my account anytime?", a: "Yes — close your account from Settings. Your workspace stays read-only for 30 days afterwards so you can export data." },
+
       { q: "How do I export my data?", a: "Settings → Data Export generates a CSV of your clients, exchanges, and connections. Submit a ticket if you need a custom export format." },
     ],
   },

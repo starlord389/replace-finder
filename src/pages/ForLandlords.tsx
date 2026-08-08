@@ -15,7 +15,7 @@ const HERO = {
   eyebrow: "For landlords",
   headline: "Line up a better-returning building before you ever have to sell.",
   subheadline:
-    "The hard part of a 1031 isn't selling — it's having somewhere worth moving into before the tax clock starts. So we built a private network of agents who do these exchanges for their owner-clients. Your agent enters the building you own now and its numbers, and the network automatically surfaces other owners' buildings that would earn you a better return and that you can afford. No wish-list is required, but optional preferences can refine the search. At the same time, your building is quietly surfaced to owners looking for a better return of their own. Nothing is public — names and addresses stay hidden until both sides choose to connect. Owners pay nothing, so tell us where you are and we'll connect you with a vetted agent, in confidence.",
+    "The hard part of a 1031 isn't selling — it's having somewhere worth moving into before the tax clock starts. So we built a private network of agents who do these exchanges for their owner-clients. Your agent enters the building you own now and its numbers, and the network automatically surfaces other owners' buildings that would earn you a better return and that you can afford. No wish-list is required, but optional preferences can refine the search. At the same time, your building is quietly surfaced to owners looking for a better return of their own. Nothing is public — names and addresses stay hidden until both sides choose to connect. The platform is free for everyone, so tell us where you are and we'll connect you with a vetted agent, in confidence.",
 };
 
 /* Hero match card — a replacement that out-earns the owner's current building. */
@@ -69,9 +69,10 @@ const TRUST_POINTS = [
     body: "The replacement search, the negotiation, the close, and any fee all sit with a licensed agent. That's why we connect you with one instead of trying to act as one ourselves. We're not a brokerage and we don't touch the deal.",
   },
   {
-    title: "Agents pay, owners never do",
-    body: "Agents pay to be in the network. You don't, ever. The introduction costs you nothing and commits you to nothing, so our advice has no angle on you.",
+    title: "Free for everyone",
+    body: "Owners and agents both use 1031ExchangeUp free. The introduction costs you nothing and commits you to nothing, so our advice has no angle on you.",
   },
+
   {
     title: "Free, private, no obligation",
     body: "Your details go to one vetted agent, not a pool of buyers. Nothing is public, nothing is resold, and every next step is your call.",
@@ -108,9 +109,10 @@ const FAQS = [
     a: "That's what the network is built for. Once your agent enters the building you own and its numbers, the system automatically surfaces other owners' buildings that could earn you a better return and that you can afford. No wish-list is required: the return math runs automatically, while optional replacement preferences can refine the results. We can't promise one specific building, but getting real, better-returning options in front of you fast is exactly what this is for, and that's the part where most owners run out of time on their own.",
   },
   {
-    q: "What's the catch? Why is this free for me?",
-    a: "Agents pay to be in the network. Owners never do. We're paid by the agent side, so the introduction costs you nothing and carries no obligation. If your situation isn't a fit, we'll just tell you that straight.",
+    q: "What's the catch? Why is this free?",
+    a: "There's no catch — 1031ExchangeUp is free for everyone, owners and agents alike. The introduction costs you nothing and carries no obligation. If your situation isn't a fit, we'll just tell you that straight.",
   },
+
   {
     q: "Is any of this public?",
     a: "No. Nothing goes on a public site. Your name and your building's address stay hidden, and a match only becomes a conversation when both sides choose to connect. Tenants, competitors, and lenders learn nothing unless and until you decide to take it further.",
@@ -131,7 +133,7 @@ const FAQS = [
 
 const FORM_BENEFITS = [
   "Better-returning buildings, surfaced by the return math",
-  "Free for owners — agents pay, you never do",
+  "Free for everyone — owners and agents alike",
   "Connected by hand to one vetted agent, not a buyer pool",
   "Nothing public — your name and address stay private",
 ] as const;

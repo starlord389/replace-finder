@@ -115,9 +115,11 @@ export default function Terms() {
 
       <h2>8. Fees</h2>
       <p>
-        The Service is currently offered free during early access. We may introduce or change fees after
-        notice. Paid features will be governed by the pricing and additional terms presented at purchase.
+        The Service is offered free of charge to all users — investors, property owners, and agents alike. If we
+        ever introduce fees, we will provide notice first, and any paid features would be governed by the pricing
+        and additional terms presented at that time.
       </p>
+
 
       <h2>9. Third-party services</h2>
       <p>
