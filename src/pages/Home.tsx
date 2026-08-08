@@ -562,13 +562,14 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp — Constant Opportunity Monitoring for Investors & Agents";
+    document.title = "1031ExchangeUp — The 1031 Exchange Process Just Got Easier";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
         "content",
-        "1031ExchangeUp is an intelligent opportunity monitoring system for real estate investors and agents. Add a property and goals once — we continuously monitor the network for relevant investment and 1031 exchange opportunities.",
+        "The 1031 exchange process just got easier. Add your property once and Exchange IQ continuously monitors the network for investors, agents and replacement property opportunities.",
       );
+
 
     }
   }, []);
