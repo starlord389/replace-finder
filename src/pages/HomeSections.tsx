@@ -1155,17 +1155,72 @@ function Sec_faqcta() {
   );
 }
 
+function Sec_network() {
+  return (
+<section id="network" className="w-full px-5 sm:px-8 py-20 sm:py-24" style={{ background: "#16284a" }}>
+  <div className="mx-auto" style={{ maxWidth: 1240 }}>
+    <div className="text-center max-w-[760px] mx-auto">
+      <h2 className="nb-h2" style={{ color: "#fff" }}>The More Connected the Network, the More Opportunities Appear.</h2>
+      <p className="nb-lead mt-4" style={{ color: "#c4d2e6" }}>
+        Every property, investor and set of criteria added to 1031ExchangeUp increases the chance that a
+        meaningful connection surfaces.
+      </p>
+    </div>
+
+    <div className="nb-net-grid">
+      <div className="nb-net-card">More properties means more potential replacement options.</div>
+      <div className="nb-net-card">More investors means more potential buyers.</div>
+      <div className="nb-net-card">More agents means more potential collaboration.</div>
+    </div>
+
+    <p className="nb-net-close">Opportunity grows with the network.</p>
+  </div>
+</section>
+  );
+}
+
+function Sec_trust() {
+  const items: [string, JSX.Element][] = [
+    ["You control what you share.", (<svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.2" /><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9" /></svg>)],
+    ["Sensitive property details stay private until you choose to share them.", (<svg viewBox="0 0 24 24"><path d="M12 3.5 20 7v5.2c0 4.6-3.3 7.4-8 8.8-4.7-1.4-8-4.2-8-8.8V7z" /></svg>)],
+    ["Matches are potential opportunities, not guaranteed transactions.", (<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" /><path d="M12 8v4.5M12 16h.01" /></svg>)],
+    ["1031ExchangeUp does not provide tax, legal or investment advice.", (<svg viewBox="0 0 24 24"><path d="M6 3.5h9l4 4v13H6z" /><path d="M14.5 3.5V8H19" /><path d="M9 13h6M9 16.5h4" /></svg>)],
+  ];
+  return (
+<section id="trust" className="w-full px-5 sm:px-8 py-20 sm:py-24 bg-white">
+  <div className="mx-auto" style={{ maxWidth: 1100 }}>
+    <div className="text-center max-w-[700px] mx-auto">
+      <h2 className="nb-h2">Built on Privacy and Professional Standards</h2>
+    </div>
+    <div className="nb-trust-grid">
+      {items.map(([txt, ico]) => (
+        <div className="nb-trust-card" key={txt}>
+          <span className="nb-trust-ico" aria-hidden="true">{ico}</span>
+          <span>{txt}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+  );
+}
+
 export function LandingSections() {
   return (
     <>
-      <Sec_problem />
-      <Sec_meet />
+      <style>{EXTRA_CSS}</style>
+      <Sec_engine />
+      <Sec_example />
       <Sec_how />
-      <Sec_who />
+      <Sec_agents />
+      <Sec_investors />
       <Sec_why />
+      <Sec_network />
       <Sec_diff />
+      <Sec_trust />
       <Sec_resources />
       <Sec_faqcta />
     </>
   );
 }
+
