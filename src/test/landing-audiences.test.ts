@@ -6,10 +6,10 @@ const homeSource = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8
 const sectionsSource = readFileSync(join(process.cwd(), "src/pages/HomeSections.tsx"), "utf8");
 
 describe("public landing-page audiences", () => {
-  it("leads with an easier 1031 exchange process", () => {
-    expect(homeSource).toContain("The 1031 Exchange Process Just Got Easier.");
-    expect(homeSource).toContain("Exchange IQ continuously monitors the network");
-    expect(homeSource).toContain("Monitor My Property");
+  it("leads with easier 1031 replacement-property discovery", () => {
+    expect(homeSource).toContain("Finding Your 1031 Replacement Property Just Got a Lot Easier.");
+    expect(homeSource).toContain("Register your property. Our data-driven AI continuously monitors investment opportunities");
+    expect(homeSource).toContain("Find My Replacement Property");
     expect(homeSource).toContain("See How It Works");
     expect(homeSource).toContain("Add → Set → Monitor → Alert");
     expect(homeSource).toContain("Add it once. We keep watching.");
