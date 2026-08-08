@@ -406,8 +406,9 @@ function RoeMiniCalc() {
           </p>
 
           <a href={signupHref} className="nb-why-calc" style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14 }}>
-            Register My Property — Free
+            Start Monitoring This Property — Free
           </a>
+
 
           <p className="nb-why-fine">
             Net income is estimated at 60% of gross rent, a common operating-expense assumption. This calculator is for

@@ -515,8 +515,9 @@ export async function persistMatchesAndNotifications(
       return {
         user_id: match.direction === "buyer" ? userId : match.other_agent_id,
         type: "new_match",
-        title: "New Match Found",
-        message: "A new property/exchange match is available for review.",
+        title: "New opportunity detected",
+        message: "Exchange IQ found a new opportunity for one of your monitored properties. Review the fit and the numbers.",
+
         link_to: linkTo,
         metadata: { demo: isDemo, match_id: matchId ?? null },
       };
