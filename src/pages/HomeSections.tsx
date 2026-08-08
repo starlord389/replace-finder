@@ -277,9 +277,10 @@ export function Sec_investors() {
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
       <h2 className="nb-h2 mt-3">Know When Your Equity Could Be Working Harder.</h2>
       <p className="nb-lead mt-4">
-        Add your investment property and investment goals once. 1031ExchangeUp can continue searching for
-        opportunities that better align with what you want next.
+        Register your investment property and what you’d want next — once. From then on, 1031ExchangeUp keeps
+        looking for opportunities that could put that equity to better use.
       </p>
+
     </div>
 
     <div className="nb-inv-grid">
