@@ -320,16 +320,16 @@ function RoeMiniCalc() {
   const numColor = tone === "low" ? "#b8543a" : tone === "mid" ? "#16284a" : "#43a047";
 
   const FIELDS: { id: string; label: string; val: number; set: (n: number) => void }[] = [
-    { id: "cv", label: "Current Property Value", val: value, set: setValue },
-    { id: "ni", label: "Current Net Income", val: income, set: setIncome },
-    { id: "lb", label: "Loan Balance", val: loan, set: setLoan },
+    { id: "cv", label: "Estimated Property Value", val: value, set: setValue },
+    { id: "ni", label: "Annual Net Rental Income", val: income, set: setIncome },
+    { id: "lb", label: "Mortgage Balance", val: loan, set: setLoan },
   ];
 
   return (
     <div className="nb-why-card">
-      <h3 className="nb-why-card-title">Is Your Equity Working Hard Enough?</h3>
+      <h3 className="nb-why-card-title">Return on Equity Calculator</h3>
       <p className="nb-why-card-sub">
-        In about 20 seconds, see whether your equity is pulling its weight — measured against a healthy 8% return.
+        See how efficiently your equity is currently working, measured against an 8% reference return.
       </p>
 
       <div className="nb-why-inputs">
@@ -350,20 +350,27 @@ function RoeMiniCalc() {
         ))}
       </div>
 
-      <button type="button" className="nb-why-calc" onClick={() => setShown(true)}>Calculate My ROE</button>
+      <button type="button" className="nb-why-calc" onClick={() => setShown(true)}>Calculate My Return on Equity</button>
 
       {shown && (
         <div className="nb-why-result">
           <p className="nb-why-result-note">
             {uplift > 0 ? (
-              <>Your equity earns <b style={{ color: numColor }}>{roe.toFixed(1)}%</b> today — below a healthy 8%. That same <b>{usd(equity)}</b> could earn about <b>{usd(potential)}/yr</b>, roughly <b>{usd(uplift)} more</b>, in a stronger property.</>
+              <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>. Compared with an 8% reference return, the same <b>{usd(equity)}</b> of equity would represent about <b>{usd(potential)}/yr</b> — roughly <b>{usd(uplift)}</b> more per year.</>
             ) : (
-              <>Your equity earns <b style={{ color: numColor }}>{roe.toFixed(1)}%</b> — already at or above a healthy 8%. Nicely done.</>
+              <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the 8% reference return used here.</>
             )}
           </p>
-          <p className="nb-why-fine">Estimate only — not tax or investment advice.</p>
+          <p className="nb-why-fine">
+            This calculator is for educational purposes only and does not constitute financial, tax or investment advice.
+            Results are estimates and do not predict or guarantee any outcome.
+          </p>
         </div>
       )}
+    </div>
+  );
+}
+
     </div>
   );
 }
