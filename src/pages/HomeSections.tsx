@@ -366,20 +366,26 @@ function RoeMiniCalc() {
             </div>
           </div>
 
+          <p className="nb-why-result-note" style={{ fontWeight: 800, color: "#16284a" }}>
+            Is your equity working as hard as it could?
+          </p>
+
           <p className="nb-why-result-note">
             {uplift > 0 ? (
               <>Based on an estimated <b>{usd(income)}/yr</b> of net income, the same <b>{usd(equity)}</b> of equity
-              could represent roughly <b>{usd(uplift)}</b> more per year at the reference return. Register your property
-              and Exchange IQ will keep watching the network for opportunities that could put that equity to better use.</>
+              could represent roughly <b>{usd(uplift)}</b> more per year at the reference return. ExchangeUp can
+              continuously monitor for investment opportunities that may better align with your goals.</>
             ) : (
               <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the
-              8% reference return used here. Register it anyway — we'll only reach out if something genuinely better shows up.</>
+              8% reference return used here. ExchangeUp can keep monitoring anyway — we only reach out if something
+              genuinely better appears.</>
             )}
           </p>
 
           <a href={signupHref} className="nb-why-calc" style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14 }}>
-            Start Monitoring This Property — Free
+            Monitor My Opportunities
           </a>
+
 
 
           <p className="nb-why-fine">
