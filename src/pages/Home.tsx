@@ -143,19 +143,14 @@ const NB_STYLE = `
   [data-nb] .nb-hero-link:hover { color: #fff; border-color: rgba(255,255,255,.65); }
 
   /* ===== four-step monitoring strip ===== */
-  [data-nb] .nb-steps { background: #f7f9fc; border-bottom: 1px solid #e8edf3; padding: 40px 20px 44px; }
-  [data-nb] .nb-steps-inner { margin: 0 auto; max-width: 1240px; }
-  [data-nb] .nb-steps-kicker { text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #43a047; margin: 0 0 22px; }
-  [data-nb] .nb-steps-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; align-items: stretch; }
-  [data-nb] .nb-step { position: relative; background: #fff; border: 1px solid #e8edf3; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 12px rgba(14,42,77,.06); text-align: left; }
-  [data-nb] .nb-step-n { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: #9fb0c8; }
-  [data-nb] .nb-step-ico { width: 40px; height: 40px; border-radius: 11px; background: #eef6ef; display: flex; align-items: center; justify-content: center; margin: 10px 0 12px; }
-  [data-nb] .nb-step-ico svg { width: 20px; height: 20px; stroke: #43a047; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  [data-nb] .nb-step-t { font-size: 15.5px; font-weight: 800; color: #16284a; letter-spacing: -.01em; line-height: 1.25; }
-  [data-nb] .nb-step-d { margin-top: 6px; font-size: 13.5px; line-height: 1.45; color: #56657a; }
-  [data-nb] .nb-steps-tag { margin: 22px auto 0; text-align: center; font-size: 15px; font-weight: 800; color: #16284a; letter-spacing: -.01em; }
-  @media (max-width: 900px) { [data-nb] .nb-steps-row { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-  @media (max-width: 480px) { [data-nb] .nb-steps-row { grid-template-columns: 1fr; gap: 10px; } [data-nb] .nb-step { padding: 16px 16px; } }
+  /* ===== how it works diagram (section 2) ===== */
+  [data-nb] .nb-diagram { background: #0b1f3d; padding: 56px 20px 64px; text-align: center; }
+  [data-nb] .nb-diagram-inner { margin: 0 auto; max-width: 1080px; }
+  [data-nb] .nb-diagram-eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #43a047; }
+  [data-nb] .nb-diagram-h2 { margin: 10px auto 0; font-size: clamp(26px, 2.8vw, 36px); font-weight: 800; color: #fff; line-height: 1.15; max-width: 680px; }
+  [data-nb] .nb-diagram-lead { margin: 12px auto 0; font-size: 16.5px; line-height: 1.6; color: rgba(255,255,255,.75); max-width: 620px; }
+  [data-nb] .nb-diagram-img { margin: 34px auto 0; display: block; width: 100%; max-width: 1040px; border-radius: 16px; box-shadow: 0 24px 70px rgba(0,0,0,.35); }
+  @media (max-width: 640px) { [data-nb] .nb-diagram { padding: 40px 16px 48px; } [data-nb] .nb-diagram-img { border-radius: 12px; } }
 `;
 
 
