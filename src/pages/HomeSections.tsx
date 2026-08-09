@@ -1147,7 +1147,7 @@ function Sec_faqcta() {
     <div className="nb-fct-footer-inner">
       <div className="nb-fct-fgrid">
         <div>
-          <div className="nb-fct-flogo">1031Exchange<b>UP</b></div>
+          <div className="nb-fct-flogo">1031Exchange<b>UP</b><sup>™</sup></div>
           <p className="nb-fct-ftag">Private 1031 exchange matching for investors/property owners and their agents.</p>
         </div>
 
