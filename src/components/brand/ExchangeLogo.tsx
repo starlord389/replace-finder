@@ -99,6 +99,7 @@ export function ExchangeLogoLockup({
       <span>1031Exchange</span>
       <span className="text-[#43a047]">UP</span>
       <LogoArrow />
+      <sup className="ml-0.5 text-[0.45em] font-normal opacity-80">™</sup>
       {suffix ? <span className={suffixClassName}>{suffix}</span> : null}
     </span>
   );
