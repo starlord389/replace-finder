@@ -317,6 +317,7 @@ function NbAudienceCards() {
           return (
             <button
               key={c.tag}
+              id={c.key === "agent" ? "agents" : "investors"}
               type="button"
               className={`nb-aud-card ${isOpen ? "is-open" : ""}`}
               onClick={() => toggle(c.key)}
