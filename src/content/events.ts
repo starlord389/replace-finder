@@ -19,12 +19,12 @@ export interface ExchangeEvent {
 
 export const UPCOMING_EVENT: ExchangeEvent = {
   slug: "1031-exchange-summit",
-  title: "1031 Exchange Summit",
+  title: "1031 Exchange Up Monthly Series",
   dateLabel: "August 11, 2026",
   timeLabel: "12:00 PM ET",
   platform: "Zoom",
   description:
-    "1031 Exchange Summit powered by 1031 Exchange Up and our partnered vendors. Tax-saving strategies, DSTs, bonus depreciation, and how to use 1031ExchangeUp™ to uncover more deal flow.",
+    "1031 Exchange Up Monthly Series powered by 1031 Exchange Up and our partnered vendors. Tax-saving strategies, DSTs, bonus depreciation, and how to use 1031ExchangeUp™ to uncover more deal flow.",
 };
 
 /** "August 11, 2026 · 12:00 PM ET · Zoom" */
