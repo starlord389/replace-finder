@@ -481,7 +481,7 @@ function NbHero() {
       <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
         <div>
           <h1 className="nb-hero-h1 max-w-[620px]">
-            Finding Your 1031 Replacement Property Just Got a Lot Easier.
+            Finding Your 1031 Replacement Property Just Got A Lot Easier.
           </h1>
           <p className="nb-hero-sub mt-5 max-w-[540px]">
             Register your property. Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.
@@ -583,7 +583,7 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp — Finding Your 1031 Replacement Property Just Got a Lot Easier";
+    document.title = "1031ExchangeUp — Finding Your 1031 Replacement Property Just Got A Lot Easier";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
