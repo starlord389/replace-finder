@@ -322,9 +322,8 @@ export default function Home() {
       <NbNav />
       <NbHero />
       <NbMonitorSteps />
-      
-      <Sec_investors />
       <AgentNetworkSection />
+      <LandingSections />
       <LandingSections />
 
     </div>
