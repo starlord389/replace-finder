@@ -71,8 +71,8 @@ export function HowItWorksFlow() {
   const steps = [
     {
       num: "1",
-      title: "Register",
-      desc: "Share your property or client criteria once.",
+      title: "Add",
+      desc: "Your property, client, and investment criteria.",
       icon: Building2,
     },
     {
@@ -181,7 +181,7 @@ export function Sec_investors() {
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
       <h2 className="nb-h2 mt-3">Your 1031 Exchange, Made Easier.</h2>
       <p className="nb-lead mt-4">
-        ExchangeUp™ keeps watching for opportunities that may better align
+        Add your investment property and goals once. ExchangeUp™ keeps watching for opportunities that may better align
         with your equity position - so the exchange is simple when the timing is right.
       </p>
 
@@ -192,6 +192,7 @@ export function Sec_investors() {
 
     <div className="nb-inv-grid">
       {[
+        ["Add Your Property", "A few details about what you own - that’s the whole setup."],
         ["Understand Your Position", "See how efficiently the equity in your current property is performing."],
         ["Set What You’re Looking For", "Tell us what a smarter position looks like, and change it any time."],
         ["Activate Monitoring", "We keep watching and alert you when something relevant appears."],
