@@ -95,7 +95,6 @@ export function HowItWorksFlow() {
             <div className="nb-how-step-icon">
               <s.icon size={32} strokeWidth={1.5} />
             </div>
-            <span className="nb-how-step-num">{s.num}</span>
           </div>
           <div className="nb-how-step-body">
             <h3 className="nb-how-step-title">{s.title}</h3>
