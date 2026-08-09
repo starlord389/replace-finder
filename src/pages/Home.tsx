@@ -192,7 +192,7 @@ function NbNav() {
     <nav className="nb-nav">
       <div className="nb-nav-inner">
         <Link to={ROUTES.home} className="nb-logo" aria-label="1031ExchangeUP home">
-          <span className="nb-logo-num">1031</span><span className="nb-logo-word">Exchange</span><span className="nb-logo-up">UP</span><LogoArrow />
+          <span className="nb-logo-num">1031</span><span className="nb-logo-word">Exchange</span><span className="nb-logo-up">UP</span><LogoArrow /><sup className="nb-logo-tm">™</sup>
         </Link>
         <div className="nb-nav-links">
           {NAV_LINKS.map((l) => (
