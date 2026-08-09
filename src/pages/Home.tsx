@@ -485,6 +485,6 @@ function NbWhyNow() {
 }
 
 
-export { NB_STYLE, SkyBackdrop, HeroNetwork };
+export { NB_STYLE, SkyBackdrop };
 
 
