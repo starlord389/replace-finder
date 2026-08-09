@@ -1274,7 +1274,6 @@ export function LandingSections() {
   return (
     <>
       <style>{EXTRA_CSS}</style>
-      <Sec_how />
       <Sec_agents />
       <Sec_investors />
       <Sec_why />
