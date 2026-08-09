@@ -392,7 +392,8 @@ export default function Home() {
       <NbHero />
       <NbMonitorSteps />
       <NbWhyNow />
-      <NbAudienceCards />
+      <Sec_investors />
+      <Sec_agents />
 
       <NbLogoMarquee />
       <LandingSections />
