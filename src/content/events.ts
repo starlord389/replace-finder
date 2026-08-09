@@ -24,7 +24,7 @@ export const UPCOMING_EVENT: ExchangeEvent = {
   timeLabel: "12:00 PM ET",
   platform: "Zoom",
   description:
-    "1031 Exchange Up Monthly Series powered by 1031 Exchange Up and our partnered vendors. Tax-saving strategies, DSTs, bonus depreciation, and how to use 1031ExchangeUp™ to uncover more deal flow.",
+    "Tax-saving strategies, DSTs, bonus depreciation, and how to use 1031ExchangeUp™ to uncover more deal flow.",
 };
 
 /** "August 11, 2026 · 12:00 PM ET · Zoom" */
