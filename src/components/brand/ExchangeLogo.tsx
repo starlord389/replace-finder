@@ -20,7 +20,7 @@ function LogoArrow({ className }: { className?: string }) {
     <span aria-hidden="true" className={cn("ml-[2px] inline-block h-[0.82em] w-[0.82em] -translate-y-[0.06em]", className)}>
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-full w-full">
         <polyline points="3,17 9.5,11 13.5,14 21,5.5" stroke="#43a047" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <polygon points="21,5.5 14.6,5.7 21,12.1" fill="#43a047" />
+        <polygon points="21,5.5 14,2 14,9" fill="#43a047" />
       </svg>
     </span>
   );
