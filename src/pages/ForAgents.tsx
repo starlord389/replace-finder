@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
-import { NB_STYLE, SkyBackdrop, HeroNetwork } from "@/pages/Home";
+import { NB_STYLE, SkyBackdrop } from "@/pages/Home";
 import { EXTRA_CSS, SECTIONS_CSS, Sec_agents, Sec_how, Sec_network, Sec_trust } from "./HomeSections";
 
 export default function ForAgents() {
