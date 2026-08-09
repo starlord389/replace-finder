@@ -25,13 +25,17 @@ const AGENT_CSS = `
 [data-nb] .agn-h2 { font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; color: #16284a; margin: 0; }
 [data-nb] .agn-sub { margin: 16px 0 0; font-size: 17px; line-height: 1.65; color: #56657a; max-width: 720px; }
 
-[data-nb] .agn-prob { margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 20px; }
-@media (max-width: 900px) { [data-nb] .agn-prob { grid-template-columns: 1fr; } }
-[data-nb] .agn-card { border: 1px solid #e8edf3; border-radius: 16px; background: #fbfcfe; padding: 26px; }
-[data-nb] .agn-card-ico { width: 46px; height: 46px; border-radius: 12px; background: #fff; border: 1px solid #e8edf3; display: flex; align-items: center; justify-content: center; color: #16284a; margin-bottom: 16px; }
-[data-nb] .agn-card-ico svg { width: 22px; height: 22px; }
-[data-nb] .agn-card-t { font-size: 17.5px; font-weight: 800; letter-spacing: -.01em; color: #16284a; margin: 0 0 8px; }
-[data-nb] .agn-card-p { font-size: 15px; line-height: 1.6; color: #56657a; margin: 0; }
+[data-nb] .agn-prob { margin-top: 48px; display: flex; flex-direction: column; gap: 12px; }
+[data-nb] .agn-accordion { border: 1px solid #e8edf3; border-radius: 16px; background: #fbfcfe; overflow: hidden; }
+[data-nb] .agn-accordion-btn { width: 100%; display: flex; align-items: center; gap: 14px; padding: 20px 24px; text-align: left; background: none; border: none; cursor: pointer; }
+[data-nb] .agn-accordion-btn:hover { background: #f5f8fc; }
+[data-nb] .agn-accordion-ico { flex: none; width: 42px; height: 42px; border-radius: 11px; background: #fff; border: 1px solid #e8edf3; display: flex; align-items: center; justify-content: center; color: #16284a; }
+[data-nb] .agn-accordion-ico svg { width: 20px; height: 20px; }
+[data-nb] .agn-accordion-t { flex: 1; font-size: 17.5px; font-weight: 800; letter-spacing: -.01em; color: #16284a; }
+[data-nb] .agn-accordion-chev { flex: none; color: #56657a; transition: transform .2s ease; }
+[data-nb] .agn-accordion-chev.open { transform: rotate(180deg); }
+[data-nb] .agn-accordion-body { padding: 0 24px 22px 80px; font-size: 15px; line-height: 1.6; color: #56657a; }
+@media (max-width: 600px) { [data-nb] .agn-accordion-body { padding: 0 20px 20px 24px; } }
 
 [data-nb] .agn-turn { margin-top: 72px; border-top: 1px solid #eaeff6; padding-top: 56px; }
 [data-nb] .agn-h3 { font-size: clamp(24px, 2.6vw, 32px); font-weight: 800; letter-spacing: -.02em; color: #16284a; margin: 0; }
