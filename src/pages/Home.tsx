@@ -511,8 +511,8 @@ function NbMonitorSteps() {
         </svg>
 
         <div className="nb-net-legend">
-          <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Investors list properties</span>
-          <span><i className="nb-net-dot" style={{ background: "#ffffff" }} /> Opportunities to exchange up flow back</span>
+          <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Opportunities feed into the network</span>
+          <span><i className="nb-net-dot" style={{ background: "#ffffff" }} /> Exchange-up matches flow back</span>
         </div>
       </div>
     </section>
