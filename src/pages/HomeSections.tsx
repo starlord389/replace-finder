@@ -514,35 +514,7 @@ function Sec_resources() {
     <div className="px-5 sm:px-8 py-20 sm:py-24">
       <SummitEventCard />
       <div className="nb-res-grid">
-        {/* (1) Educational Resources */}
-        <div className="nb-res-card">
-          <h3 className="nb-res-title">Educational Resources</h3>
-          <ul className="nb-res-list">
-            <li className="nb-res-li">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="#43a047" strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              <span><strong>{UPCOMING_EVENT.title}</strong> · {UPCOMING_EVENT.dateLabel}</span>
-            </li>
-            <li className="nb-res-li">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="12" rx="2" stroke="#43a047" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              <span>Webinars &amp; Workshops</span>
-            </li>
-            <li className="nb-res-li">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 3h10l4 4v14H5z" stroke="#43a047" strokeWidth="1.8" strokeLinejoin="round"/><path d="M14 3v4h4M8 12h7M8 16h7" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              <span>Articles &amp; Guides</span>
-            </li>
-            <li className="nb-res-li">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#43a047" strokeWidth="1.8"/><path d="M10 9l5 3-5 3z" fill="#43a047"/></svg>
-              <span>Videos &amp; Tutorials</span>
-            </li>
-            <li className="nb-res-li">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 18l5-5 4 3 6-7" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M15 9h4v4" stroke="#43a047" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span>Tax Strategies &amp; Insights</span>
-            </li>
-          </ul>
-          <a href="/signup" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>View All Resources →</a>
-        </div>
-
-        {/* (2) Learn From Trusted Experts */}
+        {/* (1) Learn From Trusted Experts */}
         <div className="nb-res-card">
           <h3 className="nb-res-title">Learn From Trusted Experts</h3>
           <div className="nb-res-experts">
@@ -573,7 +545,7 @@ function Sec_resources() {
           <a href="/signup" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>Meet All Our Experts →</a>
         </div>
 
-        {/* (3) Pricing */}
+        {/* (2) Pricing */}
         <div className="nb-res-card nb-res-dark">
           <h3 className="nb-res-title">Free for Agents & Investors</h3>
           <ul className="nb-res-clist">
