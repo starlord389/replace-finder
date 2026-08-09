@@ -292,6 +292,23 @@ function NbAudienceCards() {
   const [open, setOpen] = useState<"agent" | "investor" | null>(null);
   const toggle = (key: "agent" | "investor") => setOpen((prev) => (prev === key ? null : key));
 
+  useEffect(() => {
+    const applyHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash === "agents" || hash === "investors") {
+        const key = hash === "agents" ? "agent" : "investor";
+        setOpen(key);
+        // give the dropdown a moment to render, then scroll the audience card into view
+        setTimeout(() => {
+          document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 50);
+      }
+    };
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, []);
+
   return (
     <section className="nb-aud" aria-label="Choose your path">
       <div className="nb-aud-grid nb-aud-grid-2">
