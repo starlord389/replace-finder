@@ -18,7 +18,7 @@ export const EXTRA_CSS = `
 [data-nb] .nb-flow-box{width:100%;max-width:560px;text-align:center;border-radius:14px;border:1px solid #e8edf3;background:#fff;box-shadow:0 2px 12px rgba(14,42,77,.06);padding:18px 22px;font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#16284a}
 [data-nb] .nb-flow-box.engine{background:#16284a;border-color:#16284a;color:#fff}
 [data-nb] .nb-flow-box.engine span{color:#5cc15f}
-[data-nb] .nb-flow-arrow{color:#9fb0c8;font-size:22px;line-height:1}
+
 [data-nb] .nb-flow-out{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;width:100%;max-width:900px}
 @media (max-width:760px){[data-nb] .nb-flow-out{grid-template-columns:repeat(2,minmax(0,1fr))}}
 [data-nb] .nb-flow-out div{border-radius:12px;border:1px solid #dbeadd;background:#f3faf3;padding:16px 14px;text-align:center;font-size:13.5px;font-weight:700;color:#16284a;line-height:1.4}
