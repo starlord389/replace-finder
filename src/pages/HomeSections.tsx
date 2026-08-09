@@ -70,19 +70,16 @@ export const EXTRA_CSS = `
 export function HowItWorksFlow() {
   const steps = [
     {
-      num: "1",
       title: "Add",
       desc: "Your property, client, and investment criteria.",
       icon: Building2,
     },
     {
-      num: "2",
       title: "Monitor",
       desc: <>Our <span style={{ color: "#43a047" }}>Exchange IQ™</span> keeps watching the network as it grows.</>,
       icon: Activity,
     },
     {
-      num: "3",
       title: "Alert",
       desc: "You are notified when a relevant opportunity appears.",
       icon: Bell,
@@ -98,7 +95,6 @@ export function HowItWorksFlow() {
             <div className="nb-how-step-icon">
               <s.icon size={32} strokeWidth={1.5} />
             </div>
-            <span className="nb-how-step-num">{s.num}</span>
           </div>
           <div className="nb-how-step-body">
             <h3 className="nb-how-step-title">{s.title}</h3>
