@@ -29,7 +29,7 @@ export default function ForInvestors() {
             Your Investment. Constantly Monitored for What’s Next.
           </h1>
           <p className="nb-hero-sub mx-auto mt-5 max-w-[540px]">
-            Add your investment property and goals once. ExchangeUp™ continuously monitors for opportunities that may better align with your equity position and investment strategy.
+            Add investment property criteria. ExchangeUp™ continuously monitors for opportunities that may better align with your equity position and investment strategy.
           </p>
 
           <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>
