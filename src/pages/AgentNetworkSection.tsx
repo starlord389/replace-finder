@@ -123,12 +123,7 @@ export default function AgentNetworkSection() {
         <div className="agn-inner">
           <div className="agn-head">
             <p className="agn-eyebrow">For Real Estate Agents</p>
-            <h2 className="agn-h2">Unlock More Deal Flow.</h2>
-            <p className="agn-sub">
-              ExchangeUp™ turns your existing relationships into an opportunity network. Add your
-              clients and properties, and let the platform notify you of potential opportunities
-              across the network.
-            </p>
+            <h2 className="agn-h2">Problems 1031ExchangeUp™ Solves for Agents</h2>
           </div>
 
           <ProblemAccordion />
