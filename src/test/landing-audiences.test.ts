@@ -7,8 +7,8 @@ const sectionsSource = readFileSync(join(process.cwd(), "src/pages/HomeSections.
 
 describe("public landing-page audiences", () => {
   it("leads with easier 1031 replacement-property discovery", () => {
-    expect(homeSource).toContain("Finding Your 1031 Replacement Property Just Got A LOT Easier.");
-    expect(homeSource).toContain("Register your property. Our data-driven AI continuously monitors investment opportunities");
+    expect(homeSource).toContain("The biggest obstacle to a 1031 Exchange is finding what comes next.");
+    expect(homeSource).toContain("1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.");
     expect(homeSource).toContain("Find My Replacement Property");
     expect(homeSource).toContain("Every property added makes the network smarter.");
     expect(homeSource).toContain("I Own Investment Property");
