@@ -135,59 +135,67 @@ function Sec_example() {
 }
 
 export function Sec_how() {
+  const steps = [
+    {
+      num: "1",
+      title: "Add",
+      desc: "Your property, client, or investment criteria — a few minutes, free.",
+      icon: Building2,
+    },
+    {
+      num: "2",
+      title: "Set",
+      desc: "Your goals — what a smarter position looks like for you.",
+      icon: SlidersHorizontal,
+    },
+    {
+      num: "3",
+      title: "Monitor",
+      desc: "Exchange IQ™ keeps watching the network as it grows.",
+      icon: Activity,
+    },
+    {
+      num: "4",
+      title: "Alert",
+      desc: "You or your agent are notified when a relevant opportunity appears.",
+      icon: Bell,
+    },
+  ];
+
   return (
-<section id="how" data-nb className="bg-white">
-  <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
-    <h2 className="nb-h2 text-center">Add → Set → Monitor → Alert</h2>
-    <p className="nb-lead text-center mt-4 max-w-[720px] mx-auto">
-      You don’t need to be planning an exchange today. Put your property on our radar and we’ll tell you when
-      something better shows up.
-    </p>
+    <section id="how" data-nb className="bg-white">
+      <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
+        <h2 className="nb-h2 text-center">Add → Set → Monitor → Alert</h2>
+        <p className="nb-lead text-center mt-4 max-w-[720px] mx-auto">
+          You don’t need to be planning an exchange today. Put your property on our radar and we’ll tell you when
+          something better shows up.
+        </p>
 
-    <div className="nb-how-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7">
-
-      <div className="nb-how-card">
-        <span className="nb-how-num">1</span>
-        <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <div className="nb-how-flow">
+          {steps.map((s, i) => (
+            <div className="nb-how-step" key={s.title}>
+              <div className="nb-how-step-top">
+                <span className="nb-how-step-num">{s.num}</span>
+                <div className="nb-how-step-icon">
+                  <s.icon size={28} strokeWidth={1.6} />
+                </div>
+                {i < steps.length - 1 && (
+                  <div className="nb-how-step-line" aria-hidden="true">
+                    <div className="nb-how-step-line-track" />
+                    <div className="nb-how-step-line-arrow" />
+                  </div>
+                )}
+              </div>
+              <h3 className="nb-how-step-title">{s.title}</h3>
+              <p className="nb-how-step-desc">{s.desc}</p>
+            </div>
+          ))}
         </div>
-        <h3 className="nb-how-title">Add</h3>
-        <p className="nb-how-desc">Your property, your client, or your investment criteria. A few minutes, free.</p>
       </div>
-
-      <div className="nb-how-card">
-        <span className="nb-how-num">2</span>
-        <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/></svg>
-        </div>
-        <h3 className="nb-how-title">Set</h3>
-        <p className="nb-how-desc">Your investment goals — what a smarter position would look like for you.</p>
-      </div>
-
-      <div className="nb-how-card">
-        <span className="nb-how-num">3</span>
-        <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
-        </div>
-        <h3 className="nb-how-title">Monitor</h3>
-        <p className="nb-how-desc">ExchangeUp™ keeps watching — continuously evaluating the network as it changes.</p>
-      </div>
-
-      <div className="nb-how-card">
-        <span className="nb-how-num">4</span>
-        <div className="nb-how-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        </div>
-        <h3 className="nb-how-title">Alert</h3>
-        <p className="nb-how-desc">You or your agent are alerted when a relevant opportunity appears. A 1031 exchange can move the equity tax-deferred if you choose to act.</p>
-      </div>
-
-
-    </div>
-  </div>
-</section>
+    </section>
   );
 }
+
 
 export function Sec_agents() {
   return (
