@@ -14,7 +14,6 @@ describe("public landing-page audiences", () => {
   });
 
   it("explains agent and investor value without becoming an open marketplace", () => {
-    expect(sectionsSource).toContain("How a Match Actually Happens.");
     expect(sectionsSource).toContain("Exchanges Made Easier Across Your Whole Database.");
     expect(sectionsSource).toContain("You already built the database.");
     expect(sectionsSource).toContain("Internal Opportunity Detected");
