@@ -1192,7 +1192,7 @@ function Sec_faqcta() {
     </div>
 
     <div className="nb-fct-fbottom">
-      <span className="nb-fct-copy">© 2025 1031ExchangeUp. All rights reserved.</span>
+      <span className="nb-fct-copy">© 2025 1031ExchangeUp™. All rights reserved.</span>
     </div>
   </footer>
 </section>
