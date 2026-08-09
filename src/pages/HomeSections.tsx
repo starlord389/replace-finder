@@ -58,11 +58,6 @@ export const EXTRA_CSS = `
 [data-nb] .nb-net-card{border-radius:16px;padding:24px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);font-size:15.5px;line-height:1.55;color:#eaf1fb}
 [data-nb] .nb-net-close{margin-top:34px;text-align:center;font-size:18px;font-weight:700;color:#5cc15f}
 
-[data-nb] .nb-trust-grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:38px}
-@media (min-width:900px){[data-nb] .nb-trust-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-[data-nb] .nb-trust-card{display:flex;gap:14px;align-items:flex-start;border-radius:14px;border:1px solid #e8edf3;background:#fff;padding:22px;box-shadow:0 2px 12px rgba(14,42,77,.06);font-size:15.5px;line-height:1.55;color:#56657a}
-[data-nb] .nb-trust-ico{flex:none;width:38px;height:38px;border-radius:11px;background:#eef6ef;display:flex;align-items:center;justify-content:center}
-[data-nb] .nb-trust-ico svg{width:19px;height:19px;stroke:#43a047;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
 
 [data-nb] .nb-sec-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:50px;padding:0 26px;margin-top:30px;border-radius:10px;background:#43a047;color:#fff;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 8px 20px rgba(67,160,71,.28)}
 `;
@@ -781,31 +776,6 @@ function Sec_faqcta() {
 }
 
 
-export function Sec_trust() {
-  const items: [string, JSX.Element][] = [
-    ["You control what you share.", (<svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.2" /><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9" /></svg>)],
-    ["Sensitive property details stay private until you choose to share them.", (<svg viewBox="0 0 24 24"><path d="M12 3.5 20 7v5.2c0 4.6-3.3 7.4-8 8.8-4.7-1.4-8-4.2-8-8.8V7z" /></svg>)],
-    ["Matches are potential opportunities, not guaranteed transactions.", (<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" /><path d="M12 8v4.5M12 16h.01" /></svg>)],
-    ["1031ExchangeUp™ does not provide tax, legal or investment advice.", (<svg viewBox="0 0 24 24"><path d="M6 3.5h9l4 4v13H6z" /><path d="M14.5 3.5V8H19" /><path d="M9 13h6M9 16.5h4" /></svg>)],
-  ];
-  return (
-<section id="trust" className="w-full px-5 sm:px-8 py-20 sm:py-24 bg-white">
-  <div className="mx-auto" style={{ maxWidth: 1100 }}>
-    <div className="text-center max-w-[700px] mx-auto">
-      <h2 className="nb-h2">Built on Professional, Industry Standards</h2>
-    </div>
-    <div className="nb-trust-grid">
-      {items.map(([txt, ico]) => (
-        <div className="nb-trust-card" key={txt}>
-          <span className="nb-trust-ico" aria-hidden="true">{ico}</span>
-          <span>{txt}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-</section>
-  );
-}
 
 export function LandingSections() {
   return (
