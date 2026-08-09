@@ -186,10 +186,16 @@ export function HowItWorksFlow() {
   );
 }
 
-export function Sec_how() {
+export function Sec_how({ showTitle = true }: { showTitle?: boolean }) {
   return (
     <section id="how" data-nb className="bg-white">
       <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
+        {showTitle && (
+          <div className="max-w-[760px] mb-12 sm:mb-16">
+            <p className="nb-eyebrow">How It Works</p>
+            <h2 className="nb-h2 mt-3">A simple process designed to find your next property.</h2>
+          </div>
+        )}
         <HowItWorksFlow />
       </div>
     </section>
