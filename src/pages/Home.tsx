@@ -22,6 +22,8 @@ const NB_STYLE = `
   [data-nb] .nb-hero { position: relative; overflow: hidden; background: #0b1f3d; }
   [data-nb] .nb-hero-inner { position: relative; z-index: 10; }
   [data-nb] .nb-hero-h1 { font-size: clamp(30px, 3.4vw, 46px); font-weight: 800; line-height: 1.1; color: #fff; }
+  [data-nb] .nb-slash { position: relative; display: inline-block; white-space: nowrap; }
+  [data-nb] .nb-slash::after { content: "//////"; position: absolute; left: 0; bottom: -0.1em; width: 100%; font-size: 0.72em; letter-spacing: -0.14em; color: #43a047; font-weight: 700; overflow: hidden; white-space: nowrap; pointer-events: none; }
   [data-nb] .nb-hero-sub { font-size: 17px; line-height: 1.6; color: rgba(255,255,255,.82); }
 
   /* ===== top nav + logo ===== */
@@ -231,7 +233,7 @@ function NbHero() {
       <SkyBackdrop />
       <div className="nb-hero-inner mx-auto max-w-[1240px] px-5 py-16 text-center sm:px-8 lg:py-24">
         <h1 className="nb-hero-h1 mx-auto max-w-[620px]">
-          Finding Your 1031 Replacement Property Just Got A LOT Easier.
+          Finding Your 1031 Replacement Property Just Got <span className="nb-slash">A LOT</span> Easier.
         </h1>
         <p className="nb-hero-sub mx-auto mt-5 max-w-[540px]">
           Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into, so the exchange is simple when the timing is right.
