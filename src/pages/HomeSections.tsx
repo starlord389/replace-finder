@@ -190,19 +190,6 @@ export function Sec_investors() {
 
     </div>
 
-    <div className="nb-inv-grid">
-      {[
-        ["Add Your Property", "A few details about what you own - that’s the whole setup."],
-        ["Understand Your Position", "See how efficiently the equity in your current property is performing."],
-        ["Set What You’re Looking For", "Tell us what a smarter position looks like, and change it any time."],
-        ["Activate Monitoring", "We keep watching and alert you when something relevant appears."],
-      ].map(([t, d]) => (
-        <div className="nb-inv-card" key={t}>
-          <div className="nb-inv-title">{t}</div>
-          <p className="nb-inv-txt">{d}</p>
-        </div>
-      ))}
-    </div>
 
     <div className="text-center">
       <a href="/signup" className="nb-sec-cta">Monitor My Property</a>
