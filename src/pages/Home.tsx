@@ -383,7 +383,7 @@ function NbMonitorSteps() {
           className="nb-net"
           viewBox="0 0 900 620"
           role="img"
-          aria-label="Investors A through F each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
+          aria-label="Real estate agents and property owners each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
         >
           <defs>
             <marker id="nbArrowIn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
