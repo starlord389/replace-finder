@@ -796,7 +796,7 @@ export function Sec_trust() {
 <section id="trust" className="w-full px-5 sm:px-8 py-20 sm:py-24 bg-white">
   <div className="mx-auto" style={{ maxWidth: 1100 }}>
     <div className="text-center max-w-[700px] mx-auto">
-      <h2 className="nb-h2">Built on Privacy and Professional Standards</h2>
+      <h2 className="nb-h2">Built on Professional, Industry Standards</h2>
     </div>
     <div className="nb-trust-grid">
       {items.map(([txt, ico]) => (
