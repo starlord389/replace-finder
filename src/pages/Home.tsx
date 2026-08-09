@@ -266,9 +266,6 @@ function NbMonitorSteps() {
           <HowItWorksFlow />
         </div>
         <h2 className="nb-diagram-h2">Every property unlocks new opportunities.</h2>
-        <p className="nb-diagram-lead">
-          <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts both parties when a better fit appears.
-        </p>
 
         <div className="nb-diagram-ctas">
           <Link to={ROUTES.signup} className="nb-diagram-cta">Register your property</Link>
