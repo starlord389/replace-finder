@@ -901,7 +901,7 @@ function SummitEventCard() {
 
           <span className="nb-ev-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" /><circle cx="17" cy="9" r="2.4" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" /></svg>
-            Agents &amp; investors welcome
+            Real Estate Agents, Investors and professionals welcomed
           </span>
         </div>
         <div className="nb-ev-vlabel">Partnered vendors — tap for more info:</div>
