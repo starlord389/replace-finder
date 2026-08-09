@@ -177,28 +177,6 @@ const LOGO_BRANDS = [
   { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 40, mobileHeight: 30 },
 ];
 
-const PERSON_ICON = (
-  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" /></svg>
-);
-
-const BELL_ICON = (
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-);
-
-const ARROW_RIGHT = (
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
-);
-
-const OWNERS = [
-  { owner: "OWNER 1", prop: "Property A", price: "$850K", photo: "/mf-1.jpg" },
-  { owner: "OWNER 2", prop: "Property B", price: "$1.1M", photo: "/mf-2.jpg" },
-  { owner: "OWNER 3", prop: "Property C", price: "$1.4M", photo: "/mf-3.jpg" },
-];
-
-const ALERTS = [
-  { label: "NEW OPPORTUNITY", body: "Owner 1 ↔ Property B" },
-  { label: "NEW OPPORTUNITY", body: "Owner 3 ↔ Property A" },
-];
 
 
 
