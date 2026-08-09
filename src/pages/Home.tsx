@@ -356,7 +356,7 @@ function NbWhyNow() {
             "You don’t need to be actively selling.",
             "You don’t need to already be in a 1031 exchange.",
             "You don’t need to keep coming back to search.",
-            "We monitor the opportunity landscape continuously.",
+            "We monitor our network for opportunities continuously.",
           ].map((t) => (
             <li className="nb-now-li" key={t}>
               <span className="nb-now-x" aria-hidden="true">✓</span>
