@@ -23,7 +23,7 @@ const NB_STYLE = `
   [data-nb] .nb-hero-inner { position: relative; z-index: 10; }
   [data-nb] .nb-hero-h1 { font-size: clamp(30px, 3.4vw, 46px); font-weight: 800; line-height: 1.1; color: #fff; }
   [data-nb] .nb-slash { position: relative; display: inline-block; white-space: nowrap; }
-  [data-nb] .nb-slash::after { content: "//////"; position: absolute; left: 0; bottom: -0.1em; width: 100%; font-size: 0.72em; letter-spacing: -0.14em; color: #43a047; font-weight: 700; overflow: hidden; white-space: nowrap; pointer-events: none; }
+  [data-nb] .nb-slash::after { content: ""; position: absolute; left: -3%; bottom: 0.04em; width: 106%; height: 0.18em; background: #43a047; border-radius: 999px; opacity: 0.92; pointer-events: none; }
   [data-nb] .nb-hero-sub { font-size: 17px; line-height: 1.6; color: rgba(255,255,255,.82); }
 
   /* ===== top nav + logo ===== */
