@@ -47,6 +47,7 @@ export function ExchangeLogoMark({ className, title }: ExchangeLogoMarkProps) {
         strokeLinejoin="round"
         d="M 243 134 L 295 214 L 191 214 Z"
       />
+      <rect x="207" y="206" width="72" height="142" rx="11" fill="#16284a" />
       <rect x="146" y="294" width="44" height="54" rx="9" fill="#43a047" />
       <path
         fill="#43a047"
