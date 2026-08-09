@@ -7,7 +7,7 @@ const sectionsSource = readFileSync(join(process.cwd(), "src/pages/HomeSections.
 
 describe("public landing-page audiences", () => {
   it("leads with the core 1031 exchange opportunity promise", () => {
-    expect(homeSource).toContain("The biggest obstacle to a 1031 Exchange is finding what comes next.");
+    expect(homeSource).toContain("The biggest obstacle to a 1031 Exchange is finding a replacement property.");
     expect(homeSource).toContain("1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.");
     expect(homeSource).toContain("Find My Replacement Property");
     expect(homeSource).toContain("Agents—Join Our Network");
