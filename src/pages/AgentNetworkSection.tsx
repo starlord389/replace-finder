@@ -75,7 +75,7 @@ const AGENT_CSS = `
 [data-nb] .agn-cta-note { margin: 14px 0 0; font-size: 14px; color: #7a8798; }
 `;
 
-const PROBLEMS = [
+const PROBLEMS: { key: string; icon: LucideIcon; title: string; body: string }[] = [
   {
     key: "limited-inventory",
     icon: Boxes,
@@ -159,15 +159,7 @@ export default function AgentNetworkSection() {
             </p>
           </div>
 
-          <div className="agn-prob">
-            {PROBLEMS.map((p) => (
-              <article className="agn-card" key={p.title}>
-                <span className="agn-card-ico" aria-hidden="true">{p.icon}</span>
-                <h3 className="agn-card-t">{p.title}</h3>
-                <p className="agn-card-p">{p.body}</p>
-              </article>
-            ))}
-          </div>
+          <ProblemAccordion />
 
           <div className="agn-turn">
             <h3 className="agn-h3">How ExchangeUp™ Unlocks More Deal Flow</h3>
