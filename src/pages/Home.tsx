@@ -328,24 +328,67 @@ function NbHero() {
 
 
 function NbMonitorSteps() {
+  const nodes = [
+    { label: "Property A", sub: "Owner adds it once", cx: 150, cy: 118, sx: 254, sy: 172, ex: 356, ey: 220 },
+    { label: "Property B", sub: "Owner adds it once", cx: 150, cy: 402, sx: 254, sy: 348, ex: 356, ey: 300 },
+    { label: "Property C", sub: "Owner adds it once", cx: 762, cy: 260, sx: 654, sy: 260, ex: 556, ey: 260 },
+  ];
+
   return (
-    <section id="steps" className="nb-diagram" aria-label="How monitoring works">
+    <section id="steps" className="nb-diagram" aria-label="How the network works">
       <div className="nb-diagram-inner">
         <p className="nb-diagram-eyebrow">How It Works</p>
-        <h2 className="nb-diagram-h2">Add once. We monitor continuously. You get alerted.</h2>
+        <h2 className="nb-diagram-h2">Every property added makes the network smarter.</h2>
         <p className="nb-diagram-lead">
-          Owners and agents add properties to the network. Exchange IQ™ monitors around the clock and surfaces relevant opportunities to the right people.
+          Property A, Property B and Property C all feed the same growing network — and each one receives opportunities
+          back from it. Exchange IQ™ monitors continuously and alerts the right owner or agent when a better fit appears.
         </p>
-        <img
-          src={monitoringDiagram}
-          alt="Property owners add their properties to 1031 ExchangeUp™, the platform continuously monitors opportunities, and alerts are sent to the right owners or agents."
-          className="nb-diagram-img"
-          loading="lazy"
-        />
+
+        <svg
+          className="nb-net"
+          viewBox="0 0 900 520"
+          role="img"
+          aria-label="Property A, Property B and Property C each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
+        >
+          <defs>
+            <marker id="nbArrowIn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#43a047" />
+            </marker>
+          </defs>
+
+          {nodes.map((n) => (
+            <g key={n.label}>
+              <line
+                x1={n.sx} y1={n.sy} x2={n.ex} y2={n.ey}
+                stroke="#43a047" strokeWidth="2.5" strokeLinecap="round"
+                markerStart="url(#nbArrowIn)" markerEnd="url(#nbArrowIn)"
+              />
+              <rect x={n.cx - 112} y={n.cy - 42} width="224" height="84" rx="18" fill="#ffffff" />
+              <text x={n.cx} y={n.cy - 6} textAnchor="middle" fontSize="25" fontWeight="800" fill="#0b1f3d">{n.label}</text>
+              <text x={n.cx} y={n.cy + 22} textAnchor="middle" fontSize="17" fontWeight="600" fill="#5a6b83">{n.sub}</text>
+            </g>
+          ))}
+
+          <circle cx="450" cy="260" r="112" fill="#ffffff" />
+          <circle cx="450" cy="260" r="126" fill="none" stroke="rgba(67,160,71,.45)" strokeWidth="2" />
+          <text x="450" y="242" textAnchor="middle" fontSize="30" fontWeight="800" fill="#0b1f3d">1031</text>
+          <text x="450" y="274" textAnchor="middle" fontSize="26" fontWeight="800" fill="#0b1f3d">
+            Exchange<tspan fill="#43a047">UP</tspan><tspan fontSize="14" dy="-8">™</tspan>
+          </text>
+          <text x="450" y="306" textAnchor="middle" fontSize="15" fontWeight="700" fill="#43a047" letterSpacing="1.5">
+            MONITORING ACTIVE
+          </text>
+        </svg>
+
+        <div className="nb-net-legend">
+          <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Properties added to the network</span>
+          <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Opportunities returned to owners &amp; agents</span>
+        </div>
       </div>
     </section>
   );
 }
+
 
 
 function NbLogoMarquee() {
