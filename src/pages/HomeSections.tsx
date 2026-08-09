@@ -409,13 +409,14 @@ function RoeMiniCalc() {
 
           <p className="nb-why-result-note">
             {uplift > 0 ? (
-              <>Based on an estimated <b>{usd(income)}/yr</b> of net income, the same <b>{usd(equity)}</b> of equity
-              could represent roughly <b>{usd(uplift)}</b> more per year at the reference return. ExchangeUp™ can
-              continuously monitor for investment opportunities that may better align with your goals.</>
+              <>After <b>{usd(monthlyExpenses)}/mo</b> in P&amp;I, T&amp;I and other operating expenses, your annual
+              cash flow is about <b>{usd(income)}/yr</b>. The same <b>{usd(equity)}</b> of equity could represent
+              roughly <b>{usd(uplift)}</b> more per year at the reference return. ExchangeUp™ can continuously monitor
+              for investment opportunities that may better align with your goals.</>
             ) : (
-              <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the
-              8% reference return used here. ExchangeUp™ can keep monitoring anyway — we only reach out if something
-              genuinely better appears.</>
+              <>After <b>{usd(monthlyExpenses)}/mo</b> in P&amp;I, T&amp;I and other operating expenses, your equity is
+              returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the 8% reference return used
+              here. ExchangeUp™ can keep monitoring anyway — we only reach out if something genuinely better appears.</>
             )}
           </p>
 
@@ -426,10 +427,12 @@ function RoeMiniCalc() {
 
 
           <p className="nb-why-fine">
-            Net income is estimated at 60% of gross rent, a common operating-expense assumption. This calculator is for
+            Annual cash flow is calculated as gross monthly rent less your entered P&amp;I, T&amp;I and other monthly
+            operating expenses, multiplied by twelve. This calculator is for
             educational purposes only and does not constitute financial, tax or investment advice. Results are estimates
             and do not predict or guarantee any outcome.
           </p>
+
         </div>
       )}
     </div>
