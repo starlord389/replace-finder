@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { User, Briefcase, Building2 } from "lucide-react";
 import { ROUTES } from "@/app/routes/routeManifest";
+import networkDiagramAsset from "@/assets/network-diagram.png.asset.json";
 import { SECTIONS_CSS, LandingSections, HowItWorksFlow, Sec_agents, Sec_investors } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -169,11 +169,6 @@ const NB_STYLE = `
   [data-nb] .nb-net-legend { margin: 18px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 26px; }
   [data-nb] .nb-net-legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: rgba(255,255,255,.8); }
   [data-nb] .nb-net-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
-  [data-nb] .nb-net-node { width: 72px; height: 72px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; color: #0b1f3d; box-shadow: 0 4px 16px rgba(0,0,0,.18); transition: transform .15s ease, box-shadow .15s ease; }
-  [data-nb] .nb-net-node:hover { transform: scale(1.08); box-shadow: 0 8px 24px rgba(0,0,0,.24); }
-  [data-nb] .nb-net-node[data-type="investor"] { color: #2f6fd0; }
-  [data-nb] .nb-net-node[data-type="agent"] { color: #43a047; }
-  [data-nb] .nb-net-node[data-type="property"] { color: #e08a2b; }
   @media (max-width: 640px) { [data-nb] .nb-diagram { padding: 40px 16px 48px; } }
 `;
 
@@ -397,55 +392,6 @@ function NbHero() {
 
 
 function NbMonitorSteps() {
-  const hub = { cx: 450, cy: 300, r: 104 };
-  const orbitRadius = 255;
-  const nodeSize = 72;
-  const nodeR = nodeSize / 2;
-  const nodeOffset = 40; // distance from node center to arrow start/end
-
-  const nodeSpecs = [
-    { type: "property" as const, Icon: Building2, label: "Property" },
-    { type: "investor" as const, Icon: User, label: "Investor" },
-    { type: "agent" as const, Icon: Briefcase, label: "Agent" },
-    { type: "property" as const, Icon: Building2, label: "Property" },
-    { type: "investor" as const, Icon: User, label: "Investor" },
-    { type: "agent" as const, Icon: Briefcase, label: "Agent" },
-    { type: "property" as const, Icon: Building2, label: "Property" },
-    { type: "investor" as const, Icon: User, label: "Investor" },
-    { type: "agent" as const, Icon: Briefcase, label: "Agent" },
-  ];
-
-  const nodes = nodeSpecs.map((spec, i) => {
-    const angle = (360 / nodeSpecs.length) * i;
-    const rad = (angle * Math.PI) / 180;
-    const cx = hub.cx + orbitRadius * Math.cos(rad);
-    const cy = hub.cy + orbitRadius * Math.sin(rad);
-    const dx = hub.cx - cx;
-    const dy = hub.cy - cy;
-    const dist = Math.hypot(dx, dy) || 1;
-    const ux = dx / dist;
-    const uy = dy / dist;
-    // perpendicular unit vector to offset the return-opportunity arrow
-    const px = -uy;
-    const py = ux;
-    const outOffset = 14;
-    return {
-      ...spec,
-      cx,
-      cy,
-      // inward arrow: participant lists property into the network
-      inSx: cx + ux * nodeR,
-      inSy: cy + uy * nodeR,
-      inEx: hub.cx - ux * hub.r,
-      inEy: hub.cy - uy * hub.r,
-      // outward arrow: exchange-up opportunities flow back to the participant
-      outSx: hub.cx - ux * (hub.r - 8),
-      outSy: hub.cy - uy * (hub.r - 8),
-      outEx: cx + ux * nodeR + px * outOffset,
-      outEy: cy + uy * nodeR + py * outOffset,
-    };
-  });
-
   return (
     <section id="steps" className="nb-diagram" aria-label="How the network works">
       <div className="nb-diagram-inner">
@@ -458,57 +404,12 @@ function NbMonitorSteps() {
           Investors, agents, and property owners all feed the growing network — and every new participant makes it more useful for everyone. <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts the right person when a better fit appears.
         </p>
 
-        <svg
+        <img
+          src={networkDiagramAsset.url}
+          alt="1031ExchangeUP network: real estate agents, investors, and properties connected to the central monitoring hub."
           className="nb-net"
-          viewBox="0 0 900 620"
-          role="img"
-          aria-label="Real estate agents and property owners each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
-        >
-          <defs>
-            <marker id="nbArrowIn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0 0 L10 5 L0 10 z" fill="#43a047" />
-            </marker>
-            <marker id="nbArrowOut" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0 0 L10 5 L0 10 z" fill="#ffffff" />
-            </marker>
-          </defs>
-
-          {nodes.map((n, i) => (
-            <g key={`${n.type}-${i}`}>
-              <line
-                x1={n.inSx} y1={n.inSy} x2={n.inEx} y2={n.inEy}
-                stroke="#43a047" strokeWidth="2.5" strokeLinecap="round"
-                markerEnd="url(#nbArrowIn)"
-              />
-              <line
-                x1={n.outSx} y1={n.outSy} x2={n.outEx} y2={n.outEy}
-                stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round"
-                strokeDasharray="6 4"
-                markerEnd="url(#nbArrowOut)"
-              />
-              <foreignObject
-                x={n.cx - 36}
-                y={n.cy - 36}
-                width={nodeSize}
-                height={nodeSize}
-              >
-                <div className="nb-net-node" data-type={n.type} title={n.label}>
-                  <n.Icon size={30} strokeWidth={1.6} />
-                </div>
-              </foreignObject>
-            </g>
-          ))}
-
-          <circle cx={hub.cx} cy={hub.cy} r={hub.r} fill="#ffffff" />
-          <circle cx={hub.cx} cy={hub.cy} r={hub.r + 14} fill="none" stroke="rgba(67,160,71,.45)" strokeWidth="2" />
-          <text x={hub.cx} y={hub.cy - 18} textAnchor="middle" fontSize="30" fontWeight="800" fill="#0b1f3d">1031</text>
-          <text x={hub.cx} y={hub.cy + 14} textAnchor="middle" fontSize="26" fontWeight="800" fill="#0b1f3d">
-            Exchange<tspan fill="#43a047">UP</tspan><tspan fontSize="14" dy="-8">™</tspan>
-          </text>
-          <text x={hub.cx} y={hub.cy + 46} textAnchor="middle" fontSize="15" fontWeight="700" fill="#43a047" letterSpacing="1.5">
-            MONITORING ACTIVE
-          </text>
-        </svg>
+          loading="lazy"
+        />
 
         <div className="nb-net-legend">
           <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Opportunities feed into the network</span>
