@@ -59,7 +59,7 @@ export const PUBLIC_NAV_GROUPS: readonly PublicNavGroup[] = [
     items: [
       item("Why Agents Join", PUBLIC_NAV_SECTION_HASHES.whyAgents, Users, "Generate business, grow your network"),
       item("ROE Calculator", PUBLIC_NAV_SECTION_HASHES.roeCalculator, Calculator, "See if your client's equity should exchange"),
-      item("Pricing", PUBLIC_NAV_SECTION_HASHES.pricing, Tag, "Free for investors and agents"),
+      item("Pricing", PUBLIC_NAV_SECTION_HASHES.pricing, Tag, "Free for agents and investors"),
       item("FAQ", PUBLIC_NAV_SECTION_HASHES.faq, HelpCircle, "Common questions, answered"),
     ],
   },
