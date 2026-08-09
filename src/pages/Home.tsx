@@ -346,6 +346,7 @@ function NbMonitorSteps() {
         <svg
           className="nb-net"
           viewBox="0 0 900 520"
+
           role="img"
           aria-label="Property A, Property B and Property C each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
         >
