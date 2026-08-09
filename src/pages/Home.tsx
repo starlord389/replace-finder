@@ -369,16 +369,17 @@ function NbMonitorSteps() {
             </g>
           ))}
 
-          <circle cx="450" cy="260" r="112" fill="#ffffff" />
-          <circle cx="450" cy="260" r="126" fill="none" stroke="rgba(67,160,71,.45)" strokeWidth="2" />
-          <text x="450" y="242" textAnchor="middle" fontSize="30" fontWeight="800" fill="#0b1f3d">1031</text>
-          <text x="450" y="274" textAnchor="middle" fontSize="26" fontWeight="800" fill="#0b1f3d">
+          <circle cx="450" cy="290" r="104" fill="#ffffff" />
+          <circle cx="450" cy="290" r="118" fill="none" stroke="rgba(67,160,71,.45)" strokeWidth="2" />
+          <text x="450" y="272" textAnchor="middle" fontSize="30" fontWeight="800" fill="#0b1f3d">1031</text>
+          <text x="450" y="304" textAnchor="middle" fontSize="26" fontWeight="800" fill="#0b1f3d">
             Exchange<tspan fill="#43a047">UP</tspan><tspan fontSize="14" dy="-8">™</tspan>
           </text>
-          <text x="450" y="306" textAnchor="middle" fontSize="15" fontWeight="700" fill="#43a047" letterSpacing="1.5">
+          <text x="450" y="336" textAnchor="middle" fontSize="15" fontWeight="700" fill="#43a047" letterSpacing="1.5">
             MONITORING ACTIVE
           </text>
         </svg>
+
 
         <div className="nb-net-legend">
           <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Properties added to the network</span>
