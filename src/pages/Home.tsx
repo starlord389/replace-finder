@@ -163,8 +163,8 @@ const NB_STYLE = `
 const NAV_LINKS = [
   { label: "How It Works", href: "#steps" },
   { label: "For Agents", href: "#agents" },
-  { label: "Resources", href: "#resources" },
   { label: "For Investors", href: "#investors" },
+  { label: "Resources", href: "#resources" },
   { label: "FAQ", href: "#faq" },
 ];
 
