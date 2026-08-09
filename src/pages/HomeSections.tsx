@@ -134,7 +134,7 @@ function Sec_example() {
   );
 }
 
-export function Sec_how() {
+export function HowItWorksFlow() {
   const steps = [
     {
       num: "1",
@@ -163,34 +163,34 @@ export function Sec_how() {
   ];
 
   return (
+    <div className="nb-how-flow">
+      {steps.map((s) => (
+        <div className="nb-how-step" key={s.title}>
+          <div className="nb-how-step-top">
+            <div className="nb-how-step-icon">
+              <s.icon size={32} strokeWidth={1.6} />
+            </div>
+            <span className="nb-how-step-num">{s.num}</span>
+          </div>
+          <h3 className="nb-how-step-title">{s.title}</h3>
+          <p className="nb-how-step-desc">{s.desc}</p>
+        </div>
+      ))}
+      {steps.slice(0, -1).map((_, i) => (
+        <div className="nb-how-step-connector" key={`connector-${i}`} aria-hidden="true">
+          <div className="nb-how-step-connector-line" />
+          <div className="nb-how-step-connector-arrow" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function Sec_how() {
+  return (
     <section id="how" data-nb className="bg-white">
       <div className="mx-auto max-w-[1240px] px-5 sm:px-8 py-20 sm:py-24">
-        <h2 className="nb-h2 text-center">Add → Set → Monitor → Alert</h2>
-        <p className="nb-lead text-center mt-4 max-w-[720px] mx-auto">
-          You don’t need to be planning an exchange today. Put your property on our radar and we’ll tell you when
-          something better shows up.
-        </p>
-
-        <div className="nb-how-flow">
-          {steps.map((s, i) => (
-            <div className="nb-how-step" key={s.title}>
-              <div className="nb-how-step-top">
-                <div className="nb-how-step-icon">
-                  <s.icon size={32} strokeWidth={1.6} />
-                </div>
-                <span className="nb-how-step-num">{s.num}</span>
-              </div>
-              <h3 className="nb-how-step-title">{s.title}</h3>
-              <p className="nb-how-step-desc">{s.desc}</p>
-            </div>
-          ))}
-          {steps.slice(0, -1).map((_, i) => (
-            <div className="nb-how-step-connector" key={`connector-${i}`} aria-hidden="true">
-              <div className="nb-how-step-connector-line" />
-              <div className="nb-how-step-connector-arrow" />
-            </div>
-          ))}
-        </div>
+        <HowItWorksFlow />
       </div>
     </section>
   );
