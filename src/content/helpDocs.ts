@@ -10,45 +10,45 @@ export const AGENT_DOCS: DocSection[] = [
     title: "Exchange Lifecycle Guide",
     body: `Every exchange flows through a sequence of statuses. Understanding each stage helps you know what action to take next.
 
-**Draft** — You're still gathering property details, financials, or replacement criteria. Drafts are private to you and aren't seen by Exchange IQ™. Save freely; nothing is shared yet.
+**Draft** - You're still gathering property details, financials, or replacement criteria. Drafts are private to you and aren't seen by Exchange IQ™. Save freely; nothing is shared yet.
 
-**Active** — The exchange is queued for matching. Within minutes, the platform scores it against every pledged property in the network and surfaces the best fits. You and your client can review matches and start connections.
+**Active** - The exchange is queued for matching. Within minutes, the platform scores it against every pledged property in the network and surfaces the best fits. You and your client can review matches and start connections.
 
-**In Identification** — The relinquished sale has closed and your client is choosing which matched replacement properties to pursue. Use the Identification List to note the properties they're moving forward on.
+**In Identification** - The relinquished sale has closed and your client is choosing which matched replacement properties to pursue. Use the Identification List to note the properties they're moving forward on.
 
-**In Closing** — At least one identified property is under contract. Track inspection, financing, and closing milestones from the connection detail page.
+**In Closing** - At least one identified property is under contract. Track inspection, financing, and closing milestones from the connection detail page.
 
-**Completed** — The replacement closing has occurred. The exchange is locked for editing but remains in your history with the full audit trail.
+**Completed** - The replacement closing has occurred. The exchange is locked for editing but remains in your history with the full audit trail.
 
-**On Hold / Cancelled** — Use these when an exchange is paused or abandoned. You can re-open by moving back to Draft if no connections were accepted.`,
+**On Hold / Cancelled** - Use these when an exchange is paused or abandoned. You can re-open by moving back to Draft if no connections were accepted.`,
   },
   {
     id: "match-score",
     title: "Match Score Explained",
     body: `Every match has a total score from 0–100 derived from six weighted dimensions:
 
-**Price Fit (25%)** — How close the property's asking price is to your replacement criteria's target band. A property at the midpoint of your range scores 100; one at the edge scores ~50.
+**Price Fit (25%)** - How close the property's asking price is to your replacement criteria's target band. A property at the midpoint of your range scores 100; one at the edge scores ~50.
 
-**Geography (20%)** — State and metro overlap. An exact metro match scores 100; same state but different metro scores 60; out-of-state scores based on whether the state was in your acceptable list.
+**Geography (20%)** - State and metro overlap. An exact metro match scores 100; same state but different metro scores 60; out-of-state scores based on whether the state was in your acceptable list.
 
-**Asset Type (20%)** — Exact asset-type match (e.g., multifamily ↔ multifamily) scores 100. Adjacent asset types (e.g., retail ↔ mixed-use) score partial credit.
+**Asset Type (20%)** - Exact asset-type match (e.g., multifamily ↔ multifamily) scores 100. Adjacent asset types (e.g., retail ↔ mixed-use) score partial credit.
 
-**Strategy (15%)** — Strategy alignment (value-add, stabilized, ground-up, DST, TIC). Mismatched strategies still score if your criteria mark them acceptable.
+**Strategy (15%)** - Strategy alignment (value-add, stabilized, ground-up, DST, TIC). Mismatched strategies still score if your criteria mark them acceptable.
 
-**Financial Fit (10%)** — Cap rate, NOI, and occupancy compared to your criteria's targets.
+**Financial Fit (10%)** - Cap rate, NOI, and occupancy compared to your criteria's targets.
 
-**Timing (10%)** — Whether the property's availability window aligns with your client's identification and closing deadlines.
+**Timing (10%)** - Whether the property's availability window aligns with your client's identification and closing deadlines.
 
-Adjust your replacement criteria to shift these weights — looser bands surface more matches; tighter bands raise quality and lower count.`,
+Adjust your replacement criteria to shift these weights - looser bands surface more matches; tighter bands raise quality and lower count.`,
   },
   {
     id: "boot-calculation",
     title: "Boot Calculation",
     body: `Boot is the taxable portion of an exchange. Two kinds:
 
-**Cash Boot** — Exchange proceeds left over after acquiring the replacement property. If your client sold for $1M (with $700K in net proceeds after debt payoff) and buys a $600K property, the $100K difference is cash boot.
+**Cash Boot** - Exchange proceeds left over after acquiring the replacement property. If your client sold for $1M (with $700K in net proceeds after debt payoff) and buys a $600K property, the $100K difference is cash boot.
 
-**Mortgage Boot** — A reduction in total debt. If the relinquished property carried $300K in debt and the replacement carries $200K, the $100K debt reduction is mortgage boot — even if no cash changed hands.
+**Mortgage Boot** - A reduction in total debt. If the relinquished property carried $300K in debt and the replacement carries $200K, the $100K debt reduction is mortgage boot - even if no cash changed hands.
 
 **How we estimate**: We use your exchange's exchange_proceeds and current debt against the candidate property's asking_price and typical debt ratios. Federal tax is estimated at the long-term capital gains + depreciation recapture rate.
 
@@ -59,7 +59,7 @@ Adjust your replacement criteria to shift these weights — looser bands surface
     title: "Pledged Property Best Practices",
     body: `Properties you pledge are the supply side of the network. Higher-quality listings get more matches and better counter-party engagement.
 
-**Fill every field you can.** Exchange IQ™ scores on asset type, strategy, cap rate, occupancy, and location — missing fields default to neutral and lower the score.
+**Fill every field you can.** Exchange IQ™ scores on asset type, strategy, cap rate, occupancy, and location - missing fields default to neutral and lower the score.
 
 **Add at least 3 photos.** Listings with photos get ~3× more clicks from counter-party agents. The first photo is the cover image.
 
@@ -77,7 +77,7 @@ Adjust your replacement criteria to shift these weights — looser bands surface
 - Accepted: full property financials and documents, a private message thread, and your direct contact info.
 - Under contract: closing milestones and document exchange.
 
-**Facilitation fees.** If a deal closes through the platform, the optional facilitation fee splits between buyer and seller agents. Agree on terms before going under contract — the connection detail page tracks the agreement.
+**Facilitation fees.** If a deal closes through the platform, the optional facilitation fee splits between buyer and seller agents. Agree on terms before going under contract - the connection detail page tracks the agreement.
 
 **Declining gracefully.** Use the decline reason field. It helps the other agent understand fit issues and improves matching quality over time.`,
   },
@@ -97,7 +97,7 @@ Adjust your replacement criteria to shift these weights — looser bands surface
 ];
 
 export const GLOSSARY: { term: string; definition: string }[] = [
-  { term: "Boot", definition: "The taxable portion of a 1031 exchange — typically leftover cash or a reduction in mortgage debt." },
+  { term: "Boot", definition: "The taxable portion of a 1031 exchange - typically leftover cash or a reduction in mortgage debt." },
   { term: "Like-Kind", definition: "All US real estate held for investment or business use is considered like-kind to other US real estate held for the same purpose." },
   { term: "Identification Period", definition: "The 45 days after closing the relinquished property during which replacement properties must be identified in writing." },
   { term: "Exchange Period", definition: "The 180 days after closing the relinquished property during which the replacement purchase must close." },

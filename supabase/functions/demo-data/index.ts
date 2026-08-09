@@ -13,7 +13,7 @@
 // agents' own listings/financials/images/profiles/roles are LEFT INTACT (they are
 // re-seeded idempotently and are referenced by other admins' demo workspaces), so
 // one admin's reset can never destroy another admin's demo data. It can never touch
-// real/live data — everything here is is_demo = true.
+// real/live data - everything here is is_demo = true.
 //
 // Actions: "reset" (default) = wipe caller's demo data then rebuild; "clear" = wipe.
 // Admin-only. Runs with the service role.
@@ -160,42 +160,42 @@ const TODAY = new Date();
 const dFrom = (n: number) => { const d = new Date(TODAY); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 
 const OWN = [
-  // Draft — being prepared, not yet in the network.
+  // Draft - being prepared, not yet in the network.
   { client: { client_name: "Chen Family Investments", client_company: "Chen Family Investments LLC", client_email: "sarah.chen@example.com", client_phone: "(512) 555-0101", notes: "Repeat client. Sold a duplex portfolio in 2023. Prefers Texas multifamily, hands-off. Pre-approved with regional bank.", status: "active" },
     property: { name: "Riverbend Court", address: "1208 Pleasant Valley Rd", city: "Austin", state: "TX", asset_type: "multifamily", strategy_type: "core_plus", units: 18, year_built: 2008, sf: 16200,
-      description: "DRAFT — gathering rent roll and T-12. 18-unit garden community in southeast Austin, 96% occupied, individually metered.",
+      description: "DRAFT - gathering rent roll and T-12. 18-unit garden community in southeast Austin, 96% occupied, individually metered.",
       f: fin({ ask: 3_150_000, cap: 5.3, gross: 232_000, occ: 96, loan: 1_350_000, rate: 4.6, maturity: "2030-05-01" }), img: IMG.mf },
     exchange: { status: "draft" } },
 
-  // Active — Marcus, multifamily, mid-clock.
+  // Active - Marcus, multifamily, mid-clock.
   { client: { client_name: "Marcus Rodriguez", client_company: "Rodriguez Holdings LLC", client_email: "marcus@rodriguezllc.example", client_phone: "(713) 555-0127", notes: "1031 veteran on his fourth exchange. Targets stabilized Sun Belt multifamily or retail. Open to assumable debt. Decisive once numbers pencil.", status: "active" },
     property: { name: "Heights Multifamily 24", address: "2400 Heights Blvd", city: "Houston", state: "TX", asset_type: "multifamily", strategy_type: "core_plus", units: 24, year_built: 2005, sf: 22800,
       description: "24-unit walk-up in Houston Heights. 14 of 24 units renovated 2021-2023; in-place rents ~8% under market on classic units. Roof replaced 2020, individual HVAC, gated parking. Walkable to the Heights hike-and-bike trail and I-10.",
       f: fin({ ask: 3_450_000, cap: 5.4, gross: 270_000, occ: 95, loan: 1_450_000, rate: 4.9, maturity: "2031-07-01" }), img: IMG.mf },
     exchange: { status: "active", exchange_proceeds: 2_000_000, estimated_equity: 2_000_000, estimated_basis: 1_150_000, estimated_gain: 850_000, estimated_tax_liability: 212_500, sale_close_date: dFrom(-20), identification_deadline: dFrom(25), closing_deadline: dFrom(160) } },
 
-  // Active — Patel trust, retail.
+  // Active - Patel trust, retail.
   { client: { client_name: "Patel Family Trust", client_company: "Patel Family Trust", client_email: "trustee@patelfamily.example", client_phone: "(305) 555-0163", notes: "Trustee prioritizes passive, credit-tenant income. Open to medical office and net lease. No development or heavy value-add. Quarterly distributions matter.", status: "active" },
     property: { name: "Coral Way Retail Center", address: "5200 Coral Way", city: "Miami", state: "FL", asset_type: "retail", strategy_type: "core", units: 8, year_built: 2010, sf: 18500,
       description: "Eight-suite Coral Way strip center on a hard corner, credit anchor + local service tenants. Facade refresh and TPO roof 2022, hurricane-rated glazing. Stable in-place income with annual bumps.",
       f: fin({ ask: 2_900_000, cap: 5.8, gross: 235_000, occ: 100, loan: 1_220_000, rate: 5.1, maturity: "2030-02-01" }), img: IMG.retail },
     exchange: { status: "active", exchange_proceeds: 2_800_000, estimated_equity: 2_800_000, estimated_basis: 1_600_000, estimated_gain: 1_200_000, estimated_tax_liability: 300_000, sale_close_date: dFrom(-10), identification_deadline: dFrom(35), closing_deadline: dFrom(170) } },
 
-  // In identification — Wilson, industrial, URGENT clock (9 days to ID).
-  { client: { client_name: "James Wilson", client_email: "jwilson@example.com", client_phone: "(602) 555-0144", notes: "Selling a Phoenix warehouse; wants industrial near Austin or Charlotte. 45-day window closing fast — only actionable, well-located deals. Cash buyer if needed.", status: "active" },
+  // In identification - Wilson, industrial, URGENT clock (9 days to ID).
+  { client: { client_name: "James Wilson", client_email: "jwilson@example.com", client_phone: "(602) 555-0144", notes: "Selling a Phoenix warehouse; wants industrial near Austin or Charlotte. 45-day window closing fast - only actionable, well-located deals. Cash buyer if needed.", status: "active" },
     property: { name: "Desert Ridge Industrial", address: "9100 N Desert Ridge Dr", city: "Phoenix", state: "AZ", asset_type: "industrial", strategy_type: "value_add", units: 1, year_built: 2001, sf: 65000,
       description: "Single-tenant Phoenix warehouse; lease expires in 14 months, driving the exchange timeline. 20' clear, 6 dock doors, fenced yard. Office remodeled 2022, roof mid-life. Infill location with redevelopment optionality.",
       f: fin({ ask: 3_750_000, cap: 6.2, gross: 305_000, occ: 100, loan: 1_980_000, rate: 5.6, maturity: "2028-11-01" }), img: IMG.industrial },
     exchange: { status: "in_identification", exchange_proceeds: 1_770_000, estimated_equity: 1_770_000, estimated_basis: 1_000_000, estimated_gain: 770_000, estimated_tax_liability: 192_500, sale_close_date: dFrom(-36), identification_deadline: dFrom(9), closing_deadline: dFrom(144) } },
 
-  // In closing — Aurora, office, closing in 12 days; ID window already passed.
+  // In closing - Aurora, office, closing in 12 days; ID window already passed.
   { client: { client_name: "Aurora Holdings", client_company: "Aurora Holdings Inc.", client_email: "ops@auroraholdings.example", client_phone: "(919) 555-0188", notes: "Family office, in closing on a Raleigh office disposition. Replacement identified; coordinating QI and lender. Needs clean execution.", status: "active" },
     property: { name: "Triangle Office Park", address: "120 Research Triangle Pkwy", city: "Raleigh", state: "NC", asset_type: "office", strategy_type: "core", units: 1, year_built: 2015, sf: 48000,
       description: "Class A office near Research Triangle Park, recently re-leased. Conference center, EV charging, structured parking. Lobby modernization 2023. Replacement purchase is in closing.",
       f: fin({ ask: 4_400_000, cap: 5.6, gross: 540_000, occ: 92, loan: 2_340_000, rate: 5.3, maturity: "2032-05-01" }), img: IMG.office },
     exchange: { status: "in_closing", exchange_proceeds: 2_060_000, estimated_equity: 2_060_000, estimated_basis: 1_400_000, estimated_gain: 660_000, estimated_tax_liability: 165_000, sale_close_date: dFrom(-60), identification_deadline: dFrom(-15), closing_deadline: dFrom(12) } },
 
-  // Completed — historical, fully closed.
+  // Completed - historical, fully closed.
   { client: { client_name: "Brennan Stout", client_email: "bstout@example.com", client_phone: "(214) 555-0190", notes: "Closed exchange from earlier this year. Kept on file for repeat business; eyeing another disposition in Q4.", status: "inactive" },
     property: { name: "Lamar Self Storage", address: "6601 S Lamar Blvd", city: "Austin", state: "TX", asset_type: "industrial", strategy_type: "core", units: 1, year_built: 2014, sf: 52000,
       description: "Climate-controlled self-storage facility, sold and exchanged earlier this year. Retained for reference.",
@@ -239,7 +239,7 @@ Deno.serve(async (req) => {
 // the caller's exchanges, and the single inbound counterparty exchange (+ its
 // relinquished property and buyer client) created per-build for the seller-side
 // scenario. The shared counterparty agents' own listings, financials, images,
-// profiles, roles and clients are deliberately LEFT INTACT — they are re-seeded
+// profiles, roles and clients are deliberately LEFT INTACT - they are re-seeded
 // idempotently and are shared across every admin's demo workspace, so this reset
 // can never destroy another admin's data. Live data is never touched (is_demo=true).
 async function clearOwnerDemo(db: any, ownerId: string) {
@@ -263,7 +263,7 @@ async function clearOwnerDemo(db: any, ownerId: string) {
   // 3) Inbound counterparty exchanges reachable through the caller's connections
   //    that are NOT the caller's own (the seller-side scenario). These are created
   //    fresh per build (not idempotently re-seeded), so the caller must clean them
-  //    up — but we resolve them only via the caller's connections, never by a blanket
+  //    up - but we resolve them only via the caller's connections, never by a blanket
   //    counterparty-agent scope, so other admins' inbound exchanges are untouched.
   const linkedExIds = new Set<string>();
   for (const c of connRows ?? []) {
@@ -492,7 +492,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   });
 
   // Inbound (seller-side) match: a counterparty buyer wants Houston multifamily,
-  // matched against the caller's own Heights listing — exercises "incoming interest".
+  // matched against the caller's own Heights listing - exercises "incoming interest".
   const jordan = cpAgent["Jordan Alvarez"];
   const inboundClient = await insertOne(db, "agent_clients", { agent_id: jordan, client_name: "Cardinal Multifamily Fund", client_company: "Cardinal Capital", client_email: "acq@cardinalcap.example", client_phone: "(602) 555-0210", notes: "Acquiring Texas multifamily.", is_demo: true, status: "active" }, "id");
   const inboundRelProp = await insertProperty(db, jordan, { name: "Tempe Town Lake Apartments", address: "60 E Rio Salado Pkwy", city: "Tempe", state: "AZ", asset_type: "multifamily", strategy_type: "core_plus", units: 40, year_built: 2006, sf: 36000, description: "Relinquished asset for Cardinal's exchange.", f: fin({ ask: 3_000_000, cap: 3.2, gross: 160_000, occ: 96, loan: 1_200_000, rate: 4.8, maturity: "2030-09-01" }), img: IMG.mf }, true);
@@ -512,10 +512,10 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   // (c) Accepted + conversing -> live message thread.
   const conn = await insertOne(db, "exchange_connections", { match_id: matchId(wilson, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: wilson, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-2) + "T16:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true }, "id");
   await mustInsert(db, "messages", [
-    { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Thanks for connecting — Westshore is available for a 1031 buyer. Happy to send the OM and rent roll." },
+    { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Thanks for connecting - Westshore is available for a 1031 buyer. Happy to send the OM and rent roll." },
     { connection_id: conn.id, sender_id: ownerId, content: "Appreciate it. My client's on a 9-day ID clock, so speed matters. Can you also share the T-12 and the tenant's lease abstract?" },
     { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Sending the package now. The value-add plan centers on leasing the remaining vacancy and below-market renewals." },
-    { connection_id: conn.id, sender_id: ownerId, content: "Thanks — reviewing the T-12 and leasing assumptions with him this afternoon. Can we tour Thursday?" },
+    { connection_id: conn.id, sender_id: ownerId, content: "Thanks - reviewing the T-12 and leasing assumptions with him this afternoon. Can we tour Thursday?" },
   ]);
   // (d) Declined -> "closed (lost)".
   await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: patel, seller_exchange_id: null, status: "declined", initiated_by: "buyer_agent", declined_at: dFrom(-4) + "T12:00:00Z", decline_reason: "The office value-add strategy was not a fit for the trust.", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
@@ -554,7 +554,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
 
 // Resolve a counterparty auth user idempotently, regardless of how many total
 // users exist. We never rely on the default (unpaginated, 50-row, created_at DESC)
-// listUsers page — past ~50 users the seeded agents fall off page 1, createUser
+// listUsers page - past ~50 users the seeded agents fall off page 1, createUser
 // then errors with "already registered", and the seed would abort. Instead:
 //   1) look the user up across ALL pages,
 //   2) if missing, create it,
@@ -568,7 +568,7 @@ async function resolveAuthUser(db: any, email: string, fullName: string): Promis
   });
   if (!error) return created.user!.id;
 
-  // Already exists (created concurrently or present beyond page 1) — treat as
+  // Already exists (created concurrently or present beyond page 1) - treat as
   // idempotent and re-resolve rather than aborting the seed.
   const msg = (error.message ?? "").toLowerCase();
   if (msg.includes("already") || (error as any).status === 422 || (error as any).code === "email_exists") {
@@ -588,7 +588,7 @@ async function findAuthUserByEmail(db: any, email: string): Promise<string | nul
     const users = data?.users ?? [];
     const hit = users.find((u: any) => (u.email ?? "").toLowerCase() === target);
     if (hit) return hit.id;
-    if (users.length === 0) break; // exhausted — terminate on an empty page, not on a server-capped short page
+    if (users.length === 0) break; // exhausted - terminate on an empty page, not on a server-capped short page
   }
   return null;
 }

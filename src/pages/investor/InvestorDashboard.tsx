@@ -8,7 +8,7 @@ import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRela
 import { DemoDataControls } from "@/features/workspace/components/DemoDataControls";
 
 function money(value: number | null) {
-  if (value == null) return "—";
+  if (value == null) return "-";
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 }
 
@@ -45,14 +45,14 @@ export default function InvestorDashboard() {
         <p className="text-sm font-semibold text-foreground">Exchange IQ™ is monitoring in the background</p>
         <p className="mt-1 text-xs text-muted-foreground">
           Your active properties and criteria are compared against the network continuously. You'll be alerted here
-          and by email the moment a better opportunity appears — no action needed in between.
+          and by email the moment a better opportunity appears - no action needed in between.
         </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Card><CardContent className="p-4"><Building2 className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{listingsLoading ? "—" : activeListings}</p><p className="text-xs text-muted-foreground">Properties monitored</p></CardContent></Card>
-        <Card><CardContent className="p-4"><TrendingUp className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{matchesLoading ? "—" : buyerMatches.length}</p><p className="text-xs text-muted-foreground">Opportunities detected</p></CardContent></Card>
-        <Card><CardContent className="p-4"><Handshake className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{matchesLoading ? "—" : connected}</p><p className="text-xs text-muted-foreground">Agent connections</p></CardContent></Card>
+        <Card><CardContent className="p-4"><Building2 className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{listingsLoading ? "-" : activeListings}</p><p className="text-xs text-muted-foreground">Properties monitored</p></CardContent></Card>
+        <Card><CardContent className="p-4"><TrendingUp className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{matchesLoading ? "-" : buyerMatches.length}</p><p className="text-xs text-muted-foreground">Opportunities detected</p></CardContent></Card>
+        <Card><CardContent className="p-4"><Handshake className="h-4 w-4 text-primary" /><p className="mt-2 text-2xl font-bold">{matchesLoading ? "-" : connected}</p><p className="text-xs text-muted-foreground">Agent connections</p></CardContent></Card>
       </div>
 
 

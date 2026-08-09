@@ -262,16 +262,16 @@ export default function AdminIntake() {
                       {row.owner_phone && <div className="text-xs text-muted-foreground">{row.owner_phone}</div>}
                     </TableCell>
                     <TableCell className="text-sm">
-                      <div className="capitalize">{row.property_type || "—"}</div>
+                      <div className="capitalize">{row.property_type || "-"}</div>
                       {row.property_location && <div className="text-xs text-muted-foreground">{row.property_location}</div>}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {row.estimated_value != null ? `$${row.estimated_value.toLocaleString()}` : "—"}
+                      {row.estimated_value != null ? `$${row.estimated_value.toLocaleString()}` : "-"}
                     </TableCell>
                     <TableCell>
                       {row.assigned_agent_id
                         ? <Badge variant="outline" className="text-[10px]">Yes</Badge>
-                        : <span className="text-xs text-muted-foreground">—</span>}
+                        : <span className="text-xs text-muted-foreground">-</span>}
                     </TableCell>
                     <TableCell>
                       <StatusSelect table="referrals" value={row.status} busy={busyId === row.id}
@@ -401,8 +401,8 @@ function WaitlistTable({
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(row.created_at)}</TableCell>
                     <TableCell className="text-sm font-medium">{row.name}</TableCell>
                     <TableCell className="text-sm">{row.email}</TableCell>
-                    <TableCell className="text-sm">{row.company || "—"}</TableCell>
-                    <TableCell className="text-sm">{row.phone || "—"}</TableCell>
+                    <TableCell className="text-sm">{row.company || "-"}</TableCell>
+                    <TableCell className="text-sm">{row.phone || "-"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

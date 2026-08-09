@@ -41,7 +41,7 @@ export default function ForgotPassword() {
                   </div>
                   <h1 className="text-2xl font-bold text-foreground">Check your email</h1>
                   <p className="mt-3 text-sm text-muted-foreground">
-                    We&apos;ve sent a reset link to <span className="font-medium text-foreground">{email}</span>. It may take a minute to arrive — check your spam folder if you don&apos;t see it.
+                    We&apos;ve sent a reset link to <span className="font-medium text-foreground">{email}</span>. It may take a minute to arrive - check your spam folder if you don&apos;t see it.
                   </p>
                   <Link to="/login">
                     <Button

@@ -72,9 +72,9 @@ export const LOAN_TYPE_OPTIONS = [
 ];
 
 export const URGENCY_OPTIONS = [
-  { value: "immediate", label: "Immediate — need to close ASAP" },
-  { value: "standard", label: "Standard — within 180 days" },
-  { value: "flexible", label: "Flexible — exploring options" },
+  { value: "immediate", label: "Immediate - need to close ASAP" },
+  { value: "standard", label: "Standard - within 180 days" },
+  { value: "flexible", label: "Flexible - exploring options" },
 ];
 
 export const INVENTORY_STATUS_LABELS: Record<string, string> = {

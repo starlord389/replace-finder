@@ -167,7 +167,7 @@ export default function ArticleFeedback() {
                               <MessageSquareText className="h-3.5 w-3.5" />{s.comments.length}
                             </span>
                           ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
+                            <span className="text-xs text-muted-foreground">-</span>
                           )}
                         </TableCell>
                         <TableCell>

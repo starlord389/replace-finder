@@ -112,7 +112,7 @@ export function LocationTab({ rel }: { rel: Relationship }) {
         <p className="mt-1 text-sm text-muted-foreground">
           {exactAddress
             ? "Exact address shared by the listing agent."
-            : "The listing agent kept the exact address private — this map shows the approximate area by ZIP code."}
+            : "The listing agent kept the exact address private - this map shows the approximate area by ZIP code."}
         </p>
       </div>
 

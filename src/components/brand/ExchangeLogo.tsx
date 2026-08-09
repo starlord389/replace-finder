@@ -14,7 +14,7 @@ type ExchangeLogoLockupProps = {
   suffixClassName?: string;
 };
 
-/** Small green rising-trend arrow that sits after the "UP" — matches the landing logo. */
+/** Small green rising-trend arrow that sits after the "UP" - matches the landing logo. */
 function LogoArrow({ className }: { className?: string }) {
   return (
     <span aria-hidden="true" className={cn("ml-[2px] inline-block h-[0.82em] w-[0.82em] -translate-y-[0.06em]", className)}>
@@ -77,7 +77,7 @@ export function ExchangeLogoMark({ className, title }: ExchangeLogoMarkProps) {
 }
 
 /**
- * Text wordmark: "1031Exchange" + green "UP" + rising arrow — matches the
+ * Text wordmark: "1031Exchange" + green "UP" + rising arrow - matches the
  * landing page nav. Colour is inherited (currentColor) so callers set it on the
  * wrapper: navy on light surfaces, white on the navy footer. Weight/size come
  * from textClassName.

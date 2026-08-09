@@ -411,7 +411,7 @@ export default function StepCriteria({ criteria, financials, onChange, onNext, o
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="default">Platform default — 75%</SelectItem>
+                    <SelectItem value="default">Platform default - 75%</SelectItem>
                     {[50, 55, 60, 65, 70, 75].map((value) => <SelectItem key={value} value={String(value)}>{value}%</SelectItem>)}
                   </SelectContent>
                 </Select>

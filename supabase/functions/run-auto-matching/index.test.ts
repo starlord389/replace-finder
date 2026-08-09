@@ -10,7 +10,7 @@ const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 // The Deno test runner exposes a different service key than the function's
 // deployed env, so an admin JWT is required to run these end-to-end. Set
 // RUN_INTEGRATION=1 along with SUPABASE_SERVICE_ROLE_KEY that matches the
-// deployed function's env (or an admin access token — see README) to run.
+// deployed function's env (or an admin access token - see README) to run.
 const canRunIntegration = SERVICE.length > 0 && Deno.env.get("RUN_INTEGRATION") === "1";
 
 const STAGING_PASSWORD = "staging-fixture-only-do-not-reuse-9f2a";

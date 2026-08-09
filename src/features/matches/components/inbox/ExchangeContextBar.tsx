@@ -24,7 +24,7 @@ interface Props {
 }
 
 function currency(v: number | null | undefined): string {
-  if (!v) return "—";
+  if (!v) return "-";
   if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`;
   if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K`;
   return `$${Math.round(v).toLocaleString()}`;
@@ -252,14 +252,14 @@ export function ExchangeContextBar({
           ) : ctx ? (
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-1 text-xs">
               <ContextItem icon={User} label="Client">
-                {ctx.clientName ?? "—"}
+                {ctx.clientName ?? "-"}
               </ContextItem>
               <ContextItem icon={Building2} label="Relinquished">
                 <span className="truncate">
                   {ctx.relinquishedAddress ||
                     ctx.relinquishedName ||
                     [ctx.relinquishedCity, ctx.relinquishedState].filter(Boolean).join(", ") ||
-                    "—"}
+                    "-"}
                 </span>
               </ContextItem>
               {(ctx.relinquishedCity || ctx.relinquishedState) && (

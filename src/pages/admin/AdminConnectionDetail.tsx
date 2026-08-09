@@ -28,7 +28,7 @@ function fmtDateTime(d: string | null) {
   return d ? new Date(d).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : null;
 }
 function money(n: number | null) {
-  return n != null ? `$${Math.round(n).toLocaleString()}` : "—";
+  return n != null ? `$${Math.round(n).toLocaleString()}` : "-";
 }
 function pretty(s: string) {
   return s.replace(/_/g, " ");
@@ -162,7 +162,7 @@ export default function AdminConnectionDetail() {
               {milestones.map(([label, ts]) => (
                 <li key={label} className="flex items-center justify-between">
                   <span className="text-muted-foreground">{label}</span>
-                  <span>{fmtDateTime(ts) ?? <span className="text-xs text-muted-foreground">—</span>}</span>
+                  <span>{fmtDateTime(ts) ?? <span className="text-xs text-muted-foreground">-</span>}</span>
                 </li>
               ))}
             </ul>
@@ -179,7 +179,7 @@ export default function AdminConnectionDetail() {
           <CardHeader><CardTitle className="text-base">Deal context</CardTitle></CardHeader>
           <CardContent>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-muted-foreground">Match score</dt><dd>{match ? Math.round(match.total_score) : "—"}</dd>
+              <dt className="text-muted-foreground">Match score</dt><dd>{match ? Math.round(match.total_score) : "-"}</dd>
               <dt className="text-muted-foreground">Buyer account</dt><dd>{participantType(conn.buyer_exchange_id)}</dd>
               <dt className="text-muted-foreground">Seller account</dt><dd>{participantType(conn.seller_exchange_id)}</dd>
               <dt className="text-muted-foreground">Fee agreed</dt><dd>{conn.facilitation_fee_agreed ? "Yes" : "No"}</dd>

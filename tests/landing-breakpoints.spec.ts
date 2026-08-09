@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 /* Breakpoint regression coverage for the NATIVE homepage (src/pages/Home.tsx,
    route "/"). The old Framer-iframe homepage was deleted, so this no longer
-   reaches into an iframe — everything renders directly under [data-landing].
+   reaches into an iframe - everything renders directly under [data-landing].
 
    What we guard at every breakpoint:
    - the page is the native React rebuild (a [data-landing] wrapper, no iframe)
@@ -34,7 +34,7 @@ const APPROVED_HOW_IT_WORKS_TITLES = [
   "Connect and offer",
 ];
 
-// Sections the nav/footer anchor links jump to — each must keep its id.
+// Sections the nav/footer anchor links jump to - each must keep its id.
 const EXPECTED_SECTION_IDS = [
   "process",
   "feature",
@@ -99,7 +99,7 @@ test.describe("native homepage breakpoint regressions", () => {
       });
       await page.goto("/", { waitUntil: "domcontentloaded" });
 
-      // Native homepage — no iframe; everything renders under [data-landing].
+      // Native homepage - no iframe; everything renders under [data-landing].
       await page.waitForSelector("[data-landing] h1", { timeout: 15_000 });
       await page.waitForSelector('nav[aria-label="Main navigation"]', {
         timeout: 15_000,

@@ -11,20 +11,20 @@ export const AGENT_FAQS: FaqCategory[] = [
   {
     category: "Account & Setup",
     items: [
-      { q: "How do I add a client?", a: "Go to My Clients → Add Client. Fill in their contact info and any notes about their exchange goals. Clients you add are private to you — other agents can't see them." },
-      { q: "How does agent verification work?", a: "Agents self-certify at signup by providing their license or MLS information. Your workspace becomes active immediately — there's no manual review queue." },
+      { q: "How do I add a client?", a: "Go to My Clients → Add Client. Fill in their contact info and any notes about their exchange goals. Clients you add are private to you - other agents can't see them." },
+      { q: "How does agent verification work?", a: "Agents self-certify at signup by providing their license or MLS information. Your workspace becomes active immediately - there's no manual review queue." },
       { q: "How do I update my brokerage info?", a: "Settings → Profile. Changes to your name and brokerage appear on your public agent card the next time another agent views one of your matches." },
-      { q: "Can I invite team members?", a: "Each agent has their own workspace. Multi-seat brokerage accounts are on the roadmap — submit a ticket if you'd like early access." },
+      { q: "Can I invite team members?", a: "Each agent has their own workspace. Multi-seat brokerage accounts are on the roadmap - submit a ticket if you'd like early access." },
     ],
   },
   {
     category: "Exchanges",
     items: [
-      { q: "What's the difference between draft and active?", a: "Draft exchanges aren't visible to Exchange IQ™ — use them while you collect property details. Active exchanges are queued for matching as soon as you publish them." },
+      { q: "What's the difference between draft and active?", a: "Draft exchanges aren't visible to Exchange IQ™ - use them while you collect property details. Active exchanges are queued for matching as soon as you publish them." },
       { q: "How do I edit an exchange after creating it?", a: "Open the exchange detail page and click Edit. The wizard re-opens prefilled with everything except the client (the client is locked once an exchange exists)." },
       { q: "Can I move an active exchange back to draft?", a: "Yes, as long as no agent has accepted a connection on it yet. Use the Save as Draft button on the detail page." },
       { q: "Why can't I publish my exchange?", a: "Publishing requires a relinquished property and replacement criteria to be filled in. The Review step shows what's missing." },
-      { q: "Can I delete an exchange?", a: "Only fresh drafts (no matches generated yet) can be deleted. Once matches exist we keep the exchange for audit purposes — you can move it back to draft instead." },
+      { q: "Can I delete an exchange?", a: "Only fresh drafts (no matches generated yet) can be deleted. Once matches exist we keep the exchange for audit purposes - you can move it back to draft instead." },
     ],
   },
   {
@@ -33,7 +33,7 @@ export const AGENT_FAQS: FaqCategory[] = [
       { q: "How does the match score work?", a: "Six weighted dimensions: price (25%), geography (20%), asset type (20%), strategy (15%), financial fit (10%), timing (10%). See Documentation → Match Score Explained for the full breakdown." },
       { q: "Why did a property score low even though it looks like a good fit?", a: "Most often it's the price band or geography weighting. Tightening or loosening your replacement criteria changes scores immediately on the next match run." },
       { q: "How often do new matches appear?", a: "Matches refresh automatically when you publish or edit an exchange, when a counter-party agent pledges a new property, and on a daily schedule." },
-      { q: "What is boot and how is it calculated?", a: "Boot is the taxable portion of an exchange — cash boot (leftover proceeds) plus mortgage boot (debt reduction). The platform estimates both from your exchange financials and the candidate property's price/debt. Marked 'insufficient data' if either side is missing key fields." },
+      { q: "What is boot and how is it calculated?", a: "Boot is the taxable portion of an exchange - cash boot (leftover proceeds) plus mortgage boot (debt reduction). The platform estimates both from your exchange financials and the candidate property's price/debt. Marked 'insufficient data' if either side is missing key fields." },
       { q: "Can I hide matches I'm not interested in?", a: "Open the match detail page and use Pass. Passed matches stay visible but are filtered out of the default view." },
     ],
   },
@@ -49,17 +49,17 @@ export const AGENT_FAQS: FaqCategory[] = [
   {
     category: "1031 Rules",
     items: [
-      { q: "What are the 45 and 180-day rules?", a: "After your relinquished sale closes, you have 45 days to identify replacement properties in writing and 180 days to close on at least one. 1031 Exchange Up helps your client find that replacement early — well before those clocks ever become a concern. The platform does not track or manage your IRS deadlines; that stays with you and your qualified intermediary." },
+      { q: "What are the 45 and 180-day rules?", a: "After your relinquished sale closes, you have 45 days to identify replacement properties in writing and 180 days to close on at least one. 1031 Exchange Up helps your client find that replacement early - well before those clocks ever become a concern. The platform does not track or manage your IRS deadlines; that stays with you and your qualified intermediary." },
       { q: "What are the identification rules?", a: "Three options: identify up to 3 properties (any value), identify any number whose total value ≤ 200% of the relinquished property, or identify any number provided you acquire ≥ 95% of total identified value." },
       { q: "What counts as 'like-kind'?", a: "All US real estate held for investment or business use is considered like-kind to other US real estate held for the same purpose. Personal-use property and inventory don't qualify." },
-      { q: "Do I need a Qualified Intermediary?", a: "Yes — the IRS requires a QI to hold proceeds between sale and purchase. The taxpayer can never directly receive the funds. Add your QI in the exchange detail page." },
+      { q: "Do I need a Qualified Intermediary?", a: "Yes - the IRS requires a QI to hold proceeds between sale and purchase. The taxpayer can never directly receive the funds. Add your QI in the exchange detail page." },
     ],
   },
   {
     category: "Pricing & Account",
     items: [
-      { q: "How is the platform priced?", a: "It isn't — 1031ExchangeUp™ is free for agents and investors. Unlimited exchanges, criteria and matching are free at no cost, with no card required." },
-      { q: "Can I close my account anytime?", a: "Yes — close your account from Settings. Your workspace stays read-only for 30 days afterwards so you can export data." },
+      { q: "How is the platform priced?", a: "It isn't - 1031ExchangeUp™ is free for agents and investors. Unlimited exchanges, criteria and matching are free at no cost, with no card required." },
+      { q: "Can I close my account anytime?", a: "Yes - close your account from Settings. Your workspace stays read-only for 30 days afterwards so you can export data." },
 
       { q: "How do I export my data?", a: "Settings → Data Export generates a CSV of your clients, exchanges, and connections. Submit a ticket if you need a custom export format." },
     ],
@@ -78,7 +78,7 @@ export const CLIENT_FAQS: FaqCategory[] = [
     category: "1031 Rules",
     items: [
       { q: "What are the 45 and 180-day deadlines?", a: "From the day your relinquished property sale closes, you have 45 days to identify replacement properties and 180 days to close." },
-      { q: "What is boot?", a: "The taxable portion of your exchange — typically leftover cash or a reduction in mortgage debt. We highlight estimated boot on every match so you know the tax impact." },
+      { q: "What is boot?", a: "The taxable portion of your exchange - typically leftover cash or a reduction in mortgage debt. We highlight estimated boot on every match so you know the tax impact." },
       { q: "Do I need a Qualified Intermediary?", a: "Yes, the IRS requires one. Your agent can recommend QIs they trust." },
     ],
   },

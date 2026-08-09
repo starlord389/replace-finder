@@ -69,7 +69,7 @@ export function useMatchLocalState(matchId: string | null) {
         }
         return next;
       });
-      // Notify other subscribed components AFTER this render commits —
+      // Notify other subscribed components AFTER this render commits -
       // dispatching synchronously inside the state updater makes React
       // warn about setState-during-render in the listeners.
       setTimeout(() => window.dispatchEvent(new CustomEvent("match-local-state-change")), 0);
@@ -88,7 +88,7 @@ export function useMatchLocalState(matchId: string | null) {
   return { state, update };
 }
 
-/** Read-only accessor (no subscription) — used by InboxList per-card */
+/** Read-only accessor (no subscription) - used by InboxList per-card */
 export function readMatchLocalState(matchId: string): MatchLocalState {
   return read(matchId);
 }

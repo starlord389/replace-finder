@@ -65,7 +65,7 @@ export async function sendTransactionalEmail(args: SendArgs): Promise<SendResult
     return { ok: false, status: res.status, errorCode: classifyStatus(res.status) }
   }
 
-  // 200 with success:false covers the suppression case — treat as terminal,
+  // 200 with success:false covers the suppression case - treat as terminal,
   // not a retryable failure.
   if (body && body.success === false) {
     return {

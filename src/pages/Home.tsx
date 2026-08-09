@@ -5,7 +5,7 @@ import networkDiagramAsset from "@/assets/network-diagram.png.asset.json";
 import { SECTIONS_CSS, LandingSections, HowItWorksFlow, Sec_agents, Sec_investors } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
-   NEW BRAND — navy + green Exchange IQ™ matchmaking landing page.
+   NEW BRAND - navy + green Exchange IQ™ matchmaking landing page.
    Hero matched to the boss mockup: real dusk skyline photo, grey-backdrop
    headshots, multifamily property web, green-UP logo, outline demo button,
    four-badge row, grey role pills. Scoped under [data-nb].
@@ -73,7 +73,7 @@ const NB_STYLE = `
   [data-nb] .nb-sky-net .nb-pulse:nth-of-type(3n) { animation-duration: 6s; animation-delay: 1.2s; }
   [data-nb] .nb-sky-net .nb-pulse:nth-of-type(3n+1) { animation-duration: 5.2s; animation-delay: .6s; }
 
-  /* ===== hero network graphic removed — replaced by infographic in section 2 ===== */
+  /* ===== hero network graphic removed - replaced by infographic in section 2 ===== */
   [data-nb] .nb-cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
   [data-nb] .nb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: 50px; padding: 0 26px; border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 15px; line-height: 1; letter-spacing: .01em; cursor: pointer; text-decoration: none; border: 1px solid transparent; transition: background .18s ease, box-shadow .18s ease, transform .12s ease; white-space: nowrap; }
   [data-nb] .nb-btn:active { transform: translateY(1px); }
@@ -113,7 +113,7 @@ const NB_STYLE = `
     [data-nb] .nb-cta-row { justify-content: center; }
     [data-nb] .nb-badges { justify-content: center; }
   }
-  /* badges stay on ONE row everywhere — shrink + allow internal wrap on phones */
+  /* badges stay on ONE row everywhere - shrink + allow internal wrap on phones */
   @media (max-width: 640px) {
     [data-nb] .nb-badges { gap: 6px; justify-content: space-between; }
     [data-nb] .nb-badge { gap: 4px; min-width: 0; flex: 1 1 0; align-items: flex-start; }
@@ -277,7 +277,7 @@ const AUDIENCE_CARDS = [
   {
     key: "agent" as const,
     tag: "I’m a Real Estate Agent",
-    txt: "Your database may already hold your next transaction. Add clients and properties — monitored continuously.",
+    txt: "Your database may already hold your next transaction. Add clients and properties - monitored continuously.",
     cta: "Show details",
     svg: (<svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>),
   },
@@ -395,7 +395,7 @@ function NbMonitorSteps() {
         </div>
         <h2 className="nb-diagram-h2">Every property added makes the network smarter.</h2>
         <p className="nb-diagram-lead">
-          Investors, agents, and property owners all feed the growing network — and every new property makes it more useful for everyone. <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts the property owner and agent when a better fit appears.
+          Investors, agents, and property owners all feed the growing network - and every new property makes it more useful for everyone. <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts the property owner and agent when a better fit appears.
         </p>
 
         <img
@@ -443,7 +443,7 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp™ — Finding Your 1031 Replacement Property Just Got A LOT Easier";
+    document.title = "1031ExchangeUp™ - Finding Your 1031 Replacement Property Just Got A LOT Easier";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(

@@ -39,8 +39,8 @@ export interface PropertyData {
   owner_authorization_confirmed: boolean;
 }
 
-// NOTE ON UNITS: the three recurring figures below — gross_rent_roll,
-// total_operating_expenses, monthly_mortgage_payment — are entered by the agent
+// NOTE ON UNITS: the three recurring figures below - gross_rent_roll,
+// total_operating_expenses, monthly_mortgage_payment - are entered by the agent
 // as MONTHLY dollars (that's how owners think). The cap-rate / match math works
 // in ANNUAL terms, so we annualize (×12) in getDerivedFinancials before storing
 // and deriving NOI. Asking price and loan balance are point-in-time amounts.

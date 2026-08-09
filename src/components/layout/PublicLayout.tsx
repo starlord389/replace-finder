@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 
 export default function PublicLayout() {
   const { pathname } = useLocation();
-  // The native homepage now lives at "/" — it floats the nav over its hero
+  // The native homepage now lives at "/" - it floats the nav over its hero
   // and uses the landing footer.
   const isHome = pathname === ROUTES.home;
-  // The landlord page is built in the same landing system — float the nav over
+  // The landlord page is built in the same landing system - float the nav over
   // its textured hero too.
   const floatingNav = isHome || pathname === ROUTES.forLandlords;
   const isAuthBeigeShell =

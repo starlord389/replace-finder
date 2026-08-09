@@ -33,7 +33,7 @@ export default function AgentLaunchpad() {
   // Auto-expand explainer if already acknowledged so the "done" state is visible.
   useEffect(() => {
     if (data?.profile.launchpad_matching_ack_at && !matchingExpanded) {
-      // no-op — don't auto-open, but the step will already show done
+      // no-op - don't auto-open, but the step will already show done
     }
   }, [data?.profile.launchpad_matching_ack_at, matchingExpanded]);
 
@@ -322,7 +322,7 @@ function MatchingExplainer() {
         </div>
       </div>
       <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-        Pipeline gives you one board to move every client&apos;s matches from new to closed — so the next property is lined up early.
+        Pipeline gives you one board to move every client&apos;s matches from new to closed - so the next property is lined up early.
       </div>
     </div>
   );

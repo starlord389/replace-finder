@@ -6,7 +6,7 @@ import { EXTRA_CSS, SECTIONS_CSS, Sec_how, Sec_investors, Sec_network, Sec_trust
 
 export default function ForInvestors() {
   useEffect(() => {
-    document.title = "For Investors & Property Owners — 1031ExchangeUp™";
+    document.title = "For Investors & Property Owners - 1031ExchangeUp™";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(

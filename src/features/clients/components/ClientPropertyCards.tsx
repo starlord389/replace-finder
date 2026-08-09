@@ -219,7 +219,7 @@ export function ClientPropertyCards({ clientId, clientName }: Props) {
                 <p className="mt-2 truncate font-semibold text-foreground">
                   {l.propertyName ||
                     l.address ||
-                    (l.exchangeStatus === "draft" ? "Draft — no property yet" : "Untitled")}
+                    (l.exchangeStatus === "draft" ? "Draft - no property yet" : "Untitled")}
                 </p>
                 <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {loc || "Location TBD"}

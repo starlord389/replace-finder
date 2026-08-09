@@ -13,7 +13,7 @@ import {
 } from "./inboxHelpers";
 import { ACTION_ICONS } from "./actionIcons";
 
-/** Boot exposure for this match, in plain words — null when there's no boot signal. */
+/** Boot exposure for this match, in plain words - null when there's no boot signal. */
 function prettyBoot(bootStatus: string | null): string | null {
   switch (bootStatus) {
     case "no_boot": return "No boot";
@@ -27,7 +27,7 @@ interface Props {
   rel: Relationship;
   previewMode?: boolean;
   status?: UiStatus;
-  /** The single most important next action — pinned as the header CTA. */
+  /** The single most important next action - pinned as the header CTA. */
   primary?: ActionDescriptor | null;
   onPrimary?: () => void;
   primaryBusy?: boolean;
@@ -52,12 +52,12 @@ export function ListingHeaderBar({
     ? (ASSET_TYPE_LABELS as Record<string, string>)[rel.propertyAssetType] ?? rel.propertyAssetType
     : null;
 
-  // Only real, agent-entered facts — absent fields are omitted, never fabricated.
+  // Only real, agent-entered facts - absent fields are omitted, never fabricated.
   const stats: Array<{ icon: LucideIcon; label: string; value: string }> = [];
   if (assetLabel) stats.push({ icon: Building, label: "Type", value: assetLabel });
   if (rel.propertyLotAcres) stats.push({ icon: Trees, label: "Lot", value: `${rel.propertyLotAcres} acres` });
-  if (cap && cap !== "—") stats.push({ icon: TrendingUp, label: "Cap", value: cap });
-  if (noi && noi !== "—") stats.push({ icon: DollarSign, label: "NOI", value: noi });
+  if (cap && cap !== "-") stats.push({ icon: TrendingUp, label: "Cap", value: cap });
+  if (noi && noi !== "-") stats.push({ icon: DollarSign, label: "NOI", value: noi });
   const boot = prettyBoot(rel.bootStatus);
   if (boot) stats.push({ icon: Scale, label: "Boot", value: boot });
 
@@ -94,7 +94,7 @@ export function ListingHeaderBar({
             <p className="mt-2 text-xs text-muted-foreground">
               {audience === "investor"
                 ? "Both properties are managed in your account, so you can coordinate the exchange from one workspace."
-                : "In-network exchange chain — both sides are yours, so this deal could give you multiple transaction sides and keep the client relationship in house."}
+                : "In-network exchange chain - both sides are yours, so this deal could give you multiple transaction sides and keep the client relationship in house."}
             </p>
           )}
 

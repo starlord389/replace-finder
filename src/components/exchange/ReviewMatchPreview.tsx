@@ -35,7 +35,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">
-          Preview — how others will see this match
+          Preview - how others will see this match
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -56,7 +56,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
                     className="flex h-6 min-w-[24px] shrink-0 items-center justify-center rounded-full bg-muted px-1.5 text-[11px] font-bold text-muted-foreground"
                     title="Score depends on the buyer"
                   >
-                    —
+                    -
                   </span>
                 </div>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -65,7 +65,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
                 </p>
                 <div className="mt-1.5 flex items-center gap-1.5 text-[13px]">
                   <span className="font-semibold text-foreground">
-                    {askingPrice != null ? formatCurrency(askingPrice) : "—"}
+                    {askingPrice != null ? formatCurrency(askingPrice) : "-"}
                   </span>
                   {capRate != null && (
                     <>
@@ -86,7 +86,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
             </div>
           </div>
           <p className="mt-1.5 text-[11px] text-muted-foreground">
-            Score depends on the buyer's criteria — it isn't a fixed number.
+            Score depends on the buyer's criteria - it isn't a fixed number.
           </p>
         </div>
 
@@ -120,7 +120,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
               </div>
               <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 pt-1">
                 <span className="text-lg font-bold text-foreground">
-                  {askingPrice != null ? formatCurrency(askingPrice) : "—"}
+                  {askingPrice != null ? formatCurrency(askingPrice) : "-"}
                 </span>
                 {capRate != null && (
                   <span className="text-xs text-muted-foreground">
@@ -153,7 +153,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
           <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
             Detailed financials (gross rent, expenses, loan balance) stay hidden until you accept a connection with a matched buyer.
-            {!property.address_is_public && " The exact street address is also hidden — matched participants see only city and state."}
+            {!property.address_is_public && " The exact street address is also hidden - matched participants see only city and state."}
           </span>
         </div>
       </CardContent>

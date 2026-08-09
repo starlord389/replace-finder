@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { STAGE_LABELS, type RelationshipStage } from "@/features/matches/hooks/useUnifiedRelationships";
 
 export function currency(v: number | null) {
-  if (!v) return "—";
+  if (!v) return "-";
   if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
   if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K`;
   return `$${v.toLocaleString()}`;
@@ -20,7 +20,7 @@ export function scoreTextClass(s: number) {
   return "text-rose-700";
 }
 
-/** Score chip fill + foreground — darker fills so white digits meet WCAG AA contrast. */
+/** Score chip fill + foreground - darker fills so white digits meet WCAG AA contrast. */
 export function scoreChipClass(s: number) {
   if (s >= 85) return "bg-emerald-700 text-white";
   if (s >= 70) return "bg-amber-700 text-white";

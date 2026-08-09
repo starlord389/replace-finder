@@ -59,7 +59,7 @@ function CurrencyField({ label, value, onChange, required, error, errorMessage, 
   );
 }
 
-// NOI and cap rate are no longer entered — we derive them from the gross rent
+// NOI and cap rate are no longer entered - we derive them from the gross rent
 // roll, operating expenses, and asking price (occupancy assumed 100%) and show
 // the result read-only so the agent can sanity-check it.
 function DerivedFinancials({ financials }: { financials: FinancialsData }) {
@@ -68,16 +68,16 @@ function DerivedFinancials({ financials }: { financials: FinancialsData }) {
     <div className="rounded-lg border bg-muted/40 p-4">
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Calculated</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        We annualize your monthly figures (×12) and assume 100% occupancy. The mortgage is excluded — NOI is before debt service.
+        We annualize your monthly figures (×12) and assume 100% occupancy. The mortgage is excluded - NOI is before debt service.
       </p>
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
         <div>
           <p className="text-xs text-muted-foreground">Net Operating Income (annual)</p>
-          <p className="text-lg font-semibold text-foreground">{noi != null ? formatCurrency(noi) : "—"}</p>
+          <p className="text-lg font-semibold text-foreground">{noi != null ? formatCurrency(noi) : "-"}</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground">Cap Rate</p>
-          <p className="text-lg font-semibold text-foreground">{capRate != null ? `${capRate.toFixed(2)}%` : "—"}</p>
+          <p className="text-lg font-semibold text-foreground">{capRate != null ? `${capRate.toFixed(2)}%` : "-"}</p>
         </div>
       </div>
     </div>
@@ -245,7 +245,7 @@ export default function StepPropertyAndFinancials({
             help="Total rent collected per month at full (100%) occupancy." />
           <CurrencyField label="Monthly Operating Expenses" value={financials.total_operating_expenses} onChange={v => setFinancials("total_operating_expenses", v)}
             required error={!!errors.total_operating_expenses} errorMessage={errors.total_operating_expenses}
-            help="What it costs to OPERATE the property each month — property taxes, insurance, management, repairs, maintenance, utilities, HOA. Do NOT include the mortgage." />
+            help="What it costs to OPERATE the property each month - property taxes, insurance, management, repairs, maintenance, utilities, HOA. Do NOT include the mortgage." />
           <CurrencyField label="Current Loan Balance" value={financials.loan_balance} onChange={v => setFinancials("loan_balance", v)}
             required error={!!errors.loan_balance} errorMessage={errors.loan_balance}
             help="Remaining balance owed on the loan. Used to estimate equity and exchange proceeds. Enter 0 if free and clear." />

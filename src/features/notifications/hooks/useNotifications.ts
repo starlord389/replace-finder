@@ -16,7 +16,7 @@ async function fetchNotifications(userId: string, isDemo: boolean): Promise<Noti
     .limit(50);
   if (error) throw error;
   // Notifications have no demo column, so scope by the demo flag we set in
-  // metadata — demo notifications only show in Demo, real ones only in Live.
+  // metadata - demo notifications only show in Demo, real ones only in Live.
   return (data ?? []).filter((n) => Boolean((n.metadata as any)?.demo) === isDemo);
 }
 
@@ -53,7 +53,7 @@ export function useNotifications() {
     mutationFn: async () => {
       if (!user?.id) return;
       // Only mark the CURRENT workspace's unread (notifications carry no demo
-      // column, so target the already demo-scoped rows by id) — otherwise this
+      // column, so target the already demo-scoped rows by id) - otherwise this
       // would also clear the other workspace's unread.
       const ids = (query.data ?? []).filter((n) => !n.read).map((n) => n.id);
       if (ids.length === 0) return;

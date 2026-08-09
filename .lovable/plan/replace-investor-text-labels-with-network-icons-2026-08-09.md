@@ -17,7 +17,7 @@ Update the radial network diagram on the homepage so it no longer uses "Investor
 ## Design constraints
 - Icons must remain legible at the small orbit-node size.
 - No text labels on the orbit nodes by default (tooltips or hover labels can be considered for accessibility).
-- Keep the diagram within the current viewport fit — no vertical expansion.
+- Keep the diagram within the current viewport fit - no vertical expansion.
 
 ## Implementation notes
 - Icons can be sourced from `lucide-react` (already in the project), e.g., `User`, `Briefcase`, `Building2`.

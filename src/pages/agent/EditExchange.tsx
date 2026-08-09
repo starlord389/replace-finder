@@ -223,7 +223,7 @@ export default function EditExchange({ ownerType = "agent" }: { ownerType?: "age
       await updateExchange.mutateAsync({ exchangeId: id, intent, data });
       const messages: Record<typeof intent, string> = {
         save_draft: "Changes saved as draft.",
-        publish: "Exchange published — matching queued.",
+        publish: "Exchange published - matching queued.",
         save_active: "Changes saved.",
         move_to_draft: "Exchange moved to draft.",
       };

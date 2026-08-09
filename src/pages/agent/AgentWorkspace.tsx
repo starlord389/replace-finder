@@ -1,7 +1,7 @@
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
 
-// The standalone per-listing workspace page was retired. Everything it did —
-// reviewing a listing's matches, the deal panel, and the conversation — now
+// The standalone per-listing workspace page was retired. Everything it did -
+// reviewing a listing's matches, the deal panel, and the conversation - now
 // lives in the unified Matches inbox (/agent/matches), which supports the
 // ?listing, ?match and ?view params. Any remaining /agent/workspace/:exchangeId
 // link (including the in-App ExchangeToWorkspaceRedirect) lands here and is

@@ -55,7 +55,7 @@ async function fetchConversations(userId: string, isDemo: boolean): Promise<Conv
   const propertyIds = Array.from(new Set((matchesRes.data ?? []).map((m) => m.seller_property_id)));
   // Conversation seller properties belong to the counterparty → masked view.
   // Workspace bucketing keys off the connection's own exchanges (below), not
-  // this row — the masked row can be absent if the counterparty listing moved
+  // this row - the masked row can be absent if the counterparty listing moved
   // to draft, and we must never let a demo thread leak into Live.
   const exchangeIds = Array.from(
     new Set(
@@ -87,7 +87,7 @@ async function fetchConversations(userId: string, isDemo: boolean): Promise<Conv
   return connections
     // Scope to the active workspace from the connection's OWN exchanges (the
     // seller side the thread is about, falling back to the buyer side), which
-    // are always present — unlike the masked seller property row, which can
+    // are always present - unlike the masked seller property row, which can
     // disappear when the counterparty listing moves to draft. Only fall back to
     // the property row when both exchanges are unknown, and when even that's
     // missing, exclude rather than risk surfacing a demo thread in Live.
@@ -145,7 +145,7 @@ export function useConversations() {
 
   // Realtime: refresh on any new message in any of my connections.
   // Invalidate via the query client (stable) rather than depending on the
-  // `query` object — that reference changes every render and was tearing down
+  // `query` object - that reference changes every render and was tearing down
   // and re-subscribing the channel on each one.
   useEffect(() => {
     if (!user?.id) return;

@@ -193,7 +193,7 @@ function PipelineFunnel({ relationships }: { relationships: Relationship[] }) {
   useMatchLocalStateVersion();
   const counts = { new: 0, conversing: 0, loi: 0, uc: 0, closed: 0 };
   for (const r of relationships) {
-    // Bucket by the UI lifecycle status — loi / under_contract live there, not in r.stage.
+    // Bucket by the UI lifecycle status - loi / under_contract live there, not in r.stage.
     switch (deriveUiStatus(r, readMatchLocalState(r.matchId))) {
       case "new":
       case "sent_to_client":
@@ -295,7 +295,7 @@ export default function AgentDashboard() {
 
   // KPI derivations
   const activeListings = exchanges.filter((e) => e.status === "active").length;
-  // Only true drafts — not completed/failed/cancelled/in-progress (those aren't "drafts").
+  // Only true drafts - not completed/failed/cancelled/in-progress (those aren't "drafts").
   const draftListings = exchanges.filter((e) => e.status === "draft").length;
   const clientsWithActiveListing = new Set(
     exchanges.filter((e) => e.status === "active" && e.client_id).map((e) => e.client_id),

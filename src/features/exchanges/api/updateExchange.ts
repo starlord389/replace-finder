@@ -19,7 +19,7 @@ export interface UpdateExchangeResponse {
 
 function normalize(data: WizardState) {
   const { estimatedEquity, exchangeProceeds } = getEstimatedExchangeEconomics(data.financials);
-  // Derived NOI / cap rate / occupancy (100%) — see createExchange.ts.
+  // Derived NOI / cap rate / occupancy (100%) - see createExchange.ts.
   const derived = getDerivedFinancials(data.financials);
   return {
     property: {

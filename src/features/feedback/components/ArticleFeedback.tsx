@@ -59,7 +59,7 @@ export function ArticleFeedback({ articleId, articleType, articleTitle }: Articl
     <div className="mt-4 border-t border-border pt-3">
       {askComment ? (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-foreground">Sorry this wasn't helpful — what were you looking for?</p>
+          <p className="text-xs font-medium text-foreground">Sorry this wasn't helpful - what were you looking for?</p>
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
@@ -79,7 +79,7 @@ export function ArticleFeedback({ articleId, articleType, articleTitle }: Articl
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Check className="h-3.5 w-3.5 text-green-600" />
           {commentSent
-            ? "Thanks — we'll use this to improve the article."
+            ? "Thanks - we'll use this to improve the article."
             : choice === false
               ? "Thanks for letting us know."
               : "Thanks for your feedback!"}

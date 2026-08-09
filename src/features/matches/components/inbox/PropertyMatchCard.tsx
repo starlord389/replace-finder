@@ -100,7 +100,7 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClie
           </div>
 
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {[rel.propertyCity, rel.propertyState].filter(Boolean).join(", ") || "—"}
+            {[rel.propertyCity, rel.propertyState].filter(Boolean).join(", ") || "-"}
             {assetLabel && <span> · {assetLabel}</span>}
           </p>
 
@@ -129,7 +129,7 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClie
         {rel.isSameAgent && (
           <span
             className="inline-flex shrink-0 items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10.5px] font-semibold text-amber-800"
-            title="Both sides of this match are in your own book of business — potential multiple transaction sides."
+            title="Both sides of this match are in your own book of business - potential multiple transaction sides."
           >
             In-Network Match
           </span>

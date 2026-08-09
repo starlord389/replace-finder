@@ -37,7 +37,7 @@ export default function ActivateResultDialog({
           <DialogDescription className="text-center">
             {isSuccess
               ? "ExchangeUp™ will continue evaluating the network as new properties, investors and opportunities are added."
-              : "We couldn't activate this exchange. Details below — you can try again or save your progress as a draft."}
+              : "We couldn't activate this exchange. Details below - you can try again or save your progress as a draft."}
           </DialogDescription>
         </DialogHeader>
 
@@ -64,7 +64,7 @@ export default function ActivateResultDialog({
 
             {state.newMatches === 0 && (
               <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4 text-sm text-foreground">
-                <div className="font-medium">No opportunities right now — that's normal.</div>
+                <div className="font-medium">No opportunities right now - that's normal.</div>
                 <p className="mt-1 text-muted-foreground">
                   Nothing else in the network currently clears both the equity-based 75% LTV ceiling and the
                   return-on-equity improvement requirement. We keep watching and re-check every time something new
@@ -78,7 +78,7 @@ export default function ActivateResultDialog({
                 <div>
                   <div className="font-medium">You'll get an email whenever a new opportunity is detected.</div>
                   <p className="mt-1 text-muted-foreground">
-                    Each email links straight to the opportunity inside your Matches tab — no digging required.
+                    Each email links straight to the opportunity inside your Matches tab - no digging required.
                   </p>
                 </div>
               </div>
@@ -91,7 +91,7 @@ export default function ActivateResultDialog({
                 <div>
                   <div className="font-medium">Only upgrades, never downgrades.</div>
                   <p className="mt-1 text-muted-foreground">
-                    We only surface replacement properties with a higher projected return on equity — never lateral moves or downgrades.
+                    We only surface replacement properties with a higher projected return on equity - never lateral moves or downgrades.
                   </p>
                 </div>
               </div>

@@ -3,7 +3,7 @@
 Goal: make the product immediately understandable to agents and investors, and make the
 underlying flows (ROE entry, progressive criteria, same-agent matching, alerts) actually
 support the "continuous opportunity monitoring" promise. Existing visual identity, layout
-system and working features are kept — this modifies what exists rather than rebuilding.
+system and working features are kept - this modifies what exists rather than rebuilding.
 
 ## 1. Homepage restructure (copy + hierarchy)
 
@@ -76,7 +76,7 @@ Both paths use the representation and referral machinery that already exists.
 ## 6. Alerts and continuous monitoring
 
 - Agent-facing alert copy standardised: opportunity summary, property value, target range,
-  market match, profile match percentage, "View opportunity" — no confidential investor or
+  market match, profile match percentage, "View opportunity" - no confidential investor or
   address detail before parties engage.
 - Persistent "ExchangeUp is monitoring in the background" state on exchange, listing and
   investor detail surfaces, showing last-evaluated time so the product feels active between
@@ -88,7 +88,7 @@ Both paths use the representation and referral machinery that already exists.
   new `src/content/events.ts`.
 - ROE changes are inside the existing `RoeMiniCalc` component; result state handled locally.
 - Investor onboarding modifies `src/pages/investor/InvestorLaunchpad.tsx` and the existing
-  investor preferences hook; no new tables are required — `investor_preferences`,
+  investor preferences hook; no new tables are required - `investor_preferences`,
   `replacement_criteria`, `agent_representations` and `referrals` already cover the fields.
 - Matching changes live in `supabase/functions/_shared/matching-core.ts` and are covered by
   the existing unit tests, which will be extended for the same-agent case.

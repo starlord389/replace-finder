@@ -61,7 +61,7 @@ export default function AcceptInvite() {
 
   // If user is already signed in, link the invite to their account via a
   // SECURITY DEFINER RPC. (A direct agent_clients UPDATE silently no-ops for the
-  // invitee — the only UPDATE policy is agent-scoped — so the client was never
+  // invitee - the only UPDATE policy is agent-scoped - so the client was never
   // linked while the invite was consumed.)
   const handleLinkExistingAccount = async () => {
     if (!user || !token || !invite) return;

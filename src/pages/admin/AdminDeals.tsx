@@ -25,10 +25,10 @@ type StagingDatasetManifest = {
 };
 
 function fmtDate(d: string | null) {
-  return d ? new Date(d).toLocaleDateString() : "—";
+  return d ? new Date(d).toLocaleDateString() : "-";
 }
 function money(n: number | null) {
-  return n != null ? `$${Math.round(n).toLocaleString()}` : "—";
+  return n != null ? `$${Math.round(n).toLocaleString()}` : "-";
 }
 function pretty(s: string) {
   return s.replace(/_/g, " ");
@@ -112,7 +112,7 @@ export default function AdminDeals() {
   }, [searchParams]);
 
   const agent = useCallback(
-    (id: string | null) => (id ? agentName.get(id) ?? "Unknown" : "—"),
+    (id: string | null) => (id ? agentName.get(id) ?? "Unknown" : "-"),
     [agentName],
   );
   const exchangeById = useMemo(
@@ -227,8 +227,8 @@ export default function AdminDeals() {
                   <TableRow key={p.id}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(p.created_at)}</TableCell>
                     <TableCell className="text-sm font-medium">{resolveListingName(p, true)}</TableCell>
-                    <TableCell className="text-sm">{[p.city, p.state].filter(Boolean).join(", ") || "—"}</TableCell>
-                    <TableCell className="text-sm capitalize">{p.asset_type ? pretty(p.asset_type) : "—"}</TableCell>
+                    <TableCell className="text-sm">{[p.city, p.state].filter(Boolean).join(", ") || "-"}</TableCell>
+                    <TableCell className="text-sm capitalize">{p.asset_type ? pretty(p.asset_type) : "-"}</TableCell>
                     <TableCell className="text-xs font-medium">{exchangeOwnerTypeLabel(ownerType)}</TableCell>
                     <TableCell className="text-sm">{agent(p.agent_id)}</TableCell>
                     <TableCell><StatusPill value={p.status} /></TableCell>
@@ -306,7 +306,7 @@ export default function AdminDeals() {
                     </TableCell>
                     <TableCell><StatusPill value={c.status} /></TableCell>
                     <TableCell className="text-sm">
-                      {c.facilitation_fee_amount != null ? money(c.facilitation_fee_amount) : "—"}
+                      {c.facilitation_fee_amount != null ? money(c.facilitation_fee_amount) : "-"}
                       {c.facilitation_fee_status && (
                         <span className="ml-1 text-xs text-muted-foreground capitalize">({pretty(c.facilitation_fee_status)})</span>
                       )}

@@ -387,7 +387,7 @@ export function ListingSwitcher({ listings, basePath = "/agent", ownerLabel }: {
                             </div>
                             <div className="shrink-0 text-right">
                               <p className="text-base font-bold tabular-nums text-foreground">
-                                {l.askingPrice != null ? fmtPrice(l.askingPrice) : "—"}
+                                {l.askingPrice != null ? fmtPrice(l.askingPrice) : "-"}
                               </p>
                               {assetLabel && (
                                 <p className="mt-1 inline-block rounded border border-primary/10 bg-primary/5 px-1.5 py-0.5 text-[10px] font-semibold text-primary">

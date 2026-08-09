@@ -3,7 +3,7 @@ import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationsh
 import { whyThisMatched } from "./inboxHelpers";
 
 function fmtPct(ratio: number | null): string {
-  if (ratio == null || !Number.isFinite(ratio)) return "—";
+  if (ratio == null || !Number.isFinite(ratio)) return "-";
   return `${(ratio * 100).toFixed(1)}%`;
 }
 
