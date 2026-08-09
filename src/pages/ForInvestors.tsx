@@ -6,12 +6,12 @@ import { EXTRA_CSS, SECTIONS_CSS, Sec_how, Sec_investors, Sec_why } from "./Home
 
 export default function ForInvestors() {
   useEffect(() => {
-    document.title = "For Investors & Property Owners - 1031ExchangeUp™";
+    document.title = "For Property Owners - 1031ExchangeUp™";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
         "content",
-        "Built for investors and property owners: add your investment property and goals to 1031ExchangeUp™ and discover opportunities through intelligent opportunity monitoring.",
+        "Built for property owners: add your investment property criteria to 1031ExchangeUp™ and discover opportunities through intelligent opportunity monitoring.",
       );
     }
   }, []);
