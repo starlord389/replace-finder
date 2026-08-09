@@ -327,11 +327,38 @@ function NbHero() {
 
 
 function NbMonitorSteps() {
-  const nodes = [
-    { label: "Property A", sub: "Owner adds it once", cx: 450, cy: 58, sx: 450, sy: 104, ex: 450, ey: 182 },
-    { label: "Property B", sub: "Owner adds it once", cx: 140, cy: 430, sx: 250, sy: 381, ex: 351, ey: 334 },
-    { label: "Property C", sub: "Owner adds it once", cx: 760, cy: 430, sx: 651, sy: 381, ex: 549, ey: 334 },
+  const hub = { cx: 450, cy: 300, r: 104 };
+  const orbitRadius = 255;
+  const nodeOffset = 46;
+  const labels = [
+    "Property A",
+    "Property B",
+    "Property C",
+    "Property D",
+    "Property E",
+    "Property F",
   ];
+  const angles = [270, 330, 30, 90, 150, 210]; // degrees from 3 o'clock counter-clockwise
+
+  const nodes = labels.map((label, i) => {
+    const rad = (angles[i] * Math.PI) / 180;
+    const cx = hub.cx + orbitRadius * Math.cos(rad);
+    const cy = hub.cy + orbitRadius * Math.sin(rad);
+    const dx = hub.cx - cx;
+    const dy = hub.cy - cy;
+    const dist = Math.hypot(dx, dy) || 1;
+    const ux = dx / dist;
+    const uy = dy / dist;
+    return {
+      label,
+      cx,
+      cy,
+      sx: cx + ux * nodeOffset,
+      sy: cy + uy * nodeOffset,
+      ex: hub.cx - ux * hub.r,
+      ey: hub.cy - uy * hub.r,
+    };
+  });
 
   return (
     <section id="steps" className="nb-diagram" aria-label="How the network works">
@@ -339,16 +366,14 @@ function NbMonitorSteps() {
         <p className="nb-diagram-eyebrow">How It Works</p>
         <h2 className="nb-diagram-h2">Every property added makes the network smarter.</h2>
         <p className="nb-diagram-lead">
-          Property A, Property B and Property C all feed the same growing network — and each one receives opportunities
-          back from it. Exchange IQ™ monitors continuously and alerts the right owner or agent when a better fit appears.
+          Properties A through F all feed the same growing network — and every new property makes it more useful for all members. Exchange IQ™ monitors continuously and alerts the right owner or agent when a better fit appears.
         </p>
 
         <svg
           className="nb-net"
-          viewBox="0 0 900 520"
-
+          viewBox="0 0 900 620"
           role="img"
-          aria-label="Property A, Property B and Property C each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
+          aria-label="Properties A through F each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
         >
           <defs>
             <marker id="nbArrowIn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -365,21 +390,20 @@ function NbMonitorSteps() {
               />
               <rect x={n.cx - 112} y={n.cy - 42} width="224" height="84" rx="18" fill="#ffffff" />
               <text x={n.cx} y={n.cy - 6} textAnchor="middle" fontSize="25" fontWeight="800" fill="#0b1f3d">{n.label}</text>
-              <text x={n.cx} y={n.cy + 22} textAnchor="middle" fontSize="17" fontWeight="600" fill="#5a6b83">{n.sub}</text>
+              <text x={n.cx} y={n.cy + 22} textAnchor="middle" fontSize="17" fontWeight="600" fill="#5a6b83">Owner adds it once</text>
             </g>
           ))}
 
-          <circle cx="450" cy="290" r="104" fill="#ffffff" />
-          <circle cx="450" cy="290" r="118" fill="none" stroke="rgba(67,160,71,.45)" strokeWidth="2" />
-          <text x="450" y="272" textAnchor="middle" fontSize="30" fontWeight="800" fill="#0b1f3d">1031</text>
-          <text x="450" y="304" textAnchor="middle" fontSize="26" fontWeight="800" fill="#0b1f3d">
+          <circle cx={hub.cx} cy={hub.cy} r={hub.r} fill="#ffffff" />
+          <circle cx={hub.cx} cy={hub.cy} r={hub.r + 14} fill="none" stroke="rgba(67,160,71,.45)" strokeWidth="2" />
+          <text x={hub.cx} y={hub.cy - 18} textAnchor="middle" fontSize="30" fontWeight="800" fill="#0b1f3d">1031</text>
+          <text x={hub.cx} y={hub.cy + 14} textAnchor="middle" fontSize="26" fontWeight="800" fill="#0b1f3d">
             Exchange<tspan fill="#43a047">UP</tspan><tspan fontSize="14" dy="-8">™</tspan>
           </text>
-          <text x="450" y="336" textAnchor="middle" fontSize="15" fontWeight="700" fill="#43a047" letterSpacing="1.5">
+          <text x={hub.cx} y={hub.cy + 46} textAnchor="middle" fontSize="15" fontWeight="700" fill="#43a047" letterSpacing="1.5">
             MONITORING ACTIVE
           </text>
         </svg>
-
 
         <div className="nb-net-legend">
           <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Properties added to the network</span>
