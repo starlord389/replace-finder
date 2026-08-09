@@ -243,11 +243,11 @@ export default function AgentNetworkSection() {
       <section className="agn-cta" aria-label="Join the agent network">
         <div className="agn-cta-inner">
           <h2 className="agn-cta-h">
-            You Already Built the Database. Let ExchangeUp™ Find the Opportunities Inside It.
+            Ready to Unlock More Deal Flow?
           </h2>
           <p className="agn-cta-p">
             Join a growing network of investor-friendly real estate agents using ExchangeUp™ to
-            connect clients, properties, and potential 1031 opportunities.
+            uncover more transactions, more introductions, and more opportunities for their clients.
           </p>
           <Link to={ROUTES.signup} className="agn-cta-btn">Join the Agent Network - Free</Link>
           <p className="agn-cta-note">Free to join. Add your clients and properties in minutes.</p>
