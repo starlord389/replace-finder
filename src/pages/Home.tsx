@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import monitoringDiagram from "@/assets/exchangeup-monitoring-diagram.png.asset.json";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { SECTIONS_CSS, LandingSections } from "./HomeSections";
 
