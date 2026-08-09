@@ -262,9 +262,9 @@ function NbMonitorSteps() {
           <p className="nb-diagram-eyebrow">How It Works</p>
           <HowItWorksFlow />
         </div>
-        <h2 className="nb-diagram-h2">Every property added makes the network smarter.</h2>
+        <h2 className="nb-diagram-h2">Every property unlocks new opportunities.</h2>
         <p className="nb-diagram-lead">
-          Agents/Brokers/Property Owners all feed the network. <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts both parties.
+          <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts both parties when a better fit appears.
         </p>
 
         <div className="nb-diagram-ctas">
