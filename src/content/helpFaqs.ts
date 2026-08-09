@@ -58,7 +58,7 @@ export const AGENT_FAQS: FaqCategory[] = [
   {
     category: "Pricing & Account",
     items: [
-      { q: "How is the platform priced?", a: "It isn't — 1031ExchangeUp™ is free for investors and agents. Unlimited exchanges, criteria and matching are free at no cost, with no card required." },
+      { q: "How is the platform priced?", a: "It isn't — 1031ExchangeUp™ is free for agents and investors. Unlimited exchanges, criteria and matching are free at no cost, with no card required." },
       { q: "Can I close my account anytime?", a: "Yes — close your account from Settings. Your workspace stays read-only for 30 days afterwards so you can export data." },
 
       { q: "How do I export my data?", a: "Settings → Data Export generates a CSV of your clients, exchanges, and connections. Submit a ticket if you need a custom export format." },

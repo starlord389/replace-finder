@@ -1021,7 +1021,7 @@ function Sec_resources() {
 
         {/* (3) Pricing */}
         <div className="nb-res-card nb-res-dark">
-          <h3 className="nb-res-title">Free for Investors & Agents</h3>
+          <h3 className="nb-res-title">Free for Agents & Investors</h3>
           <ul className="nb-res-clist">
             {[
               'Free for investors — every property and criteria',
@@ -1073,7 +1073,7 @@ function Sec_faqcta() {
           },
           {
             q: 'How much does it cost?',
-            a: 'Nothing. 1031ExchangeUp™ is free for investors and agents. Every client, property and criteria you add is monitored free, with no plans, tiers or card required.',
+            a: 'Nothing. 1031ExchangeUp™ is free for agents and investors. Every client, property and criteria you add is monitored free, with no plans, tiers or card required.',
           },
 
 
