@@ -6,14 +6,11 @@ const homeSource = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8
 const sectionsSource = readFileSync(join(process.cwd(), "src/pages/HomeSections.tsx"), "utf8");
 
 describe("public landing-page audiences", () => {
-  it("leads with easier 1031 replacement-property discovery", () => {
+  it("leads with the core 1031 exchange opportunity promise", () => {
     expect(homeSource).toContain("The biggest obstacle to a 1031 Exchange is finding what comes next.");
     expect(homeSource).toContain("1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.");
     expect(homeSource).toContain("Find My Replacement Property");
-    expect(homeSource).toContain("Every property added makes the network smarter.");
-    expect(homeSource).toContain("I Own Investment Property");
-    expect(homeSource).toContain("I’m a Real Estate Agent");
-    expect(homeSource).toContain("Don’t Wait for the 45-Day Clock to Start.");
+    expect(homeSource).toContain("Agents—Join Our Network");
   });
 
   it("explains agent and investor value without becoming an open marketplace", () => {
