@@ -41,7 +41,6 @@ export default function ForAgents() {
 
       <Sec_agents />
       <Sec_how />
-      <Sec_trust />
     </div>
   );
 }

@@ -42,7 +42,6 @@ export default function ForInvestors() {
       <Sec_investors />
       <Sec_why />
       <Sec_how />
-      <Sec_trust />
     </div>
   );
 }
