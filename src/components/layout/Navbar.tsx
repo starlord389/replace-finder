@@ -47,7 +47,7 @@ export default function Navbar(_props: NavbarProps) {
         <Link
           to={ROUTES.home}
           className="flex shrink-0 items-center text-[#16284a]"
-          aria-label="1031ExchangeUP home"
+          aria-label="1031ExchangeUP™ home"
         >
           <ExchangeLogoLockup textClassName="text-[22px]" />
         </Link>

@@ -204,7 +204,7 @@ export default function StepPropertyAndFinancials({
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Basic information</h3>
             <span className="text-xs text-muted-foreground">Required</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">Only the information Exchange IQ needs to evaluate the exchange.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Only the information Exchange IQ™ needs to evaluate the exchange.</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>

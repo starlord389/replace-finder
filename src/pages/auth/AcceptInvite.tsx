@@ -164,7 +164,7 @@ export default function AcceptInvite() {
           </div>
           <CardDescription>
             {agentName ? <strong>{agentName}</strong> : "Your agent"} invited you to view your 1031
-            exchange progress on 1031ExchangeUp.
+            exchange progress on 1031ExchangeUp™.
           </CardDescription>
         </CardHeader>
         <CardContent>

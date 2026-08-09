@@ -100,7 +100,7 @@ export default function NewExchange({ ownerType = "agent" }: { ownerType?: "agen
         <h1 className="text-2xl font-bold text-foreground">New Exchange</h1>
         <p className="text-sm text-muted-foreground">
           {isInvestor
-            ? "List your current property and let Exchange IQ find higher-return exchange opportunities."
+            ? "List your current property and let Exchange IQ™ find higher-return exchange opportunities."
             : "Create a 1031 exchange for one of your clients."}
         </p>
       </div>

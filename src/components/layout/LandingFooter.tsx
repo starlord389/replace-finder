@@ -111,8 +111,8 @@ export default function LandingFooter() {
       <div className="nbf-inner">
         <div className="nbf-grid">
           <div>
-            <div className="nbf-logo">1031Exchange<b>UP</b></div>
-            <p className="nbf-tag">Intelligent opportunity monitoring with our Exchange IQ technology, built for 1031 exchange success.</p>
+            <div className="nbf-logo">1031Exchange<b>UP</b><sup>™</sup></div>
+            <p className="nbf-tag">Intelligent opportunity monitoring with our Exchange IQ™ technology, built for 1031 exchange success.</p>
           </div>
 
           {FOOTER_COLS.map((col) => (
@@ -155,7 +155,7 @@ export default function LandingFooter() {
           brokerage or an MLS, and not a substitute for either. Licensed agents remain
           responsible for their own marketing and Clear Cooperation obligations.
         </p>
-        <span className="nbf-copy">© {new Date().getFullYear()} 1031ExchangeUp. All rights reserved.</span>
+        <span className="nbf-copy">© {new Date().getFullYear()} 1031ExchangeUp™. All rights reserved.</span>
       </div>
     </footer>
   );

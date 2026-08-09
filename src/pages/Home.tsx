@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import monitoringDiagram from "@/assets/exchangeup-monitoring-diagram.png";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { SECTIONS_CSS, LandingSections } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
-   NEW BRAND — navy + green Exchange IQ matchmaking landing page.
+   NEW BRAND — navy + green Exchange IQ™ matchmaking landing page.
    Hero matched to the boss mockup: real dusk skyline photo, grey-backdrop
    headshots, multifamily property web, green-UP logo, outline demo button,
    four-badge row, grey role pills. Scoped under [data-nb].
@@ -51,10 +52,12 @@ const NB_STYLE = `
   @media (max-width: 480px) {
     [data-nb] .nb-nav-inner { padding: 0 14px; }
     [data-nb] .nb-logo { font-size: 18px; }
+    [data-nb] .nb-logo-tm { font-size: 0.5em; }
     [data-nb] .nb-nav-actions { gap: 8px; }
     [data-nb] .nb-nav-btn-join { padding: 0 14px; font-size: 14px; height: 40px; }
     [data-nb] .nb-nav-burger { width: 40px; height: 40px; }
   }
+  [data-nb] .nb-logo-tm { font-size: 0.45em; font-weight: 400; margin-left: 1px; opacity: 0.85; }
 
   /* ===== hero skyline backdrop (.nb-sky) ===== */
   [data-nb] .nb-sky { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
@@ -70,75 +73,7 @@ const NB_STYLE = `
   [data-nb] .nb-sky-net .nb-pulse:nth-of-type(3n) { animation-duration: 6s; animation-delay: 1.2s; }
   [data-nb] .nb-sky-net .nb-pulse:nth-of-type(3n+1) { animation-duration: 5.2s; animation-delay: .6s; }
 
-  /* ===== hero network graphic — simple Inputs → Hub → Outputs diagram ===== */
-  [data-nb] .nb-net { position: relative; width: 100%; max-width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 0; }
-  [data-nb] .nb-net-stage { display: flex; flex-direction: column; gap: 8px; }
-  [data-nb] .nb-net-stage.inputs { align-items: flex-end; }
-  [data-nb] .nb-net-stage.outputs { align-items: flex-start; }
-  [data-nb] .nb-net-node { display: flex; align-items: center; gap: 7px; background: #fff; border: 1px solid rgba(150,190,225,.5); border-radius: 12px; padding: 6px 10px; box-shadow: 0 10px 26px rgba(4,14,30,.35); }
-  [data-nb] .nb-net-ico { width: 26px; height: 26px; border-radius: 999px; background: #16284a; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; color: #5cc15f; }
-  [data-nb] .nb-net-ico svg { width: 12px; height: 12px; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  [data-nb] .nb-net-thumb { width: 34px; height: 34px; border-radius: 9px; background-color: #14305a; background-size: cover; background-position: center; flex: 0 0 auto; }
-  [data-nb] .nb-net-txt { flex: 1 1 auto; min-width: 0; }
-  [data-nb] .nb-net-label { display: block; font-size: 9px; font-weight: 800; letter-spacing: .08em; color: #16284a; line-height: 1.1; text-transform: uppercase; }
-  [data-nb] .nb-net-prop { display: block; margin-top: 2px; font-size: 11px; font-weight: 700; line-height: 1.2; color: #16284a; white-space: nowrap; }
-  [data-nb] .nb-net-price { display: block; margin-top: 1px; font-size: 9px; font-weight: 600; color: #7b8798; }
-
-  /* center hub */
-  [data-nb] .nb-net-hub { position: relative; width: 130px; height: 130px; border-radius: 50%; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 20px 60px rgba(4,14,30,.5), 0 0 0 10px rgba(255,255,255,.06); z-index: 5; flex: 0 0 auto; }
-  [data-nb] .nb-hub-1031 { font-size: 22px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.02em; }
-  [data-nb] .nb-hub-ex { margin-top: 2px; font-size: 12px; font-weight: 800; color: #16284a; line-height: 1; letter-spacing: -.01em; display: inline-flex; align-items: center; }
-  [data-nb] .nb-hub-ex .up { color: #43a047; text-transform: uppercase; }
-  [data-nb] .nb-hub-arrow { width: 9px; height: 9px; margin-left: 1px; transform: translateY(-2px); }
-  [data-nb] .nb-hub-status { margin-top: 7px; display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; background: #eef7ef; padding: 3px 9px; font-size: 8px; font-weight: 800; letter-spacing: .08em; color: #2f7d33; text-transform: uppercase; }
-  [data-nb] .nb-hub-dot { width: 4px; height: 4px; border-radius: 999px; background: #43a047; }
-  [data-nb] .nb-hub-ring { position: absolute; inset: -10px; border-radius: 50%; border: 1px solid rgba(51,214,201,.4); }
-  [data-nb] .nb-hub-ring.b { inset: -18px; opacity: .65; }
-  [data-nb] .nb-hub-ring.c { inset: -26px; opacity: .4; }
-
-  /* arrows */
-  [data-nb] .nb-net-arrow { display: flex; align-items: center; justify-content: center; color: #33d6c9; width: 18px; height: 18px; flex: 0 0 auto; }
-  [data-nb] .nb-net-arrow svg { width: 100%; height: 100%; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-
-  /* opportunity outputs */
-  [data-nb] .nb-net-alert { display: flex; align-items: center; gap: 7px; background: #fff; border: 1px solid rgba(150,190,225,.5); border-left: 3px solid #43a047; border-radius: 12px; padding: 6px 10px; box-shadow: 0 10px 26px rgba(4,14,30,.35); min-width: 130px; }
-  [data-nb] .nb-alert-ico { width: 26px; height: 26px; border-radius: 999px; background: #eef7ef; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; color: #43a047; }
-  [data-nb] .nb-alert-ico svg { width: 12px; height: 12px; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  [data-nb] .nb-alert-t { display: block; font-size: 8px; font-weight: 800; letter-spacing: .08em; color: #2f7d33; text-transform: uppercase; }
-  [data-nb] .nb-alert-b { display: block; margin-top: 1px; font-size: 10px; font-weight: 700; line-height: 1.3; color: #16284a; }
-
-  /* mobile */
-  @media (max-width: 1023.98px) {
-    [data-nb] .nb-net { flex-direction: column; gap: 18px; max-width: 460px; }
-    [data-nb] .nb-net-stage { flex-direction: row; justify-content: center; gap: 10px; }
-    [data-nb] .nb-net-stage.inputs, [data-nb] .nb-net-stage.outputs { align-items: stretch; }
-    [data-nb] .nb-net-node { flex-direction: column; padding: 10px; text-align: center; gap: 8px; min-width: 95px; }
-    [data-nb] .nb-net-ico { width: 28px; height: 28px; }
-    [data-nb] .nb-net-ico svg { width: 13px; height: 13px; }
-    [data-nb] .nb-net-thumb { width: 52px; height: 52px; }
-    [data-nb] .nb-net-txt { text-align: center; }
-    [data-nb] .nb-net-label { font-size: 9px; }
-    [data-nb] .nb-net-prop { font-size: 11px; }
-    [data-nb] .nb-net-price { font-size: 9px; }
-    [data-nb] .nb-net-hub { width: 150px; height: 150px; }
-    [data-nb] .nb-hub-1031 { font-size: 24px; }
-    [data-nb] .nb-hub-ex { font-size: 13px; }
-    [data-nb] .nb-hub-status { font-size: 8px; padding: 4px 9px; }
-    [data-nb] .nb-net-arrow { transform: rotate(90deg); }
-    [data-nb] .nb-net-alert { flex-direction: column; padding: 10px; text-align: center; gap: 8px; min-width: 130px; }
-    [data-nb] .nb-alert-b { font-size: 10px; }
-  }
-  @media (max-width: 480px) {
-    [data-nb] .nb-net-stage { gap: 7px; }
-    [data-nb] .nb-net-node { min-width: 88px; padding: 8px 6px; }
-    [data-nb] .nb-net-thumb { width: 44px; height: 44px; }
-    [data-nb] .nb-net-alert { min-width: 120px; }
-  }
-
-
-
-
-  /* ===== hero CTAs + trust badges ===== */
+  /* ===== hero network graphic removed — replaced by infographic in section 2 ===== */
   [data-nb] .nb-cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
   [data-nb] .nb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: 50px; padding: 0 26px; border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 15px; line-height: 1; letter-spacing: .01em; cursor: pointer; text-decoration: none; border: 1px solid transparent; transition: background .18s ease, box-shadow .18s ease, transform .12s ease; white-space: nowrap; }
   [data-nb] .nb-btn:active { transform: translateY(1px); }
@@ -210,19 +145,14 @@ const NB_STYLE = `
   [data-nb] .nb-hero-link:hover { color: #fff; border-color: rgba(255,255,255,.65); }
 
   /* ===== four-step monitoring strip ===== */
-  [data-nb] .nb-steps { background: #f7f9fc; border-bottom: 1px solid #e8edf3; padding: 40px 20px 44px; }
-  [data-nb] .nb-steps-inner { margin: 0 auto; max-width: 1240px; }
-  [data-nb] .nb-steps-kicker { text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #43a047; margin: 0 0 22px; }
-  [data-nb] .nb-steps-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; align-items: stretch; }
-  [data-nb] .nb-step { position: relative; background: #fff; border: 1px solid #e8edf3; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 12px rgba(14,42,77,.06); text-align: left; }
-  [data-nb] .nb-step-n { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: #9fb0c8; }
-  [data-nb] .nb-step-ico { width: 40px; height: 40px; border-radius: 11px; background: #eef6ef; display: flex; align-items: center; justify-content: center; margin: 10px 0 12px; }
-  [data-nb] .nb-step-ico svg { width: 20px; height: 20px; stroke: #43a047; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  [data-nb] .nb-step-t { font-size: 15.5px; font-weight: 800; color: #16284a; letter-spacing: -.01em; line-height: 1.25; }
-  [data-nb] .nb-step-d { margin-top: 6px; font-size: 13.5px; line-height: 1.45; color: #56657a; }
-  [data-nb] .nb-steps-tag { margin: 22px auto 0; text-align: center; font-size: 15px; font-weight: 800; color: #16284a; letter-spacing: -.01em; }
-  @media (max-width: 900px) { [data-nb] .nb-steps-row { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-  @media (max-width: 480px) { [data-nb] .nb-steps-row { grid-template-columns: 1fr; gap: 10px; } [data-nb] .nb-step { padding: 16px 16px; } }
+  /* ===== how it works diagram (section 2) ===== */
+  [data-nb] .nb-diagram { background: #0b1f3d; padding: 56px 20px 64px; text-align: center; }
+  [data-nb] .nb-diagram-inner { margin: 0 auto; max-width: 1080px; }
+  [data-nb] .nb-diagram-eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #43a047; }
+  [data-nb] .nb-diagram-h2 { margin: 10px auto 0; font-size: clamp(26px, 2.8vw, 36px); font-weight: 800; color: #fff; line-height: 1.15; max-width: 680px; }
+  [data-nb] .nb-diagram-lead { margin: 12px auto 0; font-size: 16.5px; line-height: 1.6; color: rgba(255,255,255,.75); max-width: 620px; }
+  [data-nb] .nb-diagram-img { margin: 34px auto 0; display: block; width: 100%; max-width: 1040px; border-radius: 16px; box-shadow: 0 24px 70px rgba(0,0,0,.35); }
+  @media (max-width: 640px) { [data-nb] .nb-diagram { padding: 40px 16px 48px; } [data-nb] .nb-diagram-img { border-radius: 12px; } }
 `;
 
 
@@ -244,28 +174,6 @@ const LOGO_BRANDS = [
   { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 40, mobileHeight: 30 },
 ];
 
-const PERSON_ICON = (
-  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" /></svg>
-);
-
-const BELL_ICON = (
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-);
-
-const ARROW_RIGHT = (
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
-);
-
-const OWNERS = [
-  { owner: "OWNER 1", prop: "Property A", price: "$850K", photo: "/mf-1.jpg" },
-  { owner: "OWNER 2", prop: "Property B", price: "$1.1M", photo: "/mf-2.jpg" },
-  { owner: "OWNER 3", prop: "Property C", price: "$1.4M", photo: "/mf-3.jpg" },
-];
-
-const ALERTS = [
-  { label: "NEW OPPORTUNITY", body: "Owner 1 ↔ Property B" },
-  { label: "NEW OPPORTUNITY", body: "Owner 3 ↔ Property A" },
-];
 
 
 
@@ -285,8 +193,8 @@ function NbNav() {
   return (
     <nav className="nb-nav">
       <div className="nb-nav-inner">
-        <Link to={ROUTES.home} className="nb-logo" aria-label="1031ExchangeUP home">
-          <span className="nb-logo-num">1031</span><span className="nb-logo-word">Exchange</span><span className="nb-logo-up">UP</span><LogoArrow />
+        <Link to={ROUTES.home} className="nb-logo" aria-label="1031ExchangeUP™ home">
+          <span className="nb-logo-num">1031</span><span className="nb-logo-word">Exchange</span><span className="nb-logo-up">UP</span><LogoArrow /><sup className="nb-logo-tm">™</sup>
         </Link>
         <div className="nb-nav-links">
           {NAV_LINKS.map((l) => (
@@ -334,63 +242,12 @@ function SkyBackdrop() {
   );
 }
 
-function HeroNetwork() {
-  return (
-    <div className="nb-net" role="img" aria-label="Property owners add their investment properties to 1031 ExchangeUP, which continuously monitors the network and alerts the right owner or agent when an opportunity is identified.">
-      {/* LEFT: property-owner inputs */}
-      <div className="nb-net-stage inputs">
-        {OWNERS.map((o) => (
-          <div key={o.owner} className="nb-net-node">
-            <span className="nb-net-ico" aria-hidden="true">{PERSON_ICON}</span>
-            <span className="nb-net-thumb" style={{ backgroundImage: `url(${o.photo})` }} aria-hidden="true" />
-            <span className="nb-net-txt">
-              <span className="nb-net-label">{o.owner}</span>
-              <span className="nb-net-prop">{o.prop}</span>
-              <span className="nb-net-price">{o.price}</span>
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* arrow: inputs → hub */}
-      <span className="nb-net-arrow" aria-hidden="true">{ARROW_RIGHT}</span>
-
-      {/* CENTER: monitoring hub */}
-      <div className="nb-net-hub">
-        <span className="nb-hub-ring" aria-hidden="true" />
-        <span className="nb-hub-ring b" aria-hidden="true" />
-        <span className="nb-hub-ring c" aria-hidden="true" />
-        <span className="nb-hub-1031">1031</span>
-        <span className="nb-hub-ex">Exchange<span className="up">UP</span>
-          <svg className="nb-hub-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><polyline points="3,17 9.5,11 13.5,14 21,5.5" stroke="#43a047" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /><polygon points="21,5.5 14.6,5.7 21,12.1" fill="#43a047" /></svg>
-        </span>
-        <span className="nb-hub-status"><i className="nb-hub-dot" />Monitoring Active</span>
-      </div>
-
-      {/* arrow: hub → outputs */}
-      <span className="nb-net-arrow" aria-hidden="true">{ARROW_RIGHT}</span>
-
-      {/* RIGHT: opportunity outputs */}
-      <div className="nb-net-stage outputs">
-        {ALERTS.map((a) => (
-          <div key={a.body} className="nb-net-alert">
-            <span className="nb-alert-ico" aria-hidden="true">{BELL_ICON}</span>
-            <span className="nb-net-txt">
-              <span className="nb-alert-t">{a.label}</span>
-              <span className="nb-alert-b">{a.body}</span>
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 
 
 const BADGES = [
   { txt: ["Free for Everyone", "Investors & Agents"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="m8.5 12 2.5 2.5L16 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
-  { txt: ["Continuous Monitoring", "with Exchange IQ"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
+  { txt: ["Continuous Monitoring", "with Exchange IQ™"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["No Obligation", "to Exchange"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><circle cx="17" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.8" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["Register a Property", "in Minutes"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
 ];
@@ -399,7 +256,7 @@ const BADGES = [
 const AUDIENCE_CARDS = [
   {
     tag: "I Own Investment Property",
-    txt: "Add it once. ExchangeUp keeps monitoring for a smarter place for your equity.",
+    txt: "Add it once. ExchangeUp™ keeps monitoring for a smarter place for your equity.",
     cta: "Monitor My Property",
     to: ROUTES.forInvestors,
     svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>),
@@ -439,78 +296,48 @@ function NbHero() {
   return (
     <section className="nb-hero">
       <SkyBackdrop />
-      <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:py-24">
-        <div>
-          <h1 className="nb-hero-h1 max-w-[620px]">
-            Finding Your 1031 Replacement Property Just Got A LOT Easier.
-          </h1>
-          <p className="nb-hero-sub mt-5 max-w-[540px]">
-            Register your property. Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.
-          </p>
+      <div className="nb-hero-inner mx-auto max-w-[1240px] px-5 py-16 text-center sm:px-8 lg:py-24">
+        <h1 className="nb-hero-h1 mx-auto max-w-[620px]">
+          Finding Your 1031 Replacement Property Just Got A LOT Easier.
+        </h1>
+        <p className="nb-hero-sub mx-auto mt-5 max-w-[540px]">
+          Register your property. Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.
+        </p>
 
-          <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find My Replacement Property</Link>
-            <a href="#steps" className="nb-btn-demo">See How It Works</a>
-          </div>
-
-          <div className="nb-badges">
-            {BADGES.map((b, i) => (
-              <div key={i} className="nb-badge">
-                <span className="nb-badge-ico" aria-hidden="true">{b.svg}</span>
-                <span className="nb-badge-txt">{b.txt.map((t, j) => (<span key={j}>{t}{j < b.txt.length - 1 ? <br /> : null}</span>))}</span>
-              </div>
-            ))}
-          </div>
+        <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>
+          <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find My Replacement Property</Link>
+          <a href="#steps" className="nb-btn-demo">See How It Works</a>
         </div>
 
-        <HeroNetwork />
+        <div className="nb-badges justify-center">
+          {BADGES.map((b, i) => (
+            <div key={i} className="nb-badge">
+              <span className="nb-badge-ico" aria-hidden="true">{b.svg}</span>
+              <span className="nb-badge-txt">{b.txt.map((t, j) => (<span key={j}>{t}{j < b.txt.length - 1 ? <br /> : null}</span>))}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
 
-const MONITOR_STEPS = [
-  {
-    t: "Add Your Property",
-    d: "What you own — or, for agents, a client and their criteria. Minutes, and free.",
-    svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><path d="M12 13v5M9.5 15.5h5" /></svg>),
-  },
-  {
-    t: "Set Your Goals",
-    d: "Tell us what a better position looks like for you. Change it any time.",
-    svg: (<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3.6" /><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" /></svg>),
-  },
-  {
-    t: "We Keep Watching",
-    d: "Exchange IQ continuously evaluates the network as properties, investors and criteria change.",
-    svg: (<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>),
-  },
-  {
-    t: "Get Alerted",
-    d: "When a relevant opportunity appears, you and your agent are alerted with the numbers.",
-    svg: (<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>),
-  },
-];
-
-
-
 function NbMonitorSteps() {
   return (
-    <section id="steps" className="nb-steps" aria-label="How monitoring works">
-      <div className="nb-steps-inner">
-        <p className="nb-steps-kicker">Add → Set → Monitor → Alert</p>
-        <div className="nb-steps-row">
-          {MONITOR_STEPS.map((s, i) => (
-            <div className="nb-step" key={s.t}>
-              <div className="nb-step-n">STEP {i + 1}</div>
-              <span className="nb-step-ico" aria-hidden="true">{s.svg}</span>
-              <div className="nb-step-t">{s.t}</div>
-              <p className="nb-step-d">{s.d}</p>
-            </div>
-          ))}
-        </div>
-        <p className="nb-steps-tag">Add it once. We keep watching.</p>
+    <section id="steps" className="nb-diagram" aria-label="How monitoring works">
+      <div className="nb-diagram-inner">
+        <p className="nb-diagram-eyebrow">How It Works</p>
+        <h2 className="nb-diagram-h2">Add once. We monitor continuously. You get alerted.</h2>
+        <p className="nb-diagram-lead">
+          Owners and agents add properties to the network. Exchange IQ™ monitors around the clock and surfaces relevant opportunities to the right people.
+        </p>
+        <img
+          src={monitoringDiagram}
+          alt="Property owners add their properties to 1031 ExchangeUp™, the platform continuously monitors opportunities, and alerts are sent to the right owners or agents."
+          className="nb-diagram-img"
+          loading="lazy"
+        />
       </div>
     </section>
   );
@@ -544,7 +371,7 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp — Finding Your 1031 Replacement Property Just Got A LOT Easier";
+    document.title = "1031ExchangeUp™ — Finding Your 1031 Replacement Property Just Got A LOT Easier";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
@@ -606,7 +433,7 @@ function NbWhyNow() {
         <div>
           <h2 className="nb-now-h">Don’t Wait for the 45-Day Clock to Start.</h2>
           <p className="nb-now-p">
-            ExchangeUp can monitor for smarter opportunities long before you decide to sell. Add your property today and
+            ExchangeUp™ can monitor for smarter opportunities long before you decide to sell. Add your property today and
             let the system continuously evaluate opportunities as the network changes.
           </p>
         </div>
@@ -629,6 +456,6 @@ function NbWhyNow() {
 }
 
 
-export { NB_STYLE, SkyBackdrop, HeroNetwork };
+export { NB_STYLE, SkyBackdrop };
 
 

@@ -90,7 +90,7 @@ export default function Unsubscribe() {
           <CardDescription>
             {state.kind === "loading" && "Checking your link…"}
             {state.kind === "ready" &&
-              "Confirm below and we'll stop sending you emails from 1031ExchangeUp."}
+              "Confirm below and we'll stop sending you emails from 1031ExchangeUp™."}
             {state.kind === "submitting" && "Processing…"}
             {state.kind === "done" &&
               "We've removed your email from our list. You won't receive further messages."}

@@ -70,7 +70,7 @@ const TRUST_POINTS = [
   },
   {
     title: "Free for everyone",
-    body: "Owners and agents both use 1031ExchangeUp free. The introduction costs you nothing and commits you to nothing, so our advice has no angle on you.",
+    body: "Owners and agents both use 1031ExchangeUp™ free. The introduction costs you nothing and commits you to nothing, so our advice has no angle on you.",
   },
 
   {
@@ -110,7 +110,7 @@ const FAQS = [
   },
   {
     q: "What's the catch? Why is this free?",
-    a: "There's no catch — 1031ExchangeUp is free for everyone, owners and agents alike. The introduction costs you nothing and carries no obligation. If your situation isn't a fit, we'll just tell you that straight.",
+    a: "There's no catch — 1031ExchangeUp™ is free for everyone, owners and agents alike. The introduction costs you nothing and carries no obligation. If your situation isn't a fit, we'll just tell you that straight.",
   },
 
   {

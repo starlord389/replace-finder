@@ -38,7 +38,7 @@ function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-foreground">Join 1031 ExchangeUp</h1>
+        <h1 className="text-2xl font-bold text-foreground">Join 1031 ExchangeUp™</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           How would you like to use the platform?
         </p>
@@ -542,7 +542,7 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
 
         {/* About the platform */}
         <div className="rounded-2xl bg-gradient-to-br from-[#16284a] to-[#1e3a6a] p-8 text-white shadow-sm">
-          <h2 className="text-lg font-semibold">About 1031ExchangeUP</h2>
+          <h2 className="text-lg font-semibold">About 1031ExchangeUP™</h2>
           <p className="mt-2 text-sm leading-relaxed text-white/80">
             We're a private matching platform connecting property owners with elite 1031 exchange
             specialists. Unlike public marketplaces, every match is hand-vetted so your details stay
