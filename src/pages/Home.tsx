@@ -238,8 +238,9 @@ function NbHero() {
           Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.
         </p>
 
-        <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>
+        <div className="nb-cta-row justify-center" style={{ marginTop: 32, gap: 14, flexWrap: "wrap" }}>
           <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find My Replacement Property</Link>
+          <Link to={ROUTES.signup} className="nb-btn nb-btn-outline">Agents—Join Our Network</Link>
         </div>
 
         <div className="nb-badges justify-center">
