@@ -101,11 +101,11 @@ export default function AgentNetworkSection() {
         <div className="agn-inner">
           <div className="agn-head">
             <p className="agn-eyebrow">For Real Estate Agents</p>
-            <h2 className="agn-h2">Turn Your Database Into a Deal Network.</h2>
+            <h2 className="agn-h2">Unlock More Deal Flow.</h2>
             <p className="agn-sub">
-              You already have the relationships. ExchangeUp™ continuously evaluates your investor
-              clients, properties, and the broader ExchangeUp™ network to uncover potential
-              transactions you may never have known existed.
+              ExchangeUp™ turns your existing client and property relationships into a continuous
+              opportunity network. Add your clients and properties once, and let the platform surface
+              potential transactions hiding inside your database and across the larger agent network.
             </p>
           </div>
 
@@ -120,11 +120,11 @@ export default function AgentNetworkSection() {
           </div>
 
           <div className="agn-turn">
-            <h3 className="agn-h3">One Network. More Opportunities.</h3>
+            <h3 className="agn-h3">How ExchangeUp™ Unlocks More Deal Flow</h3>
             <p className="agn-turn-p">
               Add your investor clients and investment properties once. ExchangeUp™ continuously
               looks for potential opportunities inside your own database and throughout the larger
-              network.
+              network, so more deals can surface without more manual prospecting.
             </p>
 
             <div className="agn-list">
@@ -243,11 +243,11 @@ export default function AgentNetworkSection() {
       <section className="agn-cta" aria-label="Join the agent network">
         <div className="agn-cta-inner">
           <h2 className="agn-cta-h">
-            You Already Built the Database. Let ExchangeUp™ Find the Opportunities Inside It.
+            Ready to Unlock More Deal Flow?
           </h2>
           <p className="agn-cta-p">
             Join a growing network of investor-friendly real estate agents using ExchangeUp™ to
-            connect clients, properties, and potential 1031 opportunities.
+            uncover more transactions, more introductions, and more opportunities for their clients.
           </p>
           <Link to={ROUTES.signup} className="agn-cta-btn">Join the Agent Network - Free</Link>
           <p className="agn-cta-note">Free to join. Add your clients and properties in minutes.</p>
