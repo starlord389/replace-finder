@@ -147,7 +147,8 @@ const NB_STYLE = `
   [data-nb] .nb-aud-card.is-open .nb-aud-chevron { transform: rotate(180deg); }
   [data-nb] .nb-aud-dropdown { margin: 20px auto 0; max-width: 1240px; animation: nb-dropdown-in .35s ease both; }
   @keyframes nb-dropdown-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-  [data-nb] .nb-aud-dropdown > section { padding: 48px 0; }
+  [data-nb] .nb-aud-dropdown > section { padding: 40px 0 !important; }
+  @media (min-width: 640px) { [data-nb] .nb-aud-dropdown > section { padding: 48px 0 !important; } }
   [data-nb] .nb-aud-dropdown > section:first-child { margin-top: 0; }
   [data-nb] .nb-hero-link { display: inline-flex; align-items: center; gap: 8px; color: #c4d2e6; font-size: 14.5px; font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 2px; transition: color .15s ease, border-color .15s ease; }
   [data-nb] .nb-hero-link:hover { color: #fff; border-color: rgba(255,255,255,.65); }
