@@ -78,7 +78,7 @@ export default function AdminSettings() {
         <CardHeader>
           <CardTitle className="text-base">Mortgage Assumptions</CardTitle>
           <CardDescription>
-            Used by Exchange IQ to estimate financing costs on candidate properties.
+            Used by Exchange IQ™ to estimate financing costs on candidate properties.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

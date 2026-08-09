@@ -5,7 +5,7 @@ import { ROUTES } from "@/app/routes/routeManifest";
 import { SECTIONS_CSS, LandingSections } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
-   NEW BRAND — navy + green Exchange IQ matchmaking landing page.
+   NEW BRAND — navy + green Exchange IQ™ matchmaking landing page.
    Hero matched to the boss mockup: real dusk skyline photo, grey-backdrop
    headshots, multifamily property web, green-UP logo, outline demo button,
    four-badge row, grey role pills. Scoped under [data-nb].
@@ -193,7 +193,7 @@ function NbNav() {
   return (
     <nav className="nb-nav">
       <div className="nb-nav-inner">
-        <Link to={ROUTES.home} className="nb-logo" aria-label="1031ExchangeUP home">
+        <Link to={ROUTES.home} className="nb-logo" aria-label="1031ExchangeUP™ home">
           <span className="nb-logo-num">1031</span><span className="nb-logo-word">Exchange</span><span className="nb-logo-up">UP</span><LogoArrow /><sup className="nb-logo-tm">™</sup>
         </Link>
         <div className="nb-nav-links">
@@ -247,7 +247,7 @@ function SkyBackdrop() {
 
 const BADGES = [
   { txt: ["Free for Everyone", "Investors & Agents"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="m8.5 12 2.5 2.5L16 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
-  { txt: ["Continuous Monitoring", "with Exchange IQ"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
+  { txt: ["Continuous Monitoring", "with Exchange IQ™"], svg: (<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.8" /><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" /><path d="M10 4v2M14 4v2M10 18v2M14 18v2M4 10h2M4 14h2M18 10h2M18 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["No Obligation", "to Exchange"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" /><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><circle cx="17" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.8" /><path d="M15.5 14.4c2.7.2 5 1.9 5 4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>) },
   { txt: ["Register a Property", "in Minutes"], svg: (<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" /><path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>) },
 ];
@@ -256,7 +256,7 @@ const BADGES = [
 const AUDIENCE_CARDS = [
   {
     tag: "I Own Investment Property",
-    txt: "Add it once. ExchangeUp keeps monitoring for a smarter place for your equity.",
+    txt: "Add it once. ExchangeUp™ keeps monitoring for a smarter place for your equity.",
     cta: "Monitor My Property",
     to: ROUTES.forInvestors,
     svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>),
@@ -330,11 +330,11 @@ function NbMonitorSteps() {
         <p className="nb-diagram-eyebrow">How It Works</p>
         <h2 className="nb-diagram-h2">Add once. We monitor continuously. You get alerted.</h2>
         <p className="nb-diagram-lead">
-          Owners and agents add properties to the network. Exchange IQ monitors around the clock and surfaces relevant opportunities to the right people.
+          Owners and agents add properties to the network. Exchange IQ™ monitors around the clock and surfaces relevant opportunities to the right people.
         </p>
         <img
           src={monitoringDiagram.url}
-          alt="Property owners add their properties to 1031 ExchangeUp, the platform continuously monitors opportunities, and alerts are sent to the right owners or agents."
+          alt="Property owners add their properties to 1031 ExchangeUp™, the platform continuously monitors opportunities, and alerts are sent to the right owners or agents."
           className="nb-diagram-img"
           loading="lazy"
         />
@@ -371,7 +371,7 @@ function NbLogoMarquee() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp — Finding Your 1031 Replacement Property Just Got A LOT Easier";
+    document.title = "1031ExchangeUp™ — Finding Your 1031 Replacement Property Just Got A LOT Easier";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
@@ -433,7 +433,7 @@ function NbWhyNow() {
         <div>
           <h2 className="nb-now-h">Don’t Wait for the 45-Day Clock to Start.</h2>
           <p className="nb-now-p">
-            ExchangeUp can monitor for smarter opportunities long before you decide to sell. Add your property today and
+            ExchangeUp™ can monitor for smarter opportunities long before you decide to sell. Add your property today and
             let the system continuously evaluate opportunities as the network changes.
           </p>
         </div>

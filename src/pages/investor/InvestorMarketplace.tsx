@@ -46,7 +46,7 @@ export default function InvestorMarketplace() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-[#16284a]">Explore investment properties</h1>
-        <p className="mt-2 text-muted-foreground">Browse the same published opportunities available across the 1031 ExchangeUp network.</p>
+        <p className="mt-2 text-muted-foreground">Browse the same published opportunities available across the 1031 ExchangeUp™ network.</p>
       </div>
       <div className="rounded-xl border bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#16284a]"><SlidersHorizontal className="h-4 w-4" />Find the right opportunity</div>

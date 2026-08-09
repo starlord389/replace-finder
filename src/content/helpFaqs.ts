@@ -20,7 +20,7 @@ export const AGENT_FAQS: FaqCategory[] = [
   {
     category: "Exchanges",
     items: [
-      { q: "What's the difference between draft and active?", a: "Draft exchanges aren't visible to Exchange IQ — use them while you collect property details. Active exchanges are queued for matching as soon as you publish them." },
+      { q: "What's the difference between draft and active?", a: "Draft exchanges aren't visible to Exchange IQ™ — use them while you collect property details. Active exchanges are queued for matching as soon as you publish them." },
       { q: "How do I edit an exchange after creating it?", a: "Open the exchange detail page and click Edit. The wizard re-opens prefilled with everything except the client (the client is locked once an exchange exists)." },
       { q: "Can I move an active exchange back to draft?", a: "Yes, as long as no agent has accepted a connection on it yet. Use the Save as Draft button on the detail page." },
       { q: "Why can't I publish my exchange?", a: "Publishing requires a relinquished property and replacement criteria to be filled in. The Review step shows what's missing." },
@@ -58,7 +58,7 @@ export const AGENT_FAQS: FaqCategory[] = [
   {
     category: "Pricing & Account",
     items: [
-      { q: "How is the platform priced?", a: "It isn't — 1031ExchangeUp is free for everyone. Investors, property owners and agents all get unlimited exchanges, criteria and matching at no cost, with no card required." },
+      { q: "How is the platform priced?", a: "It isn't — 1031ExchangeUp™ is free for everyone. Investors, property owners and agents all get unlimited exchanges, criteria and matching at no cost, with no card required." },
       { q: "Can I close my account anytime?", a: "Yes — close your account from Settings. Your workspace stays read-only for 30 days afterwards so you can export data." },
 
       { q: "How do I export my data?", a: "Settings → Data Export generates a CSV of your clients, exchanges, and connections. Submit a ticket if you need a custom export format." },

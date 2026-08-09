@@ -6,7 +6,7 @@ import { EXTRA_CSS, SECTIONS_CSS, Sec_agents, Sec_how, Sec_network, Sec_trust } 
 
 export default function ForAgents() {
   useEffect(() => {
-    document.title = "For Agents — 1031ExchangeUp";
+    document.title = "For Agents — 1031ExchangeUp™";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(

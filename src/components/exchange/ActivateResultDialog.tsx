@@ -36,7 +36,7 @@ export default function ActivateResultDialog({
           </DialogTitle>
           <DialogDescription className="text-center">
             {isSuccess
-              ? "ExchangeUp will continue evaluating the network as new properties, investors and opportunities are added."
+              ? "ExchangeUp™ will continue evaluating the network as new properties, investors and opportunities are added."
               : "We couldn't activate this exchange. Details below — you can try again or save your progress as a draft."}
           </DialogDescription>
         </DialogHeader>

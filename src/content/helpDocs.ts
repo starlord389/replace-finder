@@ -10,7 +10,7 @@ export const AGENT_DOCS: DocSection[] = [
     title: "Exchange Lifecycle Guide",
     body: `Every exchange flows through a sequence of statuses. Understanding each stage helps you know what action to take next.
 
-**Draft** — You're still gathering property details, financials, or replacement criteria. Drafts are private to you and aren't seen by Exchange IQ. Save freely; nothing is shared yet.
+**Draft** — You're still gathering property details, financials, or replacement criteria. Drafts are private to you and aren't seen by Exchange IQ™. Save freely; nothing is shared yet.
 
 **Active** — The exchange is queued for matching. Within minutes, the platform scores it against every pledged property in the network and surfaces the best fits. You and your client can review matches and start connections.
 
@@ -59,7 +59,7 @@ Adjust your replacement criteria to shift these weights — looser bands surface
     title: "Pledged Property Best Practices",
     body: `Properties you pledge are the supply side of the network. Higher-quality listings get more matches and better counter-party engagement.
 
-**Fill every field you can.** Exchange IQ scores on asset type, strategy, cap rate, occupancy, and location — missing fields default to neutral and lower the score.
+**Fill every field you can.** Exchange IQ™ scores on asset type, strategy, cap rate, occupancy, and location — missing fields default to neutral and lower the score.
 
 **Add at least 3 photos.** Listings with photos get ~3× more clicks from counter-party agents. The first photo is the cover image.
 

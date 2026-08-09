@@ -42,7 +42,7 @@ export default function InvestorDashboard() {
       <DemoDataControls />
 
       <div className="rounded-xl border bg-muted/40 p-4">
-        <p className="text-sm font-semibold text-foreground">Exchange IQ is monitoring in the background</p>
+        <p className="text-sm font-semibold text-foreground">Exchange IQ™ is monitoring in the background</p>
         <p className="mt-1 text-xs text-muted-foreground">
           Your active properties and criteria are compared against the network continuously. You'll be alerted here
           and by email the moment a better opportunity appears — no action needed in between.

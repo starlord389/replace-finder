@@ -81,7 +81,7 @@ function Sec_example() {
     <div className="text-center max-w-[720px] mx-auto">
       <h2 className="nb-h2">How a Match Actually Happens.</h2>
       <p className="nb-lead mt-4">
-        One property enters the network. Here is what Exchange IQ surfaces.
+        One property enters the network. Here is what Exchange IQ™ surfaces.
       </p>
 
     </div>
@@ -98,7 +98,7 @@ function Sec_example() {
       </div>
 
       <div className="nb-ex-mid" aria-hidden="true">
-        <div className="nb-ex-mid-label">Exchange IQ compares it across the network</div>
+        <div className="nb-ex-mid-label">Exchange IQ™ compares it across the network</div>
         <span style={{ fontSize: 26 }}>&rarr;</span>
       </div>
 
@@ -169,7 +169,7 @@ export function Sec_how() {
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         </div>
         <h3 className="nb-how-title">Monitor</h3>
-        <p className="nb-how-desc">ExchangeUp keeps watching — continuously evaluating the network as it changes.</p>
+        <p className="nb-how-desc">ExchangeUp™ keeps watching — continuously evaluating the network as it changes.</p>
       </div>
 
       <div className="nb-how-card">
@@ -199,7 +199,7 @@ export function Sec_agents() {
         <p className="nb-lead mt-4">
           Add investor clients and investment properties to ExchangeUp. The system continuously evaluates your database
 
-          and the broader ExchangeUp network for potential transactions.
+          and the broader ExchangeUp™ network for potential transactions.
         </p>
 
 
@@ -221,7 +221,7 @@ export function Sec_agents() {
         </ul>
 
         <p className="nb-ag-note">
-          You already built the database. Let ExchangeUp find the opportunities inside it. ExchangeUp does not replace the agent — it makes the agent&rsquo;s network more powerful.
+          You already built the database. Let ExchangeUp™ find the opportunities inside it. ExchangeUp™ does not replace the agent — it makes the agent&rsquo;s network more powerful.
         </p>
 
         <a href="/signup" className="nb-sec-cta">Add My First Opportunity</a>
@@ -252,7 +252,7 @@ export function Sec_investors() {
       <div className="nb-eyebrow">For Investors &amp; Property Owners</div>
       <h2 className="nb-h2 mt-3">Your Next Exchange, Made Easier.</h2>
       <p className="nb-lead mt-4">
-        Add your investment property and goals once. ExchangeUp keeps watching for opportunities that may better align
+        Add your investment property and goals once. ExchangeUp™ keeps watching for opportunities that may better align
         with your equity position — so the exchange is simple when the timing is right.
       </p>
 
@@ -375,11 +375,11 @@ function RoeMiniCalc() {
           <p className="nb-why-result-note">
             {uplift > 0 ? (
               <>Based on an estimated <b>{usd(income)}/yr</b> of net income, the same <b>{usd(equity)}</b> of equity
-              could represent roughly <b>{usd(uplift)}</b> more per year at the reference return. ExchangeUp can
+              could represent roughly <b>{usd(uplift)}</b> more per year at the reference return. ExchangeUp™ can
               continuously monitor for investment opportunities that may better align with your goals.</>
             ) : (
               <>Your equity is currently returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the
-              8% reference return used here. ExchangeUp can keep monitoring anyway — we only reach out if something
+              8% reference return used here. ExchangeUp™ can keep monitoring anyway — we only reach out if something
               genuinely better appears.</>
             )}
           </p>
@@ -646,7 +646,7 @@ function PipelineBoard() {
       <aside className="pb-side">
         <div className="pb-brand">
           <span className="pb-brand-logo"><Sparkles /></span>
-          <span className="pb-brand-name">1031ExchangeUp</span>
+          <span className="pb-brand-name">1031ExchangeUp™</span>
           <span className="pb-brand-badge">Exchange</span>
         </div>
         <nav className="pb-nav">
@@ -791,7 +791,7 @@ function Sec_diff() {
                 <path d="M3 7.5l2.6 2.6L11 4" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
-            1031ExchangeUp
+            1031ExchangeUp™
           </div>
         </div>
 
@@ -1068,12 +1068,12 @@ function Sec_faqcta() {
       <div className="nb-fct-acc">
         {[
         {
-            q: 'What is 1031ExchangeUp?',
+            q: 'What is 1031ExchangeUp™?',
             a: 'A network that connects properties, investors, investment criteria and investor-friendly agents so more potential transaction opportunities can surface.',
           },
           {
             q: 'How much does it cost?',
-            a: 'Nothing. 1031ExchangeUp is free for everyone — investors, property owners and agents alike. Every client, property and criteria you add is monitored free, with no plans, tiers or card required.',
+            a: 'Nothing. 1031ExchangeUp™ is free for everyone — investors, property owners and agents alike. Every client, property and criteria you add is monitored free, with no plans, tiers or card required.',
           },
 
 
@@ -1083,14 +1083,14 @@ function Sec_faqcta() {
           },
           {
             q: 'Do I have to share property addresses?',
-            a: 'No. You can keep specifics private and share only the high-level details Exchange IQ needs.',
+            a: 'No. You can keep specifics private and share only the high-level details Exchange IQ™ needs.',
           },
           {
-            q: 'How does Exchange IQ work?',
-            a: 'Intelligent opportunity monitoring with our Exchange IQ technology reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
+            q: 'How does Exchange IQ™ work?',
+            a: 'Intelligent opportunity monitoring with our Exchange IQ™ technology reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
           },
           {
-            q: 'Does 1031ExchangeUp replace my agent?',
+            q: 'Does 1031ExchangeUp™ replace my agent?',
             a: 'No. Agents keep their client relationships — the platform simply makes their network more powerful.',
           },
           {
@@ -1223,7 +1223,7 @@ export function Sec_trust() {
     ["You control what you share.", (<svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.2" /><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9" /></svg>)],
     ["Sensitive property details stay private until you choose to share them.", (<svg viewBox="0 0 24 24"><path d="M12 3.5 20 7v5.2c0 4.6-3.3 7.4-8 8.8-4.7-1.4-8-4.2-8-8.8V7z" /></svg>)],
     ["Matches are potential opportunities, not guaranteed transactions.", (<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" /><path d="M12 8v4.5M12 16h.01" /></svg>)],
-    ["1031ExchangeUp does not provide tax, legal or investment advice.", (<svg viewBox="0 0 24 24"><path d="M6 3.5h9l4 4v13H6z" /><path d="M14.5 3.5V8H19" /><path d="M9 13h6M9 16.5h4" /></svg>)],
+    ["1031ExchangeUp™ does not provide tax, legal or investment advice.", (<svg viewBox="0 0 24 24"><path d="M6 3.5h9l4 4v13H6z" /><path d="M14.5 3.5V8H19" /><path d="M9 13h6M9 16.5h4" /></svg>)],
   ];
   return (
 <section id="trust" className="w-full px-5 sm:px-8 py-20 sm:py-24 bg-white">
