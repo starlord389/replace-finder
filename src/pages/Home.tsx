@@ -156,14 +156,6 @@ const NAV_LINKS = [
   { label: "FAQ", href: "#faq" },
 ];
 
-const LOGO_BRANDS = [
-  { name: "Compass", src: "/logos/compass.svg", height: 22, mobileHeight: 16 },
-  { name: "Aluxety Real Estate", src: "/logos/aluxety.png", height: 34, mobileHeight: 26 },
-  { name: "Churchill Properties", src: "/logos/churchill.svg", height: 52, mobileHeight: 40 },
-  { name: "Keller Williams Realty", src: "/logos/keller-williams.svg", height: 48, mobileHeight: 36 },
-  { name: "Lyv Realty", src: "/logos/lyv-realty.png", height: 46, mobileHeight: 34 },
-  { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 40, mobileHeight: 30 },
-];
 
 
 
