@@ -468,8 +468,8 @@ function NbMonitorSteps() {
             </marker>
           </defs>
 
-          {nodes.map((n) => (
-            <g key={n.label}>
+          {nodes.map((n, i) => (
+            <g key={`${n.type}-${i}`}>
               <line
                 x1={n.inSx} y1={n.inSy} x2={n.inEx} y2={n.inEy}
                 stroke="#43a047" strokeWidth="2.5" strokeLinecap="round"
@@ -481,8 +481,16 @@ function NbMonitorSteps() {
                 strokeDasharray="6 4"
                 markerEnd="url(#nbArrowOut)"
               />
-              <rect x={n.cx - 112} y={n.cy - 28} width="224" height="56" rx="18" fill="#ffffff" />
-              <text x={n.cx} y={n.cy + 6} textAnchor="middle" fontSize="25" fontWeight="800" fill="#0b1f3d">{n.label}</text>
+              <foreignObject
+                x={n.cx - 36}
+                y={n.cy - 36}
+                width={nodeSize}
+                height={nodeSize}
+              >
+                <div className="nb-net-node" data-type={n.type} title={n.label}>
+                  <n.Icon size={30} strokeWidth={1.6} />
+                </div>
+              </foreignObject>
             </g>
           ))}
 
