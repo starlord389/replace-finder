@@ -268,7 +268,7 @@ function NbMonitorSteps() {
 
         <div className="nb-diagram-ctas">
           <Link to={ROUTES.signup} className="nb-diagram-cta">Register your property</Link>
-          <Link to={ROUTES.signup} className="nb-diagram-cta nb-diagram-cta-outline">Join the growing network</Link>
+          <Link to={ROUTES.signup} className="nb-diagram-cta nb-diagram-cta-outline">Agents—Join the growing network</Link>
         </div>
 
         <img
