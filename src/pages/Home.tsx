@@ -395,7 +395,7 @@ function NbMonitorSteps() {
         </div>
         <h2 className="nb-diagram-h2">Every property added makes the network smarter.</h2>
         <p className="nb-diagram-lead">
-          Investors, agents, and property owners all feed the growing network — and every new participant makes it more useful for everyone. <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts the right person when a better fit appears.
+          Investors, agents, and property owners all feed the growing network — and every new property makes it more useful for everyone. <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts the right person when a better fit appears.
         </p>
 
         <img
