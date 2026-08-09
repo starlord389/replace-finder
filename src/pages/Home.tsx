@@ -437,7 +437,7 @@ function NbMonitorSteps() {
 function NbLogoMarquee() {
   return (
     <section className="nb-mq">
-      <p className="nb-mq-label">A growing network of 1031-focused agents and investors</p>
+      <p className="nb-mq-label">Trusted by Real Estate Agents & Brokers</p>
       <div className="nb-mq-viewport">
         <div className="nb-mq-track">
           {[0, 1].map((group) => (
