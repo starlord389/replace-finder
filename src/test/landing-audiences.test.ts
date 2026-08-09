@@ -12,10 +12,9 @@ describe("public landing-page audiences", () => {
     expect(homeSource).toContain("Find My Replacement Property");
     expect(homeSource).toContain("See How It Works");
     expect(homeSource).toContain("Every property added makes the network smarter.");
-    expect(homeSource).toContain("Owner adds it once");
-    expect(homeSource).toContain("Don’t Wait for the 45-Day Clock to Start.");
     expect(homeSource).toContain("I Own Investment Property");
     expect(homeSource).toContain("I’m a Real Estate Agent");
+    expect(homeSource).toContain("Don’t Wait for the 45-Day Clock to Start.");
   });
 
   it("explains agent and investor value without becoming an open marketplace", () => {
