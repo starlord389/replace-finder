@@ -232,11 +232,11 @@ function NbHero() {
     <section className="nb-hero">
       <SkyBackdrop />
       <div className="nb-hero-inner mx-auto max-w-[1240px] px-5 py-16 text-center sm:px-8 lg:py-24">
-        <h1 className="nb-hero-h1 mx-auto max-w-[620px]">
-          Finding Your 1031 Replacement Property Just Got A LOT Easier.
+        <h1 className="nb-hero-h1 mx-auto max-w-[720px]">
+          The biggest obstacle to a 1031 Exchange is finding what comes next. We’re solving that.
         </h1>
-        <p className="nb-hero-sub mx-auto mt-5 max-w-[540px]">
-          Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into, so the exchange is simple when the timing is right.
+        <p className="nb-hero-sub mx-auto mt-5 max-w-[620px]">
+          1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.
         </p>
 
         <div className="nb-cta-row justify-center" style={{ marginTop: 32, gap: 14, flexWrap: "wrap" }}>
@@ -290,12 +290,12 @@ function NbMonitorSteps() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp™ - Finding Your 1031 Replacement Property Just Got A LOT Easier";
+    document.title = "1031ExchangeUp™ - The biggest obstacle to a 1031 Exchange is finding what comes next.";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
         "content",
-        "Register your property. Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.",
+        "1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.",
       );
     }
   }, []);
