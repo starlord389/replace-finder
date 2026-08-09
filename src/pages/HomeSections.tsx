@@ -648,6 +648,10 @@ function Sec_faqcta() {
             a: "You'll receive an alert letting you know that ExchangeUp has identified a potential opportunity based on your property, equity position, and investment criteria. You can review the opportunity and decide whether you want to explore it further. There's no obligation to sell, exchange, or pursue any opportunity.",
           },
           {
+            q: 'Why is ExchangeUp free?',
+            a: "Because ExchangeUp becomes more valuable as more investors, agents, and properties join the network. Our goal is to remove the friction of finding potential 1031 Exchange opportunities and build the largest possible network of investment properties and participating real estate professionals. There is no cost to register your property, receive potential opportunity alerts, or explore matches.",
+          },
+          {
             q: 'Do I need to be planning a 1031 Exchange right now?',
             a: "No. In fact, that's one of the biggest benefits of ExchangeUp. Register your investment property today and let ExchangeUp continuously look for potential opportunities. If a property enters the network that could be a better fit for your investment goals, we'll let you know. You decide if and when you want to explore an exchange.",
           },
