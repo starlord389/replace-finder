@@ -79,11 +79,6 @@ const NB_STYLE = `
   [data-nb] .nb-btn:active { transform: translateY(1px); }
   [data-nb] .nb-btn-green { background: #43a047; color: #fff; box-shadow: 0 8px 20px rgba(67,160,71,.34); }
   [data-nb] .nb-btn-green:hover { background: #3a8c3e; box-shadow: 0 10px 26px rgba(67,160,71,.44); }
-  [data-nb] .nb-btn-demo { display: inline-flex; align-items: center; gap: 12px; height: 50px; padding: 0 22px; border-radius: 10px; background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.55); color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: .01em; cursor: pointer; white-space: nowrap; transition: background .14s ease, border-color .14s ease, transform .12s ease; }
-  [data-nb] .nb-btn-demo:hover { background: rgba(255,255,255,.13); border-color: rgba(255,255,255,.85); }
-  [data-nb] .nb-btn-demo:active { transform: scale(.985); }
-  [data-nb] .nb-play { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: transparent; border: 1.5px solid rgba(255,255,255,.85); flex: 0 0 auto; }
-  [data-nb] .nb-play svg { display: block; width: 9px; height: 9px; }
   [data-nb] .nb-badges { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 14px; margin-top: 36px; }
   [data-nb] .nb-badge { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; }
   [data-nb] .nb-badge-ico { display: inline-flex; align-items: center; justify-content: center; width: 23px; height: 23px; flex: 0 0 auto; color: var(--nb-green-bright); }
@@ -374,7 +369,6 @@ function NbHero() {
 
         <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>
           <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find My Replacement Property</Link>
-          <a href="#steps" className="nb-btn-demo">See How It Works</a>
         </div>
 
         <div className="nb-badges justify-center">
