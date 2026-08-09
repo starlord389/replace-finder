@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
 import networkDiagramAsset from "@/assets/network-diagram.png.asset.json";
 import AgentNetworkSection from "./AgentNetworkSection";
+import InvestorNetworkSection from "./InvestorNetworkSection";
 import { SECTIONS_CSS, LandingSections, HowItWorksFlow, Sec_agents } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -137,6 +138,7 @@ const NB_STYLE = `
 
 const NAV_LINKS = [
   { label: "How It Works", href: "#steps" },
+  { label: "For Property Owners", href: "#investors" },
   { label: "For Agents", href: "#agents" },
   { label: "Resources", href: "#resources" },
   { label: "FAQ", href: "#faq" },
@@ -322,10 +324,9 @@ export default function Home() {
       <NbNav />
       <NbHero />
       <NbMonitorSteps />
+      <InvestorNetworkSection />
       <AgentNetworkSection />
       <LandingSections />
-      <LandingSections />
-
     </div>
   );
 }

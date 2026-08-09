@@ -22,11 +22,11 @@ const AGENT_CSS = `
 [data-nb] .agn-prob { margin-top: 48px; display: flex; flex-direction: column; gap: 12px; }
 [data-nb] .agn-accordion { border: 1px solid #e8edf3; border-radius: 16px; background: #fbfcfe; overflow: hidden; }
 [data-nb] .agn-accordion-btn { width: 100%; display: flex; align-items: center; gap: 14px; padding: 20px 24px; text-align: left; background: none; border: none; cursor: pointer; }
-[data-nb] .agn-accordion-btn:hover { background: #f5f8fc; }
+
 [data-nb] .agn-accordion-ico { flex: none; width: 42px; height: 42px; border-radius: 11px; background: #fff; border: 1px solid #e8edf3; display: flex; align-items: center; justify-content: center; color: #16284a; }
 [data-nb] .agn-accordion-ico svg { width: 20px; height: 20px; }
 [data-nb] .agn-accordion-t { flex: 1; font-size: 17.5px; font-weight: 800; letter-spacing: -.01em; color: #16284a; }
-[data-nb] .agn-accordion-chev { flex: none; color: #56657a; transition: transform .2s ease; }
+[data-nb] .agn-accordion-chev { flex: none; color: #56657a; }
 [data-nb] .agn-accordion-chev.open { transform: rotate(180deg); }
 [data-nb] .agn-accordion-body { padding: 0 24px 22px 80px; font-size: 15px; line-height: 1.6; color: #56657a; }
 @media (max-width: 600px) { [data-nb] .agn-accordion-body { padding: 0 20px 20px 24px; } }
