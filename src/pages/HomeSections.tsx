@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import {
   Pencil, Link2, Plus,
-  SlidersHorizontal, Calendar, ChevronDown, Share2, LayoutGrid, Paperclip, Lightbulb,
+  Calendar, ChevronDown, Share2, LayoutGrid, Paperclip, Lightbulb,
   Building2, Target, Activity, Bell,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
