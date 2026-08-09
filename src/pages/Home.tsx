@@ -91,21 +91,6 @@ const NB_STYLE = `
   [data-nb] .nb-lead { font-size: 16.5px; line-height: 1.6; color: #56657a; }
   [data-nb] section[id] { scroll-margin-top: 84px; }
 
-  /* ===== logo marquee ===== */
-  [data-nb] .nb-mq { background: #fff; padding: 46px 20px 42px; }
-  [data-nb] .nb-mq-label { text-align: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #8794a6; margin: 0 0 26px; }
-  @keyframes nb-mq-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-  [data-nb] .nb-mq-viewport { overflow: hidden; width: min(1040px, calc(100vw - 80px)); margin: 0 auto; -webkit-mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent); }
-  [data-nb] .nb-mq-track { display: flex; align-items: center; width: max-content; animation: nb-mq-scroll 52s linear infinite; }
-  [data-nb] .nb-mq-group { display: flex; align-items: center; gap: 74px; padding-right: 74px; }
-  [data-nb] .nb-mq-logo { display: inline-flex; align-items: center; justify-content: center; height: 58px; flex: none; }
-  [data-nb] .nb-mq-logo img { height: var(--brand-h, 32px); width: auto; max-height: 100%; display: block; filter: grayscale(1); opacity: .55; pointer-events: none; }
-  @media (max-width: 809.98px) {
-    [data-nb] .nb-mq-viewport { width: calc(100vw - 36px); }
-    [data-nb] .nb-mq-group { gap: 48px; padding-right: 48px; }
-    [data-nb] .nb-mq-logo { height: 46px; }
-    [data-nb] .nb-mq-logo img { height: var(--brand-h-mobile, 24px); }
-  }
 
   /* ===== mobile centering (hero) ===== */
   @media (max-width: 1023.98px) {
