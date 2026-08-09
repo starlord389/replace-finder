@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
+import type { LucideIcon } from "lucide-react";
 import {
   Boxes,
   SearchX,
@@ -11,6 +13,8 @@ import {
   TrendingUp,
   UserSearch,
   BellRing,
+  ChevronDown,
+  Rocket,
 } from "lucide-react";
 
 const AGENT_CSS = `
@@ -22,13 +26,17 @@ const AGENT_CSS = `
 [data-nb] .agn-h2 { font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; color: #16284a; margin: 0; }
 [data-nb] .agn-sub { margin: 16px 0 0; font-size: 17px; line-height: 1.65; color: #56657a; max-width: 720px; }
 
-[data-nb] .agn-prob { margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 20px; }
-@media (max-width: 900px) { [data-nb] .agn-prob { grid-template-columns: 1fr; } }
-[data-nb] .agn-card { border: 1px solid #e8edf3; border-radius: 16px; background: #fbfcfe; padding: 26px; }
-[data-nb] .agn-card-ico { width: 46px; height: 46px; border-radius: 12px; background: #fff; border: 1px solid #e8edf3; display: flex; align-items: center; justify-content: center; color: #16284a; margin-bottom: 16px; }
-[data-nb] .agn-card-ico svg { width: 22px; height: 22px; }
-[data-nb] .agn-card-t { font-size: 17.5px; font-weight: 800; letter-spacing: -.01em; color: #16284a; margin: 0 0 8px; }
-[data-nb] .agn-card-p { font-size: 15px; line-height: 1.6; color: #56657a; margin: 0; }
+[data-nb] .agn-prob { margin-top: 48px; display: flex; flex-direction: column; gap: 12px; }
+[data-nb] .agn-accordion { border: 1px solid #e8edf3; border-radius: 16px; background: #fbfcfe; overflow: hidden; }
+[data-nb] .agn-accordion-btn { width: 100%; display: flex; align-items: center; gap: 14px; padding: 20px 24px; text-align: left; background: none; border: none; cursor: pointer; }
+[data-nb] .agn-accordion-btn:hover { background: #f5f8fc; }
+[data-nb] .agn-accordion-ico { flex: none; width: 42px; height: 42px; border-radius: 11px; background: #fff; border: 1px solid #e8edf3; display: flex; align-items: center; justify-content: center; color: #16284a; }
+[data-nb] .agn-accordion-ico svg { width: 20px; height: 20px; }
+[data-nb] .agn-accordion-t { flex: 1; font-size: 17.5px; font-weight: 800; letter-spacing: -.01em; color: #16284a; }
+[data-nb] .agn-accordion-chev { flex: none; color: #56657a; transition: transform .2s ease; }
+[data-nb] .agn-accordion-chev.open { transform: rotate(180deg); }
+[data-nb] .agn-accordion-body { padding: 0 24px 22px 80px; font-size: 15px; line-height: 1.6; color: #56657a; }
+@media (max-width: 600px) { [data-nb] .agn-accordion-body { padding: 0 20px 20px 24px; } }
 
 [data-nb] .agn-turn { margin-top: 72px; border-top: 1px solid #eaeff6; padding-top: 56px; }
 [data-nb] .agn-h3 { font-size: clamp(24px, 2.6vw, 32px); font-weight: 800; letter-spacing: -.02em; color: #16284a; margin: 0; }
@@ -67,24 +75,66 @@ const AGENT_CSS = `
 [data-nb] .agn-cta-note { margin: 14px 0 0; font-size: 14px; color: #7a8798; }
 `;
 
-const PROBLEMS = [
+const PROBLEMS: { key: string; icon: LucideIcon; title: string; body: string }[] = [
   {
-    icon: <Boxes />,
+    key: "limited-inventory",
+    icon: Boxes,
     title: "Limited Inventory",
     body: "Your clients can only buy what you know about. The right replacement property may be sitting in another agent's database.",
   },
   {
-    icon: <SearchX />,
+    key: "mls-not-for-investors",
+    icon: SearchX,
     title: "The MLS Wasn’t Built for Investors",
     body: "MLS search is great for bedrooms, bathrooms, and geography, but it wasn’t designed around equity, investment strategy, 1031 timing, or identifying an opportunity to exchange up.",
   },
   {
-    icon: <Network />,
+    key: "agent-databases-siloed",
+    icon: Network,
     title: "Agent Databases Don’t Talk to Each Other",
     body: "Agents build valuable networks independently. ExchangeUp™ connects those networks so potential transactions can surface across agents, brokerages, and markets.",
   },
+  {
+    key: "unlock-deal-flow",
+    icon: Rocket,
+    title: "Unlock More Deal Flow",
+    body: "Most agents rely on active listings and repeat clients to generate transactions. ExchangeUp™ turns your existing relationships into a continuous opportunity network so you can uncover more deals without more prospecting.",
+  },
 ];
 
+function ProblemAccordion() {
+  const [open, setOpen] = useState<string | null>("unlock-deal-flow");
+
+  return (
+    <div className="agn-prob">
+      {PROBLEMS.map((p) => {
+        const Icon = p.icon;
+        const isOpen = open === p.key;
+        return (
+          <div className="agn-accordion" key={p.key}>
+            <button
+              type="button"
+              className="agn-accordion-btn"
+              aria-expanded={isOpen}
+              onClick={() => setOpen(isOpen ? null : p.key)}
+            >
+              <span className="agn-accordion-ico" aria-hidden="true"><Icon /></span>
+              <span className="agn-accordion-t">{p.title}</span>
+              <span className={`agn-accordion-chev ${isOpen ? "open" : ""}`} aria-hidden="true">
+                <ChevronDown />
+              </span>
+            </button>
+            {isOpen && (
+              <div className="agn-accordion-body">
+                {p.body}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 const BAND = [
   { t: "More Inventory.", p: "Access opportunities beyond your own database." },
   { t: "More Collaboration.", p: "Connect with investor-friendly agents across the network." },
@@ -109,15 +159,7 @@ export default function AgentNetworkSection() {
             </p>
           </div>
 
-          <div className="agn-prob">
-            {PROBLEMS.map((p) => (
-              <article className="agn-card" key={p.title}>
-                <span className="agn-card-ico" aria-hidden="true">{p.icon}</span>
-                <h3 className="agn-card-t">{p.title}</h3>
-                <p className="agn-card-p">{p.body}</p>
-              </article>
-            ))}
-          </div>
+          <ProblemAccordion />
 
           <div className="agn-turn">
             <h3 className="agn-h3">How ExchangeUp™ Unlocks More Deal Flow</h3>
