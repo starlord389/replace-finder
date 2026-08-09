@@ -233,7 +233,7 @@ function NbHero() {
       <SkyBackdrop />
       <div className="nb-hero-inner mx-auto max-w-[1240px] px-5 py-16 text-center sm:px-8 lg:py-24">
         <h1 className="nb-hero-h1 mx-auto max-w-[720px]">
-          The biggest obstacle to a 1031 Exchange is finding what comes next. We’re solving that.
+          The biggest obstacle to a 1031 Exchange is finding a replacement property. We’re solving that.
         </h1>
         <p className="nb-hero-sub mx-auto mt-5 max-w-[620px]">
           1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.
@@ -290,7 +290,7 @@ function NbMonitorSteps() {
 
 export default function Home() {
   useEffect(() => {
-    document.title = "1031ExchangeUp™ - The biggest obstacle to a 1031 Exchange is finding what comes next.";
+    document.title = "1031ExchangeUp™ - The biggest obstacle to a 1031 Exchange is finding a replacement property.";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
