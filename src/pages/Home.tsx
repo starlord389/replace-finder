@@ -159,7 +159,7 @@ const NB_STYLE = `
   [data-nb] .nb-diagram { background: #0b1f3d; padding: 56px 20px 64px; text-align: center; }
   [data-nb] .nb-diagram-inner { margin: 0 auto; max-width: 1080px; }
   [data-nb] .nb-diagram-eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #43a047; }
-  [data-nb] .nb-diagram-h2 { margin: 10px auto 0; font-size: clamp(26px, 2.8vw, 36px); font-weight: 800; color: #fff; line-height: 1.15; max-width: 680px; }
+  [data-nb] .nb-diagram-h2 { margin: 48px auto 0; font-size: clamp(26px, 2.8vw, 36px); font-weight: 800; color: #fff; line-height: 1.15; max-width: 680px; }
   [data-nb] .nb-diagram-lead { margin: 12px auto 0; font-size: 16.5px; line-height: 1.6; color: rgba(255,255,255,.75); max-width: 640px; }
   [data-nb] .nb-diagram-flow { margin: 28px auto 0; max-width: 960px; background: #fff; border-radius: 20px; padding: 38px 28px 32px; box-shadow: 0 18px 50px rgba(0,0,0,.18); }
   [data-nb] .nb-diagram-flow .nb-diagram-eyebrow { margin-bottom: 0; }
