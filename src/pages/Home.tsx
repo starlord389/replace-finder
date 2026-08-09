@@ -285,30 +285,6 @@ function NbMonitorSteps() {
 
 
 
-function NbLogoMarquee() {
-  return (
-    <section className="nb-mq">
-      <p className="nb-mq-label">Trusted by Real Estate Agents & Brokers</p>
-      <div className="nb-mq-viewport">
-        <div className="nb-mq-track">
-          {[0, 1].map((group) => (
-            <div className="nb-mq-group" key={group} aria-hidden={group === 1 ? "true" : undefined}>
-              {LOGO_BRANDS.map((brand) => (
-                <span
-                  key={`${group}-${brand.name}`}
-                  className="nb-mq-logo"
-                  style={{ ["--brand-h" as string]: `${brand.height}px`, ["--brand-h-mobile" as string]: `${brand.mobileHeight}px` }}
-                >
-                  <img src={brand.src} alt={group === 0 ? brand.name : ""} loading="lazy" />
-                </span>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 export default function Home() {
   useEffect(() => {
