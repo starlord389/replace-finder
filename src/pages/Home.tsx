@@ -321,47 +321,21 @@ function NbHero() {
 }
 
 
-const MONITOR_STEPS = [
-  {
-    t: "Add Your Property",
-    d: "What you own — or, for agents, a client and their criteria. Minutes, and free.",
-    svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><path d="M12 13v5M9.5 15.5h5" /></svg>),
-  },
-  {
-    t: "Set Your Goals",
-    d: "Tell us what a better position looks like for you. Change it any time.",
-    svg: (<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3.6" /><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" /></svg>),
-  },
-  {
-    t: "We Keep Watching",
-    d: "Exchange IQ continuously evaluates the network as properties, investors and criteria change.",
-    svg: (<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>),
-  },
-  {
-    t: "Get Alerted",
-    d: "When a relevant opportunity appears, you and your agent are alerted with the numbers.",
-    svg: (<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>),
-  },
-];
-
-
-
 function NbMonitorSteps() {
   return (
-    <section id="steps" className="nb-steps" aria-label="How monitoring works">
-      <div className="nb-steps-inner">
-        <p className="nb-steps-kicker">Add → Set → Monitor → Alert</p>
-        <div className="nb-steps-row">
-          {MONITOR_STEPS.map((s, i) => (
-            <div className="nb-step" key={s.t}>
-              <div className="nb-step-n">STEP {i + 1}</div>
-              <span className="nb-step-ico" aria-hidden="true">{s.svg}</span>
-              <div className="nb-step-t">{s.t}</div>
-              <p className="nb-step-d">{s.d}</p>
-            </div>
-          ))}
-        </div>
-        <p className="nb-steps-tag">Add it once. We keep watching.</p>
+    <section id="steps" className="nb-diagram" aria-label="How monitoring works">
+      <div className="nb-diagram-inner">
+        <p className="nb-diagram-eyebrow">How It Works</p>
+        <h2 className="nb-diagram-h2">Add once. We monitor continuously. You get alerted.</h2>
+        <p className="nb-diagram-lead">
+          Owners and agents add properties to the network. Exchange IQ monitors around the clock and surfaces relevant opportunities to the right people.
+        </p>
+        <img
+          src={monitoringDiagram.url}
+          alt="Property owners add their properties to 1031 ExchangeUp, the platform continuously monitors opportunities, and alerts are sent to the right owners or agents."
+          className="nb-diagram-img"
+          loading="lazy"
+        />
       </div>
     </section>
   );
