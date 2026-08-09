@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import {
   LayoutDashboard, Users, Sparkles, MessageSquare, Settings, Pencil, Link2, Plus,
   SlidersHorizontal, Calendar, ChevronDown, Share2, LayoutGrid, Paperclip, Lightbulb,
+  Building2, Target, Activity, Bell,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
