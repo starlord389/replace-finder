@@ -374,7 +374,6 @@ function NbHero() {
 
         <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>
           <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find My Replacement Property</Link>
-          <a href="#steps" className="nb-btn-demo">See How It Works</a>
         </div>
 
         <div className="nb-badges justify-center">
