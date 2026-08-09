@@ -643,37 +643,46 @@ function Sec_faqcta() {
       {/* (B) Accordion */}
       <div className="nb-fct-acc">
         {[
-        {
-            q: 'What is 1031ExchangeUp™?',
-            a: 'A network that connects properties, investors, investment criteria and investor-friendly agents so more potential transaction opportunities can surface.',
+          {
+            q: 'What happens when ExchangeUp finds an opportunity for me?',
+            a: "You'll receive an alert letting you know that ExchangeUp has identified a potential opportunity based on your property, equity position, and investment criteria. You can review the opportunity and decide whether you want to explore it further. There's no obligation to sell, exchange, or pursue any opportunity.",
           },
           {
-            q: 'How much does it cost?',
-            a: 'Nothing. 1031ExchangeUp™ is free for agents and investors. Every client, property and criteria you add is monitored free, with no plans, tiers or card required.',
-          },
-
-
-          {
-            q: 'Do I need a 1031 exchange client right now?',
-            a: 'No. Many people add properties and criteria early so relevant opportunities can surface over time.',
+            q: 'Do I need to be planning a 1031 Exchange right now?',
+            a: "No. In fact, that's one of the biggest benefits of ExchangeUp. Register your investment property today and let ExchangeUp continuously look for potential opportunities. If a property enters the network that could be a better fit for your investment goals, we'll let you know. You decide if and when you want to explore an exchange.",
           },
           {
-            q: 'Do I have to share property addresses?',
-            a: 'No. You can keep specifics private and share only the high-level details Exchange IQ™ needs.',
+            q: 'How does ExchangeUp determine if another property could be a better investment?',
+            a: 'ExchangeUp uses property data, financial information, available equity, and your investment criteria to evaluate potential opportunities across the network. Rather than simply showing you more listings, ExchangeUp is designed to identify properties that may represent a meaningful opportunity to put your equity to work differently. Any opportunity is intended as a starting point for further evaluation-not investment, tax, or financial advice.',
           },
           {
-            q: 'How does Exchange IQ™ work?',
-            a: 'Intelligent opportunity monitoring with our Exchange IQ™ technology reviews equity, debt, purchasing capacity and stated investment criteria, then continuously compares them with relevant opportunities across the network.',
+            q: "Will ExchangeUp recommend properties that don't fit what I'm looking for?",
+            a: "ExchangeUp uses your investment criteria to help narrow potential opportunities based on factors such as property type, value, location, and other preferences. The goal isn't to send you more properties. It's to surface relevant opportunities worth taking a closer look at.",
           },
           {
-            q: 'Does 1031ExchangeUp™ replace my agent?',
-            a: 'No. Agents keep their client relationships - the platform simply makes their network more powerful.',
+            q: 'Are properties registered on ExchangeUp actually for sale?',
+            a: "Not necessarily. ExchangeUp is an opportunity network, not another MLS. A property can be registered so the system can evaluate potential matches even if the owner isn't actively marketing it for sale. When a potential opportunity is identified, the parties can decide whether there is mutual interest in exploring a transaction.",
           },
           {
-            q: 'Are matches guaranteed transactions?',
-            a: 'No. A match is a potential opportunity to explore. No investment outcome or completed transaction is implied or guaranteed.',
+            q: "If I'm an investor, do I have to use an ExchangeUp real estate agent?",
+            a: "No. ExchangeUp doesn't require you to give up your existing real estate relationship. If you already have an agent you want to work with, you can continue working with them. If you need an experienced real estate professional, ExchangeUp may also be able to connect you with a participating agent.",
           },
-
+          {
+            q: "If I'm a real estate agent, do I keep my client?",
+            a: "Yes. ExchangeUp is designed to make your existing relationships and database more valuable-not replace you. When you add clients and properties, you remain their real estate agent. ExchangeUp simply helps uncover potential opportunities within your own database and across the broader ExchangeUp network.",
+          },
+          {
+            q: 'Can other agents see my clients or my entire database?',
+            a: "No. Your database isn't made publicly available to other agents. ExchangeUp evaluates information behind the scenes to identify potential opportunities without turning your client list into a shared prospecting database. When an opportunity is identified, only the information necessary to evaluate and facilitate that opportunity is surfaced.",
+          },
+          {
+            q: 'What information do I need to add a property?',
+            a: "We've intentionally kept it simple. You can get started with basic information about the property and a few key financial details, such as its estimated value, current loan balance, and rental income. You don't need to complete a complicated financial analysis just to join the network. Additional information can be added as needed to improve the quality of potential matches.",
+          },
+          {
+            q: 'Does ExchangeUp actually handle my 1031 Exchange?',
+            a: "No. ExchangeUp helps solve one of the biggest challenges surrounding a 1031 Exchange: identifying potential replacement-property opportunities. The actual exchange should still be completed with the appropriate professionals, including a qualified intermediary and your legal, tax, financial, and real estate advisors. ExchangeUp helps you discover the opportunity. Your professional team helps you determine whether the transaction is right for you and properly execute the exchange.",
+          },
         ].map((item, i) => (
           <details className="nb-fct-item" key={i}>
             <summary className="nb-fct-q">
