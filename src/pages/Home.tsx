@@ -285,68 +285,24 @@ const AUDIENCE_CARDS = [
 
 
 function NbAudienceCards() {
-  const [open, setOpen] = useState<"agent" | "investor" | null>(null);
-  const toggle = (key: "agent" | "investor") => setOpen((prev) => (prev === key ? null : key));
-
-  useEffect(() => {
-    const applyHash = () => {
-      const hash = window.location.hash.replace("#", "");
-      if (hash === "agents" || hash === "investors") {
-        const key = hash === "agents" ? "agent" : "investor";
-        setOpen(key);
-        // wait for the dropdown to render, then scroll to its section
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            const el = document.getElementById(hash);
-            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-          });
-        });
-      }
-    };
-    applyHash();
-    window.addEventListener("hashchange", applyHash);
-    return () => window.removeEventListener("hashchange", applyHash);
-  }, []);
-
   return (
     <section className="nb-aud" aria-label="Choose your path">
       <div className="nb-aud-grid nb-aud-grid-2">
-        {AUDIENCE_CARDS.map((c) => {
-          const isOpen = open === c.key;
-          return (
-            <button
-              key={c.tag}
-              type="button"
-              className={`nb-aud-card ${isOpen ? "is-open" : ""}`}
-              onClick={() => toggle(c.key)}
-              aria-expanded={isOpen}
-            >
-              <span className="nb-aud-ico" aria-hidden="true">{c.svg}</span>
-              <div className="nb-aud-tag">{c.tag}</div>
-              <p className="nb-aud-txt">{c.txt}</p>
-              <span className="nb-aud-link">
-                {isOpen ? "Hide details" : c.cta}
-                <span className="nb-aud-chevron" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </span>
-              </span>
-            </button>
-          );
-        })}
+        {AUDIENCE_CARDS.map((c) => (
+          <div key={c.tag} className="nb-aud-card">
+            <span className="nb-aud-ico" aria-hidden="true">{c.svg}</span>
+            <div className="nb-aud-tag">{c.tag}</div>
+            <p className="nb-aud-txt">{c.txt}</p>
+          </div>
+        ))}
       </div>
 
-      {open === "investor" && (
-        <div className="nb-aud-dropdown">
-          <Sec_investors />
-        </div>
-      )}
-      {open === "agent" && (
-        <div className="nb-aud-dropdown">
-          <Sec_agents />
-        </div>
-      )}
+      <div className="nb-aud-dropdown">
+        <Sec_investors />
+      </div>
+      <div className="nb-aud-dropdown">
+        <Sec_agents />
+      </div>
     </section>
   );
 }
