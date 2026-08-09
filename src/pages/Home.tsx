@@ -435,8 +435,8 @@ function NbMonitorSteps() {
   return (
     <section id="steps" className="nb-diagram" aria-label="How the network works">
       <div className="nb-diagram-inner">
-        <p className="nb-diagram-eyebrow">How It Works</p>
         <div className="nb-diagram-flow">
+          <p className="nb-diagram-eyebrow">How It Works</p>
           <HowItWorksFlow />
         </div>
         <h2 className="nb-diagram-h2">Every property added makes the network smarter.</h2>
