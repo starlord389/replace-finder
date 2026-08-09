@@ -123,11 +123,10 @@ const NB_STYLE = `
   [data-nb] .nb-diagram-flow .nb-diagram-eyebrow { margin-bottom: 0; }
   [data-nb] .nb-diagram-flow .nb-how-flow { margin-top: 28px; }
   @media (max-width: 640px) { [data-nb] .nb-diagram-flow { padding: 28px 18px 24px; } [data-nb] .nb-diagram-flow .nb-how-flow { margin-top: 22px; } }
-  [data-nb] .nb-net { margin: 30px auto 0; display: block; width: 100%; max-width: 960px; height: auto; }
-  [data-nb] .nb-net-legend { margin: 18px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 26px; }
-  [data-nb] .nb-net-legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: rgba(255,255,255,.8); }
-  [data-nb] .nb-net-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
-  @media (max-width: 640px) { [data-nb] .nb-diagram { padding: 40px 16px 48px; } }
+  [data-nb] .nb-diagram-ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin: 26px 0 8px; }
+  [data-nb] .nb-diagram-cta { display: inline-flex; align-items: center; justify-content: center; height: 46px; padding: 0 24px; border-radius: 10px; font-size: 15px; font-weight: 700; line-height: 1; text-decoration: none; white-space: nowrap; background: #43a047; color: #fff; border: 1.5px solid #43a047; }
+  [data-nb] .nb-diagram-cta-outline { background: transparent; color: #fff; border-color: rgba(255,255,255,.55); }
+  @media (max-width: 480px) { [data-nb] .nb-diagram-ctas { gap: 10px; } [data-nb] .nb-diagram-cta { height: 42px; padding: 0 18px; font-size: 14px; } }
 `;
 
 
