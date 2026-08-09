@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import {
   Pencil, Link2, Plus,
-  SlidersHorizontal, Calendar, ChevronDown, Share2, LayoutGrid, Paperclip, Lightbulb,
+  Calendar, ChevronDown, Share2, LayoutGrid, Paperclip, Lightbulb,
   Building2, Target, Activity, Bell,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,23 +77,18 @@ export function HowItWorksFlow() {
     },
     {
       num: "2",
-      title: "Set",
-      desc: "Your goals: what a smarter position looks like for you.",
-      icon: SlidersHorizontal,
-    },
-    {
-      num: "3",
       title: "Monitor",
       desc: <>Our <span style={{ color: "#43a047" }}>Exchange IQ™</span> keeps watching the network as it grows.</>,
       icon: Activity,
     },
     {
-      num: "4",
+      num: "3",
       title: "Alert",
       desc: "You are notified when a relevant opportunity appears.",
       icon: Bell,
     },
   ];
+
 
   return (
     <div className="nb-how-flow">
