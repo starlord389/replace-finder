@@ -181,17 +181,6 @@ export function Sec_agents() {
         <a href="/signup" className="nb-sec-cta">Add My First Opportunity</a>
       </div>
 
-      <div className="nb-ag-chain" aria-hidden="true">
-        <div className="nb-ag-step first">One Client</div>
-        <div className="nb-flow-arrow">&darr;</div>
-        <div className="nb-ag-step">Seller Opportunity</div>
-        <div className="nb-flow-arrow">&darr;</div>
-        <div className="nb-ag-step">Replacement Property Match</div>
-        <div className="nb-flow-arrow">&darr;</div>
-        <div className="nb-ag-step">Agent Collaboration</div>
-        <div className="nb-flow-arrow">&darr;</div>
-        <div className="nb-ag-step last">Potential Transaction</div>
-      </div>
     </div>
   </div>
 </section>
