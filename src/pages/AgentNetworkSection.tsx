@@ -6,13 +6,6 @@ import {
   Boxes,
   SearchX,
   Network,
-  Users,
-  Building2,
-  Handshake,
-  CalendarClock,
-  TrendingUp,
-  UserSearch,
-  BellRing,
   ChevronDown,
   Rocket,
 } from "lucide-react";
