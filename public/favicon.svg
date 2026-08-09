@@ -1,21 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <g transform="translate(256 256) scale(1.62) translate(-243 -236.5)">
     <path
-      fill="none"
-      stroke="#16284a"
-      stroke-width="17"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      d="M 191 186 L 243 134 L 295 186"
-    />
-    <rect x="207" y="206" width="72" height="142" rx="11" fill="#16284a" />
-    <path
       fill="#16284a"
       stroke="#16284a"
-      stroke-width="18"
+      stroke-width="17"
       stroke-linejoin="round"
-      d="M 243 166 L 295 214 L 191 214 Z"
+      d="M 243 134 L 295 214 L 191 214 Z"
     />
+    <rect x="207" y="206" width="72" height="142" rx="11" fill="#16284a" />
     <rect x="146" y="294" width="44" height="54" rx="9" fill="#43a047" />
     <path
       fill="#43a047"
