@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { User, Briefcase, Building2 } from "lucide-react";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { SECTIONS_CSS, LandingSections, HowItWorksFlow, Sec_agents, Sec_investors } from "./HomeSections";
 
