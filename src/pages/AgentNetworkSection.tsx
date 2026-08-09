@@ -120,11 +120,11 @@ export default function AgentNetworkSection() {
           </div>
 
           <div className="agn-turn">
-            <h3 className="agn-h3">One Network. More Opportunities.</h3>
+            <h3 className="agn-h3">How ExchangeUp™ Unlocks More Deal Flow</h3>
             <p className="agn-turn-p">
               Add your investor clients and investment properties once. ExchangeUp™ continuously
               looks for potential opportunities inside your own database and throughout the larger
-              network.
+              network, so more deals can surface without more manual prospecting.
             </p>
 
             <div className="agn-list">
