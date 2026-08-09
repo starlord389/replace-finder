@@ -1079,7 +1079,7 @@ function Sec_faqcta() {
 
           {
             q: 'Do I need a 1031 exchange client right now?',
-            a: 'No. Many members add properties and criteria early so relevant opportunities can surface over time.',
+            a: 'No. Many people add properties and criteria early so relevant opportunities can surface over time.',
           },
           {
             q: 'Do I have to share property addresses?',
