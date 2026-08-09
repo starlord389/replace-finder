@@ -298,10 +298,13 @@ function NbAudienceCards() {
       if (hash === "agents" || hash === "investors") {
         const key = hash === "agents" ? "agent" : "investor";
         setOpen(key);
-        // give the dropdown a moment to render, then scroll the audience card into view
-        setTimeout(() => {
-          document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 50);
+        // wait for the dropdown to render, then scroll to its section
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const el = document.getElementById(hash);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+        });
       }
     };
     applyHash();
