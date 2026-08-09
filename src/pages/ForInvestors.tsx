@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { NB_STYLE, SkyBackdrop } from "@/pages/Home";
-import { EXTRA_CSS, SECTIONS_CSS, Sec_how, Sec_investors, Sec_trust, Sec_why } from "./HomeSections";
+import { EXTRA_CSS, SECTIONS_CSS, Sec_how, Sec_investors, Sec_why } from "./HomeSections";
 
 export default function ForInvestors() {
   useEffect(() => {
@@ -42,7 +42,6 @@ export default function ForInvestors() {
       <Sec_investors />
       <Sec_why />
       <Sec_how />
-      <Sec_trust />
     </div>
   );
 }
