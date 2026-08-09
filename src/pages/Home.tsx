@@ -245,57 +245,6 @@ function SkyBackdrop() {
   );
 }
 
-function HeroNetwork() {
-  return (
-    <div className="nb-net" role="img" aria-label="Property owners add their investment properties to 1031 ExchangeUP, which continuously monitors the network and alerts the right owner or agent when an opportunity is identified.">
-      {/* LEFT: property-owner inputs */}
-      <div className="nb-net-stage inputs">
-        {OWNERS.map((o) => (
-          <div key={o.owner} className="nb-net-node">
-            <span className="nb-net-ico" aria-hidden="true">{PERSON_ICON}</span>
-            <span className="nb-net-thumb" style={{ backgroundImage: `url(${o.photo})` }} aria-hidden="true" />
-            <span className="nb-net-txt">
-              <span className="nb-net-label">{o.owner}</span>
-              <span className="nb-net-prop">{o.prop}</span>
-              <span className="nb-net-price">{o.price}</span>
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* arrow: inputs → hub */}
-      <span className="nb-net-arrow" aria-hidden="true">{ARROW_RIGHT}</span>
-
-      {/* CENTER: monitoring hub */}
-      <div className="nb-net-hub">
-        <span className="nb-hub-ring" aria-hidden="true" />
-        <span className="nb-hub-ring b" aria-hidden="true" />
-        <span className="nb-hub-ring c" aria-hidden="true" />
-        <span className="nb-hub-1031">1031</span>
-        <span className="nb-hub-ex">Exchange<span className="up">UP</span>
-          <svg className="nb-hub-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><polyline points="3,17 9.5,11 13.5,14 21,5.5" stroke="#43a047" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /><polygon points="21,5.5 14.6,5.7 21,12.1" fill="#43a047" /></svg>
-        </span>
-        <span className="nb-hub-status"><i className="nb-hub-dot" />Monitoring Active</span>
-      </div>
-
-      {/* arrow: hub → outputs */}
-      <span className="nb-net-arrow" aria-hidden="true">{ARROW_RIGHT}</span>
-
-      {/* RIGHT: opportunity outputs */}
-      <div className="nb-net-stage outputs">
-        {ALERTS.map((a) => (
-          <div key={a.body} className="nb-net-alert">
-            <span className="nb-alert-ico" aria-hidden="true">{BELL_ICON}</span>
-            <span className="nb-net-txt">
-              <span className="nb-alert-t">{a.label}</span>
-              <span className="nb-alert-b">{a.body}</span>
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 
 
