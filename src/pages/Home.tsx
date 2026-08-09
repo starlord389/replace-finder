@@ -331,12 +331,12 @@ function NbMonitorSteps() {
   const orbitRadius = 255;
   const nodeOffset = 46;
   const labels = [
-    "Property A",
-    "Property B",
-    "Property C",
-    "Property D",
-    "Property E",
-    "Property F",
+    "Investor A",
+    "Investor B",
+    "Investor C",
+    "Investor D",
+    "Investor E",
+    "Investor F",
   ];
   const angles = [270, 330, 30, 90, 150, 210]; // degrees from 3 o'clock counter-clockwise
 
@@ -349,14 +349,24 @@ function NbMonitorSteps() {
     const dist = Math.hypot(dx, dy) || 1;
     const ux = dx / dist;
     const uy = dy / dist;
+    // perpendicular unit vector to offset the return-opportunity arrow
+    const px = -uy;
+    const py = ux;
+    const outOffset = 12;
     return {
       label,
       cx,
       cy,
-      sx: cx + ux * nodeOffset,
-      sy: cy + uy * nodeOffset,
-      ex: hub.cx - ux * hub.r,
-      ey: hub.cy - uy * hub.r,
+      // inward arrow: investor lists property into the network
+      inSx: cx + ux * nodeOffset,
+      inSy: cy + uy * nodeOffset,
+      inEx: hub.cx - ux * hub.r,
+      inEy: hub.cy - uy * hub.r,
+      // outward arrow: exchange-up opportunities flow back to the investor
+      outSx: hub.cx - ux * (hub.r - 8),
+      outSy: hub.cy - uy * (hub.r - 8),
+      outEx: cx + ux * nodeOffset + px * outOffset,
+      outEy: cy + uy * nodeOffset + py * outOffset,
     };
   });
 
@@ -364,33 +374,41 @@ function NbMonitorSteps() {
     <section id="steps" className="nb-diagram" aria-label="How the network works">
       <div className="nb-diagram-inner">
         <p className="nb-diagram-eyebrow">How It Works</p>
-        <h2 className="nb-diagram-h2">Every property added makes the network smarter.</h2>
+        <h2 className="nb-diagram-h2">Every investor added makes the network smarter.</h2>
         <p className="nb-diagram-lead">
-          Properties A through F all feed the same growing network — and every new property makes it more useful for all members. Exchange IQ™ monitors continuously and alerts the right owner or agent when a better fit appears.
+          Investors A through F all feed the same growing network — and every new property makes it more useful for all members. Exchange IQ™ monitors continuously and alerts the right investor or agent when a better fit appears.
         </p>
 
         <svg
           className="nb-net"
           viewBox="0 0 900 620"
           role="img"
-          aria-label="Properties A through F each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
+          aria-label="Investors A through F each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
         >
           <defs>
             <marker id="nbArrowIn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0 0 L10 5 L0 10 z" fill="#43a047" />
+            </marker>
+            <marker id="nbArrowOut" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#ffffff" />
             </marker>
           </defs>
 
           {nodes.map((n) => (
             <g key={n.label}>
               <line
-                x1={n.sx} y1={n.sy} x2={n.ex} y2={n.ey}
+                x1={n.inSx} y1={n.inSy} x2={n.inEx} y2={n.inEy}
                 stroke="#43a047" strokeWidth="2.5" strokeLinecap="round"
-                markerStart="url(#nbArrowIn)" markerEnd="url(#nbArrowIn)"
+                markerEnd="url(#nbArrowIn)"
               />
-              <rect x={n.cx - 112} y={n.cy - 42} width="224" height="84" rx="18" fill="#ffffff" />
-              <text x={n.cx} y={n.cy - 6} textAnchor="middle" fontSize="25" fontWeight="800" fill="#0b1f3d">{n.label}</text>
-              <text x={n.cx} y={n.cy + 22} textAnchor="middle" fontSize="17" fontWeight="600" fill="#5a6b83">Owner adds it once</text>
+              <line
+                x1={n.outSx} y1={n.outSy} x2={n.outEx} y2={n.outEy}
+                stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round"
+                strokeDasharray="6 4"
+                markerEnd="url(#nbArrowOut)"
+              />
+              <rect x={n.cx - 112} y={n.cy - 28} width="224" height="56" rx="18" fill="#ffffff" />
+              <text x={n.cx} y={n.cy + 6} textAnchor="middle" fontSize="25" fontWeight="800" fill="#0b1f3d">{n.label}</text>
             </g>
           ))}
 
@@ -406,8 +424,8 @@ function NbMonitorSteps() {
         </svg>
 
         <div className="nb-net-legend">
-          <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Properties added to the network</span>
-          <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Opportunities returned to owners &amp; agents</span>
+          <span><i className="nb-net-dot" style={{ background: "#43a047" }} /> Investors list properties</span>
+          <span><i className="nb-net-dot" style={{ background: "#ffffff" }} /> Opportunities to exchange up flow back</span>
         </div>
       </div>
     </section>
