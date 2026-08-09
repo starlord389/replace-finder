@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
 import networkDiagramAsset from "@/assets/network-diagram.png.asset.json";
 import AgentNetworkSection from "./AgentNetworkSection";
-import { SECTIONS_CSS, LandingSections, HowItWorksFlow, Sec_agents, Sec_investors } from "./HomeSections";
+import { SECTIONS_CSS, LandingSections, HowItWorksFlow, Sec_agents } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
    NEW BRAND - navy + green Exchange IQ™ matchmaking landing page.
@@ -138,7 +138,6 @@ const NB_STYLE = `
 const NAV_LINKS = [
   { label: "How It Works", href: "#steps" },
   { label: "For Agents", href: "#agents" },
-  { label: "For Investors", href: "#investors" },
   { label: "Resources", href: "#resources" },
   { label: "FAQ", href: "#faq" },
 ];
