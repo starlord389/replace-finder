@@ -75,64 +75,6 @@ export const EXTRA_CSS = `
 
 
 
-function Sec_example() {
-  return (
-<section id="example" style={{ background: "#eef3fb" }}>
-  <div className="max-w-[1240px] mx-auto px-5 sm:px-8 py-20 sm:py-24">
-    <div className="text-center max-w-[720px] mx-auto">
-      <h2 className="nb-h2">How a Match Actually Happens.</h2>
-      <p className="nb-lead mt-4">
-        One property enters the network. Here is what Exchange IQ™ surfaces.
-      </p>
-
-    </div>
-
-    <div className="nb-ex-grid">
-      <div className="nb-ex-card">
-        <div className="nb-ex-tag">Current Property</div>
-        <div className="nb-ex-place">Salem, Massachusetts</div>
-        <div className="nb-ex-rows">
-          <div className="nb-ex-row"><span>Estimated Value</span><b>$925,000</b></div>
-          <div className="nb-ex-row"><span>Mortgage Balance</span><b>$325,000</b></div>
-          <div className="nb-ex-row"><span>Gross Monthly Rent</span><b>$6,200</b></div>
-        </div>
-      </div>
-
-      <div className="nb-ex-mid" aria-hidden="true">
-        <div className="nb-ex-mid-label">Exchange IQ™ compares it across the network</div>
-        <span style={{ fontSize: 26 }}>&rarr;</span>
-      </div>
-
-      <div className="nb-ex-right">
-        <div className="nb-ex-card hl">
-          <div className="nb-ex-tag">Potential Replacement</div>
-          <div className="nb-ex-place">Beverly, Massachusetts</div>
-          <div className="nb-ex-rows">
-            <div className="nb-ex-row"><span>$1.1M Multifamily</span></div>
-            <div className="nb-ex-row"><span>Potentially stronger income opportunity</span></div>
-            <div className="nb-ex-row"><span>Matches investor criteria</span></div>
-          </div>
-        </div>
-
-        <div className="nb-ex-card hl">
-          <div className="nb-ex-tag">Potential Buyer</div>
-          <div className="nb-ex-place">Investor seeking North Shore multifamily</div>
-          <div className="nb-ex-rows">
-            <div className="nb-ex-row"><span>Budget up to $950K</span></div>
-            <div className="nb-ex-row"><span>Exploring a 1031 exchange</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <p className="nb-ex-fine">
-      Illustrative example. Matches shown are possible opportunities only - no investment performance or completed
-      transaction is implied or guaranteed.
-    </p>
-  </div>
-</section>
-  );
-}
 
 export function HowItWorksFlow() {
   const steps = [
