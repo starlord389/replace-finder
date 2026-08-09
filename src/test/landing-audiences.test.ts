@@ -23,7 +23,7 @@ describe("public landing-page audiences", () => {
     expect(sectionsSource).toContain("Exchanges Made Easier Across Your Whole Database.");
     expect(sectionsSource).toContain("You already built the database.");
     expect(sectionsSource).toContain("Internal Opportunity Detected");
-    expect(sectionsSource).toContain("Your Next Exchange, Made Easier.");
+    expect(sectionsSource).toContain("Your 1031 Exchange, Made Easier.");
     expect(sectionsSource).toContain("does not replace the agent");
     expect(sectionsSource).not.toContain("matches against thousands of opportunities");
   });
