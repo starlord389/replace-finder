@@ -245,40 +245,29 @@ const LOGO_BRANDS = [
   { name: "eXp Realty", src: "/logos/exp-realty.svg", height: 40, mobileHeight: 30 },
 ];
 
-const OWNER_ICON = (
+const PERSON_ICON = (
   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" /></svg>
 );
 
-/* three property owners feeding the monitoring hub */
+const BELL_ICON = (
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+);
+
+const ARROW_RIGHT = (
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+);
+
 const OWNERS = [
-  { tag: "Property Owner 1", prop: "Property A · $850K", meta: "Property added", photo: "/mf-1.jpg", x: 29, y: 13, rev: false },
-  { tag: "Property Owner 2", prop: "Property B · $1.1M", meta: "Property added", photo: "/mf-2.jpg", x: 69, y: 27, rev: true },
-  { tag: "Property Owner 3", prop: "Property C · $1.4M", meta: "Property added", photo: "/mf-3.jpg", x: 29, y: 79, rev: false },
+  { owner: "OWNER 1", prop: "Property A", price: "$850K", photo: "/mf-1.jpg" },
+  { owner: "OWNER 2", prop: "Property B", price: "$1.1M", photo: "/mf-2.jpg" },
+  { owner: "OWNER 3", prop: "Property C", price: "$1.4M", photo: "/mf-3.jpg" },
 ];
 
-/* opportunity alert flowing back out of the platform */
 const ALERTS = [
-  { x: 72, y: 79, title: "New Opportunity", body: "Property B may align with Owner 1’s replacement criteria." },
+  { label: "NEW OPPORTUNITY", body: "Owner 1 ↔ Property B" },
+  { label: "NEW OPPORTUNITY", body: "Owner 3 ↔ Property A" },
 ];
 
-/* faint perimeter nodes suggesting the wider network */
-const GHOSTS = [
-  { x: 6, y: 40, size: 30, photo: "/mf-4.jpg" },
-  { x: 95, y: 56, size: 26, photo: "/mf-5.jpg" },
-  { x: 52, y: 96, size: 28, photo: "/mf-6.jpg" },
-  { x: 92, y: 8, size: 22, photo: "/mf-4.jpg" },
-];
-
-/* faint circuit web fanning out from the hub edge */
-const WEB = Array.from({ length: 34 }, (_, i) => {
-  const a = (i / 34) * Math.PI * 2 + 0.12;
-  const r1 = 14;
-  const r2 = 17 + ((i * 13) % 13);
-  return {
-    x1: 50 + Math.cos(a) * r1, y1: 50 + Math.sin(a) * r1,
-    x2: 50 + Math.cos(a) * r2, y2: 50 + Math.sin(a) * r2,
-  };
-});
 
 
 function LogoArrow() {
