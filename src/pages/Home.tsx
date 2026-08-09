@@ -338,79 +338,55 @@ function SkyBackdrop() {
 function HeroNetwork() {
   return (
     <div className="nb-net" role="img" aria-label="Property owners add their investment properties to 1031 ExchangeUP, which continuously monitors the network and alerts the right owner or agent when an opportunity is identified.">
-      <svg className="nb-net-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {/* faint circuit web fanning from the hub edge */}
-        {WEB.map((w, i) => (
-          <g key={`w-${i}`}>
-            <line className="nb-web-line" x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2} vectorEffect="non-scaling-stroke" />
-          </g>
+      {/* LEFT: property-owner inputs */}
+      <div className="nb-net-stage inputs">
+        {OWNERS.map((o) => (
+          <div key={o.owner} className="nb-net-node">
+            <span className="nb-net-ico" aria-hidden="true">{PERSON_ICON}</span>
+            <span className="nb-net-thumb" style={{ backgroundImage: `url(${o.photo})` }} aria-hidden="true" />
+            <span className="nb-net-txt">
+              <span className="nb-net-label">{o.owner}</span>
+              <span className="nb-net-prop">{o.prop}</span>
+              <span className="nb-net-price">{o.price}</span>
+            </span>
+          </div>
         ))}
+      </div>
 
-        {/* faint perimeter network links */}
-        {GHOSTS.map((g, i) => (
-          <line key={`g-${i}`} className="nb-web-line" x1="50" y1="50" x2={g.x} y2={g.y} vectorEffect="non-scaling-stroke" />
-        ))}
+      {/* arrow: inputs → hub */}
+      <span className="nb-net-arrow" aria-hidden="true">{ARROW_RIGHT}</span>
 
-        {/* owners → hub (properties added, flowing inward) */}
-        {OWNERS.map((o, i) => (
-          <g key={`in-${i}`}>
-            <line className="nb-cw-line" x1={o.x + (50 - o.x) * 0.34} y1={o.y + (50 - o.y) * 0.34} x2={o.x + (50 - o.x) * 0.78} y2={o.y + (50 - o.y) * 0.78} vectorEffect="non-scaling-stroke" />
-            <circle className="nb-flow" r="0.95">
-              <animateMotion dur="3.2s" begin={`${i * 0.9}s`} repeatCount="indefinite" path={`M${o.x + (50 - o.x) * 0.34},${o.y + (50 - o.y) * 0.34} L${o.x + (50 - o.x) * 0.78},${o.y + (50 - o.y) * 0.78}`} />
-            </circle>
-          </g>
-        ))}
-
-        {/* hub → opportunity alerts (flowing outward) */}
-        {ALERTS.map((a, i) => (
-          <g key={`out-${i}`}>
-            <line className="nb-out-line" x1={50 + (a.x - 50) * 0.24} y1={50 + (a.y - 50) * 0.24} x2={50 + (a.x - 50) * 0.66} y2={50 + (a.y - 50) * 0.66} vectorEffect="non-scaling-stroke" />
-            <circle className="nb-flow nb-flow-out" r="0.95">
-              <animateMotion dur="2.6s" begin={`${1.2 + i * 0.8}s`} repeatCount="indefinite" path={`M${50 + (a.x - 50) * 0.24},${50 + (a.y - 50) * 0.24} L${50 + (a.x - 50) * 0.66},${50 + (a.y - 50) * 0.66}`} />
-            </circle>
-          </g>
-        ))}
-      </svg>
-
-      {GHOSTS.map((g, i) => (
-        <div key={`gh-${i}`} className="nb-ghost" style={{ left: `${g.x}%`, top: `${g.y}%`, width: `${g.size}px`, height: `${g.size}px`, backgroundImage: `url(${g.photo})` }} />
-      ))}
-
-      <span className="nb-ring" aria-hidden="true" />
-      <span className="nb-ring b" aria-hidden="true" />
-      <span className="nb-ring c" aria-hidden="true" />
-
-      {OWNERS.map((o) => (
-        <div key={o.tag} className={`nb-own${o.rev ? " rev" : ""}`} style={{ left: `${o.x}%`, top: `${o.y}%` }}>
-          <span className="nb-own-ico" aria-hidden="true">{OWNER_ICON}</span>
-          <span className="nb-own-txt">
-            <span className="nb-own-role">{o.tag}</span>
-            <span className="nb-own-prop">{o.prop}</span>
-            <span className="nb-own-meta">{o.meta}</span>
-            <span className="nb-own-agent"><i />Agent connected</span>
-          </span>
-          <span className="nb-own-thumb" style={{ backgroundImage: `url(${o.photo})` }} aria-hidden="true" />
-        </div>
-      ))}
-
-      {ALERTS.map((a) => (
-        <div key={a.title} className="nb-alert" style={{ left: `${a.x}%`, top: `${a.y}%` }}>
-          <span className="nb-alert-t"><i />{a.title}</span>
-          <span className="nb-alert-b">{a.body}</span>
-        </div>
-      ))}
-
-      <div className="nb-net-center">
+      {/* CENTER: monitoring hub */}
+      <div className="nb-net-hub">
+        <span className="nb-hub-ring" aria-hidden="true" />
+        <span className="nb-hub-ring b" aria-hidden="true" />
+        <span className="nb-hub-ring c" aria-hidden="true" />
         <span className="nb-hub-1031">1031</span>
         <span className="nb-hub-ex">Exchange<span className="up">UP</span>
           <svg className="nb-hub-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><polyline points="3,17 9.5,11 13.5,14 21,5.5" stroke="#43a047" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /><polygon points="21,5.5 14.6,5.7 21,12.1" fill="#43a047" /></svg>
         </span>
-        <span className="nb-hub-sub">Constant intelligent<br />opportunity monitoring</span>
-        <span className="nb-hub-status"><i className="nb-hub-dot" />Monitoring active</span>
+        <span className="nb-hub-status"><i className="nb-hub-dot" />Monitoring Active</span>
+      </div>
+
+      {/* arrow: hub → outputs */}
+      <span className="nb-net-arrow" aria-hidden="true">{ARROW_RIGHT}</span>
+
+      {/* RIGHT: opportunity outputs */}
+      <div className="nb-net-stage outputs">
+        {ALERTS.map((a) => (
+          <div key={a.body} className="nb-net-alert">
+            <span className="nb-alert-ico" aria-hidden="true">{BELL_ICON}</span>
+            <span className="nb-net-txt">
+              <span className="nb-alert-t">{a.label}</span>
+              <span className="nb-alert-b">{a.body}</span>
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
+
 
 
 const BADGES = [
