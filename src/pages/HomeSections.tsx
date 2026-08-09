@@ -306,20 +306,16 @@ function RoeMiniCalc() {
   const [opex, setOpex] = useState(0);
   const [shown, setShown] = useState(false);
 
-  const PLATFORM = 8; // healthy return-on-equity benchmark
   const equity = Math.max(0, value - loan);
   const monthlyExpenses = pi + ti + opex;
   const monthlyCashFlow = rent - monthlyExpenses;
   const income = monthlyCashFlow * 12;
   const roe = equity > 0 ? (income / equity) * 100 : 0;
-  const potential = equity * (PLATFORM / 100);
-  const uplift = potential - income;
 
   const usd = (n: number) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
   const parse = (s: string) => Number(s.replace(/[^0-9]/g, "")) || 0;
 
-  const tone = roe < 5 ? "low" : roe < 8 ? "mid" : "high";
-  const numColor = tone === "low" ? "#b8543a" : tone === "mid" ? "#16284a" : "#43a047";
+  const numColor = roe >= 0 ? "#43a047" : "#b8543a";
 
   const signupHref =
     `/signup?role=investor&value=${Math.round(value)}&loan=${Math.round(loan)}&rent=${Math.round(rent)}` +
@@ -339,7 +335,7 @@ function RoeMiniCalc() {
       <h3 className="nb-why-card-title">Return on Equity Calculator</h3>
       <p className="nb-why-card-sub">
         Enter your property value, loan balance, rent and monthly costs — P&amp;I, T&amp;I and other expenses — to see
-        how hard your equity is working today, measured against an 8% reference return.
+        how hard your equity is working today.
       </p>
 
       <div className="nb-why-inputs">
@@ -362,8 +358,8 @@ function RoeMiniCalc() {
 
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
           gap: 12,
           fontSize: 12,
           fontWeight: 700,
@@ -394,12 +390,12 @@ function RoeMiniCalc() {
               <div style={{ fontSize: 20, fontWeight: 800, color: "#16284a" }}>{usd(equity)}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>Current ROE</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: numColor }}>{roe.toFixed(1)}%</div>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>Annual Cash Flow</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#16284a" }}>{usd(income)}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>At 8% Reference</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#43a047" }}>{usd(potential)}/yr</div>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7c8899", fontWeight: 800 }}>Current ROE</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: numColor }}>{roe.toFixed(1)}%</div>
             </div>
           </div>
 
@@ -408,23 +404,15 @@ function RoeMiniCalc() {
           </p>
 
           <p className="nb-why-result-note">
-            {uplift > 0 ? (
-              <>After <b>{usd(monthlyExpenses)}/mo</b> in P&amp;I, T&amp;I and other operating expenses, your annual
-              cash flow is about <b>{usd(income)}/yr</b>. The same <b>{usd(equity)}</b> of equity could represent
-              roughly <b>{usd(uplift)}</b> more per year at the reference return. ExchangeUp™ can continuously monitor
-              for investment opportunities that may better align with your goals.</>
-            ) : (
-              <>After <b>{usd(monthlyExpenses)}/mo</b> in P&amp;I, T&amp;I and other operating expenses, your equity is
-              returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>, at or above the 8% reference return used
-              here. ExchangeUp™ can keep monitoring anyway — we only reach out if something genuinely better appears.</>
-            )}
+            After <b>{usd(monthlyExpenses)}/mo</b> in P&amp;I, T&amp;I and other operating expenses, your annual
+            cash flow is about <b>{usd(income)}/yr</b>. With <b>{usd(equity)}</b> in equity, your property is
+            returning <b style={{ color: numColor }}>{roe.toFixed(1)}%</b>. ExchangeUp™ can continuously monitor
+            for investment opportunities that may better align with your goals.
           </p>
 
           <a href={signupHref} className="nb-why-calc" style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14 }}>
             Monitor My Opportunities
           </a>
-
-
 
           <p className="nb-why-fine">
             Annual cash flow is calculated as gross monthly rent less your entered P&amp;I, T&amp;I and other monthly
@@ -447,7 +435,7 @@ export function Sec_why() {
 <section id="why" className="px-5 sm:px-8 py-20 sm:py-24">
   <div className="mx-auto" style={{ maxWidth: 1240 }}>
     <div className="nb-why-wrap px-6 sm:px-12 lg:px-16 py-14 lg:py-20">
-      <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
         {/* LEFT */}
         <div>
           <h2 className="nb-why-h2">
