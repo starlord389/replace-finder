@@ -348,10 +348,6 @@ function NbWhyNow() {
       <div className="nb-now-inner">
         <div>
           <h2 className="nb-now-h">Don’t Wait for the 45-Day Clock to Start.</h2>
-          <p className="nb-now-p">
-            ExchangeUp™ can monitor for smarter opportunities long before you decide to sell. Add your property today and
-            let the system continuously evaluate opportunities as the network changes.
-          </p>
         </div>
         <ul className="nb-now-list">
           {[
