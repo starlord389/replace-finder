@@ -260,17 +260,17 @@ const BADGES = [
 
 const AUDIENCE_CARDS = [
   {
+    key: "investor" as const,
     tag: "I Own Investment Property",
     txt: "Add it once. ExchangeUp™ keeps monitoring for a smarter place for your equity.",
-    cta: "Monitor My Property",
-    to: ROUTES.forInvestors,
+    cta: "Show details",
     svg: (<svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5" /><path d="M5.6 10v10h12.8V10" /><rect x="10" y="14.5" width="4" height="5.5" /></svg>),
   },
   {
+    key: "agent" as const,
     tag: "I’m a Real Estate Agent",
     txt: "Your database may already hold your next transaction. Add clients and properties — monitored continuously.",
-    cta: "Monitor My Database",
-    to: ROUTES.forAgents,
+    cta: "Show details",
     svg: (<svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="13.5" rx="2.2" /><path d="M8 7V5.2A2.2 2.2 0 0 1 10.2 3h3.6A2.2 2.2 0 0 1 16 5.2V7" /><line x1="2.5" y1="12.6" x2="21.5" y2="12.6" /></svg>),
   },
 ];
@@ -279,18 +279,48 @@ const AUDIENCE_CARDS = [
 
 
 function NbAudienceCards() {
+  const [open, setOpen] = useState<"agent" | "investor" | null>(null);
+  const toggle = (key: "agent" | "investor") => setOpen((prev) => (prev === key ? null : key));
+
   return (
     <section className="nb-aud" aria-label="Choose your path">
       <div className="nb-aud-grid nb-aud-grid-2">
-        {AUDIENCE_CARDS.map((c) => (
-          <div className="nb-aud-card" key={c.tag}>
-            <span className="nb-aud-ico" aria-hidden="true">{c.svg}</span>
-            <div className="nb-aud-tag">{c.tag}</div>
-            <p className="nb-aud-txt">{c.txt}</p>
-            <Link to={c.to} className="nb-aud-link">{c.cta} →</Link>
-          </div>
-        ))}
+        {AUDIENCE_CARDS.map((c) => {
+          const isOpen = open === c.key;
+          return (
+            <button
+              key={c.tag}
+              type="button"
+              className={`nb-aud-card ${isOpen ? "is-open" : ""}`}
+              onClick={() => toggle(c.key)}
+              aria-expanded={isOpen}
+            >
+              <span className="nb-aud-ico" aria-hidden="true">{c.svg}</span>
+              <div className="nb-aud-tag">{c.tag}</div>
+              <p className="nb-aud-txt">{c.txt}</p>
+              <span className="nb-aud-link">
+                {isOpen ? "Hide details" : c.cta}
+                <span className="nb-aud-chevron" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
+              </span>
+            </button>
+          );
+        })}
       </div>
+
+      {open === "investor" && (
+        <div className="nb-aud-dropdown">
+          <Sec_investors />
+        </div>
+      )}
+      {open === "agent" && (
+        <div className="nb-aud-dropdown">
+          <Sec_agents />
+        </div>
+      )}
     </section>
   );
 }
