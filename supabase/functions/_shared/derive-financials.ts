@@ -28,7 +28,7 @@ export function deriveFinancialColumns(financials: Record<string, unknown>) {
   const grossRentRoll = toNumber(financials.gross_rent_roll);
   const totalOperatingExpenses = toNumber(financials.total_operating_expenses);
   // annual_debt_service = the owner's mortgage payment, annualized. Stored for
-  // reference/display only — it is NOT part of NOI (NOI is before debt service).
+  // reference/display only - it is NOT part of NOI (NOI is before debt service).
   const annualDebtService = toNumber(financials.annual_debt_service);
   const loanBalance = toNumber(financials.loan_balance);
 

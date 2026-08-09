@@ -61,9 +61,9 @@ interface Props {
   activeClientId?: string | null;
   activeExchangeId?: string;
   onSelectExchange?: (exchangeId: string) => void;
-  /** Optional "All clients" entry — when provided, surfaces an "All clients" option at the top of the client dropdown. */
+  /** Optional "All clients" entry - when provided, surfaces an "All clients" option at the top of the client dropdown. */
   onSelectAllClients?: () => void;
-  /** Optional "All properties for this client" entry — when provided, surfaces an option at the top of the property dropdown. */
+  /** Optional "All properties for this client" entry - when provided, surfaces an option at the top of the property dropdown. */
   onSelectAllPropertiesForClient?: (clientId: string | null) => void;
   /** Label for the active client when the global "All clients" mode is active. */
   allClientsActive?: boolean;

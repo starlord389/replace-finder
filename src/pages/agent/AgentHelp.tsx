@@ -86,7 +86,7 @@ export default function AgentHelp() {
         </div>
         <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">How can we help?</h1>
         <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
-          Search guides, FAQs, and 1031 terms — or reach our team directly. Everything you need to run your exchanges smoothly.
+          Search guides, FAQs, and 1031 terms - or reach our team directly. Everything you need to run your exchanges smoothly.
         </p>
         <div className="relative mt-5 max-w-xl">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -221,7 +221,7 @@ export default function AgentHelp() {
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">Still need help?</p>
-              <p className="text-xs text-muted-foreground">Email support@1031exchangeup.com — we typically reply within one business day.</p>
+              <p className="text-xs text-muted-foreground">Email support@1031exchangeup.com - we typically reply within one business day.</p>
             </div>
           </div>
           <Button variant="outline" size="sm" className="shrink-0" onClick={() => openSupport()}>
@@ -499,7 +499,7 @@ function SubmitTicketForm({ initialSubject = "" }: { initialSubject?: string }) 
       { subject, message, category },
       {
         onSuccess: () => {
-          toast.success("Ticket submitted — we'll get back to you soon.");
+          toast.success("Ticket submitted - we'll get back to you soon.");
           setSubject("");
           setMessage("");
           setCategory("general");
@@ -512,7 +512,7 @@ function SubmitTicketForm({ initialSubject = "" }: { initialSubject?: string }) 
   const messagePlaceholder =
     category === "bug"
       ? "Describe what happened, what you expected, and the steps to reproduce. Include the page URL if possible."
-      : "Tell us as much as you can — the more context, the faster we can help.";
+      : "Tell us as much as you can - the more context, the faster we can help.";
 
   return (
     <Card>

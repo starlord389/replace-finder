@@ -82,10 +82,10 @@ Deno.serve(async (req) => {
     const criteriaId = exchange.criteria_id;
 
     // Storage IDOR guard: every client-supplied image path must either be an
-    // external http(s):// URL (demo/legacy references — harmless) or live under
+    // external http(s):// URL (demo/legacy references - harmless) or live under
     // the caller's own folder (`${user.id}/`). A relative path under another
     // user's folder is rejected: an attacker could otherwise insert a victim's
-    // path into this listing, or — via the reconcile delete below — remove a
+    // path into this listing, or - via the reconcile delete below - remove a
     // victim's files from the public bucket.
     if (Array.isArray(payload.images)) {
       const foreign = payload.images.find((img) => !isAllowedImagePath(img?.storage_path, user.id));
@@ -96,8 +96,8 @@ Deno.serve(async (req) => {
 
     // ── MOVE TO DRAFT: fail fast BEFORE any mutation ──
     // The accepted/completed-connection guard must run before we touch any
-    // property/financials/criteria/image data (the wizard path applies those —
-    // including irreversible storage deletes — before flipping status). Running
+    // property/financials/criteria/image data (the wizard path applies those -
+    // including irreversible storage deletes - before flipping status). Running
     // it first means a rejected unpublish leaves all listing data and storage
     // untouched instead of 500-ing after the writes already landed.
     if (payload.intent === "move_to_draft") {
@@ -173,11 +173,11 @@ Deno.serve(async (req) => {
       // empty/null value under a PRESENT key), but a direct authenticated API
       // call may OMIT keys entirely. deriveFinancialColumns(payload) alone
       // collapses every absent input to null, so an unconditional .update() would
-      // wipe NOI/cap_rate/rent/opex/loan for any omitted field — dropping the
+      // wipe NOI/cap_rate/rent/opex/loan for any omitted field - dropping the
       // listing out of matching. Instead, merge only the keys the caller actually
-      // included over the stored row — keyed on PRESENCE, not value, so the UI
+      // included over the stored row - keyed on PRESENCE, not value, so the UI
       // can still clear a field to null while a partial API call leaves omitted
-      // fields untouched — then re-derive noi/cap_rate/occupancy from the merge.
+      // fields untouched - then re-derive noi/cap_rate/occupancy from the merge.
       const inputKeys = [
         "asking_price",
         "gross_rent_roll",
@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
 
       // Server-authoritative equity/proceeds from the (merged) asking price and
       // loan balance, rather than trusting client-sent values.
-      // estimated_equity = RAW equity (asking − loan), NOT clamped — the wizard
+      // estimated_equity = RAW equity (asking − loan), NOT clamped - the wizard
       // displays raw (negative-capable) equity, so the stored value must match.
       // (exchange_proceeds stays clamped >= 0 below.)
       const estimatedEquity =
@@ -316,7 +316,7 @@ Deno.serve(async (req) => {
       // enforces this, but a direct API call could otherwise null required
       // fields (city/state/asset_type/owner-auth/asking_price) on a live
       // listing. The wizard data has just been persisted above, so validate
-      // against the now-current DB state — mirroring the publish path.
+      // against the now-current DB state - mirroring the publish path.
       const publishError = await assertPublishable(db, propertyId);
       if (publishError) return publishError;
 
@@ -330,7 +330,7 @@ Deno.serve(async (req) => {
         await runMatchingSafe(db, user.id, exchange.id, propertyId, !!exchange.is_demo, "update:rescore");
       }
     } else {
-      // Plain save — timeline event
+      // Plain save - timeline event
       await db.from("exchange_timeline").insert({
         exchange_id: exchange.id,
         event_type: "exchange_updated",
@@ -369,7 +369,7 @@ async function handleStatusChange(
     await db.from("exchange_timeline").insert({
       exchange_id: exchange.id,
       event_type: "exchange_published",
-      description: "Exchange published — matching ran",
+      description: "Exchange published - matching ran",
       actor_id: userId,
     });
     if (propertyId) {
@@ -382,16 +382,16 @@ async function handleStatusChange(
             db.from("pledged_properties").select("address, city, state, asset_type").eq("id", propertyId).maybeSingle(),
             db.from("property_financials").select("asking_price").eq("property_id", propertyId).maybeSingle(),
           ]);
-          const cityState = [prop?.city, prop?.state].filter(Boolean).join(", ") || "—";
-          const priceFmt = typeof fin?.asking_price === "number" ? `$${fin.asking_price.toLocaleString()}` : "—";
+          const cityState = [prop?.city, prop?.state].filter(Boolean).join(", ") || "-";
+          const priceFmt = typeof fin?.asking_price === "number" ? `$${fin.asking_price.toLocaleString()}` : "-";
           notifyAdmins({
             eventType: "Listing published",
             title: `Listing published: ${cityState}`,
             summary: "An existing draft was just published as an active listing.",
             details: [
-              { label: "Address", value: prop?.address || "—" },
+              { label: "Address", value: prop?.address || "-" },
               { label: "City / State", value: cityState },
-              { label: "Asset type", value: prop?.asset_type || "—" },
+              { label: "Asset type", value: prop?.asset_type || "-" },
               { label: "Asking price", value: priceFmt },
             ],
             idempotencySuffix: `listing-${exchange.id}`,
@@ -416,7 +416,7 @@ async function handleStatusChange(
 
     // Pausing matching (the property is no longer 'active') stops NEW matches from
     // being computed, but any matches scored while the listing was live remain in
-    // the table with status 'active' and stay visible to the counterparty — so a
+    // the table with status 'active' and stay visible to the counterparty - so a
     // withdrawn listing can still surface as a live match. Remove this listing's
     // own open matches in BOTH directions:
     //   • buyer side  → matches where this exchange is the buyer (buyer_exchange_id)
@@ -432,7 +432,7 @@ async function handleStatusChange(
     await db.from("exchange_timeline").insert({
       exchange_id: exchange.id,
       event_type: "exchange_moved_to_draft",
-      description: "Exchange moved to draft — matching paused",
+      description: "Exchange moved to draft - matching paused",
       actor_id: userId,
     });
   }
@@ -441,8 +441,8 @@ async function handleStatusChange(
 
 // Guard move_to_draft against an in-flight deal. Returns a 400 Response when the
 // exchange has an accepted, in-progress, or completed connection on EITHER side
-// — as the buyer (buyer_exchange_id) OR the seller listing (seller_exchange_id)
-// — since unpublishing either side would orphan a live deal — or null when it is
+// - as the buyer (buyer_exchange_id) OR the seller listing (seller_exchange_id)
+// - since unpublishing either side would orphan a live deal - or null when it is
 // safe to move to draft. Returning a Response (rather than throwing) lets the
 // handler fail fast with a clean 400 before any data/storage is mutated, instead
 // of a post-mutation 500.
@@ -456,7 +456,7 @@ async function assertNoAcceptedConnections(
     // The exchange can be on either side of the connection; block if it is the
     // buyer OR the seller listing on an in-flight deal.
     .or(`buyer_exchange_id.eq.${exchangeId},seller_exchange_id.eq.${exchangeId}`)
-    // 'in_progress' (under contract) is a live deal too — migration
+    // 'in_progress' (under contract) is a live deal too - migration
     // 20260625140000 added it between accepted and completed, and the app treats
     // ['accepted','in_progress','completed'] as active everywhere.
     .in("status", ["accepted", "in_progress", "completed"]);
@@ -475,7 +475,7 @@ async function assertNoAcceptedConnections(
 // for this listing: the exchange as buyer (buyer_exchange_id), and its
 // relinquished property as the listed seller property (seller_property_id).
 //
-// We delete ONLY matches that no agent has acted on — i.e. matches with no row
+// We delete ONLY matches that no agent has acted on - i.e. matches with no row
 // in exchange_connections and none in identification_list. This is both the
 // least-surprising action and the only safe one: those two tables FK to
 // matches(id) with NO ON DELETE CASCADE, so deleting a referenced match would
@@ -593,7 +593,7 @@ function isOwnedPath(path: unknown, userId: string): boolean {
 }
 
 // Absolute http(s):// URLs (e.g. demo/legacy Unsplash listings store the full
-// image URL as storage_path) are external references, not bucket folder paths —
+// image URL as storage_path) are external references, not bucket folder paths -
 // they cannot target another user's storage, so they are exempt from the IDOR
 // guard. The reconcile storage.remove already filters to owned `${userId}/`
 // paths, so an external URL is never passed to storage.remove either.
@@ -602,7 +602,7 @@ function isHttpUrl(path: unknown): boolean {
 }
 
 // The IDOR guard rejects ONLY a path that is neither an external http(s) URL nor
-// under the caller's own folder — i.e. a relative bucket path pointing at someone
+// under the caller's own folder - i.e. a relative bucket path pointing at someone
 // else's folder.
 function isAllowedImagePath(path: unknown, userId: string): boolean {
   return isHttpUrl(path) || isOwnedPath(path, userId);

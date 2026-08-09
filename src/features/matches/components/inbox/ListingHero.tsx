@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function ListingHero({ rel }: Props) {
-  // Real uploaded photos only — no fabricated stock gallery.
+  // Real uploaded photos only - no fabricated stock gallery.
   const photos = (rel.propertyImageUrls ?? []).filter(Boolean);
   const [active, setActive] = useState(0);
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -67,7 +67,7 @@ export function ListingHero({ rel }: Props) {
           </div>
         </div>
 
-        {/* Thumbnail strip — only when there are multiple real photos */}
+        {/* Thumbnail strip - only when there are multiple real photos */}
         {photos.length > 1 && (
           <div className="flex gap-2 overflow-x-auto bg-card px-5 py-3">
             {photos.slice(0, 7).map((src, i) => (

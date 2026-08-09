@@ -49,7 +49,7 @@ const Email = ({
           <Text style={paragraph}>{greeting}</Text>
           <Text style={paragraph}>
             Exchange IQ monitors your properties and criteria continuously. A new opportunity just surfaced on the
-            1031ExchangeUp network — open it to review the fit, the numbers, and reach out to the other agent.
+            1031ExchangeUp network - open it to review the fit, the numbers, and reach out to the other agent.
           </Text>
 
 
@@ -96,8 +96,8 @@ export const template = {
   displayName: 'New match notification',
   previewData: {
     firstName: 'Alex',
-    yourListingLabel: 'Sanchez portfolio — Austin, TX',
-    matchedPropertyLabel: '12-unit multifamily — Phoenix, AZ',
+    yourListingLabel: 'Sanchez portfolio - Austin, TX',
+    matchedPropertyLabel: '12-unit multifamily - Phoenix, AZ',
     matchScore: 87,
     matchUrl: 'https://1031exchangeup.com/agent/matches?listing=abc&match=xyz',
     matchesUrl: 'https://1031exchangeup.com/agent/matches',

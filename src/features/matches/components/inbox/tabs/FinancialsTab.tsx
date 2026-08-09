@@ -5,14 +5,14 @@ import { cn } from "@/lib/utils";
 
 export function FinancialsTab({ rel }: { rel: Relationship }) {
   const metrics = financialMetrics(rel);
-  const cap = metrics.find((m) => m.key === "cap")?.value ?? "—";
-  // Real figures only — no fabricated gross/expense split. Gross income and
+  const cap = metrics.find((m) => m.key === "cap")?.value ?? "-";
+  // Real figures only - no fabricated gross/expense split. Gross income and
   // operating expenses come straight from the listing's stored financials; NOI
   // prefers the stored (server-derived) value.
-  const money = (v: number | null) => (v != null ? `$${Math.round(v).toLocaleString()}` : "—");
+  const money = (v: number | null) => (v != null ? `$${Math.round(v).toLocaleString()}` : "-");
   const grossIncome = money(rel.grossRentRoll);
   const expenses = money(rel.totalOperatingExpenses);
-  const noi = rel.noi != null ? money(rel.noi) : (metrics.find((m) => m.key === "noi")?.value ?? "—");
+  const noi = rel.noi != null ? money(rel.noi) : (metrics.find((m) => m.key === "noi")?.value ?? "-");
   const hasIncomeStatement =
     rel.grossRentRoll != null || rel.totalOperatingExpenses != null || rel.noi != null;
 
@@ -26,7 +26,7 @@ export function FinancialsTab({ rel }: { rel: Relationship }) {
         <KpiHero icon={TrendingUp} label="Cap Rate" value={cap} sub="current" tint="bg-emerald-50" valueTint="text-emerald-700" />
       </section>
 
-      {/* Income statement — estimated from cap rate when verified line items aren't provided */}
+      {/* Income statement - estimated from cap rate when verified line items aren't provided */}
       <section className="rounded-2xl border bg-card p-6">
         <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
           <Receipt className="h-4 w-4 text-primary" />
@@ -41,7 +41,7 @@ export function FinancialsTab({ rel }: { rel: Relationship }) {
               </tr>
               <tr className="text-foreground">
                 <td className="px-4 py-3">Operating Expenses</td>
-                <td className="px-4 py-3 text-right font-medium">{expenses !== "—" ? `(${expenses})` : "—"}<span className="text-muted-foreground">/yr</span></td>
+                <td className="px-4 py-3 text-right font-medium">{expenses !== "-" ? `(${expenses})` : "-"}<span className="text-muted-foreground">/yr</span></td>
               </tr>
               <tr className="bg-muted/30 text-foreground">
                 <td className="px-4 py-3 font-semibold">Net Operating Income</td>

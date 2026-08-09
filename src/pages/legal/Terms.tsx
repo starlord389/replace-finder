@@ -5,7 +5,7 @@ import { LegalDoc } from "./LegalDoc";
 
 export default function Terms() {
   useEffect(() => {
-    document.title = "Terms & Conditions — 1031 Exchange Up";
+    document.title = "Terms & Conditions - 1031 Exchange Up";
   }, []);
 
   return (
@@ -21,7 +21,7 @@ export default function Terms() {
         <div className="legal-toc-title">Contents</div>
         <ol>
           <li>Eligibility and acceptance</li>
-          <li>What the Service is — and is not</li>
+          <li>What the Service is - and is not</li>
           <li>Accounts</li>
           <li>Your content and conduct</li>
           <li>Referral fees and compensation</li>
@@ -50,7 +50,7 @@ export default function Terms() {
         relevant property or ownership entity.
       </p>
 
-      <h2>2. What the Service is — and is not</h2>
+      <h2>2. What the Service is - and is not</h2>
       <p>
         1031 Exchange Up is a technology platform for licensed agents and investors/property owners to
         organize potential exchanges, publish authorized property information, receive potential
@@ -115,7 +115,7 @@ export default function Terms() {
 
       <h2>8. Fees</h2>
       <p>
-        The Service is offered free of charge to all users — investors, property owners, and agents alike. If we
+        The Service is offered free of charge to all users - investors, property owners, and agents alike. If we
         ever introduce fees, we will provide notice first, and any paid features would be governed by the pricing
         and additional terms presented at that time.
       </p>

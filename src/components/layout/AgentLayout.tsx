@@ -23,14 +23,14 @@ export default function AgentLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  // Anyone holding the agent role can use the agent area — including admins who
+  // Anyone holding the agent role can use the agent area - including admins who
   // also have an agent role, so they can switch back and forth between views.
   if (!hasRole("agent")) {
     return <Navigate to={getUnauthorizedRedirectPath(profileRole)} replace />;
   }
 
   // A suspended agent is locked out of all agent functionality (not just shown a
-  // banner). Admins are exempt — they keep agent-view access and aren't suspendable.
+  // banner). Admins are exempt - they keep agent-view access and aren't suspendable.
   if (isSuspendedAgent && !hasRole("admin")) {
     const ui = getAgentVerificationUiState(agentVerificationStatus);
     return (
@@ -59,7 +59,7 @@ export default function AgentLayout() {
       <AgentTopNav />
       {isDemo && (
         <div className="bg-[#43a047] px-4 py-1.5 text-center text-xs font-semibold text-white">
-          Demo workspace — sample data, kept completely separate from your live account.
+          Demo workspace - sample data, kept completely separate from your live account.
         </div>
       )}
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">

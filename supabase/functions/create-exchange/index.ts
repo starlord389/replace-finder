@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
       return response({ error: "Invalid financials", details: financialErrors }, 400);
     }
 
-    // Publishing (activate) requires a complete listing — mirror the client's
+    // Publishing (activate) requires a complete listing - mirror the client's
     // validatePublish so we don't push an incomplete listing into the network.
     if (payload.activate) {
       const publishErrors = validatePublish(payload.property, payload.financials as Record<string, unknown>);
@@ -124,10 +124,10 @@ Deno.serve(async (req) => {
     }
 
     // Storage IDOR guard: every client-supplied image path must either be an
-    // external http(s):// URL (demo/legacy references — harmless) or live under
+    // external http(s):// URL (demo/legacy references - harmless) or live under
     // the caller's own folder (`${user.id}/`). A relative path under another
     // user's folder is rejected: an attacker could otherwise insert a victim's
-    // path — or force a rollback — to delete the victim's files.
+    // path - or force a rollback - to delete the victim's files.
     if (Array.isArray(payload.images)) {
       const foreign = payload.images.find((img) => !isAllowedImagePath(img?.storage_path, user.id));
       if (foreign) {
@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
       const derived = deriveFinancialColumns(payload.financials);
       // Server-authoritative equity/proceeds: derive from the validated asking
       // price and loan balance rather than trusting client-sent values.
-      // estimated_equity = RAW equity (asking − loan), NOT clamped — the wizard
+      // estimated_equity = RAW equity (asking − loan), NOT clamped - the wizard
       // displays raw (negative-capable) equity, so the stored value must match.
       // (exchange_proceeds stays clamped >= 0 below.)
       const estimatedEquity =
@@ -270,16 +270,16 @@ Deno.serve(async (req) => {
         // Notify platform operators about the new active listing (non-demo only).
         if (payload.isDemo !== true) {
           const priceNum = typeof derived.asking_price === "number" ? derived.asking_price : null;
-          const priceFmt = priceNum != null ? `$${priceNum.toLocaleString()}` : "—";
+          const priceFmt = priceNum != null ? `$${priceNum.toLocaleString()}` : "-";
           const cityState = [payload.property.city, payload.property.state]
             .filter((v) => typeof v === "string" && v)
-            .join(", ") || "—";
+            .join(", ") || "-";
           const addr = typeof payload.property.address === "string" && payload.property.address
             ? String(payload.property.address)
-            : "—";
+            : "-";
           const assetType = typeof payload.property.asset_type === "string"
             ? String(payload.property.asset_type)
-            : "—";
+            : "-";
           notifyAdmins({
             eventType: "New listing activated",
             title: `New listing: ${cityState}`,
@@ -293,7 +293,7 @@ Deno.serve(async (req) => {
               { label: "City / State", value: cityState },
               { label: "Asset type", value: assetType },
               { label: "Asking price", value: priceFmt },
-              { label: "Client", value: payload.clientName || "—" },
+              { label: "Client", value: payload.clientName || "-" },
               { label: "New matches", value: String(matchingResult?.new_matches ?? 0) },
             ],
             idempotencySuffix: `listing-${exchangeId}`,
@@ -316,7 +316,7 @@ Deno.serve(async (req) => {
         await db.from("property_financials").delete().eq("property_id", propertyId);
         await db.from("pledged_properties").delete().eq("id", propertyId);
       }
-      // Don't leave just-uploaded photos orphaned in storage on rollback — but
+      // Don't leave just-uploaded photos orphaned in storage on rollback - but
       // only ever remove paths owned by the caller, never arbitrary paths.
       if (Array.isArray(payload.images) && payload.images.length > 0) {
         const ownedPaths = payload.images
@@ -373,7 +373,7 @@ function isOwnedPath(path: unknown, userId: string): boolean {
 }
 
 // Absolute http(s):// URLs (e.g. demo/legacy Unsplash listings store the full
-// image URL as storage_path) are external references, not bucket folder paths —
+// image URL as storage_path) are external references, not bucket folder paths -
 // they cannot target another user's storage, so they are exempt from the IDOR
 // guard. The reconcile storage.remove already filters to owned `${userId}/`
 // paths, so an external URL is never passed to storage.remove either.
@@ -382,7 +382,7 @@ function isHttpUrl(path: unknown): boolean {
 }
 
 // The IDOR guard rejects ONLY a path that is neither an external http(s) URL nor
-// under the caller's own folder — i.e. a relative bucket path pointing at someone
+// under the caller's own folder - i.e. a relative bucket path pointing at someone
 // else's folder.
 function isAllowedImagePath(path: unknown, userId: string): boolean {
   return isHttpUrl(path) || isOwnedPath(path, userId);

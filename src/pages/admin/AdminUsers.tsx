@@ -294,7 +294,7 @@ export default function AdminUsers() {
                         onClick={() => setExpandedId(isExpanded ? null : u.id)}
                       >
                         <TableCell>
-                          <div className="text-sm font-medium">{u.full_name || "—"}</div>
+                          <div className="text-sm font-medium">{u.full_name || "-"}</div>
                           <div className="text-xs text-muted-foreground">{u.email || "no email"}</div>
                         </TableCell>
                         <TableCell>
@@ -329,12 +329,12 @@ export default function AdminUsers() {
                               <div className="space-y-3">
                                 <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Details</h4>
                                 <dl className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-1.5 text-sm">
-                                  <dt className="text-muted-foreground">Phone</dt><dd>{u.phone || "—"}</dd>
-                                  <dt className="text-muted-foreground">Company</dt><dd>{u.company || "—"}</dd>
-                                  <dt className="text-muted-foreground">Brokerage</dt><dd>{u.brokerage_name || "—"}</dd>
-                                  <dt className="text-muted-foreground">License</dt><dd>{u.license_number ? `${u.license_number}${u.license_state ? ` (${u.license_state})` : ""}` : "—"}</dd>
-                                  <dt className="text-muted-foreground">MLS #</dt><dd>{u.mls_number || "—"}</dd>
-                                  <dt className="text-muted-foreground">Experience</dt><dd>{u.years_experience != null ? `${u.years_experience} yrs` : "—"}</dd>
+                                  <dt className="text-muted-foreground">Phone</dt><dd>{u.phone || "-"}</dd>
+                                  <dt className="text-muted-foreground">Company</dt><dd>{u.company || "-"}</dd>
+                                  <dt className="text-muted-foreground">Brokerage</dt><dd>{u.brokerage_name || "-"}</dd>
+                                  <dt className="text-muted-foreground">License</dt><dd>{u.license_number ? `${u.license_number}${u.license_state ? ` (${u.license_state})` : ""}` : "-"}</dd>
+                                  <dt className="text-muted-foreground">MLS #</dt><dd>{u.mls_number || "-"}</dd>
+                                  <dt className="text-muted-foreground">Experience</dt><dd>{u.years_experience != null ? `${u.years_experience} yrs` : "-"}</dd>
                                 </dl>
                               </div>
 
@@ -343,7 +343,7 @@ export default function AdminUsers() {
                                   <UserCog className="h-3.5 w-3.5" /> Role Management
                                 </h4>
 
-                                {/* Admin role — confirmation required */}
+                                {/* Admin role - confirmation required */}
                                 <AdminRoleAction
                                   isAdmin={isAdmin}
                                   isSelf={isSelf}
@@ -352,7 +352,7 @@ export default function AdminUsers() {
                                   onConfirm={() => setRole(u.id, "admin", !isAdmin)}
                                 />
 
-                                {/* Agent role — direct toggle */}
+                                {/* Agent role - direct toggle */}
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -368,7 +368,7 @@ export default function AdminUsers() {
                                   {isAgent ? "Revoke Agent role" : "Grant Agent role"}
                                 </Button>
 
-                                {/* Investor role — direct toggle */}
+                                {/* Investor role - direct toggle */}
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -485,7 +485,7 @@ function AccountAction({
   onSuspend: () => void;
   onReactivate: () => void;
 }) {
-  // Reactivate is low-risk — a direct button. Suspend restricts access, so confirm it.
+  // Reactivate is low-risk - a direct button. Suspend restricts access, so confirm it.
   if (isSuspended) {
     return (
       <Button variant="outline" size="sm" className="w-full justify-start" disabled={busy} onClick={onReactivate}>

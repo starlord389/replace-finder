@@ -36,7 +36,7 @@ export function DemoDataControls() {
       <div className="flex items-center gap-2 text-sm">
         <Database className="h-4 w-4 shrink-0 text-amber-700" />
         <span className="font-medium text-foreground">Demo workspace tools</span>
-        <span className="hidden text-muted-foreground sm:inline">— sample data for demos &amp; testing.</span>
+        <span className="hidden text-muted-foreground sm:inline">- sample data for demos &amp; testing.</span>
       </div>
       <div className="flex gap-2">
         <Button size="sm" onClick={() => run("reset")} disabled={busy !== null}>

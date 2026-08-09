@@ -15,10 +15,10 @@ const HERO = {
   eyebrow: "For landlords",
   headline: "Line up a better-returning building before you ever have to sell.",
   subheadline:
-    "The hard part of a 1031 isn't selling — it's having somewhere worth moving into before the tax clock starts. So we built a private network of agents who do these exchanges for their owner-clients. Your agent enters the building you own now and its numbers, and the network automatically surfaces other owners' buildings that would earn you a better return and that you can afford. No wish-list is required, but optional preferences can refine the search. At the same time, your building is quietly surfaced to owners looking for a better return of their own. Nothing is public — names and addresses stay hidden until both sides choose to connect. The platform is free for agents and investors, so tell us where you are and we'll connect you with a vetted agent, in confidence.",
+    "The hard part of a 1031 isn't selling - it's having somewhere worth moving into before the tax clock starts. So we built a private network of agents who do these exchanges for their owner-clients. Your agent enters the building you own now and its numbers, and the network automatically surfaces other owners' buildings that would earn you a better return and that you can afford. No wish-list is required, but optional preferences can refine the search. At the same time, your building is quietly surfaced to owners looking for a better return of their own. Nothing is public - names and addresses stay hidden until both sides choose to connect. The platform is free for agents and investors, so tell us where you are and we'll connect you with a vetted agent, in confidence.",
 };
 
-/* Hero match card — a replacement that out-earns the owner's current building. */
+/* Hero match card - a replacement that out-earns the owner's current building. */
 const HERO_MATCH = [
   { label: "Earns more than yours", val: "7.4% vs 4.1%" },
   { label: "Within your budget", val: "Yes" },
@@ -31,7 +31,7 @@ const PROBLEM_CHIPS = [
   { title: "Tax keeps you stuck", body: "Selling outright can mean a capital-gains hit big enough that doing nothing feels safer. A 1031 exchange is the way around it." },
 ] as const;
 
-/* Replacement matches the network surfaces — each out-earns the owner's building. */
+/* Replacement matches the network surfaces - each out-earns the owner's building. */
 const MATCH_CARDS = [
   { name: "Cedar Point Industrial", loc: "Reno, NV", price: "$3.1M", score: 96, hot: true, photo: "/landing-prop-industrial.jpg", ret: "7.4% return", lift: "+3.3% vs yours" },
   { name: "Stonebridge Flex Park", loc: "Boise, ID", price: "$3.1M", score: 91, hot: false, photo: "/landing-prop-retail.jpg", ret: "6.8% return", lift: "+2.7% vs yours" },
@@ -41,20 +41,20 @@ const MATCH_CARDS = [
 const MATCH_POINTS = [
   { title: "No wish-list required", body: "The building you own and what it earns are enough to start automatic matching. If you have preferences for cash, location, property type, financing, or return, you can add them without replacing the return math." },
   { title: "Driven by the return math", body: "The network only surfaces buildings that would beat the return you're getting today and that your equity can actually reach. If it can't earn you more, it doesn't show up." },
-  { title: "Buildings you'd never find alone", body: "Every building belongs to another owner in the same spot as you — still holding it, weighing a move. You'd have no way to reach them on your own." },
+  { title: "Buildings you'd never find alone", body: "Every building belongs to another owner in the same spot as you - still holding it, weighing a move. You'd have no way to reach them on your own." },
 ] as const;
 
-/* The other half — your building is automatically a match for other owners. */
+/* The other half - your building is automatically a match for other owners. */
 const SELL_CARDS = [
   {
     icon: Eye,
     title: "Lined up before you commit",
-    body: "You can see whether there's real interest in your building before you decide to sell anything. No listing, no sign out front, no parade of tire-kickers — just a quiet read on genuine interest.",
+    body: "You can see whether there's real interest in your building before you decide to sell anything. No listing, no sign out front, no parade of tire-kickers - just a quiet read on genuine interest.",
   },
   {
     icon: Building2,
     title: "The other side still owns their building",
-    body: "They haven't sold and aren't sitting on cash. They're an owner in your exact position, looking for a better-returning building to move into — and yours might be it.",
+    body: "They haven't sold and aren't sitting on cash. They're an owner in your exact position, looking for a better-returning building to move into - and yours might be it.",
   },
   {
     icon: Lock,
@@ -110,7 +110,7 @@ const FAQS = [
   },
   {
     q: "What's the catch? Why is this free?",
-    a: "There's no catch — 1031ExchangeUp™ is free for agents and investors. The introduction costs you nothing and carries no obligation. If your situation isn't a fit, we'll just tell you that straight.",
+    a: "There's no catch - 1031ExchangeUp™ is free for agents and investors. The introduction costs you nothing and carries no obligation. If your situation isn't a fit, we'll just tell you that straight.",
   },
 
   {
@@ -127,7 +127,7 @@ const FAQS = [
   },
   {
     q: "Why can't I just join the network myself?",
-    a: "Because the deal and any fee are handled by a licensed agent, and the network is built for the agents who run these exchanges all day. Rather than have you work around that, we connect you with one who can do it properly — which is also why our introduction has no angle on you.",
+    a: "Because the deal and any fee are handled by a licensed agent, and the network is built for the agents who run these exchanges all day. Rather than have you work around that, we connect you with one who can do it properly - which is also why our introduction has no angle on you.",
   },
 ] as const;
 
@@ -135,7 +135,7 @@ const FORM_BENEFITS = [
   "Better-returning buildings, surfaced by the return math",
   "Free for agents and investors",
   "Connected by hand to one vetted agent, not a buyer pool",
-  "Nothing public — your name and address stay private",
+  "Nothing public - your name and address stay private",
 ] as const;
 
 const PROPERTY_TYPES = [
@@ -596,11 +596,11 @@ function ProblemSection() {
           <span className="fl-eyebrow">The quiet problem</span>
           <h2 className="lp-h2 mt-7" style={{ maxWidth: 460 }}>Your building is doing fine. Your equity might not be.</h2>
           <p className="fl-sub max-w-[30rem]">
-            You don't have a building problem — you have a redeployment problem. Years of appreciation and
+            You don't have a building problem - you have a redeployment problem. Years of appreciation and
             paydown have locked more value in the property than the day you bought it, but the income rarely
             keeps pace. So the return on the money you actually own keeps quietly sliding, while the building
             still looks like a success. Selling outright triggers a tax bill big enough that staying put feels
-            like the only option. A 1031 exchange is the door around it — and there's a quiet way to test what
+            like the only option. A 1031 exchange is the door around it - and there's a quiet way to test what
             your property is really worth before you ever commit.
           </p>
         </div>
@@ -647,7 +647,7 @@ function MatchSection() {
             There's no form where you describe a dream building. Your agent enters the property you own today
             and its numbers, and the network works out the return you're actually earning on your equity. The
             moment it's in, it scans every other owner's building and surfaces the ones that would earn you more
-            than what you hold now and that you can afford. You don't search — the better-returning options come
+            than what you hold now and that you can afford. You don't search - the better-returning options come
             to you, driven by the math, while you still own what you have and before you commit to anything.
           </p>
           <ul className="fl-mini">
@@ -791,15 +791,15 @@ function RoeCalculator({ onGetConnected }: { onGetConnected: () => void }) {
                       </div>
                     </div>
                     <div className="roe-compare">
-                      <p>Your <b>{usd(equity)}</b> of equity could be earning about <b>{usd(potential)}/yr</b> at a healthy ~8% — roughly <b>{usd(uplift)} more</b> than today, with the full gain still working untaxed.</p>
+                      <p>Your <b>{usd(equity)}</b> of equity could be earning about <b>{usd(potential)}/yr</b> at a healthy ~8% - roughly <b>{usd(uplift)} more</b> than today, with the full gain still working untaxed.</p>
                     </div>
                   </>
                 ) : (
                   <div className="roe-compare">
-                    <p>You're already at or above a healthy <b>~8%</b> target — nicely done. When you're ready to trade up tax-deferred, we'll connect you with an agent.</p>
+                    <p>You're already at or above a healthy <b>~8%</b> target - nicely done. When you're ready to trade up tax-deferred, we'll connect you with an agent.</p>
                   </div>
                 )}
-                <p className="roe-fine">Estimate only — not tax or investment advice.</p>
+                <p className="roe-fine">Estimate only - not tax or investment advice.</p>
               </div>
             </div>
           </div>
@@ -816,7 +816,7 @@ function SellSection() {
         <SectionHead
           eyebrow="The other half of your exchange"
           title="Your building is quietly a match for other owners too."
-          sub="Every building in the network belongs to an owner doing exactly what you're doing — they still own it, they haven't sold, and they're looking for their own better-returning replacement. So the moment your agent enters yours, it's automatically surfaced to owners whose money would do better in it. An interested party can be lined up privately, while you still own the building and well before you decide to sell. Nothing is public — names and addresses stay hidden until both sides choose to connect."
+          sub="Every building in the network belongs to an owner doing exactly what you're doing - they still own it, they haven't sold, and they're looking for their own better-returning replacement. So the moment your agent enters yours, it's automatically surfaced to owners whose money would do better in it. An interested party can be lined up privately, while you still own the building and well before you decide to sell. Nothing is public - names and addresses stay hidden until both sides choose to connect."
           titleMaxWidth={640}
         />
         <div className="mt-12 grid gap-5 md:grid-cols-3">
@@ -845,12 +845,12 @@ function HonestSection() {
           <h2>You can't join this network yourself. That's exactly why you can trust it.</h2>
           <p className="fl-aurora-sub">
             Most free property-value sites exist to sell your contact details to the highest bidder. We're
-            built the other way around. The deal itself and any fee are handled by a licensed agent — so rather
+            built the other way around. The deal itself and any fee are handled by a licensed agent - so rather
             than act as one, we simply connect you with one who does these exchanges every day, then step out of
             the way. We make the introduction and we're never part of your deal.
           </p>
 
-          {/* Handoff diagram — our logo sits off the transaction line */}
+          {/* Handoff diagram - our logo sits off the transaction line */}
           <div className="fl-handoff">
             <div className="fl-handoff-line" />
             <div className="fl-barrier"><b>licensed only</b><i /></div>
@@ -871,7 +871,7 @@ function HonestSection() {
               <span className="fl-node-label" style={{ marginTop: 7 }}>Other owners<i>trading up</i></span>
             </div>
           </div>
-          <p className="fl-handoff-tag">We make the <b>introduction</b> — we're never a party to your deal.</p>
+          <p className="fl-handoff-tag">We make the <b>introduction</b> - we're never a party to your deal.</p>
 
           <div className="fl-aurora-grid">
             {TRUST_POINTS.map((point, i) => (
@@ -939,7 +939,7 @@ function HowSection() {
         <SectionHead
           eyebrow="How it works"
           title="Tell us where you stand. We'll connect you with one vetted agent."
-          sub="No account, nothing to list, no agreement, no commitment. Just tell us a little about your situation — the building you own and where you are in your thinking. We match you by hand with one vetted, licensed agent who does 1031 exchanges for a living, and they take it from there at your pace."
+          sub="No account, nothing to list, no agreement, no commitment. Just tell us a little about your situation - the building you own and where you are in your thinking. We match you by hand with one vetted, licensed agent who does 1031 exchanges for a living, and they take it from there at your pace."
           titleMaxWidth={640}
         />
         <div className="fl-flow mt-12" data-reveal>
@@ -1012,7 +1012,7 @@ export default function ForLandlords() {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    document.title = "For Property Owners — 1031 Exchange Up";
+    document.title = "For Property Owners - 1031 Exchange Up";
   }, []);
 
   function updateField(field: keyof ReferralFormState, value: string) {
@@ -1150,7 +1150,7 @@ export default function ForLandlords() {
                     <h3>Done. You're in good hands.</h3>
                     <p>
                       We've got your details and we're connecting you now. One vetted, licensed agent who knows
-                      your market will reach out to talk through your situation — lining up a better-returning
+                      your market will reach out to talk through your situation - lining up a better-returning
                       building and, when you're ready, surfacing yours to other owners. At your pace, with no
                       pressure and no obligation.
                     </p>

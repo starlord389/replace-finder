@@ -56,8 +56,8 @@ export function InvestorPropertyCard({
         </div>
         <div className="grid grid-cols-3 gap-3 border-y py-3 text-sm">
           <div><p className="text-xs text-muted-foreground">Price</p><p className="mt-0.5 font-semibold">{property.askingPrice ? money.format(property.askingPrice) : "Request"}</p></div>
-          <div><p className="text-xs text-muted-foreground">Cap rate</p><p className="mt-0.5 font-semibold">{property.capRate == null ? "—" : `${property.capRate.toFixed(1)}%`}</p></div>
-          <div><p className="text-xs text-muted-foreground">Occupancy</p><p className="mt-0.5 font-semibold">{property.occupancyRate == null ? "—" : `${property.occupancyRate.toFixed(0)}%`}</p></div>
+          <div><p className="text-xs text-muted-foreground">Cap rate</p><p className="mt-0.5 font-semibold">{property.capRate == null ? "-" : `${property.capRate.toFixed(1)}%`}</p></div>
+          <div><p className="text-xs text-muted-foreground">Occupancy</p><p className="mt-0.5 font-semibold">{property.occupancyRate == null ? "-" : `${property.occupancyRate.toFixed(0)}%`}</p></div>
         </div>
         <Button asChild className="w-full bg-[#16284a] text-white hover:bg-[#20385f]">
           <Link to={`/investor/properties/${property.id}`}>View opportunity</Link>

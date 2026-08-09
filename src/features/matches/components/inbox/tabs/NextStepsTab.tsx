@@ -21,7 +21,7 @@ interface Props {
 }
 
 /**
- * The deal command center — flip here to do anything with this match: see where
+ * The deal command center - flip here to do anything with this match: see where
  * it stands in the lifecycle, take the next action, advance the deal, or step
  * away. Replaces the old cramped right-hand sidebar.
  */
@@ -105,7 +105,7 @@ export function NextStepsTab({
           </Button>
         ) : (
           <div className="rounded-xl border bg-muted/40 px-4 py-4 text-center text-sm text-muted-foreground">
-            This match is closed out — no action needed.
+            This match is closed out - no action needed.
           </div>
         )}
 
@@ -167,7 +167,7 @@ export function NextStepsTab({
         )}
       </div>
 
-      {/* Listed by — anonymized until the intro is accepted */}
+      {/* Listed by - anonymized until the intro is accepted */}
       <div className="rounded-2xl border bg-card p-5">
         <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Listed by</h3>
         <div className="mt-2.5 flex items-center gap-3">

@@ -92,7 +92,7 @@ const App = () => (
         <AuthProvider>
           <Suspense fallback={<RouteFallback />}>
           <Routes>
-            {/* Public (marketing + auth entry) — signed-in users are redirected to their dashboard */}
+            {/* Public (marketing + auth entry) - signed-in users are redirected to their dashboard */}
             <Route element={<RequireGuest />}>
             <Route element={<PublicLayout />}>
               <Route path={ROUTES.home} element={<Home />} />
@@ -105,7 +105,7 @@ const App = () => (
             </Route>
             </Route>
 
-            {/* Recovery / informational routes — accessible whether signed in or not */}
+            {/* Recovery / informational routes - accessible whether signed in or not */}
             <Route element={<PublicLayout />}>
               <Route path={ROUTES.forgotPassword} element={<ForgotPassword />} />
               <Route path={ROUTES.resetPassword} element={<ResetPassword />} />
@@ -113,7 +113,7 @@ const App = () => (
               <Route path={ROUTES.terms} element={<Terms />} />
             </Route>
 
-            {/* Auth callback — handles email-confirmation redirect, routes to dashboard */}
+            {/* Auth callback - handles email-confirmation redirect, routes to dashboard */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/accept-invite" element={<AcceptInvite />} />
             <Route path="/representation-invite" element={<AcceptRepresentationInvite />} />
@@ -146,7 +146,7 @@ const App = () => (
               <Route path="/agent/exchanges/new" element={<NewExchange />} />
               <Route path="/agent/exchanges/:id/edit" element={<EditExchange />} />
 
-              {/* Legacy redirects — no dead-ends */}
+              {/* Legacy redirects - no dead-ends */}
               <Route path="/agent/exchanges" element={<Navigate to="/agent/pipeline" replace />} />
               <Route path="/agent/exchanges/:id" element={<ExchangeToWorkspaceRedirect />} />
               <Route path="/agent/properties" element={<Navigate to="/agent/pipeline" replace />} />

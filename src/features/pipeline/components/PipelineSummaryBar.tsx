@@ -102,7 +102,7 @@ export function PipelineSummaryBar({
       <Pill
         icon={Sparkles}
         label="Best score"
-        value={bestScore !== null ? `${Math.round(bestScore)}` : "—"}
+        value={bestScore !== null ? `${Math.round(bestScore)}` : "-"}
         sublabel="Top opportunity"
         tone="primary"
       />

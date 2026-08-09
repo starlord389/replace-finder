@@ -210,7 +210,7 @@ export default function AgentSettings() {
         supabase.from("exchange_connections").select("*").or(`buyer_agent_id.eq.${user.id},seller_agent_id.eq.${user.id}`),
       ]);
       // exchange_connections has no is_demo column, so scope it to the current
-      // workspace via the exchanges on each side — otherwise a Live export would
+      // workspace via the exchanges on each side - otherwise a Live export would
       // leak demo deals (and vice-versa).
       const exchangeIds = new Set((exchanges.data ?? []).map((e) => e.id));
       const scopedConnections = (connections.data ?? []).filter(

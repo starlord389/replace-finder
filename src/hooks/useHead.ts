@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 /**
- * Lightweight document head manager — no external dependency needed.
+ * Lightweight document head manager - no external dependency needed.
  * Sets document.title and updates/creates meta tags on mount.
  */
 export function useHead({

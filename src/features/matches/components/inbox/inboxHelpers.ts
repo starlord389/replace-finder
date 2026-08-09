@@ -51,25 +51,25 @@ export const INVESTOR_LIFECYCLE_ORDER: UiStatus[] = [
   "closed",
 ];
 
-/** One-line guidance shown under the stage strip — tells the agent what the stage means for them. */
+/** One-line guidance shown under the stage strip - tells the agent what the stage means for them. */
 export const STATUS_HINTS: Record<UiStatus, string> = {
-  new: "Fresh match — share it with your client to gauge interest.",
+  new: "Fresh match - share it with your client to gauge interest.",
   sent_to_client: "Waiting on your client. Nudge them or log their response.",
-  client_interested: "Your client wants it — message the listing agent directly.",
+  client_interested: "Your client wants it - message the listing agent directly.",
   in_conversation: "You're talking. Request docs, schedule a call, work toward an offer.",
   loi: "Offer on the table. Update once it goes under contract.",
-  under_contract: "Under contract — mark it closed once the deal completes.",
+  under_contract: "Under contract - mark it closed once the deal completes.",
   closed: "Deal closed. Nice work.",
   archived: "Archived. Reactivate to resume work on this match.",
 };
 
 export const INVESTOR_STATUS_HINTS: Record<UiStatus, string> = {
-  new: "Fresh qualified match — review it, then ask your representing agent to contact the other side.",
+  new: "Fresh qualified match - review it, then ask your representing agent to contact the other side.",
   sent_to_client: "Review the property and tell your agent when you are ready to move forward.",
   client_interested: "Your interest is recorded. Your agent will handle contact with the listing agent.",
   in_conversation: "Your agent is communicating with the agent on the other side. Follow progress here.",
   loi: "Your agent has logged an offer. Follow the deal status here.",
-  under_contract: "Under contract — your agent will keep the exchange milestones current.",
+  under_contract: "Under contract - your agent will keep the exchange milestones current.",
   closed: "Exchange completed.",
   archived: "Archived. Reactivate to resume work on this match.",
 };
@@ -249,7 +249,7 @@ export function nextActionsForRelationship(
       primary: {
         id: "view_agent_request",
         label: requestStatus === "waiting_for_agent"
-          ? "Agent Needed — Request Saved"
+          ? "Agent Needed - Request Saved"
           : requestStatus === "awaiting_counterparty_agent"
             ? "Other Side Is Assigning an Agent"
             : requestStatus === "contacted"
@@ -274,7 +274,7 @@ const LTV = 0.75; // matches the engine's MAX_COMMERCIAL_LTV
  * One projected-ROE basis shared by the financials card and the cash-on-cash
  * sort, so the displayed return and the ranking can never disagree.
  *  • Prefer the engine's candidate_roe (computed on the buyer's relinquished
- *    equity) when present — `fromEngine` is true.
+ *    equity) when present - `fromEngine` is true.
  *  • Otherwise estimate cash-on-cash on a 25%-down basis, using the engine's
  *    amortized debt service if it persisted it, else the fallback amortization.
  * Returns null when there isn't enough data to compute anything.
@@ -292,7 +292,7 @@ export function projectedRoe(rel: Relationship): { pct: number | null; fromEngin
   return { pct: ((noi - debtService) / equity) * 100, fromEngine: false };
 }
 
-/** Bullets explaining why this property matched — derived heuristically */
+/** Bullets explaining why this property matched - derived heuristically */
 export function whyThisMatched(rel: Relationship): string[] {
   const out: string[] = [];
   if (rel.roeImprovementPp != null) {
@@ -306,22 +306,22 @@ export function whyThisMatched(rel: Relationship): string[] {
     out.push("Asking price is within the exchange-equity ceiling at the platform's 75% maximum LTV.");
   }
 
-  // Only claim a dimension fits when the engine actually scored it that way —
+  // Only claim a dimension fits when the engine actually scored it that way -
   // don't assert budget / geography / timeline fit we haven't verified.
   if ((rel.geoScore ?? 0) >= 70 && rel.propertyCity) {
-    out.push(`Located in ${rel.propertyCity}${rel.propertyState ? `, ${rel.propertyState}` : ""} — strong location fit with the client's target geography.`);
+    out.push(`Located in ${rel.propertyCity}${rel.propertyState ? `, ${rel.propertyState}` : ""} - strong location fit with the client's target geography.`);
   } else if (rel.propertyCity) {
     out.push(`Located in ${rel.propertyCity}${rel.propertyState ? `, ${rel.propertyState}` : ""}.`);
   }
   if (rel.bootStatus === "no_boot") out.push("No modeled boot under the full-equity reinvestment assumptions.");
-  else if (rel.bootStatus === "minor_boot") out.push("Minor boot expected — manageable equity gap.");
-  else if (rel.bootStatus === "significant_boot") out.push("Significant boot expected — a meaningful taxable gap; structure the exchange carefully.");
+  else if (rel.bootStatus === "minor_boot") out.push("Minor boot expected - manageable equity gap.");
+  else if (rel.bootStatus === "significant_boot") out.push("Significant boot expected - a meaningful taxable gap; structure the exchange carefully.");
   if (rel.capRate) out.push(`Projected cap rate of ${formatCapRate(rel.capRate)}.`);
   if (rel.askingPrice) out.push(`Asking price ${formatMoney(rel.askingPrice)}.`);
   return out;
 }
 
-/** Match score by dimension — uses the engine's REAL persisted factor scores.
+/** Match score by dimension - uses the engine's REAL persisted factor scores.
  *  Fit dimensions sit at 50 (neutral) when the client expressed no preference,
  *  which is the honest picture now that matching is ROE-driven. */
 export interface BreakdownDim { label: string; score: number; }
@@ -336,7 +336,7 @@ export function matchBreakdown(rel: Relationship): BreakdownDim[] {
   ];
 }
 
-/** Full financial card grid — estimates where data is missing */
+/** Full financial card grid - estimates where data is missing */
 export interface FinancialMetric {
   key: string;
   label: string;
@@ -360,20 +360,20 @@ export function financialMetrics(rel: Relationship): FinancialMetric[] {
   const modeledLtv = rel.estimatedLtv ?? (price && loan != null ? loan / price : null);
 
   return [
-    { key: "price", label: "Price", value: price ? formatMoney(price) : "—" },
-    { key: "noi", label: "NOI", value: noi ? formatMoney(noi) : "—" },
-    { key: "cap", label: "Cap Rate", value: cap ? formatCapRate(cap) : "—" },
-    { key: "coc", label: "Projected ROE", value: roe.pct != null ? `${roe.pct.toFixed(1)}%` : "—", estimated: !roe.fromEngine },
-    { key: "dscr", label: "DSCR", value: dscr ? dscr.toFixed(2) : "—", estimated: !fromEngine },
-    { key: "occupancy", label: "Occupancy", value: rel.occupancy != null ? `${Math.round(rel.occupancy)}%` : "—" },
-    { key: "equity", label: "Equity Reinvested", value: equity != null ? formatMoney(equity) : "—", estimated: !fromEngine },
-    { key: "loan", label: "Modeled Loan", value: loan != null ? formatMoney(loan) : "—", estimated: !fromEngine },
-    { key: "ltv", label: "Modeled LTV", value: modeledLtv != null ? `${(modeledLtv * 100).toFixed(1)}%` : "—", estimated: !fromEngine },
-    { key: "cashflow", label: "Projected Cash Flow", value: annualCashFlow != null ? `${formatMoney(annualCashFlow)}/yr` : "—", estimated: !fromEngine },
+    { key: "price", label: "Price", value: price ? formatMoney(price) : "-" },
+    { key: "noi", label: "NOI", value: noi ? formatMoney(noi) : "-" },
+    { key: "cap", label: "Cap Rate", value: cap ? formatCapRate(cap) : "-" },
+    { key: "coc", label: "Projected ROE", value: roe.pct != null ? `${roe.pct.toFixed(1)}%` : "-", estimated: !roe.fromEngine },
+    { key: "dscr", label: "DSCR", value: dscr ? dscr.toFixed(2) : "-", estimated: !fromEngine },
+    { key: "occupancy", label: "Occupancy", value: rel.occupancy != null ? `${Math.round(rel.occupancy)}%` : "-" },
+    { key: "equity", label: "Equity Reinvested", value: equity != null ? formatMoney(equity) : "-", estimated: !fromEngine },
+    { key: "loan", label: "Modeled Loan", value: loan != null ? formatMoney(loan) : "-", estimated: !fromEngine },
+    { key: "ltv", label: "Modeled LTV", value: modeledLtv != null ? `${(modeledLtv * 100).toFixed(1)}%` : "-", estimated: !fromEngine },
+    { key: "cashflow", label: "Projected Cash Flow", value: annualCashFlow != null ? `${formatMoney(annualCashFlow)}/yr` : "-", estimated: !fromEngine },
   ];
 }
 
-// Amortized annual payment at the platform's default financing assumptions —
+// Amortized annual payment at the platform's default financing assumptions -
 // mirrors the match engine's FALLBACK_MORTGAGE_RATE / FALLBACK_AMORTIZATION_YEARS
 // so display estimates line up with the engine when its value isn't persisted.
 function estimateAnnualDebtService(principal: number, annualRatePct = 7.0, years = 25): number {

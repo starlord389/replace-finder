@@ -68,16 +68,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loading = authLoading || rolesLoading;
   const role = pickPrimaryRole(roles);
-  // A user counts as an agent if they hold the agent role at all — even if they
-  // also hold admin — so agent-view features keep working for dual-role accounts.
+  // A user counts as an agent if they hold the agent role at all - even if they
+  // also hold admin - so agent-view features keep working for dual-role accounts.
   const isAgent = roles.includes("agent" as AppRole);
   const isSuspendedAgent = isAgent && agentVerificationStatus === "suspended";
   const isVerifiedAgent = isAgent && hasOperationalAgentAccess(agentVerificationStatus);
 
   const fetchUserData = async (userId: string) => {
     // Only show the spinner for a fresh identity. If data for this uid is already loaded
-    // (e.g. a background refresh), keep the prior roles visible so layouts — which gate on
-    // rolesLoading — don't flash a remount.
+    // (e.g. a background refresh), keep the prior roles visible so layouts - which gate on
+    // rolesLoading - don't flash a remount.
     const hasLoadedData = loadedUserIdRef.current === userId;
     if (!hasLoadedData) setRolesLoading(true);
     try {
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loadedUserIdRef.current = userId;
     } catch (err) {
       console.error("[useAuth] fetchUserData failed", err);
-      // Do NOT blank already-loaded roles on failure — keep the user authorized with their
+      // Do NOT blank already-loaded roles on failure - keep the user authorized with their
       // prior roles and let a later event retry. Only clear when we never had data, and
       // release the claim so the next auth event can retry the fetch.
       if (!hasLoadedData) {

@@ -64,7 +64,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
   }, [matchId, previewMode, qc]);
 
   // Deal status + actions. Computed even in preview (cheap), but only surfaced
-  // when this is a real match — the header CTA and Next-steps tab are gated below.
+  // when this is a real match - the header CTA and Next-steps tab are gated below.
   const { status, primary, secondary, handle, busy } = useMatchActions(rel, {
     onOpenConversation: () => setTab("conversation"),
     onSendToClient: () => setSendOpen(true),
@@ -96,7 +96,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
 
   return (
     <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border bg-card">
-      {/* Client identity strip — hidden in investor preview mode */}
+      {/* Client identity strip - hidden in investor preview mode */}
       {!previewMode && (
         <div
           className={cn(
@@ -113,7 +113,7 @@ export function PropertyReviewPanel({ rel, rank, totalInScope, previewMode = fal
             pill
           />
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            Trading out — finding replacement property
+            Trading out - finding replacement property
           </span>
         </div>
       )}

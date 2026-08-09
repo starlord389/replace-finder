@@ -20,7 +20,7 @@ interface Props {
 }
 
 // Preserve line breaks in an ESCAPED, plain-text way. Never render HTML from
-// caller data — messageText is split on newlines and each segment is emitted
+// caller data - messageText is split on newlines and each segment is emitted
 // as a JSX child, which React escapes automatically.
 function splitLines(text: string): string[] {
   return text.replace(/\r\n/g, '\n').split('\n')
@@ -74,7 +74,7 @@ export const template = {
     recipientName: 'Sam',
     subject: 'Following up on your inquiry',
     messageText:
-      'Thanks for reaching out earlier this week.\n\nWe reviewed your details and would love to jump on a quick call.\n\n— The 1031ExchangeUp team',
+      'Thanks for reaching out earlier this week.\n\nWe reviewed your details and would love to jump on a quick call.\n\n- The 1031ExchangeUp team',
   },
 } satisfies TemplateEntry
 

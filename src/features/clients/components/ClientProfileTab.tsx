@@ -59,7 +59,7 @@ export function ClientProfileTab({ clientId, onSaved }: Props) {
       client_phone: phone.trim() || null,
     };
     onSaved?.(info);
-    // The client's name shows on listings, matches, and the pipeline — refresh them.
+    // The client's name shows on listings, matches, and the pipeline - refresh them.
     for (const key of ["unified-relationships", "agent-listings", "agent-exchanges", "agent-pipeline"]) {
       queryClient.invalidateQueries({ queryKey: [key] });
     }

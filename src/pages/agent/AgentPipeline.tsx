@@ -95,7 +95,7 @@ export default function AgentPipeline({ audience = "agent" }: { audience?: "agen
 
   const allMeta = useMemo(() => buildListingMeta(listings, rels), [listings, rels]);
 
-  // Summary metrics — computed from all listings (ignore filters).
+  // Summary metrics - computed from all listings (ignore filters).
   const summary = useMemo(() => {
     const totalListings = allMeta.length;
     const totalValue = allMeta.reduce((s, m) => s + (m.listing.askingPrice ?? 0), 0);

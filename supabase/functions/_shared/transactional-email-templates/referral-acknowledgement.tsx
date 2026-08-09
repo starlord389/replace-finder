@@ -23,7 +23,7 @@ const Email = ({ firstName, location }: Props) => {
   return (
     <Html lang="en" dir="ltr">
       <Head />
-      <Preview>Your agent referral request is in — here's what happens next.</Preview>
+      <Preview>Your agent referral request is in - here's what happens next.</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={brandBar}>
@@ -63,7 +63,7 @@ const Email = ({ firstName, location }: Props) => {
 
           <Hr style={hr} />
           <Text style={footer}>
-            Questions? Just reply to this email — a real person will get back to you.
+            Questions? Just reply to this email - a real person will get back to you.
           </Text>
           <Text style={footerSmall}>
             1031ExchangeUp · Agent-to-agent sourcing & referral network
@@ -76,7 +76,7 @@ const Email = ({ firstName, location }: Props) => {
 
 export const template = {
   component: Email,
-  subject: 'We got your request — your 1031 agent match is on the way',
+  subject: 'We got your request - your 1031 agent match is on the way',
   displayName: 'Referral acknowledgement',
   previewData: { firstName: 'Alex', location: 'Austin, TX' },
 } satisfies TemplateEntry

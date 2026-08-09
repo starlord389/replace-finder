@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-/* Navy site footer — mirrors the homepage footer (logo + tagline, Platform /
+/* Navy site footer - mirrors the homepage footer (logo + tagline, Platform /
    Get Started / Support columns, Stay Up to Date subscribe, copyright) so all
    public pages share one consistent footer. */
 
@@ -151,7 +151,7 @@ export default function LandingFooter() {
 
       <div className="nbf-bottom">
         <p className="nbf-disclaimer">
-          1031 Exchange Up is an agent-to-agent sourcing and referral network — not a
+          1031 Exchange Up is an agent-to-agent sourcing and referral network - not a
           brokerage or an MLS, and not a substitute for either. Licensed agents remain
           responsible for their own marketing and Clear Cooperation obligations.
         </p>

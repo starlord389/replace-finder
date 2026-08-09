@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useState, type ReactNode } from
 // Demo vs Live workspace. A single account can hold an isolated Demo sandbox
 // (mock data for demos + testing) alongside its real Live data. The active mode
 // is stored per-browser; every agent query filters by it and stamps new rows
-// with it (via the `is_demo` column). Only admins can switch to Demo — regular
+// with it (via the `is_demo` column). Only admins can switch to Demo - regular
 // agents always operate in Live.
 export type WorkspaceMode = "live" | "demo";
 

@@ -19,7 +19,7 @@ export function LifecycleTracker({ status, variant = "compact" }: Props) {
             {isArchived ? "Archived" : `Stage ${currentIdx + 1} of ${LIFECYCLE_ORDER.length}`}
           </span>
           <span className="truncate text-xs font-semibold text-foreground">
-            {isArchived ? "—" : UI_STATUS_LABEL[status]}
+            {isArchived ? "-" : UI_STATUS_LABEL[status]}
           </span>
         </div>
         <div className="flex items-center gap-1">

@@ -1,7 +1,7 @@
 // Public Twilio status callback webhook.
 //
 // Twilio POSTs application/x-www-form-urlencoded delivery updates here.
-// Auth is NOT Supabase JWT (Twilio can't send one) — instead every request is
+// Auth is NOT Supabase JWT (Twilio can't send one) - instead every request is
 // validated with Twilio's X-Twilio-Signature HMAC-SHA1 scheme using the
 // account's auth token, which is read from the TWILIO_AUTH_TOKEN secret.
 import { createClient } from 'npm:@supabase/supabase-js@2'
@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
   if (updateErr) {
     console.error('twilio-status-callback: update failed', updateErr.message)
   } else if (!updated) {
-    // Callback can arrive before/without a local record — record it so the
+    // Callback can arrive before/without a local record - record it so the
     // delivery status is never silently dropped.
     const { error: insertErr } = await admin.from('sms_messages').insert({
       message_sid: messageSid,

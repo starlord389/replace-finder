@@ -126,7 +126,7 @@ function Sec_example() {
     </div>
 
     <p className="nb-ex-fine">
-      Illustrative example. Matches shown are possible opportunities only — no investment performance or completed
+      Illustrative example. Matches shown are possible opportunities only - no investment performance or completed
       transaction is implied or guaranteed.
     </p>
   </div>
@@ -217,7 +217,7 @@ export function Sec_agents() {
 
         <ul className="nb-ag-list">
           {[
-            "Opportunities between two of your own clients surface as an Internal Opportunity Detected — no need to connect with yourself.",
+            "Opportunities between two of your own clients surface as an Internal Opportunity Detected - no need to connect with yourself.",
             "Opportunities across your brokerage and other participating agents.",
             "Potential buyers and replacement properties across the network.",
             "Keep your client relationship, always.",
@@ -233,7 +233,7 @@ export function Sec_agents() {
         </ul>
 
         <p className="nb-ag-note">
-          You already built the database. Let ExchangeUp™ find the opportunities inside it. ExchangeUp™ does not replace the agent — it makes the agent&rsquo;s network more powerful.
+          You already built the database. Let ExchangeUp™ find the opportunities inside it. ExchangeUp™ does not replace the agent - it makes the agent&rsquo;s network more powerful.
         </p>
 
         <a href="/signup" className="nb-sec-cta">Add My First Opportunity</a>
@@ -265,7 +265,7 @@ export function Sec_investors() {
       <h2 className="nb-h2 mt-3">Your 1031 Exchange, Made Easier.</h2>
       <p className="nb-lead mt-4">
         Add your investment property and goals once. ExchangeUp™ keeps watching for opportunities that may better align
-        with your equity position — so the exchange is simple when the timing is right.
+        with your equity position - so the exchange is simple when the timing is right.
       </p>
 
 
@@ -275,7 +275,7 @@ export function Sec_investors() {
 
     <div className="nb-inv-grid">
       {[
-        ["Add Your Property", "A few details about what you own — that’s the whole setup."],
+        ["Add Your Property", "A few details about what you own - that’s the whole setup."],
         ["Understand Your Position", "See how efficiently the equity in your current property is performing."],
         ["Set What You’re Looking For", "Tell us what a smarter position looks like, and change it any time."],
         ["Activate Monitoring", "We keep watching and alert you when something relevant appears."],
@@ -336,7 +336,7 @@ function RoeMiniCalc() {
     <div className="nb-why-card">
       <h3 className="nb-why-card-title">Return on Equity Calculator</h3>
       <p className="nb-why-card-sub">
-        Enter your property value, loan balance, rent and monthly costs — P&amp;I, T&amp;I and other expenses — to see
+        Enter your property value, loan balance, rent and monthly costs - P&amp;I, T&amp;I and other expenses - to see
         how hard your equity is working today.
       </p>
 
@@ -469,7 +469,7 @@ export function Sec_why() {
           </div>
         </div>
 
-        {/* RIGHT — ROE calculator */}
+        {/* RIGHT - ROE calculator */}
         <RoeMiniCalc />
       </div>
     </div>
@@ -572,7 +572,7 @@ const DASHBOARD_CSS = `
     [data-nb] .pb-toolbar { padding: 12px 16px 0; }
   }
 
-  /* Mobile phone — same app, mobile view, scaled into the composition */
+  /* Mobile phone - same app, mobile view, scaled into the composition */
   [data-nb] .nb-phone { position: absolute; right: -3%; bottom: -5%; width: 208px; z-index: 5; border-radius: 26px; background: #fff; padding: 4px; box-shadow: 0 26px 54px rgba(14,42,77,.22); border: 1px solid #e8edf3; transform: scale(.72); transform-origin: bottom right; }
   [data-nb] .nb-phone-screen { border-radius: 22px; overflow: hidden; background: #f5f8fc; }
   [data-nb] .nb-ph-status { display: flex; align-items: center; justify-content: space-between; padding: 6px 13px 3px; font-size: 8px; font-weight: 700; color: #16284a; }
@@ -746,7 +746,7 @@ const PH_DEALS: PbDealData[] = [
   { tag: "New", tone: "blue", title: "42 Linden Avenue", text: "$1.15M · Somerville · Triplex.", matches: 5, docs: 2, avatars: ["RC", "MJ"] },
 ];
 
-/** Mobile view of the same pipeline app — a phone showing the deals stacked. */
+/** Mobile view of the same pipeline app - a phone showing the deals stacked. */
 function PhonePreview() {
   return (
     <div className="nb-phone">
@@ -787,7 +787,7 @@ function Sec_diff() {
     </div>
 
     <div className="nb-diff-wrap">
-      {/* LEFT — product dashboard + mobile (compact device composition) */}
+      {/* LEFT - product dashboard + mobile (compact device composition) */}
       <div className="nb-diff-devices" aria-hidden="true">
         <div className="nb-diff-glow" />
         <div className="nb-diff-laptop">
@@ -802,7 +802,7 @@ function Sec_diff() {
         <PhonePreview />
       </div>
 
-      {/* RIGHT — comparison table */}
+      {/* RIGHT - comparison table */}
       <div className="nb-diff-table">
         <div className="nb-diff-thead">
           <div className="nb-diff-th trad">
@@ -854,7 +854,7 @@ function Sec_diff() {
 }
 
 const SUMMIT_VENDORS = [
-  { name: "Joe Bonavita", role: "Qualified Intermediary", info: "Sessions on the qualified-intermediary side of an exchange — mechanics, deadlines, and how funds are handled. Full partner profile coming soon." },
+  { name: "Joe Bonavita", role: "Qualified Intermediary", info: "Sessions on the qualified-intermediary side of an exchange - mechanics, deadlines, and how funds are handled. Full partner profile coming soon." },
   { name: "Emily Yormak", role: "Cost Segregation Expert", info: "Sessions on cost segregation and bonus depreciation strategies. Full partner profile coming soon." },
   { name: "Wolfgang Suess", role: "DST Specialist", info: "Sessions on Delaware Statutory Trusts (DSTs) as replacement options. Full partner profile coming soon." },
 ];
@@ -932,7 +932,7 @@ function SummitEventCard() {
             Real Estate Agents, Investors and professionals welcomed
           </span>
         </div>
-        <div className="nb-ev-vlabel">Partnered vendors — tap for more info:</div>
+        <div className="nb-ev-vlabel">Partnered vendors - tap for more info:</div>
         <div className="nb-ev-vchips">
           {SUMMIT_VENDORS.map((v) => (
             <button
@@ -956,7 +956,7 @@ function SummitEventCard() {
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#43a047" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9.5" /><path d="M8 12.3l2.6 2.6L16.5 9" /></svg>
             </span>
             <h4>You're registered!</h4>
-            <p>We'll email you the details for the {UPCOMING_EVENT.dateLabel} session — and every monthly summit after it.</p>
+            <p>We'll email you the details for the {UPCOMING_EVENT.dateLabel} session - and every monthly summit after it.</p>
           </div>
         ) : (
           <form onSubmit={handleRegister} noValidate>
@@ -1020,7 +1020,7 @@ function Sec_resources() {
         <div className="nb-res-card">
           <h3 className="nb-res-title">Learn From Trusted Experts</h3>
           <div className="nb-res-experts">
-            {/* Placeholder initials avatars — swap each for the real headshot
+            {/* Placeholder initials avatars - swap each for the real headshot
                 (drop photos in /public and replace the div with an <img>). */}
             <div className="nb-res-expert">
               <img className="nb-res-avatar" src="/expert-joe.webp" alt="Joe Bonavita" />
@@ -1052,8 +1052,8 @@ function Sec_resources() {
           <h3 className="nb-res-title">Free for Agents & Investors</h3>
           <ul className="nb-res-clist">
             {[
-              'Free for investors — every property and criteria',
-              'Free for agents — every client, every property',
+              'Free for investors - every property and criteria',
+              'Free for agents - every client, every property',
               'No plans, no tiers, no upsells',
               'No card required, ever',
               'Members help shape the platform',
@@ -1084,7 +1084,7 @@ function Sec_faqcta() {
   <div className="mx-auto" style={{ maxWidth: '1240px' }}>
     <div className="nb-fct-grid">
 
-      {/* LEFT — FAQ column */}
+      {/* LEFT - FAQ column */}
       <div className="nb-fct-left">
 
       {/* (A) Heading */}
@@ -1119,7 +1119,7 @@ function Sec_faqcta() {
           },
           {
             q: 'Does 1031ExchangeUp™ replace my agent?',
-            a: 'No. Agents keep their client relationships — the platform simply makes their network more powerful.',
+            a: 'No. Agents keep their client relationships - the platform simply makes their network more powerful.',
           },
           {
             q: 'Are matches guaranteed transactions?',
@@ -1145,12 +1145,12 @@ function Sec_faqcta() {
 
       </div>{/* /nb-fct-left */}
 
-      {/* RIGHT — CTA card */}
+      {/* RIGHT - CTA card */}
       <div className="nb-fct-cta">
         <h3 className="nb-fct-cta-h">Register Your Property. There’s No Obligation to Exchange.</h3>
         <p className="nb-fct-cta-sub">It takes a few minutes and it’s free. From there, we keep watching the network and let you know if something better shows up for your equity.</p>
         <div className="nb-fct-cta-btns">
-          <a href="/signup" className="nb-fct-btn nb-fct-btn-green">Register My Property — Free</a>
+          <a href="/signup" className="nb-fct-btn nb-fct-btn-green">Register My Property - Free</a>
           <a href="/book-demo" className="nb-fct-btn nb-fct-btn-out">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
             Schedule a Demo

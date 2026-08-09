@@ -1,7 +1,7 @@
 # 1031 Exchange Up
 
 A private, off-market marketplace where real-estate agents find 1031-exchange
-replacement properties for their clients — before those properties are ever
+replacement properties for their clients - before those properties are ever
 publicly listed.
 
 ## How it works
@@ -18,7 +18,7 @@ publicly listed.
 ## Tech stack
 
 - **Frontend:** React 18 + TypeScript + Vite, shadcn/ui, Tailwind CSS
-- **Backend:** Supabase (Postgres, Auth, Edge Functions) — schema in
+- **Backend:** Supabase (Postgres, Auth, Edge Functions) - schema in
   `supabase/migrations/`, functions in `supabase/functions/`
 - **Sync:** This repo is two-way synced with [Lovable](https://lovable.dev).
   Pushes to `main` appear in Lovable; Lovable edits commit back here.
@@ -36,8 +36,8 @@ npm run build      # production build
 
 ## Project layout
 
-- `src/pages/` — route-level pages (public, auth, agent, admin)
-- `src/features/` — domain logic by feature (exchanges, matches, clients, …)
-- `src/components/` — shared UI components
-- `src/app/routes/` — route manifest and guards
-- `docs/production-readiness-checklist.md` — launch checklist
+- `src/pages/` - route-level pages (public, auth, agent, admin)
+- `src/features/` - domain logic by feature (exchanges, matches, clients, …)
+- `src/components/` - shared UI components
+- `src/app/routes/` - route manifest and guards
+- `docs/production-readiness-checklist.md` - launch checklist

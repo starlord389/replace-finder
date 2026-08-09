@@ -140,7 +140,7 @@ export function ClientMatchesTab({ clientId }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Filter by listing — intuitively narrow to one of this client's listings. */}
+      {/* Filter by listing - intuitively narrow to one of this client's listings. */}
       {listingFacets.length > 1 && (
         <div className="flex flex-wrap items-center gap-2">
           <FilterPill active={!listingFilter} onClick={() => setListingFilter(null)} count={rels.length}>
@@ -194,7 +194,7 @@ export function ClientMatchesTab({ clientId }: Props) {
         ))}
       </div>
 
-      {/* Full match workspace in a popup — same review panel + actions as the Matches tab. */}
+      {/* Full match workspace in a popup - same review panel + actions as the Matches tab. */}
       <Dialog open={!!selectedRel} onOpenChange={(o) => !o && setSelectedMatchId(null)}>
         <DialogContent className="max-w-6xl gap-0 overflow-hidden p-0">
           <DialogTitle className="sr-only">

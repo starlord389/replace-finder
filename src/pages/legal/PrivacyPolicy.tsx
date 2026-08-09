@@ -5,7 +5,7 @@ import { LegalDoc } from "./LegalDoc";
 
 export default function PrivacyPolicy() {
   useEffect(() => {
-    document.title = "Privacy Policy — 1031 Exchange Up";
+    document.title = "Privacy Policy - 1031 Exchange Up";
   }, []);
 
   return (

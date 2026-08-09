@@ -35,7 +35,7 @@ export function AgentProfileCard({ label, profile }: Props) {
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-foreground">{profile?.full_name || "—"}</p>
+          <p className="truncate font-semibold text-foreground">{profile?.full_name || "-"}</p>
           {profile?.brokerage_name && (
             <p className="flex items-center gap-1.5 truncate text-sm text-muted-foreground">
               <Briefcase className="h-3.5 w-3.5 shrink-0" />

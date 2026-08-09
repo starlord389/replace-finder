@@ -48,7 +48,7 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
   const ownerAuthConfirmed = p.owner_authorization_confirmed;
   const hasCriteria = hasExchangeCriteria(c);
 
-  // Recurring financials are stored/entered monthly — show them with a "/ mo" suffix.
+  // Recurring financials are stored/entered monthly - show them with a "/ mo" suffix.
   const perMonth = (v: string) => {
     const n = parseCurrency(v);
     return n != null ? `${formatCurrency(n)} / mo` : undefined;
@@ -85,7 +85,7 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
           <p className="text-xs text-muted-foreground">
             {p.address_is_public
               ? "Exact address is visible to matched participants."
-              : "Exact address is hidden — matched participants see only the city and state."}
+              : "Exact address is hidden - matched participants see only the city and state."}
           </p>
           <div className="mt-3 grid grid-cols-2 gap-x-8">
             <Field label="Asset Type" value={p.asset_type ? ASSET_TYPE_LABELS[p.asset_type as keyof typeof ASSET_TYPE_LABELS] : undefined} />
@@ -96,7 +96,7 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
             <Field label="Units" value={p.units} />
             <Field label="Building Size" value={p.building_square_footage ? `${Number(p.building_square_footage).toLocaleString()} sq ft` : undefined} />
             <Field label="Land Area" value={p.land_area_acres ? `${p.land_area_acres} acres` : undefined} />
-            <Field label="Buildings / Stories" value={p.num_buildings || p.num_stories ? `${p.num_buildings || "—"} / ${p.num_stories || "—"}` : undefined} />
+            <Field label="Buildings / Stories" value={p.num_buildings || p.num_stories ? `${p.num_buildings || "-"} / ${p.num_stories || "-"}` : undefined} />
             <Field label="Parking" value={p.parking_spaces || p.parking_type ? [p.parking_spaces ? `${p.parking_spaces} spaces` : "", p.parking_type].filter(Boolean).join(", ") : undefined} />
             <Field label="Zoning" value={p.zoning} />
             <Field label="County" value={p.county} />
@@ -193,7 +193,7 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
 
       <ReviewMatchPreview property={p} financials={f} images={data.images} />
 
-      {/* Compliance attestation — required before a property can go into the network */}
+      {/* Compliance attestation - required before a property can go into the network */}
       <div className="rounded-lg border border-amber-300 bg-amber-50/60 p-4">
         <div className="flex items-start gap-3">
           <Checkbox

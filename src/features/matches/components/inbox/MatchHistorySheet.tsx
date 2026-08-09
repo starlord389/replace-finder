@@ -35,7 +35,7 @@ export function MatchHistorySheet({ rel, open, onOpenChange, audience = "agent" 
   const [note, setNote] = useState(state.agentNote);
 
   // useMatchLocalState hydrates the saved note in an effect (the initializer
-  // sees the empty default), and the sheet stays mounted across matches — so
+  // sees the empty default), and the sheet stays mounted across matches - so
   // sync the textarea from the persisted note as it loads / when the match changes.
   useEffect(() => {
     setNote(state.agentNote);
@@ -87,7 +87,7 @@ export function MatchHistorySheet({ rel, open, onOpenChange, audience = "agent" 
             </h3>
             {events.length === 0 ? (
               <p className="rounded-lg bg-muted/50 px-3 py-3 text-sm text-muted-foreground">
-                No activity yet — actions you take on this match will show up here.
+                No activity yet - actions you take on this match will show up here.
               </p>
             ) : (
               <ol className="relative space-y-4 border-l border-border pl-5">
@@ -117,7 +117,7 @@ export function MatchHistorySheet({ rel, open, onOpenChange, audience = "agent" 
             <Textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Add context for yourself — only you can see this."
+              placeholder="Add context for yourself - only you can see this."
               rows={4}
               className="text-sm"
             />

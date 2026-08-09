@@ -23,7 +23,7 @@ import { AgentProfileCard } from "@/components/profile/AgentProfileCard";
 import { formatCapRate } from "@/features/matches/components/inbox/inboxHelpers";
 
 const fmt = (v: number | null | undefined) =>
-  v != null && v !== 0 ? `$${Math.round(Number(v)).toLocaleString()}` : "—";
+  v != null && v !== 0 ? `$${Math.round(Number(v)).toLocaleString()}` : "-";
 
 function scoreColor(score: number) {
   if (score >= 85) return "bg-green-600";
@@ -103,7 +103,7 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
     const { data: exchange } = await supabase.from("exchanges").select("*").eq("id", connData.buyer_exchange_id).single();
     if (exchange) {
       const [relPropRes, relFinRes, clientRes] = await Promise.all([
-        // Buyer's relinquished property — counterparty-owned when we're the seller-side agent → masked view.
+        // Buyer's relinquished property - counterparty-owned when we're the seller-side agent → masked view.
         exchange.relinquished_property_id ? supabase.from("pledged_properties_secure").select("*").eq("id", exchange.relinquished_property_id).single() : Promise.resolve({ data: null }),
         exchange.relinquished_property_id ? supabase.from("property_financials").select("*").eq("property_id", exchange.relinquished_property_id).maybeSingle() : Promise.resolve({ data: null }),
         exchange.client_id
@@ -210,7 +210,7 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
     }
 
     // Notify the counterparty and log to both timelines via SECURITY DEFINER
-    // RPCs — direct authenticated inserts to notifications / exchange_timeline
+    // RPCs - direct authenticated inserts to notifications / exchange_timeline
     // are blocked by RLS (service_role / admin only).
     const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty" as any, {
       p_connection_id: conn.id,
@@ -224,7 +224,7 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
     const { error: timelineErr } = await supabase.rpc("log_connection_event" as any, {
       p_connection_id: conn.id,
       p_event_type: "connection_milestone",
-      p_description: `${stageDialog.mode === "edit" ? "Updated" : "Completed"}: ${stage.label}${milestoneNote ? ` — ${milestoneNote}` : ""}`,
+      p_description: `${stageDialog.mode === "edit" ? "Updated" : "Completed"}: ${stage.label}${milestoneNote ? ` - ${milestoneNote}` : ""}`,
       p_metadata: { milestone: stage.key, date: isoDate, note: milestoneNote || null },
     });
     if (timelineErr) console.error("Failed to log milestone to timeline:", timelineErr);
@@ -355,7 +355,7 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
         </div>
       )}
 
-      {/* Agent Profile Cards — revealed only after acceptance */}
+      {/* Agent Profile Cards - revealed only after acceptance */}
       {revealed && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <AgentProfileCard label={audience === "investor" && conn.buyer_agent_id === user!.id ? "Property Owner" : "Buyer Agent"} profile={buyerProfile} />
@@ -368,8 +368,8 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
         <div className="rounded-xl border bg-card p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Buyer's Relinquished Property</h3>
           <div className="mt-3">
-            <p className="font-semibold text-foreground">{relinquishedProp ? resolveListingName(relinquishedProp, relinquishedProp.agent_id === user?.id) : "—"}</p>
-            <p className="text-sm text-muted-foreground">{[relinquishedProp?.city, relinquishedProp?.state].filter(Boolean).join(", ") || "—"}</p>
+            <p className="font-semibold text-foreground">{relinquishedProp ? resolveListingName(relinquishedProp, relinquishedProp.agent_id === user?.id) : "-"}</p>
+            <p className="text-sm text-muted-foreground">{[relinquishedProp?.city, relinquishedProp?.state].filter(Boolean).join(", ") || "-"}</p>
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span>{fmt(relinquishedFin?.asking_price)}</span>
               {relinquishedFin?.cap_rate && <span>{formatCapRate(Number(relinquishedFin.cap_rate))} cap</span>}
@@ -380,8 +380,8 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
         <div className="rounded-xl border bg-card p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Replacement Property</h3>
           <div className="mt-3">
-            <p className="font-semibold text-foreground">{sellerProp ? resolveListingName(sellerProp, sellerProp.agent_id === user?.id) : "—"}</p>
-            <p className="text-sm text-muted-foreground">{[sellerProp?.city, sellerProp?.state].filter(Boolean).join(", ") || "—"}</p>
+            <p className="font-semibold text-foreground">{sellerProp ? resolveListingName(sellerProp, sellerProp.agent_id === user?.id) : "-"}</p>
+            <p className="text-sm text-muted-foreground">{[sellerProp?.city, sellerProp?.state].filter(Boolean).join(", ") || "-"}</p>
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span>{fmt(sellerFin?.asking_price)}</span>
               {sellerFin?.cap_rate && <span>{formatCapRate(Number(sellerFin.cap_rate))} cap</span>}
@@ -463,7 +463,7 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
         )}
       </div>
 
-      {/* Conversation link — replaces inline chat */}
+      {/* Conversation link - replaces inline chat */}
       {revealed && (
         <div className="mt-6 rounded-xl border bg-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">

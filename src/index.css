@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    /* Navy + green brand — matches the new landing page. Light cool
+    /* Navy + green brand - matches the new landing page. Light cool
        backgrounds, navy ink, green as the primary/action color, navy dark
        chrome (sidebar). Retuned app-wide so every page shares the new look. */
     --background: 210 36% 97%;

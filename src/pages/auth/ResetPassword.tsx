@@ -14,7 +14,7 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   // A valid reset link establishes a recovery session. Without one, the link is
-  // missing/expired/already used — show a clear message instead of a raw error.
+  // missing/expired/already used - show a clear message instead of a raw error.
   const [linkState, setLinkState] = useState<"checking" | "valid" | "invalid">("checking");
   const { toast } = useToast();
 

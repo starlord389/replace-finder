@@ -2,7 +2,7 @@
 //
 // Called (with anon/authenticated JWT) by the frontend right after a signup
 // or landlord referral is inserted. NEVER accepts caller-supplied recipient
-// addresses or template names — always looks up the real record from the
+// addresses or template names - always looks up the real record from the
 // database with the service role and derives everything from stored values.
 //
 // Dispatch is tracked in admin_notify_dispatch_log with pending/sent/failed
@@ -170,12 +170,12 @@ async function handleAgentSignup(
     title: `${profile.full_name || 'A new agent'} just created an account`,
     summary: 'A new agent finished signup on 1031ExchangeUp.',
     details: [
-      { label: 'Name', value: (profile.full_name as string) || '—' },
-      { label: 'Email', value: (profile.email as string) || '—' },
-      { label: 'Phone', value: (profile.phone as string) || '—' },
-      { label: 'Brokerage', value: (profile.brokerage_name as string) || '—' },
-      { label: 'License state', value: (profile.license_state as string) || '—' },
-      { label: 'MLS #', value: (profile.mls_number as string) || '—' },
+      { label: 'Name', value: (profile.full_name as string) || '-' },
+      { label: 'Email', value: (profile.email as string) || '-' },
+      { label: 'Phone', value: (profile.phone as string) || '-' },
+      { label: 'Brokerage', value: (profile.brokerage_name as string) || '-' },
+      { label: 'License state', value: (profile.license_state as string) || '-' },
+      { label: 'MLS #', value: (profile.mls_number as string) || '-' },
     ],
     idempotencySuffix: `signup-${profile.id}`,
   })
@@ -233,13 +233,13 @@ async function handleLandlordReferral(
   const ownerName = ((referral.owner_name as string) || '').trim()
   const firstName = ownerName.split(/\s+/)[0] || undefined
   const location = (referral.property_location as string) || ''
-  const phone = (referral.owner_phone as string) || '—'
-  const propertyType = (referral.property_type as string) || '—'
+  const phone = (referral.owner_phone as string) || '-'
+  const propertyType = (referral.property_type as string) || '-'
   const estimatedValueNum = referral.estimated_value as number | null | undefined
   const estimatedValue =
     typeof estimatedValueNum === 'number' && Number.isFinite(estimatedValueNum)
       ? `$${estimatedValueNum.toLocaleString()}`
-      : '—'
+      : '-'
 
   let adminOk = true
   let ackOk = true
@@ -254,10 +254,10 @@ async function handleLandlordReferral(
       title: `${ownerName || 'A landlord'} requested a 1031 agent`,
       summary: 'A landlord submitted the "Find me an agent" form.',
       details: [
-        { label: 'Name', value: ownerName || '—' },
-        { label: 'Email', value: ownerEmail || '—' },
+        { label: 'Name', value: ownerName || '-' },
+        { label: 'Email', value: ownerEmail || '-' },
         { label: 'Phone', value: phone },
-        { label: 'Location', value: location || '—' },
+        { label: 'Location', value: location || '-' },
         { label: 'Property type', value: propertyType },
         { label: 'Est. value', value: estimatedValue },
       ],

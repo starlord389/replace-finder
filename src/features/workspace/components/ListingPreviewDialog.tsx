@@ -106,7 +106,7 @@ export function ListingPreviewDialog({ listing, open, onOpenChange, basePath = "
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl gap-0 overflow-hidden p-0">
-        <DialogTitle className="sr-only">Investor preview — {title}</DialogTitle>
+        <DialogTitle className="sr-only">Investor preview - {title}</DialogTitle>
         <DialogDescription className="sr-only">
           A preview of how matched investors see your listing.
         </DialogDescription>

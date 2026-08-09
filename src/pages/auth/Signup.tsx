@@ -519,7 +519,7 @@ function ReferralForm({ onBack }: { onBack: () => void }) {
               {
                 icon: Phone,
                 title: "Your agent reaches out",
-                desc: "Expect a call or email introducing your dedicated 1031 exchange advisor — no pressure, no obligation.",
+                desc: "Expect a call or email introducing your dedicated 1031 exchange advisor - no pressure, no obligation.",
               },
               {
                 icon: Handshake,
@@ -718,7 +718,7 @@ function PostSignupVerify({ email, onBack }: { email: string; onBack: () => void
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Check your spam or promotions folder.</li>
             <li>Make sure <span className="font-medium text-foreground">{email}</span> is spelled correctly.</li>
-            <li>Open the link in this browser — opening it elsewhere can break the secure handshake.</li>
+            <li>Open the link in this browser - opening it elsewhere can break the secure handshake.</li>
             <li>Wait a minute, then resend below.</li>
           </ul>
           {lastSentAt && (

@@ -3,7 +3,7 @@ import Lenis from "lenis";
 import { Link } from "react-router-dom";
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Shared landing kit — the base design tokens + primitives behind every
+   Shared landing kit - the base design tokens + primitives behind every
    public marketing page (Home, For Landlords, …). The values here are copied
    verbatim from the homepage (src/pages/Home.tsx) so any page that mounts a
    [data-landing] wrapper and renders LANDING_BASE_CSS shares ONE design
@@ -75,7 +75,7 @@ export const LANDING_BASE_CSS = `
     color: #16284a;
   }
 
-  /* Gray bordered eyebrow — used at the top of a hero. */
+  /* Gray bordered eyebrow - used at the top of a hero. */
   [data-landing] .lp-eyebrow {
     display: inline-flex;
     width: fit-content;
@@ -100,7 +100,7 @@ export const LANDING_BASE_CSS = `
     color: #56657a;
   }
 
-  /* Pill CTAs — secondary is an outlined text button, primary is a black pill
+  /* Pill CTAs - secondary is an outlined text button, primary is a black pill
      with a white circle-arrow that slides on hover. Matches the template. */
   [data-landing] .lp-pill {
     display: inline-flex;

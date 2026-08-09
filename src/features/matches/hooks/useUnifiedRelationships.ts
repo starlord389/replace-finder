@@ -35,7 +35,7 @@ export interface Relationship {
   candidateRoe: number | null;        // ratio
   roeImprovementPp: number | null;    // percentage points
   roeImprovementRel: number | null;   // ratio, e.g. 0.35 = +35%
-  // engine factor scores (0-100) — the real per-dimension breakdown
+  // engine factor scores (0-100) - the real per-dimension breakdown
   roeScore: number | null;            // ROE component (price_score, re-purposed)
   geoScore: number | null;
   assetScore: number | null;
@@ -58,10 +58,10 @@ export interface Relationship {
   propertyName: string;
   propertyCity: string | null;
   propertyState: string | null;
-  /** Exact street address — populated only when the viewer may see it (own listing, or owner published it). */
+  /** Exact street address - populated only when the viewer may see it (own listing, or owner published it). */
   propertyAddress: string | null;
   propertyZip: string | null;
-  // Real property facts (null when the listing agent hasn't entered them — never fabricated).
+  // Real property facts (null when the listing agent hasn't entered them - never fabricated).
   propertyAssetType: string | null;
   propertyAssetSubtype?: string | null;
   propertyStrategyType?: string | null;
@@ -96,7 +96,7 @@ export interface Relationship {
   clientName: string | null;
   buyerExchangeId: string;
   /**
-   * The exchange the CURRENT agent owns for this relationship — buyer-side it is
+   * The exchange the CURRENT agent owns for this relationship - buyer-side it is
    * `buyerExchangeId`; seller-side it is the agent's own listing's exchange. This
    * is the exchange whose workspace the agent can actually open, so AgentWorkspace
    * filters on it (not `buyerExchangeId`, which is the counterparty's on seller-side).
@@ -134,7 +134,7 @@ export interface Relationship {
 
   /**
    * True when both sides of this match sit inside the current agent's own book
-   * of business (same agent / brokerage / account). Informational only — it
+   * of business (same agent / brokerage / account). Informational only - it
    * never affects eligibility, scoring, or visibility.
    */
   isSameAgent: boolean;
@@ -150,7 +150,7 @@ export interface Relationship {
 
 async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "agent" | "investor"): Promise<Relationship[]> {
   const basePath = ownerType === "investor" ? "/investor" : "/agent";
-  // 1. My exchanges (for buyer-side matches) — scoped to the active workspace
+  // 1. My exchanges (for buyer-side matches) - scoped to the active workspace
   const exchangeQuery = supabase
     .from("exchanges")
     .select("id, agent_id, client_id, relinquished_property_id, owner_type")
@@ -185,7 +185,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     if (e.relinquished_property_id) exRelMap.set(e.id, e.relinquished_property_id);
   });
 
-  // 2. My pledged properties (for seller-side matches) — scoped to the workspace.
+  // 2. My pledged properties (for seller-side matches) - scoped to the workspace.
   //    Keep each listing's own exchange so seller-side rows can route to a page
   //    the agent can actually open (their own listing workspace), not the
   //    counterparty's exchange.
@@ -215,7 +215,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     buyerMatches = data ?? [];
   }
 
-  // 4. Seller-side matches — read through the masked view so a matched buyer's
+  // 4. Seller-side matches - read through the masked view so a matched buyer's
   // private financials (ROE / boot / debt service) stay hidden from the seller
   // until the two agents are actually connected.
   let sellerMatches: any[] = [];
@@ -278,7 +278,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
   const propMap = new Map((propsRes.data ?? []).map((p: any) => [p.id, p]));
   const finMap = new Map((finsRes.data ?? []).map((f: any) => [f.property_id, f]));
   // Collect ALL uploaded photos per property (ordered by sort_order above),
-  // resolved to display URLs — no fabricated/placeholder entries.
+  // resolved to display URLs - no fabricated/placeholder entries.
   const imgMap = new Map<string, string[]>();
   (imgsRes.data ?? []).forEach((img: any) => {
     const arr = imgMap.get(img.property_id) ?? [];
@@ -438,7 +438,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     //    relinquished label, and the open target all come from that exchange.
     //  • Seller-side (incoming): `buyer_exchange_id` belongs to the OTHER agent,
     //    so it yields a generic "Client" and a workspace route that bounces.
-    //    Derive everything from the agent's OWN side instead — the listing's
+    //    Derive everything from the agent's OWN side instead - the listing's
     //    exchange (for the client/label) and a route the agent can open.
     const myExchangeId =
       mySide === "buyer"

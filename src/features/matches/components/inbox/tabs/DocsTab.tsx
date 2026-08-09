@@ -27,7 +27,7 @@ export function DocsTab({ rel, conversationAvailable = false, onOpenConversation
         <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
           {audience === "investor"
             ? "Offering memorandums, rent rolls, and operating statements are exchanged directly with the listing agent once you're connected."
-            : "Offering memorandums, rent rolls, and operating statements are exchanged directly with the listing agent once you're connected — kept private until your client expresses interest."}
+            : "Offering memorandums, rent rolls, and operating statements are exchanged directly with the listing agent once you're connected - kept private until your client expresses interest."}
         </p>
         {conversationAvailable ? (
           <Button className="mt-5 gap-2" onClick={onOpenConversation}>

@@ -1,8 +1,8 @@
-// Admin Communications Center — direct message dispatch.
+// Admin Communications Center - direct message dispatch.
 //
 // Auth: gateway verifies JWT (verify_jwt=true). We additionally require the
 // caller's ACTUAL user JWT to map to a public.has_role(uid,'admin') row.
-// Recipient email + template name are NEVER accepted from the client — the
+// Recipient email + template name are NEVER accepted from the client - the
 // recipient is resolved from stored data based on recipient_type/id.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
@@ -229,7 +229,7 @@ Deno.serve(async (req) => {
     .single()
 
   if (insertErr) {
-    // Concurrent insert lost the race — return existing row.
+    // Concurrent insert lost the race - return existing row.
     if ((insertErr as any).code === '23505') {
       const { data: raced } = await admin
         .from('admin_messages')
