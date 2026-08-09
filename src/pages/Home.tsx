@@ -374,16 +374,16 @@ function NbMonitorSteps() {
     <section id="steps" className="nb-diagram" aria-label="How the network works">
       <div className="nb-diagram-inner">
         <p className="nb-diagram-eyebrow">How It Works</p>
-        <h2 className="nb-diagram-h2">Every investor added makes the network smarter.</h2>
+        <h2 className="nb-diagram-h2">Every property added makes the network smarter.</h2>
         <p className="nb-diagram-lead">
-          Investors A through F all feed the same growing network — and every new property makes it more useful for all members. Exchange IQ™ monitors continuously and alerts the right investor or agent when a better fit appears.
+          Real estate agents and property owners all feed the growing network — and every new property makes it more useful for all members. <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts the investor or agent when a better fit appears.
         </p>
 
         <svg
           className="nb-net"
           viewBox="0 0 900 620"
           role="img"
-          aria-label="Investors A through F each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
+          aria-label="Real estate agents and property owners each add their property to the 1031 ExchangeUP network and receive matched opportunities back from it."
         >
           <defs>
             <marker id="nbArrowIn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
