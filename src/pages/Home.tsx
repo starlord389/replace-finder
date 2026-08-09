@@ -145,15 +145,19 @@ const NB_STYLE = `
   [data-nb] .nb-hero-link:hover { color: #fff; border-color: rgba(255,255,255,.65); }
 
   /* ===== four-step monitoring strip ===== */
-  /* ===== how it works diagram (section 2) ===== */
+  /* ===== how it works network diagram (section 2) ===== */
   [data-nb] .nb-diagram { background: #0b1f3d; padding: 56px 20px 64px; text-align: center; }
   [data-nb] .nb-diagram-inner { margin: 0 auto; max-width: 1080px; }
   [data-nb] .nb-diagram-eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #43a047; }
   [data-nb] .nb-diagram-h2 { margin: 10px auto 0; font-size: clamp(26px, 2.8vw, 36px); font-weight: 800; color: #fff; line-height: 1.15; max-width: 680px; }
-  [data-nb] .nb-diagram-lead { margin: 12px auto 0; font-size: 16.5px; line-height: 1.6; color: rgba(255,255,255,.75); max-width: 620px; }
-  [data-nb] .nb-diagram-img { margin: 34px auto 0; display: block; width: 100%; max-width: 1040px; border-radius: 16px; box-shadow: 0 24px 70px rgba(0,0,0,.35); }
-  @media (max-width: 640px) { [data-nb] .nb-diagram { padding: 40px 16px 48px; } [data-nb] .nb-diagram-img { border-radius: 12px; } }
+  [data-nb] .nb-diagram-lead { margin: 12px auto 0; font-size: 16.5px; line-height: 1.6; color: rgba(255,255,255,.75); max-width: 640px; }
+  [data-nb] .nb-net { margin: 30px auto 0; display: block; width: 100%; max-width: 960px; height: auto; }
+  [data-nb] .nb-net-legend { margin: 18px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 26px; }
+  [data-nb] .nb-net-legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: rgba(255,255,255,.8); }
+  [data-nb] .nb-net-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+  @media (max-width: 640px) { [data-nb] .nb-diagram { padding: 40px 16px 48px; } }
 `;
+
 
 
 
