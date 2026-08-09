@@ -328,9 +328,9 @@ function NbHero() {
 
 function NbMonitorSteps() {
   const nodes = [
-    { label: "Property A", sub: "Owner adds it once", cx: 150, cy: 118, sx: 254, sy: 172, ex: 356, ey: 220 },
-    { label: "Property B", sub: "Owner adds it once", cx: 150, cy: 402, sx: 254, sy: 348, ex: 356, ey: 300 },
-    { label: "Property C", sub: "Owner adds it once", cx: 762, cy: 260, sx: 654, sy: 260, ex: 556, ey: 260 },
+    { label: "Property A", sub: "Owner adds it once", cx: 450, cy: 58, sx: 450, sy: 104, ex: 450, ey: 182 },
+    { label: "Property B", sub: "Owner adds it once", cx: 140, cy: 430, sx: 250, sy: 381, ex: 351, ey: 334 },
+    { label: "Property C", sub: "Owner adds it once", cx: 760, cy: 430, sx: 651, sy: 381, ex: 549, ey: 334 },
   ];
 
   return (
