@@ -132,14 +132,23 @@ const NB_STYLE = `
   [data-nb] .nb-aud { background: #fff; padding: 44px 20px 8px; }
   [data-nb] .nb-aud-grid { margin: 0 auto; max-width: 1240px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
   @media (max-width: 900px) { [data-nb] .nb-aud-grid { grid-template-columns: 1fr; } }
-  [data-nb] .nb-aud-card { border: 1px solid #e8edf3; border-radius: 16px; background: #fff; padding: 24px 22px; box-shadow: 0 2px 12px rgba(14,42,77,.06); }
+  [data-nb] .nb-aud-card { border: 1px solid #e8edf3; border-radius: 16px; background: #fff; padding: 24px 22px; box-shadow: 0 2px 12px rgba(14,42,77,.06); text-align: left; width: 100%; cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease, transform .12s ease; }
+  [data-nb] .nb-aud-card:hover { border-color: #43a047; box-shadow: 0 8px 24px rgba(14,42,77,.1); }
+  [data-nb] .nb-aud-card.is-open { border-color: #43a047; box-shadow: 0 10px 28px rgba(67,160,71,.18); }
+  [data-nb] .nb-aud-card:active { transform: translateY(1px); }
   [data-nb] .nb-aud-ico { width: 44px; height: 44px; border-radius: 12px; background: #eef6ef; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
   [data-nb] .nb-aud-ico svg { width: 22px; height: 22px; stroke: #43a047; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
   [data-nb] .nb-aud-tag { font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #43a047; }
   [data-nb] .nb-aud-txt { margin-top: 8px; font-size: 16px; line-height: 1.5; font-weight: 600; color: #16284a; }
   [data-nb] .nb-aud-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 940px; }
   @media (max-width: 900px) { [data-nb] .nb-aud-grid-2 { grid-template-columns: 1fr; } }
-  [data-nb] .nb-aud-link { display: inline-flex; margin-top: 16px; font-size: 15px; font-weight: 800; color: #43a047; text-decoration: none; }
+  [data-nb] .nb-aud-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; font-size: 15px; font-weight: 800; color: #43a047; text-decoration: none; }
+  [data-nb] .nb-aud-chevron { display: inline-flex; width: 16px; height: 16px; transition: transform .2s ease; }
+  [data-nb] .nb-aud-card.is-open .nb-aud-chevron { transform: rotate(180deg); }
+  [data-nb] .nb-aud-dropdown { margin: 20px auto 0; max-width: 1240px; animation: nb-dropdown-in .35s ease both; }
+  @keyframes nb-dropdown-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  [data-nb] .nb-aud-dropdown > section { padding: 48px 0; }
+  [data-nb] .nb-aud-dropdown > section:first-child { margin-top: 0; }
   [data-nb] .nb-hero-link { display: inline-flex; align-items: center; gap: 8px; color: #c4d2e6; font-size: 14.5px; font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 2px; transition: color .15s ease, border-color .15s ease; }
   [data-nb] .nb-hero-link:hover { color: #fff; border-color: rgba(255,255,255,.65); }
 
