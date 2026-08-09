@@ -172,8 +172,8 @@ function LogoArrow() {
   return (
     <span className="nb-logo-arrow" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none">
-        <polyline points="3,17 9.5,11 13.5,14 21,5.5" stroke="#43a047" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <polygon points="21,5.5 14.6,5.7 21,12.1" fill="#43a047" />
+        <path d="M4 17 L14 7" stroke="#43a047" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <polygon points="14,7 8,7 14,13" fill="#43a047" />
       </svg>
     </span>
   );
