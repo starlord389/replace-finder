@@ -71,8 +71,8 @@ export function HowItWorksFlow() {
   const steps = [
     {
       num: "1",
-      title: "Add",
-      desc: "Your property, client, and investment criteria.",
+      title: "Register",
+      desc: "Share your property or client criteria once.",
       icon: Building2,
     },
     {
