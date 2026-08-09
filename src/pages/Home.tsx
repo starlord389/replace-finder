@@ -394,19 +394,25 @@ function NbHero() {
 function NbMonitorSteps() {
   const hub = { cx: 450, cy: 300, r: 104 };
   const orbitRadius = 255;
-  const nodeOffset = 46;
-  const labels = [
-    "Investor A",
-    "Investor B",
-    "Investor C",
-    "Investor D",
-    "Investor E",
-    "Investor F",
-  ];
-  const angles = [270, 330, 30, 90, 150, 210]; // degrees from 3 o'clock counter-clockwise
+  const nodeSize = 72;
+  const nodeR = nodeSize / 2;
+  const nodeOffset = 40; // distance from node center to arrow start/end
 
-  const nodes = labels.map((label, i) => {
-    const rad = (angles[i] * Math.PI) / 180;
+  const nodeSpecs = [
+    { type: "property" as const, Icon: Building2, label: "Property" },
+    { type: "investor" as const, Icon: User, label: "Investor" },
+    { type: "agent" as const, Icon: Briefcase, label: "Agent" },
+    { type: "property" as const, Icon: Building2, label: "Property" },
+    { type: "investor" as const, Icon: User, label: "Investor" },
+    { type: "agent" as const, Icon: Briefcase, label: "Agent" },
+    { type: "property" as const, Icon: Building2, label: "Property" },
+    { type: "investor" as const, Icon: User, label: "Investor" },
+    { type: "agent" as const, Icon: Briefcase, label: "Agent" },
+  ];
+
+  const nodes = nodeSpecs.map((spec, i) => {
+    const angle = (360 / nodeSpecs.length) * i;
+    const rad = (angle * Math.PI) / 180;
     const cx = hub.cx + orbitRadius * Math.cos(rad);
     const cy = hub.cy + orbitRadius * Math.sin(rad);
     const dx = hub.cx - cx;
@@ -417,21 +423,21 @@ function NbMonitorSteps() {
     // perpendicular unit vector to offset the return-opportunity arrow
     const px = -uy;
     const py = ux;
-    const outOffset = 12;
+    const outOffset = 14;
     return {
-      label,
+      ...spec,
       cx,
       cy,
-      // inward arrow: investor lists property into the network
-      inSx: cx + ux * nodeOffset,
-      inSy: cy + uy * nodeOffset,
+      // inward arrow: participant lists property into the network
+      inSx: cx + ux * nodeR,
+      inSy: cy + uy * nodeR,
       inEx: hub.cx - ux * hub.r,
       inEy: hub.cy - uy * hub.r,
-      // outward arrow: exchange-up opportunities flow back to the investor
+      // outward arrow: exchange-up opportunities flow back to the participant
       outSx: hub.cx - ux * (hub.r - 8),
       outSy: hub.cy - uy * (hub.r - 8),
-      outEx: cx + ux * nodeOffset + px * outOffset,
-      outEy: cy + uy * nodeOffset + py * outOffset,
+      outEx: cx + ux * nodeR + px * outOffset,
+      outEy: cy + uy * nodeR + py * outOffset,
     };
   });
 
