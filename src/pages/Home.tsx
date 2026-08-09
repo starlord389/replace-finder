@@ -52,10 +52,12 @@ const NB_STYLE = `
   @media (max-width: 480px) {
     [data-nb] .nb-nav-inner { padding: 0 14px; }
     [data-nb] .nb-logo { font-size: 18px; }
+    [data-nb] .nb-logo-tm { font-size: 0.5em; }
     [data-nb] .nb-nav-actions { gap: 8px; }
     [data-nb] .nb-nav-btn-join { padding: 0 14px; font-size: 14px; height: 40px; }
     [data-nb] .nb-nav-burger { width: 40px; height: 40px; }
   }
+  [data-nb] .nb-logo-tm { font-size: 0.45em; font-weight: 400; margin-left: 1px; opacity: 0.85; }
 
   /* ===== hero skyline backdrop (.nb-sky) ===== */
   [data-nb] .nb-sky { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
