@@ -11,8 +11,8 @@ describe("public landing-page audiences", () => {
     expect(homeSource).toContain("Register your property. Our data-driven AI continuously monitors investment opportunities");
     expect(homeSource).toContain("Find My Replacement Property");
     expect(homeSource).toContain("See How It Works");
-    expect(homeSource).toContain("Add → Set → Monitor → Alert");
-    expect(homeSource).toContain("Add it once. We keep watching.");
+    expect(homeSource).toContain("Every property added makes the network smarter.");
+    expect(homeSource).toContain("Owner adds it once");
     expect(homeSource).toContain("Don’t Wait for the 45-Day Clock to Start.");
     expect(homeSource).toContain("I Own Investment Property");
     expect(homeSource).toContain("I’m a Real Estate Agent");
