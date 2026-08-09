@@ -139,7 +139,7 @@ export function HowItWorksFlow() {
     {
       num: "1",
       title: "Add",
-      desc: "Your property, client, or investment criteria — a few minutes, free.",
+      desc: "Your property, client, and investment criteria — a few minutes, free.",
       icon: Building2,
     },
     {
