@@ -76,23 +76,64 @@ const AGENT_CSS = `
 
 const PROBLEMS = [
   {
-    icon: <Boxes />,
+    key: "limited-inventory",
+    icon: Boxes,
     title: "Limited Inventory",
     body: "Your clients can only buy what you know about. The right replacement property may be sitting in another agent's database.",
   },
   {
-    icon: <SearchX />,
+    key: "mls-not-for-investors",
+    icon: SearchX,
     title: "The MLS Wasn’t Built for Investors",
     body: "MLS search is great for bedrooms, bathrooms, and geography, but it wasn’t designed around equity, investment strategy, 1031 timing, or identifying an opportunity to exchange up.",
   },
   {
-    icon: <Network />,
+    key: "agent-databases-siloed",
+    icon: Network,
     title: "Agent Databases Don’t Talk to Each Other",
     body: "Agents build valuable networks independently. ExchangeUp™ connects those networks so potential transactions can surface across agents, brokerages, and markets.",
   },
+  {
+    key: "unlock-deal-flow",
+    icon: Rocket,
+    title: "Unlock More Deal Flow",
+    body: "Most agents rely on active listings and repeat clients to generate transactions. ExchangeUp™ turns your existing relationships into a continuous opportunity network so you can uncover more deals without more prospecting.",
+  },
 ];
 
-const BAND = [
+function ProblemAccordion() {
+  const [open, setOpen] = useState<string | null>("unlock-deal-flow");
+
+  return (
+    <div className="agn-prob">
+      {PROBLEMS.map((p) => {
+        const Icon = p.icon;
+        const isOpen = open === p.key;
+        return (
+          <div className="agn-accordion" key={p.key}>
+            <button
+              type="button"
+              className="agn-accordion-btn"
+              aria-expanded={isOpen}
+              onClick={() => setOpen(isOpen ? null : p.key)}
+            >
+              <span className="agn-accordion-ico" aria-hidden="true"><Icon /></span>
+              <span className="agn-accordion-t">{p.title}</span>
+              <span className={`agn-accordion-chev ${isOpen ? "open" : ""}`} aria-hidden="true">
+                <ChevronDown />
+              </span>
+            </button>
+            {isOpen && (
+              <div className="agn-accordion-body">
+                {p.body}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
   { t: "More Inventory.", p: "Access opportunities beyond your own database." },
   { t: "More Collaboration.", p: "Connect with investor-friendly agents across the network." },
   { t: "More Transactions.", p: "Uncover business that may otherwise never happen." },
