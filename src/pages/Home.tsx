@@ -324,7 +324,6 @@ export default function Home() {
       <NbMonitorSteps />
       <NbWhyNow />
       <Sec_investors />
-      <Sec_agents />
       <LandingSections />
 
     </div>
