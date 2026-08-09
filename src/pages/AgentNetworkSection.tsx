@@ -31,27 +31,6 @@ const AGENT_CSS = `
 [data-nb] .agn-accordion-body { padding: 0 24px 22px 80px; font-size: 15px; line-height: 1.6; color: #56657a; }
 @media (max-width: 600px) { [data-nb] .agn-accordion-body { padding: 0 20px 20px 24px; } }
 
-[data-nb] .agn-turn { margin-top: 72px; border-top: 1px solid #eaeff6; padding-top: 56px; }
-[data-nb] .agn-h3 { font-size: clamp(24px, 2.6vw, 32px); font-weight: 800; letter-spacing: -.02em; color: #16284a; margin: 0; }
-[data-nb] .agn-turn-p { margin: 14px 0 0; font-size: 16.5px; line-height: 1.65; color: #56657a; max-width: 760px; }
-
-[data-nb] .agn-list { margin-top: 40px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
-@media (max-width: 860px) { [data-nb] .agn-list { grid-template-columns: 1fr; } }
-[data-nb] .agn-item { border: 1px solid #e8edf3; border-radius: 18px; padding: 28px; background: #fff; display: flex; flex-direction: column; }
-[data-nb] .agn-item-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-[data-nb] .agn-num { flex: none; width: 30px; height: 30px; border-radius: 9px; background: #eef6ef; color: #43a047; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-[data-nb] .agn-item-ico { flex: none; color: #43a047; display: flex; }
-[data-nb] .agn-item-ico svg { width: 20px; height: 20px; }
-[data-nb] .agn-item-t { font-size: 18px; font-weight: 800; letter-spacing: -.015em; color: #16284a; margin: 0; }
-[data-nb] .agn-item-p { font-size: 15px; line-height: 1.62; color: #56657a; margin: 0 0 10px; }
-[data-nb] .agn-item-p:last-child { margin-bottom: 0; }
-
-[data-nb] .agn-alert { display: inline-flex; align-items: center; gap: 10px; margin: 6px 0 12px; padding: 10px 14px; border-radius: 12px; background: #f2faf3; border: 1px solid #cdeccf; }
-[data-nb] .agn-alert-dot { width: 26px; height: 26px; border-radius: 8px; background: #43a047; color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
-[data-nb] .agn-alert-dot svg { width: 14px; height: 14px; }
-[data-nb] .agn-alert-txt { font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; color: #23703a; }
-
-[data-nb] .agn-quote { margin: 4px 0 12px; padding: 14px 16px; border-left: 3px solid #43a047; background: #f7faf7; border-radius: 0 10px 10px 0; font-size: 16px; font-weight: 800; letter-spacing: -.01em; color: #16284a; line-height: 1.4; }
 
 [data-nb] .agn-band { background: #0f2748; }
 [data-nb] .agn-band-inner { margin: 0 auto; max-width: 1180px; padding: 56px 20px; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 28px; }
