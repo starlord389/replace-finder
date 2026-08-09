@@ -390,7 +390,7 @@ function NbMonitorSteps() {
               <path d="M0 0 L10 5 L0 10 z" fill="#43a047" />
             </marker>
             <marker id="nbArrowOut" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0 0 L10 5 L0 10 z" fill="#81c784" />
+              <path d="M0 0 L10 5 L0 10 z" fill="#ffffff" />
             </marker>
           </defs>
 
@@ -403,7 +403,8 @@ function NbMonitorSteps() {
               />
               <line
                 x1={n.outSx} y1={n.outSy} x2={n.outEx} y2={n.outEy}
-                stroke="#81c784" strokeWidth="2.5" strokeLinecap="round"
+                stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round"
+                strokeDasharray="6 4"
                 markerEnd="url(#nbArrowOut)"
               />
               <rect x={n.cx - 112} y={n.cy - 28} width="224" height="56" rx="18" fill="#ffffff" />
