@@ -299,31 +299,27 @@ function NbHero() {
   return (
     <section className="nb-hero">
       <SkyBackdrop />
-      <div className="nb-hero-inner mx-auto grid max-w-[1240px] items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:py-24">
-        <div>
-          <h1 className="nb-hero-h1 max-w-[620px]">
-            Finding Your 1031 Replacement Property Just Got A LOT Easier.
-          </h1>
-          <p className="nb-hero-sub mt-5 max-w-[540px]">
-            Register your property. Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.
-          </p>
+      <div className="nb-hero-inner mx-auto max-w-[1240px] px-5 py-16 text-center sm:px-8 lg:py-24">
+        <h1 className="nb-hero-h1 mx-auto max-w-[620px]">
+          Finding Your 1031 Replacement Property Just Got A LOT Easier.
+        </h1>
+        <p className="nb-hero-sub mx-auto mt-5 max-w-[540px]">
+          Register your property. Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.
+        </p>
 
-          <div className="nb-cta-row" style={{ marginTop: 32 }}>
-            <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find My Replacement Property</Link>
-            <a href="#steps" className="nb-btn-demo">See How It Works</a>
-          </div>
-
-          <div className="nb-badges">
-            {BADGES.map((b, i) => (
-              <div key={i} className="nb-badge">
-                <span className="nb-badge-ico" aria-hidden="true">{b.svg}</span>
-                <span className="nb-badge-txt">{b.txt.map((t, j) => (<span key={j}>{t}{j < b.txt.length - 1 ? <br /> : null}</span>))}</span>
-              </div>
-            ))}
-          </div>
+        <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>
+          <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Find My Replacement Property</Link>
+          <a href="#steps" className="nb-btn-demo">See How It Works</a>
         </div>
 
-        <HeroNetwork />
+        <div className="nb-badges justify-center">
+          {BADGES.map((b, i) => (
+            <div key={i} className="nb-badge">
+              <span className="nb-badge-ico" aria-hidden="true">{b.svg}</span>
+              <span className="nb-badge-txt">{b.txt.map((t, j) => (<span key={j}>{t}{j < b.txt.length - 1 ? <br /> : null}</span>))}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
