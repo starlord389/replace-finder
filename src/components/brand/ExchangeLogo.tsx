@@ -41,20 +41,11 @@ export function ExchangeLogoMark({ className, title }: ExchangeLogoMarkProps) {
     >
       {title ? <title id={titleId}>{title}</title> : null}
       <path
-        fill="none"
-        stroke="#16284a"
-        strokeWidth="17"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M 191 186 L 243 134 L 295 186"
-      />
-      <rect x="207" y="206" width="72" height="142" rx="11" fill="#16284a" />
-      <path
         fill="#16284a"
         stroke="#16284a"
-        strokeWidth="18"
+        strokeWidth="16"
         strokeLinejoin="round"
-        d="M 243 166 L 295 214 L 191 214 Z"
+        d="M 243 134 L 295 214 L 191 214 Z"
       />
       <rect x="146" y="294" width="44" height="54" rx="9" fill="#43a047" />
       <path
