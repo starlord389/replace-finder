@@ -435,7 +435,7 @@ export function Sec_why() {
 <section id="why" className="px-5 sm:px-8 py-20 sm:py-24">
   <div className="mx-auto" style={{ maxWidth: 1240 }}>
     <div className="nb-why-wrap px-6 sm:px-12 lg:px-16 py-14 lg:py-20">
-      <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
         {/* LEFT */}
         <div>
           <h2 className="nb-why-h2">
