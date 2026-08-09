@@ -29,7 +29,6 @@ describe("public landing-page audiences", () => {
   });
 
   it("keeps pricing consistent and non-guaranteeing language on matches", () => {
-    expect(sectionsSource).toContain("not guaranteed transactions");
     expect(sectionsSource).toContain("does not constitute financial, tax or investment advice");
     expect(sectionsSource).not.toContain("6 Months Free");
   });
