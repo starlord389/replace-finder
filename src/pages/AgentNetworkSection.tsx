@@ -12,6 +12,8 @@ import {
   TrendingUp,
   UserSearch,
   BellRing,
+  ChevronDown,
+  Rocket,
 } from "lucide-react";
 
 const AGENT_CSS = `
