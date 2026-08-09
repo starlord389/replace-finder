@@ -45,10 +45,6 @@ export const EXTRA_CSS = `
 [data-nb] .nb-ag-check{flex:none;width:20px;height:20px;border-radius:50%;background:#43a047;display:flex;align-items:center;justify-content:center;margin-top:2px}
 [data-nb] .nb-ag-check svg{width:12px;height:12px;color:#fff}
 [data-nb] .nb-ag-note{margin-top:28px;border-left:3px solid #43a047;background:#f3faf3;border-radius:0 12px 12px 0;padding:18px 20px;font-size:16px;font-weight:700;color:#16284a;line-height:1.5}
-[data-nb] .nb-ag-chain{display:flex;flex-direction:column;align-items:center;gap:10px}
-[data-nb] .nb-ag-step{width:100%;max-width:340px;text-align:center;border-radius:12px;border:1px solid #e8edf3;background:#fff;box-shadow:0 2px 12px rgba(14,42,77,.06);padding:15px 18px;font-size:14.5px;font-weight:700;color:#16284a}
-[data-nb] .nb-ag-step.first{background:#16284a;color:#fff;border-color:#16284a}
-[data-nb] .nb-ag-step.last{background:#f3faf3;border-color:#cdeccf;color:#2f7a33}
 
 [data-nb] .nb-inv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;margin-top:44px}
 @media (max-width:1000px){[data-nb] .nb-inv-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
