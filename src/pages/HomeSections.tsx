@@ -1277,10 +1277,7 @@ export function LandingSections() {
     <>
       <style>{EXTRA_CSS}</style>
       <Sec_why />
-      <Sec_diff />
-      
-      <Sec_example />
-      <Sec_network />
+      <Sec_how />
       <Sec_trust />
       <Sec_resources />
       <Sec_faqcta />
