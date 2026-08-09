@@ -80,6 +80,8 @@ const NB_STYLE = `
   [data-nb] .nb-btn:active { transform: translateY(1px); }
   [data-nb] .nb-btn-green { background: #43a047; color: #fff; box-shadow: 0 8px 20px rgba(67,160,71,.34); }
   [data-nb] .nb-btn-green:hover { background: #3a8c3e; box-shadow: 0 10px 26px rgba(67,160,71,.44); }
+  [data-nb] .nb-btn-outline { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
+  [data-nb] .nb-btn-outline:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.75); }
   [data-nb] .nb-badges { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 14px; margin-top: 36px; }
   [data-nb] .nb-badge { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; }
   [data-nb] .nb-badge-ico { display: inline-flex; align-items: center; justify-content: center; width: 23px; height: 23px; flex: 0 0 auto; color: var(--nb-green-bright); }
