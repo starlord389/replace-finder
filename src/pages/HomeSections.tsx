@@ -1227,24 +1227,6 @@ function Sec_faqcta() {
   );
 }
 
-export function Sec_network() {
-  return (
-<section id="network" className="w-full px-5 sm:px-8 py-20 sm:py-24" style={{ background: "#16284a" }}>
-  <div className="mx-auto" style={{ maxWidth: 1240 }}>
-    <div className="text-center max-w-[760px] mx-auto">
-      <h2 className="nb-h2" style={{ color: "#fff" }}>The More Connected the Network, the More Opportunities Appear.</h2>
-    </div>
-
-    <div className="nb-net-grid">
-      <div className="nb-net-card">More properties means more replacement options.</div>
-      <div className="nb-net-card">More investors means more potential buyers.</div>
-      <div className="nb-net-card">More agents means more collaboration.</div>
-    </div>
-
-  </div>
-</section>
-  );
-}
 
 export function Sec_trust() {
   const items: [string, JSX.Element][] = [
