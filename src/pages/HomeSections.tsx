@@ -301,36 +301,45 @@ function RoeMiniCalc() {
   const [value, setValue] = useState(1000000);
   const [loan, setLoan] = useState(0);
   const [rent, setRent] = useState(6000);
+  const [pi, setPi] = useState(0);
+  const [ti, setTi] = useState(0);
+  const [opex, setOpex] = useState(0);
   const [shown, setShown] = useState(false);
 
   const PLATFORM = 8; // healthy return-on-equity benchmark
-  const NET_FACTOR = 0.6; // typical share of gross rent left after operating expenses
   const equity = Math.max(0, value - loan);
-  const income = rent * 12 * NET_FACTOR;
+  const monthlyExpenses = pi + ti + opex;
+  const monthlyCashFlow = rent - monthlyExpenses;
+  const income = monthlyCashFlow * 12;
   const roe = equity > 0 ? (income / equity) * 100 : 0;
   const potential = equity * (PLATFORM / 100);
   const uplift = potential - income;
 
-  const usd = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+  const usd = (n: number) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
   const parse = (s: string) => Number(s.replace(/[^0-9]/g, "")) || 0;
 
   const tone = roe < 5 ? "low" : roe < 8 ? "mid" : "high";
   const numColor = tone === "low" ? "#b8543a" : tone === "mid" ? "#16284a" : "#43a047";
 
   const signupHref =
-    `/signup?role=investor&value=${Math.round(value)}&loan=${Math.round(loan)}&rent=${Math.round(rent)}`;
+    `/signup?role=investor&value=${Math.round(value)}&loan=${Math.round(loan)}&rent=${Math.round(rent)}` +
+    `&pi=${Math.round(pi)}&ti=${Math.round(ti)}&opex=${Math.round(opex)}`;
 
-  const FIELDS: { id: string; label: string; val: number; set: (n: number) => void }[] = [
+  const FIELDS: { id: string; label: string; hint?: string; val: number; set: (n: number) => void }[] = [
     { id: "cv", label: "Estimated Property Value", val: value, set: setValue },
     { id: "lb", label: "Current Loan Balance", val: loan, set: setLoan },
     { id: "gr", label: "Gross Monthly Rent", val: rent, set: setRent },
+    { id: "pi", label: "Monthly P&I (Principal & Interest)", val: pi, set: setPi },
+    { id: "ti", label: "Monthly T&I (Taxes & Insurance)", val: ti, set: setTi },
+    { id: "oe", label: "Other Monthly Operating Expenses", val: opex, set: setOpex },
   ];
 
   return (
     <div className="nb-why-card">
       <h3 className="nb-why-card-title">Return on Equity Calculator</h3>
       <p className="nb-why-card-sub">
-        Three numbers is all it takes. See how hard your equity is working today, measured against an 8% reference return.
+        Enter your property value, loan balance, rent and monthly costs — P&amp;I, T&amp;I and other expenses — to see
+        how hard your equity is working today, measured against an 8% reference return.
       </p>
 
       <div className="nb-why-inputs">
@@ -351,7 +360,23 @@ function RoeMiniCalc() {
         ))}
       </div>
 
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12,
+          fontSize: 12,
+          fontWeight: 700,
+          color: "#56657a",
+          margin: "2px 0 12px",
+        }}
+      >
+        <span>Total monthly expenses: {usd(monthlyExpenses)}</span>
+        <span>Monthly cash flow: {usd(monthlyCashFlow)}</span>
+      </div>
+
       <button type="button" className="nb-why-calc" onClick={() => setShown(true)}>Calculate My Return on Equity</button>
+
 
       {shown && (
         <div className="nb-why-result">
