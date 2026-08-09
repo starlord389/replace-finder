@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
-import { SECTIONS_CSS, LandingSections, HowItWorksFlow } from "./HomeSections";
+import { SECTIONS_CSS, LandingSections, HowItWorksFlow, Sec_agents, Sec_investors } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
    NEW BRAND — navy + green Exchange IQ™ matchmaking landing page.
