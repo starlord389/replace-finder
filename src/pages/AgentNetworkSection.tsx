@@ -134,6 +134,7 @@ function ProblemAccordion() {
     </div>
   );
 }
+const BAND = [
   { t: "More Inventory.", p: "Access opportunities beyond your own database." },
   { t: "More Collaboration.", p: "Connect with investor-friendly agents across the network." },
   { t: "More Transactions.", p: "Uncover business that may otherwise never happen." },
