@@ -70,7 +70,7 @@ const PROBLEMS: { key: string; icon: LucideIcon; title: string; body: string }[]
     key: "unlock-deal-flow",
     icon: Rocket,
     title: "Unlock More Deal Flow",
-    body: "Most agents rely on active listings and repeat clients to generate transactions. ExchangeUp™ turns your existing relationships into a continuous opportunity network so you can uncover more deals without more prospecting.",
+    body: "ExchangeUp™ turns your existing relationships into an opportunity network. Add your clients and properties, and let the platform notify you of potential opportunities across the network.",
   },
 ];
 
