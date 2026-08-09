@@ -139,25 +139,25 @@ export function HowItWorksFlow() {
     {
       num: "1",
       title: "Add",
-      desc: "Your property, client, and investment criteria — a few minutes, free.",
+      desc: "Your property, client, and investment criteria.",
       icon: Building2,
     },
     {
       num: "2",
       title: "Set",
-      desc: "Your goals — what a smarter position looks like for you.",
+      desc: "Your goals: what a smarter position looks like for you.",
       icon: SlidersHorizontal,
     },
     {
       num: "3",
       title: "Monitor",
-      desc: "Exchange IQ™ keeps watching the network as it grows.",
+      desc: <>Our <span style={{ color: "#43a047" }}>Exchange IQ™</span> keeps watching the network as it grows.</>,
       icon: Activity,
     },
     {
       num: "4",
       title: "Alert",
-      desc: "You or your agent are notified when a relevant opportunity appears.",
+      desc: "You are notified when a relevant opportunity appears.",
       icon: Bell,
     },
   ];
