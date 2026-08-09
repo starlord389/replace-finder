@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
-import { SECTIONS_CSS, LandingSections } from "./HomeSections";
+import { SECTIONS_CSS, LandingSections, HowItWorksFlow } from "./HomeSections";
 
 /* ─────────────────────────────────────────────────────────────────────────
    NEW BRAND — navy + green Exchange IQ™ matchmaking landing page.
@@ -150,6 +150,8 @@ const NB_STYLE = `
   [data-nb] .nb-diagram-eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #43a047; }
   [data-nb] .nb-diagram-h2 { margin: 10px auto 0; font-size: clamp(26px, 2.8vw, 36px); font-weight: 800; color: #fff; line-height: 1.15; max-width: 680px; }
   [data-nb] .nb-diagram-lead { margin: 12px auto 0; font-size: 16.5px; line-height: 1.6; color: rgba(255,255,255,.75); max-width: 640px; }
+  [data-nb] .nb-diagram-flow { margin: 28px auto 0; max-width: 960px; background: #fff; border-radius: 20px; padding: 38px 28px 32px; box-shadow: 0 18px 50px rgba(0,0,0,.18); }
+  @media (max-width: 640px) { [data-nb] .nb-diagram-flow { padding: 28px 18px 24px; } }
   [data-nb] .nb-net { margin: 30px auto 0; display: block; width: 100%; max-width: 960px; height: auto; }
   [data-nb] .nb-net-legend { margin: 18px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 26px; }
   [data-nb] .nb-net-legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: rgba(255,255,255,.8); }
@@ -374,6 +376,9 @@ function NbMonitorSteps() {
     <section id="steps" className="nb-diagram" aria-label="How the network works">
       <div className="nb-diagram-inner">
         <p className="nb-diagram-eyebrow">How It Works</p>
+        <div className="nb-diagram-flow">
+          <HowItWorksFlow />
+        </div>
         <h2 className="nb-diagram-h2">Every property added makes the network smarter.</h2>
         <p className="nb-diagram-lead">
           Real estate agents and property owners all feed the growing network — and every new property makes it more useful for everyone. <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts the investor or agent when a better fit appears.
