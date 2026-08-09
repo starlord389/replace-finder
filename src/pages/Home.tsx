@@ -325,9 +325,8 @@ export default function Home() {
       <NbWhyNow />
       <Sec_investors />
       <Sec_agents />
-
-      <NbLogoMarquee />
       <LandingSections />
+
     </div>
   );
 }
