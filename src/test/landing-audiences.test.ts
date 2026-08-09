@@ -7,7 +7,7 @@ const sectionsSource = readFileSync(join(process.cwd(), "src/pages/HomeSections.
 
 describe("public landing-page audiences", () => {
   it("leads with easier 1031 replacement-property discovery", () => {
-    expect(homeSource).toContain("Finding Your 1031 Replacement Property Just Got A Lot Easier.");
+    expect(homeSource).toContain("Finding Your 1031 Replacement Property Just Got ALOT Easier.");
     expect(homeSource).toContain("Register your property. Our data-driven AI continuously monitors investment opportunities");
     expect(homeSource).toContain("Find My Replacement Property");
     expect(homeSource).toContain("See How It Works");
