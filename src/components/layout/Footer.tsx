@@ -69,7 +69,7 @@ export default function Footer() {
 
         <div className="mt-12 border-t border-[#13294e] pt-6">
           <p className="text-xs text-[#9fb2cc]">
-            © {new Date().getFullYear()} 1031ExchangeUp. All rights reserved.
+            © {new Date().getFullYear()} 1031ExchangeUp™. All rights reserved.
           </p>
         </div>
       </div>

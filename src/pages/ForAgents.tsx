@@ -11,7 +11,7 @@ export default function ForAgents() {
     if (desc) {
       desc.setAttribute(
         "content",
-        "Built for agents: add clients, properties and investment criteria to 1031ExchangeUp. Your database and the network are monitored continuously for new investment and 1031 exchange opportunities.",
+        "Built for agents: add clients, properties and investment criteria to 1031ExchangeUp™. Your database and the network are monitored continuously for new investment and 1031 exchange opportunities.",
       );
     }
   }, []);
@@ -29,7 +29,7 @@ export default function ForAgents() {
             Your Database. Constantly Monitored for New Opportunities.
           </h1>
           <p className="nb-hero-sub mx-auto mt-5 max-w-[540px]">
-            Add investor clients and investment properties to ExchangeUp. The system continuously evaluates your database and the broader network, and alerts you when a relevant opportunity appears.
+            Add investor clients and investment properties to ExchangeUp™. The system continuously evaluates your database and the broader network, and alerts you when a relevant opportunity appears.
           </p>
 
           <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>

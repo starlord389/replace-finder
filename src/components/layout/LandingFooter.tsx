@@ -155,7 +155,7 @@ export default function LandingFooter() {
           brokerage or an MLS, and not a substitute for either. Licensed agents remain
           responsible for their own marketing and Clear Cooperation obligations.
         </p>
-        <span className="nbf-copy">© {new Date().getFullYear()} 1031ExchangeUp. All rights reserved.</span>
+        <span className="nbf-copy">© {new Date().getFullYear()} 1031ExchangeUp™. All rights reserved.</span>
       </div>
     </footer>
   );

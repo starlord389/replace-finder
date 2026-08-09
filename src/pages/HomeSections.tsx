@@ -197,7 +197,7 @@ export function Sec_agents() {
         <div className="nb-eyebrow">For Agents</div>
         <h2 className="nb-h2 mt-3">Exchanges Made Easier Across Your Whole Database.</h2>
         <p className="nb-lead mt-4">
-          Add investor clients and investment properties to ExchangeUp. The system continuously evaluates your database
+          Add investor clients and investment properties to ExchangeUp™. The system continuously evaluates your database
 
           and the broader ExchangeUp™ network for potential transactions.
         </p>
