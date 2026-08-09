@@ -333,7 +333,7 @@ function NbMonitorSteps() {
           Owners and agents add properties to the network. Exchange IQ™ monitors around the clock and surfaces relevant opportunities to the right people.
         </p>
         <img
-          src={monitoringDiagram.url}
+          src={monitoringDiagram}
           alt="Property owners add their properties to 1031 ExchangeUp™, the platform continuously monitors opportunities, and alerts are sent to the right owners or agents."
           className="nb-diagram-img"
           loading="lazy"
