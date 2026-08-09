@@ -231,7 +231,7 @@ function NbHero() {
       <SkyBackdrop />
       <div className="nb-hero-inner mx-auto max-w-[1240px] px-5 py-16 text-center sm:px-8 lg:py-24">
         <h1 className="nb-hero-h1 mx-auto max-w-[620px]">
-          Finding Your 1031 Replacement Property Just Got <span className="nb-slash">A LOT</span> Easier.
+          Finding Your 1031 Replacement Property Just Got A LOT Easier.
         </h1>
         <p className="nb-hero-sub mx-auto mt-5 max-w-[540px]">
           Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into, so the exchange is simple when the timing is right.
