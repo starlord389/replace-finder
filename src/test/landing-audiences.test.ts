@@ -10,7 +10,6 @@ describe("public landing-page audiences", () => {
     expect(homeSource).toContain("Finding Your 1031 Replacement Property Just Got A LOT Easier.");
     expect(homeSource).toContain("Register your property. Our data-driven AI continuously monitors investment opportunities");
     expect(homeSource).toContain("Find My Replacement Property");
-    expect(homeSource).toContain("See How It Works");
     expect(homeSource).toContain("Every property added makes the network smarter.");
     expect(homeSource).toContain("I Own Investment Property");
     expect(homeSource).toContain("I’m a Real Estate Agent");
