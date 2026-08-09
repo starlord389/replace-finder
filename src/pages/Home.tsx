@@ -364,7 +364,7 @@ function NbHero() {
           Finding Your 1031 Replacement Property Just Got A LOT Easier.
         </h1>
         <p className="nb-hero-sub mx-auto mt-5 max-w-[540px]">
-          Register your property. Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.
+          Our data-driven AI continuously monitors investment opportunities in our network and alerts you when it finds a smarter property to exchange into.
         </p>
 
         <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>
