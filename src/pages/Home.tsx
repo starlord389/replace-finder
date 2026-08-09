@@ -169,6 +169,11 @@ const NB_STYLE = `
   [data-nb] .nb-net-legend { margin: 18px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 26px; }
   [data-nb] .nb-net-legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: rgba(255,255,255,.8); }
   [data-nb] .nb-net-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+  [data-nb] .nb-net-node { width: 72px; height: 72px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; color: #0b1f3d; box-shadow: 0 4px 16px rgba(0,0,0,.18); transition: transform .15s ease, box-shadow .15s ease; }
+  [data-nb] .nb-net-node:hover { transform: scale(1.08); box-shadow: 0 8px 24px rgba(0,0,0,.24); }
+  [data-nb] .nb-net-node[data-type="investor"] { color: #2f6fd0; }
+  [data-nb] .nb-net-node[data-type="agent"] { color: #43a047; }
+  [data-nb] .nb-net-node[data-type="property"] { color: #e08a2b; }
   @media (max-width: 640px) { [data-nb] .nb-diagram { padding: 40px 16px 48px; } }
 `;
 
