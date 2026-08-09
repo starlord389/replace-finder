@@ -267,6 +267,11 @@ function NbMonitorSteps() {
           Agents/Brokers/Property Owners all feed the network. <span style={{ color: "#43a047" }}>Exchange IQ™</span> monitors continuously and alerts both parties.
         </p>
 
+        <div className="nb-diagram-ctas">
+          <Link to={ROUTES.signup} className="nb-diagram-cta">Register your property</Link>
+          <Link to={ROUTES.signup} className="nb-diagram-cta nb-diagram-cta-outline">Join the growing network</Link>
+        </div>
+
         <img
           src={networkDiagramAsset.url}
           alt="1031ExchangeUP network: real estate agents, investors, and properties connected to the central monitoring hub."
