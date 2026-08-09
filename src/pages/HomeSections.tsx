@@ -175,19 +175,19 @@ export function Sec_how() {
           {steps.map((s, i) => (
             <div className="nb-how-step" key={s.title}>
               <div className="nb-how-step-top">
-                <span className="nb-how-step-num">{s.num}</span>
                 <div className="nb-how-step-icon">
-                  <s.icon size={28} strokeWidth={1.6} />
+                  <s.icon size={32} strokeWidth={1.6} />
                 </div>
-                {i < steps.length - 1 && (
-                  <div className="nb-how-step-line" aria-hidden="true">
-                    <div className="nb-how-step-line-track" />
-                    <div className="nb-how-step-line-arrow" />
-                  </div>
-                )}
+                <span className="nb-how-step-num">{s.num}</span>
               </div>
               <h3 className="nb-how-step-title">{s.title}</h3>
               <p className="nb-how-step-desc">{s.desc}</p>
+            </div>
+          ))}
+          {steps.slice(0, -1).map((_, i) => (
+            <div className="nb-how-step-connector" key={`connector-${i}`} aria-hidden="true">
+              <div className="nb-how-step-connector-line" />
+              <div className="nb-how-step-connector-arrow" />
             </div>
           ))}
         </div>
@@ -195,6 +195,7 @@ export function Sec_how() {
     </section>
   );
 }
+
 
 
 export function Sec_agents() {
