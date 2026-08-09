@@ -101,11 +101,11 @@ export default function AgentNetworkSection() {
         <div className="agn-inner">
           <div className="agn-head">
             <p className="agn-eyebrow">For Real Estate Agents</p>
-            <h2 className="agn-h2">Turn Your Database Into a Deal Network.</h2>
+            <h2 className="agn-h2">Unlock More Deal Flow.</h2>
             <p className="agn-sub">
-              You already have the relationships. ExchangeUp™ continuously evaluates your investor
-              clients, properties, and the broader ExchangeUp™ network to uncover potential
-              transactions you may never have known existed.
+              ExchangeUp™ turns your existing client and property relationships into a continuous
+              opportunity network. Add your clients and properties once, and let the platform surface
+              potential transactions hiding inside your database and across the larger agent network.
             </p>
           </div>
 
