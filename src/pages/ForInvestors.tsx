@@ -6,12 +6,12 @@ import { EXTRA_CSS, SECTIONS_CSS, Sec_how, Sec_investors, Sec_why } from "./Home
 
 export default function ForInvestors() {
   useEffect(() => {
-    document.title = "For Investors & Property Owners - 1031ExchangeUp™";
+    document.title = "For Property Owners - 1031ExchangeUp™";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute(
         "content",
-        "Built for investors and property owners: add your investment property and goals to 1031ExchangeUp™ and discover opportunities through intelligent opportunity monitoring.",
+        "Built for property owners: add your investment property criteria to 1031ExchangeUp™ and discover opportunities through intelligent opportunity monitoring.",
       );
     }
   }, []);
@@ -29,7 +29,7 @@ export default function ForInvestors() {
             Your Investment. Constantly Monitored for What’s Next.
           </h1>
           <p className="nb-hero-sub mx-auto mt-5 max-w-[540px]">
-            Add your investment property and goals once. ExchangeUp™ continuously monitors for opportunities that may better align with your equity position and investment strategy.
+            Add investment property criteria. ExchangeUp™ continuously monitors for opportunities that may better align with your equity position and investment strategy.
           </p>
 
           <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>
