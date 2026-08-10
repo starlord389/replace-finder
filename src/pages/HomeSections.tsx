@@ -651,10 +651,6 @@ function Sec_faqcta() {
         <p className="nb-fct-cta-sub">It takes a few minutes and it’s free. From there, we keep watching the network and let you know if something better shows up for your equity.</p>
         <div className="nb-fct-cta-btns">
           <a href="/signup" className="nb-fct-btn nb-fct-btn-green">Register My Property - Free</a>
-          <a href="/book-demo" className="nb-fct-btn nb-fct-btn-out">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
-            Schedule a Demo
-          </a>
         </div>
         <div className="nb-fct-social-proof">
           <div className="nb-fct-avatars" aria-hidden="true">

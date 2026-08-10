@@ -47,7 +47,6 @@ const FOOTER_COLS = [
     title: "Get Started",
     links: [
       { label: "Join Free", to: "/signup" },
-      { label: "Book a Demo", to: "/book-demo" },
       { label: "For Landlords", to: "/landlords" },
       { label: "Log In", to: "/login" },
     ],

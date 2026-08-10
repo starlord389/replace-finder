@@ -34,7 +34,6 @@ export default function ForAgents() {
 
           <div className="nb-cta-row justify-center" style={{ marginTop: 32 }}>
             <Link to={ROUTES.signup} className="nb-btn nb-btn-green">Add My First Opportunity</Link>
-            <Link to={ROUTES.bookDemo} className="nb-btn-demo">Schedule a Demo</Link>
           </div>
         </div>
       </section>
