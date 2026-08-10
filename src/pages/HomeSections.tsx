@@ -417,10 +417,10 @@ function SummitEventCard() {
     }
 
     setDone(true);
-    toast({ title: "You're registered!", description: "Complete your Zoom registration in the new tab." });
-    if (UPCOMING_EVENT.registrationUrl) {
-      window.open(UPCOMING_EVENT.registrationUrl, "_blank", "noopener,noreferrer");
-    }
+    toast({
+      title: "You're registered!",
+      description: `You're signed up for the ${UPCOMING_EVENT.dateLabel} ${UPCOMING_EVENT.platform} session. We'll email you the join link before it starts.`,
+    });
   }
 
   
