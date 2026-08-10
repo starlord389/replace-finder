@@ -87,17 +87,15 @@ export function useInvestorInquiries() {
   });
 
   const create = useMutation({
-    mutationFn: async ({ propertyId, listingAgentId, message }: { propertyId: string; listingAgentId: string; message: string }) => {
+    mutationFn: async ({ propertyId, message }: { propertyId: string; listingAgentId?: string; message: string }) => {
       if (!user) throw new Error("Sign in to contact the listing agent.");
-      const { error } = await supabase.from("listing_inquiries").insert({
-        investor_id: user.id,
-        property_id: propertyId,
-        listing_agent_id: listingAgentId,
-        initial_message: message.trim(),
-        is_demo: effectiveDemo,
-      });
+      const { error } = await supabase.rpc("submit_listing_inquiry" as never, {
+        p_property_id: propertyId,
+        p_message: message.trim(),
+      } as never);
       if (error) throw error;
     },
+
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
