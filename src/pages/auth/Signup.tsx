@@ -80,10 +80,6 @@ function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {
         </Card>
       </div>
       <p className="text-center text-sm text-muted-foreground">
-        Want help choosing an agent first?{" "}
-        <Link to="/landlords" className="font-medium text-[#16284a] hover:underline">Use our agent-matching service</Link>
-      </p>
-      <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link to="/login" className="font-medium text-[#16284a] hover:underline">Sign in</Link>
       </p>
