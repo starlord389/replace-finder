@@ -23,6 +23,7 @@ export const UPCOMING_EVENT: ExchangeEvent = {
   dateLabel: "August 11, 2026",
   timeLabel: "12:00 PM ET",
   platform: "Zoom",
+  registrationUrl: "https://us06web.zoom.us/j/86125660910?pwd=R6eC80jln5bU4ienylXTAMj2cDPgRB.1",
   description:
     "Tax-saving strategies, DSTs, bonus depreciation, and how to use 1031ExchangeUp™ to uncover more deal flow.",
 };
