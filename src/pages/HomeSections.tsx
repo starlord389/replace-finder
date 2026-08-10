@@ -403,13 +403,11 @@ function SummitEventCard() {
     setSubmitting(true);
     const { error } = await supabase
       .from("event_registrations")
-      .upsert(
-        { full_name: name, email: mail, role, event: "1031-exchange-summit" },
-        { onConflict: "email,event", ignoreDuplicates: true },
-      );
+      .insert({ full_name: name, email: mail, role, event: "1031-exchange-summit" });
     setSubmitting(false);
 
-    if (error) {
+    // A duplicate means this email is already registered for the event.
+    if (error && error.code !== "23505") {
       toast({
         title: "We couldn't register you.",
         description: "Please try again in a moment.",
