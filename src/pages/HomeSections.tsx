@@ -529,7 +529,6 @@ function Sec_resources() {
               </div>
             </div>
           </div>
-          <a href="/signup" className="nb-res-link" style={{ marginTop: 'auto', paddingTop: 24 }}>Meet All Our Experts →</a>
         </div>
 
         {/* (2) Pricing */}
