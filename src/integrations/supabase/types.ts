@@ -2916,6 +2916,10 @@ export type Database = {
         Args: { p_match_id: string; p_request_id?: string }
         Returns: string
       }
+      submit_listing_inquiry: {
+        Args: { p_message: string; p_property_id: string }
+        Returns: string
+      }
       unassign_agent_from_exchange: {
         Args: { p_exchange_id: string; p_reason?: string }
         Returns: undefined
