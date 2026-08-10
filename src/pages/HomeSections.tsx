@@ -419,7 +419,10 @@ function SummitEventCard() {
     }
 
     setDone(true);
-    toast({ title: "You're registered!", description: "See you at the next summit." });
+    toast({ title: "You're registered!", description: "Complete your Zoom registration in the new tab." });
+    if (UPCOMING_EVENT.registrationUrl) {
+      window.open(UPCOMING_EVENT.registrationUrl, "_blank", "noopener,noreferrer");
+    }
   }
 
   
@@ -458,6 +461,17 @@ function SummitEventCard() {
             </span>
             <h4>You're registered!</h4>
             <p>We'll email you the details for the {UPCOMING_EVENT.dateLabel} session - and every monthly summit after it.</p>
+            {UPCOMING_EVENT.registrationUrl && (
+              <a
+                href={UPCOMING_EVENT.registrationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="nb-ev-submit"
+                style={{ marginTop: 16, textAlign: "center" }}
+              >
+                Join on Zoom
+              </a>
+            )}
           </div>
         ) : (
           <form onSubmit={handleRegister} noValidate>
