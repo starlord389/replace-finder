@@ -486,7 +486,7 @@ function SummitEventCard() {
             <button type="submit" className="nb-ev-submit" disabled={submitting}>
               {submitting ? "Registering…" : "Register for the Summit"}
             </button>
-            <p className="nb-ev-fine">Free to attend. We'll only use your info to send event details.</p>
+            <p className="nb-ev-fine">Free to attend. After registering you can join the meeting from this section, and we'll email you the Zoom link on the day of the event.</p>
           </form>
         )}
       </div>
