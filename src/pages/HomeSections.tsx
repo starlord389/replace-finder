@@ -458,7 +458,7 @@ function SummitEventCard() {
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#43a047" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9.5" /><path d="M8 12.3l2.6 2.6L16.5 9" /></svg>
             </span>
             <h4>You're registered!</h4>
-            <p>You're signed up for the scheduled {UPCOMING_EVENT.platform} session on {UPCOMING_EVENT.dateLabel}. We'll email you the join link before it starts.</p>
+            <p>You can join the meeting from this registration section. We'll also email you the Zoom link on the day of the event.</p>
             {UPCOMING_EVENT.registrationUrl && (
               <a
                 href={UPCOMING_EVENT.registrationUrl}
@@ -467,7 +467,7 @@ function SummitEventCard() {
                 className="nb-ev-submit"
                 style={{ marginTop: 16, textAlign: "center" }}
               >
-                Open Zoom link
+                Join the Meeting
               </a>
             )}
           </div>
@@ -486,7 +486,7 @@ function SummitEventCard() {
             <button type="submit" className="nb-ev-submit" disabled={submitting}>
               {submitting ? "Registering…" : "Register for the Summit"}
             </button>
-            <p className="nb-ev-fine">Free to attend. We'll only use your info to send event details.</p>
+            <p className="nb-ev-fine">Free to attend. After registering you can join the meeting from this section, and we'll email you the Zoom link on the day of the event.</p>
           </form>
         )}
       </div>
