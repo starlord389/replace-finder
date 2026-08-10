@@ -689,7 +689,6 @@ function Sec_faqcta() {
           <h4>Get Started</h4>
           <ul>
             <li><a href="/signup">Join Free</a></li>
-            <li><a href="/book-demo">Book a Demo</a></li>
             <li><a href="/landlords">For Property Owners</a></li>
             <li><a href="/login">Log In</a></li>
           </ul>
