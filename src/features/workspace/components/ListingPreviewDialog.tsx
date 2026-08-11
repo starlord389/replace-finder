@@ -1,5 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Eye, LayoutGrid, Pencil } from "lucide-react";
+import { AlertCircle, Eye, LayoutGrid, LoaderCircle, Pencil, RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { PropertyReviewPanel } from "@/features/matches/components/inbox/PropertyReviewPanel";
 import type { AgentListing } from "@/features/pipeline/hooks/useAgentListings";
-import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
+import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  buildListingPreviewRelationship,
+  type ListingPreviewDetails,
+} from "@/features/workspace/lib/listingPreview";
 
 interface Props {
   listing: AgentListing | null;
@@ -18,99 +24,60 @@ interface Props {
   basePath?: string;
 }
 
-function buildPreviewRel(listing: AgentListing, basePath: string): Relationship {
-  return {
-    id: `preview-${listing.id}`,
-    matchId: `preview-${listing.id}`,
-    connectionId: null,
-    mySide: "seller",
-    stage: "new",
-    score: 0,
-    bootStatus: "",
-    estimatedBoot: null,
-    buyerCurrentRoe: null,
-    candidateRoe: null,
-    roeImprovementPp: null,
-    roeImprovementRel: null,
-    roeScore: null,
-    geoScore: null,
-    assetScore: null,
-    strategyScore: null,
-    qualityScore: null,
-    candidateAnnualDebtService: null,
-    occupancy: null,
-    counterpartyName: null,
-    counterpartyBrokerage: null,
-    counterpartyAvatar: null,
-    propertyId: listing.propertyId ?? "",
-    propertyName:
-      listing.propertyName || listing.address || "Untitled listing",
-    propertyCity: listing.city,
-    propertyState: listing.state,
-    propertyAddress: listing.address ?? null,
-    propertyZip: null,
-    propertyAssetType: listing.assetType,
-    propertyLotAcres: null,
-    propertyDescription: null,
-    propertyRenovations: null,
-    propertyImageUrl: listing.coverUrl ?? null,
-    propertyImageUrls: listing.coverUrl ? [listing.coverUrl] : [],
-    askingPrice: listing.askingPrice,
-    capRate: null,
-    grossRentRoll: null,
-    totalOperatingExpenses: null,
-    noi: null,
-    clientId: listing.clientId,
-    clientName: listing.clientName,
-    buyerExchangeId: "",
-    myExchangeId: listing.id,
-    relinquishedLabel: null,
-    openHref: `${basePath}/exchanges/${listing.id}/edit`,
-    lastActivityAt: listing.createdAt,
-    lastMessagePreview: null,
-    lastMessageSenderId: null,
-    unreadCount: 0,
-    isNewMatch: false,
-    workflowStage: null,
-    workflowSentToClientAt: null,
-    workflowClientInterestedAt: null,
-    workflowConversationStartedAt: null,
-    workflowOfferSentAt: null,
-    workflowUnderContractAt: null,
-    workflowClosedAt: null,
-    workflowArchivedAt: null,
-    workflowUpdatedAt: null,
-    connectionStatus: null,
-    connectionInitiatedBy: null,
-    acceptedAt: null,
-    declinedAt: null,
-    closedAt: null,
-    underContractAt: null,
-    inspectionCompleteAt: null,
-    financingApprovedAt: null,
-    declineReason: null,
-    buyerAgentId: "",
-    sellerAgentId: null,
-    isSameAgent: false,
-    agentContactRequestId: null,
-    agentContactRequestStatus: null,
-    clientRecommendationResponse: null,
-    clientRecommendationNote: null,
+const PROPERTY_PREVIEW_COLUMNS = "id, property_name, address, address_is_public, city, state, zip, asset_type, asset_subtype, strategy_type, property_class, property_condition, year_built, units, building_square_footage, land_area_acres, num_buildings, num_stories, parking_spaces, parking_type, construction_type, roof_type, hvac_type, zoning, amenities, description, recent_renovations";
 
+async function fetchListingPreviewDetails(propertyId: string): Promise<ListingPreviewDetails> {
+  const [propertyResult, financialResult, imagesResult] = await Promise.all([
+    supabase
+      .from("pledged_properties")
+      .select(PROPERTY_PREVIEW_COLUMNS)
+      .eq("id", propertyId)
+      .maybeSingle(),
+    supabase
+      .from("property_financials")
+      .select("asking_price, cap_rate, occupancy_rate, gross_rent_roll, total_operating_expenses, noi")
+      .eq("property_id", propertyId)
+      .maybeSingle(),
+    supabase
+      .from("property_images")
+      .select("storage_path, sort_order")
+      .eq("property_id", propertyId)
+      .order("sort_order"),
+  ]);
+
+  if (propertyResult.error) throw propertyResult.error;
+  if (financialResult.error) throw financialResult.error;
+  if (imagesResult.error) throw imagesResult.error;
+
+  return {
+    property: propertyResult.data as ListingPreviewDetails["property"],
+    financials: financialResult.data as ListingPreviewDetails["financials"],
+    imageUrls: (imagesResult.data ?? []).map((image) => resolvePropertyImageUrl(image.storage_path)),
   };
 }
 
 export function ListingPreviewDialog({ listing, open, onOpenChange, basePath = "/agent" }: Props) {
+  const propertyId = listing?.propertyId ?? null;
+  const previewQuery = useQuery({
+    queryKey: ["listing-preview-details", propertyId],
+    queryFn: () => fetchListingPreviewDetails(propertyId!),
+    enabled: open && Boolean(propertyId),
+    staleTime: 30_000,
+  });
+
   if (!listing) return null;
 
   const title = listing.propertyName || listing.address || "Untitled listing";
   const hasProperty =
-    !!listing.propertyId ||
-    !!listing.propertyName ||
-    !!listing.address ||
+    Boolean(listing.propertyId) ||
+    Boolean(listing.propertyName) ||
+    Boolean(listing.address) ||
     listing.askingPrice != null;
   const isDraft = listing.status === "draft";
-  const rel = hasProperty ? buildPreviewRel(listing, basePath) : null;
+  const needsHydration = Boolean(propertyId);
+  const rel = hasProperty && (!needsHydration || previewQuery.data)
+    ? buildListingPreviewRelationship(listing, previewQuery.data ?? null, basePath)
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,7 +87,6 @@ export function ListingPreviewDialog({ listing, open, onOpenChange, basePath = "
           A preview of how matched investors see your listing.
         </DialogDescription>
 
-        {/* Preview-mode banner */}
         <div className="flex items-center gap-2 border-b border-border bg-muted/60 px-5 py-2.5 text-xs">
           <Eye className="h-3.5 w-3.5 text-primary" />
           <span className="font-semibold uppercase tracking-[0.16em] text-foreground">
@@ -132,7 +98,7 @@ export function ListingPreviewDialog({ listing, open, onOpenChange, basePath = "
         </div>
 
         <div className="max-h-[80vh] overflow-y-auto">
-          {!rel ? (
+          {!hasProperty ? (
             <div className="flex flex-col items-center justify-center gap-3 px-8 py-20 text-center">
               <LayoutGrid className="h-10 w-10 text-muted-foreground/40" />
               <h2 className="text-base font-semibold text-foreground">
@@ -149,14 +115,36 @@ export function ListingPreviewDialog({ listing, open, onOpenChange, basePath = "
                 </Link>
               </Button>
             </div>
-          ) : (
+          ) : needsHydration && previewQuery.isLoading ? (
+            <div className="flex flex-col items-center justify-center gap-3 px-8 py-20 text-center">
+              <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Loading complete listing</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Connecting the property details, financials, and photos.
+                </p>
+              </div>
+            </div>
+          ) : previewQuery.isError ? (
+            <div className="flex flex-col items-center justify-center gap-3 px-8 py-20 text-center">
+              <AlertCircle className="h-9 w-9 text-destructive" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Couldn't load the complete preview</p>
+                <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                  The listing exists, but its detailed property records could not be loaded. Try again before sharing it.
+                </p>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => previewQuery.refetch()}>
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Try again
+              </Button>
+            </div>
+          ) : rel ? (
             <div className="p-4">
               <PropertyReviewPanel rel={rel} previewMode />
             </div>
-          )}
+          ) : null}
         </div>
 
-        {/* Footer actions */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-card px-5 py-3">
           <p className="text-xs text-muted-foreground">
             {listing.clientName ? (
