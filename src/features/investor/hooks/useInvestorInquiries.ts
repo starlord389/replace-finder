@@ -4,11 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import type { InvestorInquiry } from "@/features/investor/types";
 import type { Tables } from "@/integrations/supabase/types";
+import { getListingLocationLabel, resolveListingName } from "@/lib/listingDisplay";
 
 type InquiryRow = Tables<"listing_inquiries">;
 type PropertySummary = Pick<
   Tables<"pledged_properties_secure">,
-  "id" | "property_name" | "address" | "city" | "state"
+  "id" | "property_name" | "address" | "address_is_public" | "city" | "state" | "zip" | "asset_type"
 >;
 type ProfileSummary = Pick<Tables<"profiles">, "id" | "full_name" | "email" | "phone">;
 
@@ -20,7 +21,7 @@ async function hydrateInquiries(rows: InquiryRow[], includeInvestor: boolean): P
   if (propertyIds.length) {
     const { data, error } = await supabase
       .from("pledged_properties_secure")
-      .select("id, property_name, address, city, state")
+      .select("id, property_name, address, address_is_public, city, state, zip, asset_type")
       .in("id", propertyIds);
     if (error) throw error;
     properties = data ?? [];
@@ -55,8 +56,8 @@ async function hydrateInquiries(rows: InquiryRow[], includeInvestor: boolean): P
       status: row.status,
       createdAt: row.created_at,
       respondedAt: row.responded_at,
-      propertyName: property?.property_name || property?.address || "Investment property",
-      propertyLocation: [property?.city, property?.state].filter(Boolean).join(", ") || null,
+      propertyName: property ? resolveListingName(property, false) : "Investment property",
+      propertyLocation: property ? getListingLocationLabel(property) || null : null,
       investorName: profile?.full_name ?? null,
       investorEmail: profile?.email ?? null,
       investorPhone: profile?.phone ?? null,

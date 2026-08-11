@@ -310,7 +310,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     relinquishedIds.length
       ? supabase
           .from("pledged_properties")
-          .select("id, property_name, city, state, asset_type")
+          .select("id, property_name, address, address_is_public, city, state, zip, asset_type")
           .in("id", relinquishedIds)
       : Promise.resolve({ data: [] as any[] }),
     representedInvestorIds.length
@@ -340,8 +340,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     if (!propId) return null;
     const p: any = relPropMap.get(propId);
     if (!p) return null;
-    const loc = [p.city, p.state].filter(Boolean).join(", ");
-    return loc || p.property_name || null;
+    return resolveListingName(p, true);
   }
 
 

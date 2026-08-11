@@ -4,11 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 import type { InvestorProperty } from "@/features/investor/types";
+import { resolveListingName } from "@/lib/listingDisplay";
 
 async function fetchProperties(isDemo: boolean): Promise<InvestorProperty[]> {
   const { data: properties, error } = await supabase
     .from("pledged_properties_secure")
-    .select("id, agent_id, property_name, address, city, state, zip, asset_type, strategy_type, units, year_built, building_square_footage, description, recent_renovations, is_demo, listed_at")
+    .select("id, agent_id, property_name, address, address_is_public, city, state, zip, asset_type, strategy_type, units, year_built, building_square_footage, description, recent_renovations, is_demo, listed_at")
     .eq("status", "active")
     .eq("is_demo", isDemo)
     .order("listed_at", { ascending: false });
@@ -41,11 +42,10 @@ async function fetchProperties(isDemo: boolean): Promise<InvestorProperty[]> {
 
   return (properties ?? []).filter((property): property is typeof property & { id: string; agent_id: string } => !!property.id && !!property.agent_id).map((property) => {
     const financial = financialByProperty.get(property.id);
-    const location = [property.city, property.state].filter(Boolean).join(", ");
     return {
       id: property.id,
       agentId: property.agent_id,
-      name: property.property_name || property.address || location || "Investment property",
+      name: resolveListingName(property, false),
       address: property.address,
       city: property.city,
       state: property.state,

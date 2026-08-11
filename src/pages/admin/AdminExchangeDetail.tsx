@@ -16,6 +16,7 @@ import {
   exchangeOwnerTypeLabel,
   isInvestorOwned,
 } from "@/features/admin/lib/accountTypes";
+import { getListingLocationLabel, resolveListingName } from "@/lib/listingDisplay";
 
 interface DiagRow {
   direction: "buyer" | "seller";
@@ -421,10 +422,10 @@ export default function AdminExchangeDetail() {
           <CardContent>
             {property ? (
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <dt className="text-muted-foreground">Property name</dt><dd>{property.property_name || "-"}</dd>
+                <dt className="text-muted-foreground">Listing title</dt><dd>{resolveListingName(property, true)}</dd>
                 <dt className="text-muted-foreground">Address</dt><dd>{property.address || "-"}</dd>
                 <dt className="text-muted-foreground">Address visibility</dt><dd>{property.address_is_public ? "Shown to eligible marketplace users" : "Hidden from marketplace users"}</dd>
-                <dt className="text-muted-foreground">Location</dt><dd>{[property.city, property.state, property.zip].filter(Boolean).join(", ") || "-"}</dd>
+                <dt className="text-muted-foreground">Location</dt><dd>{getListingLocationLabel(property) || "-"}</dd>
                 <dt className="text-muted-foreground">County</dt><dd>{property.county || "-"}</dd>
                 <dt className="text-muted-foreground">Asset type</dt><dd className="capitalize">{property.asset_type ? pretty(property.asset_type) : "-"}</dd>
                 <dt className="text-muted-foreground">Subtype</dt><dd>{property.asset_subtype || "-"}</dd>

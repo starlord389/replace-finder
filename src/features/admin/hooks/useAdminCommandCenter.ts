@@ -7,6 +7,7 @@ import {
   exchangeOwnerTypeLabel,
   isInvestorOwned,
 } from "@/features/admin/lib/accountTypes";
+import { getListingLocationLabel, resolveListingName } from "@/lib/listingDisplay";
 
 type Profile = Tables<"profiles">;
 type UserRole = Tables<"user_roles">;
@@ -71,11 +72,11 @@ function clean(value: string | null | undefined, fallback = "Unknown") {
 }
 
 function fullLocation(property: Property) {
-  return [property.city, property.state].filter(Boolean).join(", ") || "Location unavailable";
+  return getListingLocationLabel(property) || "Location unavailable";
 }
 
 function propertyLabel(property: Property) {
-  return clean(property.property_name, clean(property.address, fullLocation(property)));
+  return resolveListingName(property, true);
 }
 
 function daysUntil(iso: string) {

@@ -43,6 +43,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ClientAgentConversation } from "@/features/representation/components/ClientAgentConversation";
 import { InvitationManagementActions } from "@/features/representation/components/InvitationManagementActions";
+import { resolveListingName } from "@/lib/listingDisplay";
 
 interface ExchangeOption {
   id: string;
@@ -56,7 +57,10 @@ type AgentProfile = Pick<
   Tables<"profiles">,
   "id" | "full_name" | "email" | "phone" | "brokerage_name" | "license_state" | "verification_status"
 >;
-type PropertySummary = Pick<Tables<"pledged_properties_secure">, "id" | "property_name" | "city" | "state">;
+type PropertySummary = Pick<
+  Tables<"pledged_properties_secure">,
+  "id" | "property_name" | "address" | "address_is_public" | "city" | "state" | "zip" | "asset_type"
+>;
 
 const EMPTY_REPRESENTATIONS: Representation[] = [];
 const EMPTY_ASSIGNMENTS: ExchangeAssignment[] = [];
@@ -114,14 +118,14 @@ export default function InvestorRepresentation() {
         .order("created_at", { ascending: false });
       const propertyIds = (exchangeRows ?? []).map((row) => row.relinquished_property_id).filter(Boolean) as string[];
       const { data: properties } = propertyIds.length
-        ? await supabase.from("pledged_properties_secure").select("id, property_name, city, state").in("id", propertyIds)
+        ? await supabase.from("pledged_properties_secure").select("id, property_name, address, address_is_public, city, state, zip, asset_type").in("id", propertyIds)
         : { data: [] as PropertySummary[] };
       const byId = new Map((properties ?? []).map((property) => [property.id, property]));
       setExchanges((exchangeRows ?? []).map((row) => {
         const property = row.relinquished_property_id ? byId.get(row.relinquished_property_id) : null;
         return {
           ...row,
-          label: property?.property_name || [property?.city, property?.state].filter(Boolean).join(", ") || `Exchange ${row.id.slice(0, 8)}`,
+          label: property ? resolveListingName(property, true) : `Exchange ${row.id.slice(0, 8)}`,
         };
       }));
     })();
@@ -137,10 +141,10 @@ export default function InvestorRepresentation() {
   useEffect(() => {
     const propertyIds = [...new Set(contactRequests.map((request) => request.property_id))];
     if (!propertyIds.length) return setRequestPropertyLabels({});
-    supabase.from("pledged_properties_secure").select("id, property_name, city, state").in("id", propertyIds)
+    supabase.from("pledged_properties_secure").select("id, property_name, address, address_is_public, city, state, zip, asset_type").in("id", propertyIds)
       .then(({ data }) => setRequestPropertyLabels(Object.fromEntries((data ?? []).map((property) => [
         property.id,
-        property.property_name || [property.city, property.state].filter(Boolean).join(", ") || "Matched property",
+        resolveListingName(property, false),
       ]))));
   }, [contactRequests]);
 

@@ -5,7 +5,7 @@ import { ASSET_TYPE_LABELS } from "@/lib/constants";
 // A property's street address is sensitive: it is only revealed to OTHER agents
 // when the listing agent flips `address_is_public` on. The owner of the listing
 // and admins always see the exact address. Everyone else sees a privacy-safe
-// label (a legacy name, or "<Asset> in <City, ST>") that never leaks the street.
+// location label ("City, ST ZIP") that never leaks the street.
 
 export interface ListingNameInput {
   property_name?: string | null;
@@ -13,6 +13,7 @@ export interface ListingNameInput {
   address_is_public?: boolean | null;
   city?: string | null;
   state?: string | null;
+  zip?: string | null;
   asset_type?: string | null;
 }
 
@@ -21,13 +22,20 @@ function assetLabel(assetType?: string | null): string | null {
   return ASSET_TYPE_LABELS[assetType as keyof typeof ASSET_TYPE_LABELS] ?? null;
 }
 
-/** The label to show when the exact address must stay hidden. Never the street. */
+/** Format a privacy-safe location as "City, ST ZIP". */
+export function getListingLocationLabel(p: ListingNameInput): string {
+  const city = p.city?.trim();
+  const state = p.state?.trim();
+  const zip = p.zip?.trim();
+  const stateZip = [state, zip].filter(Boolean).join(" ");
+  return [city, stateZip].filter(Boolean).join(", ");
+}
+
+/** The title to show when the exact address must stay hidden. Never the street. */
 export function getPrivateListingLabel(p: ListingNameInput): string {
-  if (p.property_name && p.property_name.trim()) return p.property_name.trim();
+  const loc = getListingLocationLabel(p);
+  if (loc) return loc;
   const asset = assetLabel(p.asset_type);
-  const loc = [p.city, p.state].filter(Boolean).join(", ");
-  if (asset && loc) return `${asset} in ${loc}`;
-  if (loc) return `Property in ${loc}`;
   if (asset) return asset;
   return "Off-market property";
 }

@@ -13,6 +13,7 @@ import {
   parseCurrency,
 } from "@/lib/exchangeWizardTypes";
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
+import { getListingLocationLabel } from "@/lib/listingDisplay";
 import ReviewMatchPreview from "./ReviewMatchPreview";
 
 type ReviewMode = "create" | "edit-draft" | "edit-active";
@@ -80,7 +81,7 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Pledged Property</CardTitle></CardHeader>
         <CardContent className="space-y-1">
           {p.address && <p className="font-medium">{p.address}</p>}
-          <p className="text-sm text-muted-foreground">{[p.city, p.state, p.zip].filter(Boolean).join(", ")}</p>
+          <p className="text-sm text-muted-foreground">{getListingLocationLabel(p)}</p>
           <p className="text-xs text-muted-foreground">
             {p.address_is_public
               ? "Exact address is visible to matched participants."

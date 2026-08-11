@@ -87,7 +87,7 @@ async function fetchAgentAttention(userId: string, isDemo: boolean): Promise<Age
       const propertyIds = [...new Set(matches.map((m) => m.seller_property_id))];
       const { data: props } = await supabase
         .from("pledged_properties_secure")
-        .select("id, property_name, address, address_is_public, city, state, asset_type")
+        .select("id, property_name, address, address_is_public, city, state, zip, asset_type")
         .in("id", propertyIds);
       // Counterparty (seller) properties → never reveal the street unless public.
       const propMap = new Map(
@@ -137,7 +137,7 @@ async function fetchAgentAttention(userId: string, isDemo: boolean): Promise<Age
     const matchMap = new Map((matchesData ?? []).map((m) => [m.id, m]));
     const sellerPropertyIds = [...new Set((matchesData ?? []).map((m) => m.seller_property_id))];
     const { data: props } = sellerPropertyIds.length > 0
-      ? await supabase.from("pledged_properties_secure").select("id, property_name, address, address_is_public, city, state, asset_type, is_demo").in("id", sellerPropertyIds)
+      ? await supabase.from("pledged_properties_secure").select("id, property_name, address, address_is_public, city, state, zip, asset_type, is_demo").in("id", sellerPropertyIds)
       : { data: [] as Array<any> };
     const propMap = new Map((props ?? []).map((p: any) => [p.id, p]));
 

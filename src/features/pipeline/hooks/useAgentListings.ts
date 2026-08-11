@@ -15,6 +15,7 @@ export interface AgentListing {
   address: string | null;
   city: string | null;
   state: string | null;
+  zip: string | null;
   assetType: string | null;
   strategyType: string | null;
   askingPrice: number | null;
@@ -62,7 +63,7 @@ async function fetchAgentListings(userId: string, isDemo: boolean, ownerType: "a
     propIds.length
       ? supabase
           .from("pledged_properties")
-          .select("id, exchange_id, property_name, address, city, state, asset_type, strategy_type")
+          .select("id, exchange_id, property_name, address, address_is_public, city, state, zip, asset_type, strategy_type")
           .in("id", propIds)
       : Promise.resolve({ data: [], error: null } as any),
     propIds.length
@@ -74,7 +75,7 @@ async function fetchAgentListings(userId: string, isDemo: boolean, ownerType: "a
     exchangeIds.length
       ? supabase
           .from("pledged_properties")
-          .select("id, exchange_id, property_name, address, city, state, asset_type, strategy_type")
+          .select("id, exchange_id, property_name, address, address_is_public, city, state, zip, asset_type, strategy_type")
           .in("exchange_id", exchangeIds)
       : Promise.resolve({ data: [], error: null } as any),
   ]);
@@ -143,6 +144,7 @@ async function fetchAgentListings(userId: string, isDemo: boolean, ownerType: "a
       address: p?.address ?? null,
       city: p?.city ?? null,
       state: p?.state ?? null,
+      zip: p?.zip ?? null,
       assetType: p?.asset_type ?? null,
       strategyType: p?.strategy_type ?? null,
       askingPrice: f?.asking_price ?? null,

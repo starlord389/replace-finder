@@ -65,7 +65,7 @@ async function fetchConversations(userId: string, isDemo: boolean): Promise<Conv
   const [{ data: properties }, { data: exchanges }] = await Promise.all([
     supabase
       .from("pledged_properties_secure")
-      .select("id, property_name, address, address_is_public, city, state, asset_type, agent_id, is_demo")
+      .select("id, property_name, address, address_is_public, city, state, zip, asset_type, agent_id, is_demo")
       .in("id", propertyIds),
     supabase.from("exchanges").select("id, is_demo").in("id", exchangeIds),
   ]);

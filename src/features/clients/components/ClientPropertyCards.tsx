@@ -67,7 +67,7 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
   const [propsRes, finsRes, imgsRes] = await Promise.all([
     supabase
       .from("pledged_properties")
-      .select("id, property_name, address, city, state, asset_type")
+      .select("id, property_name, address, address_is_public, city, state, zip, asset_type")
       .in("id", propIds),
     supabase
       .from("property_financials")

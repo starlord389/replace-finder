@@ -25,9 +25,13 @@ import { InvitationManagementActions } from "@/features/representation/component
 import { useUnifiedRelationships, type Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { PropertyReviewPanel } from "@/features/matches/components/inbox/PropertyReviewPanel";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { resolveListingName } from "@/lib/listingDisplay";
 
 type InvestorProfile = Pick<Tables<"profiles">, "id" | "full_name" | "email" | "phone" | "company">;
-type PropertySummary = Pick<Tables<"pledged_properties_secure">, "id" | "property_name" | "city" | "state">;
+type PropertySummary = Pick<
+  Tables<"pledged_properties_secure">,
+  "id" | "property_name" | "address" | "address_is_public" | "city" | "state" | "zip" | "asset_type"
+>;
 
 const EMPTY_REPRESENTATIONS: Representation[] = [];
 const EMPTY_ASSIGNMENTS: ExchangeAssignment[] = [];
@@ -77,8 +81,8 @@ export default function AgentRepresentation() {
   useEffect(() => {
     const propertyIds = [...new Set(requests.map((request) => request.property_id))];
     if (!propertyIds.length) return setPropertyLabels({});
-    supabase.from("pledged_properties_secure").select("id, property_name, city, state").in("id", propertyIds)
-      .then(({ data }) => setPropertyLabels(Object.fromEntries((data ?? []).map((property) => [property.id, property.property_name || [property.city, property.state].filter(Boolean).join(", ") || "Matched property"]))));
+    supabase.from("pledged_properties_secure").select("id, property_name, address, address_is_public, city, state, zip, asset_type").in("id", propertyIds)
+      .then(({ data }) => setPropertyLabels(Object.fromEntries((data ?? []).map((property) => [property.id, resolveListingName(property, false)]))));
   }, [requests]);
 
   useEffect(() => {
@@ -88,12 +92,12 @@ export default function AgentRepresentation() {
       const { data: exchangeRows } = await supabase.from("exchanges").select("id, relinquished_property_id").in("id", exchangeIds);
       const propertyIds = (exchangeRows ?? []).map((exchange) => exchange.relinquished_property_id).filter(Boolean) as string[];
       const { data: properties } = propertyIds.length
-        ? await supabase.from("pledged_properties_secure").select("id, property_name, city, state").in("id", propertyIds)
+        ? await supabase.from("pledged_properties_secure").select("id, property_name, address, address_is_public, city, state, zip, asset_type").in("id", propertyIds)
         : { data: [] as PropertySummary[] };
       const propertyMap = new Map((properties ?? []).map((property) => [property.id, property]));
       setExchangeLabels(Object.fromEntries((exchangeRows ?? []).map((exchange) => {
         const property = exchange.relinquished_property_id ? propertyMap.get(exchange.relinquished_property_id) : null;
-        return [exchange.id, property?.property_name || [property?.city, property?.state].filter(Boolean).join(", ") || `Exchange ${exchange.id.slice(0, 8)}`];
+        return [exchange.id, property ? resolveListingName(property, false) : `Exchange ${exchange.id.slice(0, 8)}`];
       })));
     })();
   }, [assignments]);

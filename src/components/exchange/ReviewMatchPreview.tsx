@@ -9,6 +9,7 @@ import {
   parseCurrency,
 } from "@/lib/exchangeWizardTypes";
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
+import { getListingLocationLabel } from "@/lib/listingDisplay";
 import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 
 interface Props {
@@ -19,7 +20,7 @@ interface Props {
 
 export default function ReviewMatchPreview({ property, financials, images }: Props) {
   const cover = images[0]?.url ?? null;
-  const cityState = [property.city, property.state].filter(Boolean).join(", ") || "Location TBD";
+  const cityState = getListingLocationLabel(property) || "Location TBD";
   const primaryLine = property.address_is_public && property.address
     ? property.address
     : cityState;
@@ -27,11 +28,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
   const assetLabel = property.asset_type
     ? ASSET_TYPE_LABELS[property.asset_type as keyof typeof ASSET_TYPE_LABELS]
     : null;
-  const name = property.address_is_public && property.address
-    ? property.address
-    : assetLabel
-      ? `${assetLabel} in ${cityState}`
-      : cityState;
+  const name = property.address_is_public && property.address ? property.address : cityState;
   const askingPrice = parseCurrency(financials.asking_price);
   const { noi, capRate } = getDerivedFinancials(financials);
 

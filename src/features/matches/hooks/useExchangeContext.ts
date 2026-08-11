@@ -32,7 +32,7 @@ async function fetchExchangeContext(exchangeId: string): Promise<ExchangeContext
     ex.relinquished_property_id
       ? supabase
           .from("pledged_properties")
-          .select("property_name, address, address_is_public, city, state, asset_type")
+          .select("property_name, address, address_is_public, city, state, zip, asset_type")
           .eq("id", ex.relinquished_property_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
