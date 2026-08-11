@@ -106,7 +106,7 @@ describe("demo fixtures", () => {
         buyerFixture(planned.buyer).criteria,
         settings,
       );
-      if (!result.ok) throw new Error(`${planned.buyer} → ${planned.seller} rejected: ${result.reason}`);
+      if (!result.ok) throw new Error(`${planned.buyer} → ${planned.seller} rejected: ${(result as any).reason}`);
       const buyerPrice = buyerFixture(planned.buyer).property.f.asking_price;
       expect(byKey.get(planned.seller)!.f.asking_price).toBeGreaterThanOrEqual(buyerPrice);
       totals[`${planned.buyer}→${planned.seller}`] = result.score!.total;
