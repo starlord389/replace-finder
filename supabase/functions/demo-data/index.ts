@@ -149,9 +149,9 @@ const COUNTERPARTIES = [
   {
     email: "demo.agent.vasquez@replacefinder.test", full_name: "Elena Vasquez", brokerage_name: "Vasquez Realty Partners",
     properties: [
-      { name: "Wollaston Court Apartments", address: "42 Beale St", city: "Quincy", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 10, year_built: 1972, sf: 9400,
-        description: "Ten-unit brick walk-up two blocks from the Wollaston Red Line stop, 95% occupied year-round. Six units updated since 2021, common laundry, 12 off-street spaces. Windows replaced 2020.",
-        f: fin({ ask: 2_150_000, cap: 6.0, gross: 218_000, occ: 95, loan: 1_180_000, rate: 5.95, maturity: "2033-08-01" }), img: IMG.mf },
+      { name: "Wollaston Court Apartments", address: "42 Beale St", city: "Quincy", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 24, year_built: 1972, sf: 22800,
+        description: "24-unit brick walk-up two blocks from the Wollaston Red Line stop, 95% occupied year-round. Fourteen units updated since 2021, common laundry, 28 off-street spaces. Windows replaced 2020.",
+        f: fin({ ask: 3_600_000, cap: 6.0, gross: 355_000, occ: 95, loan: 1_980_000, rate: 5.95, maturity: "2033-08-01" }), img: IMG.mf },
       { name: "Brockton Main Street Mixed-Use", address: "780 Main St", city: "Brockton", state: "MA", asset_type: "mixed_use", strategy_type: "core_plus", units: 9, year_built: 1930, sf: 12400,
         description: "Three ground-floor storefronts over six apartments in downtown Brockton. Residential fully leased; one commercial suite vacant and ready for lease-up. Facade and storefront glass redone 2022.",
         f: fin({ ask: 1_400_000, cap: 7.5, gross: 168_000, occ: 88, loan: 760_000, rate: 6.8, maturity: "2031-11-01" }), img: IMG.retail },
