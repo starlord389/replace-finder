@@ -47,6 +47,12 @@ export interface Relationship {
   estimatedLtv?: number | null;               // ratio, e.g. 0.75
   occupancy: number | null;           // candidate property occupancy %
 
+  // The current user's own relinquished-property figures. These are hydrated
+  // only for buyer-side relationships and power the private side-by-side view.
+  currentCapRate: number | null;
+  currentNoi: number | null;
+  currentAnnualDebtService: number | null;
+
 
   // counterparty (revealed only when connected)
   counterpartyName: string | null;
@@ -309,7 +315,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     new Set((exchanges ?? []).map((e) => e.client_id).filter(Boolean)),
   ) as string[];
   const representedInvestorIds = Array.from(new Set((exchanges ?? []).filter((exchange: any) => exchange.owner_type === "investor").map((exchange: any) => exchange.agent_id))) as string[];
-  const [clientsRes, relPropsRes, representedProfilesRes] = await Promise.all([
+  const [clientsRes, relPropsRes, relFinsRes, representedProfilesRes] = await Promise.all([
     clientIds.length
       ? supabase.from("agent_clients").select("id, client_name").in("id", clientIds)
       : Promise.resolve({ data: [] as any[] }),
@@ -318,6 +324,12 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
           .from("pledged_properties")
           .select("id, property_name, address, address_is_public, city, state, zip, asset_type")
           .in("id", relinquishedIds)
+      : Promise.resolve({ data: [] as any[] }),
+    relinquishedIds.length
+      ? supabase
+          .from("property_financials")
+          .select("property_id, cap_rate, noi, annual_debt_service")
+          .in("property_id", relinquishedIds)
       : Promise.resolve({ data: [] as any[] }),
     representedInvestorIds.length
       ? supabase.from("profiles").select("id, full_name, email").in("id", representedInvestorIds)
@@ -340,6 +352,9 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
   });
   const relPropMap = new Map(
     (relPropsRes.data ?? []).map((p: any) => [p.id, p]),
+  );
+  const relFinMap = new Map(
+    (relFinsRes.data ?? []).map((f: any) => [f.property_id, f]),
   );
   function relinquishedLabelFor(exchangeId: string): string | null {
     const propId = exRelMap.get(exchangeId);
@@ -440,6 +455,12 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     const prop = propMap.get(match.seller_property_id);
     const fin = finMap.get(match.seller_property_id);
     const imgs = imgMap.get(match.seller_property_id) ?? [];
+    const relinquishedPropertyId = mySide === "buyer"
+      ? exRelMap.get(match.buyer_exchange_id)
+      : null;
+    const currentFin = relinquishedPropertyId
+      ? relFinMap.get(relinquishedPropertyId)
+      : null;
 
     const counterpartyId = conn
       ? (conn.buyer_agent_id === userId ? conn.seller_agent_id : conn.buyer_agent_id)
@@ -520,6 +541,9 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
       estimatedReplacementLoan: match.estimated_replacement_loan != null ? Number(match.estimated_replacement_loan) : null,
       estimatedLtv: match.estimated_ltv != null ? Number(match.estimated_ltv) : null,
       occupancy: fin?.occupancy_rate != null ? Number(fin.occupancy_rate) : null,
+      currentCapRate: currentFin?.cap_rate != null ? Number(currentFin.cap_rate) : null,
+      currentNoi: currentFin?.noi != null ? Number(currentFin.noi) : null,
+      currentAnnualDebtService: currentFin?.annual_debt_service != null ? Number(currentFin.annual_debt_service) : null,
       counterpartyName: cprof?.full_name ?? null,
       counterpartyBrokerage: cprof?.brokerage_name ?? null,
       counterpartyAvatar: cprof?.profile_photo_url ?? null,

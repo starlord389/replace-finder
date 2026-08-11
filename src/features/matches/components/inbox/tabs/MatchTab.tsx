@@ -4,6 +4,7 @@ import { scoreDotClass } from "../../helpers";
 import { rankExplanation } from "../inboxHelpers";
 import { WhyThisMatched } from "../WhyThisMatched";
 import { MatchBreakdownChart } from "../MatchBreakdownChart";
+import { FinancialOpportunityComparison } from "../FinancialOpportunityComparison";
 
 interface Props {
   rel: Relationship;
@@ -36,6 +37,8 @@ export function MatchTab({ rel, rank, totalInScope, audience = "agent" }: Props)
           </p>
         )}
       </div>
+
+      <FinancialOpportunityComparison rel={rel} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <WhyThisMatched rel={rel} />
