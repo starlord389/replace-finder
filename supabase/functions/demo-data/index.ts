@@ -130,9 +130,9 @@ const COUNTERPARTIES = [
   {
     email: "demo.agent.mehta@replacefinder.test", full_name: "Priya Mehta", brokerage_name: "Mehta Investment Realty",
     properties: [
-      { name: "Merrimack Mill Lofts", address: "88 Market St", city: "Lowell", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 16, year_built: 1998, sf: 15200,
-        description: "16-unit converted mill building in downtown Lowell, 96% occupied with a steady renter base from UMass Lowell and the medical corridor. Elevator served, in-unit laundry, on-site parking. Boiler replaced 2022.",
-        f: fin({ ask: 2_400_000, cap: 6.5, gross: 268_000, occ: 96, loan: 1_320_000, rate: 5.75, maturity: "2033-01-01" }), img: IMG.mf },
+      { name: "Merrimack Mill Lofts", address: "88 Market St", city: "Lowell", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 42, year_built: 1998, sf: 41000,
+        description: "42-unit converted mill building in downtown Lowell, 96% occupied with a steady renter base from UMass Lowell and the medical corridor. Elevator served, in-unit laundry, on-site parking. Boiler replaced 2022. The largest MA offering currently in the network.",
+        f: fin({ ask: 4_950_000, cap: 6.5, gross: 545_000, occ: 96, loan: 2_700_000, rate: 5.75, maturity: "2033-01-01" }), img: IMG.mf },
       { name: "Chelmsford Flex Building", address: "12 Katrina Rd", city: "Chelmsford", state: "MA", asset_type: "industrial", strategy_type: "core_plus", units: 3, year_built: 2004, sf: 21000,
         description: "Three-tenant flex/light industrial building off Route 3, fully leased to established local contractors. 18' clear, three drive-in doors, small office build-outs. Assumable loan at 5.4%.",
         f: fin({ ask: 1_850_000, cap: 7.2, gross: 178_000, occ: 100, loan: 1_000_000, rate: 5.4, maturity: "2032-06-01" }), img: IMG.industrial },
@@ -149,9 +149,9 @@ const COUNTERPARTIES = [
   {
     email: "demo.agent.vasquez@replacefinder.test", full_name: "Elena Vasquez", brokerage_name: "Vasquez Realty Partners",
     properties: [
-      { name: "Wollaston Court Apartments", address: "42 Beale St", city: "Quincy", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 10, year_built: 1972, sf: 9400,
-        description: "Ten-unit brick walk-up two blocks from the Wollaston Red Line stop, 95% occupied year-round. Six units updated since 2021, common laundry, 12 off-street spaces. Windows replaced 2020.",
-        f: fin({ ask: 2_150_000, cap: 6.0, gross: 218_000, occ: 95, loan: 1_180_000, rate: 5.95, maturity: "2033-08-01" }), img: IMG.mf },
+      { name: "Wollaston Court Apartments", address: "42 Beale St", city: "Quincy", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 24, year_built: 1972, sf: 22800,
+        description: "24-unit brick walk-up two blocks from the Wollaston Red Line stop, 95% occupied year-round. Fourteen units updated since 2021, common laundry, 28 off-street spaces. Windows replaced 2020.",
+        f: fin({ ask: 3_600_000, cap: 6.0, gross: 355_000, occ: 95, loan: 1_980_000, rate: 5.95, maturity: "2033-08-01" }), img: IMG.mf },
       { name: "Brockton Main Street Mixed-Use", address: "780 Main St", city: "Brockton", state: "MA", asset_type: "mixed_use", strategy_type: "core_plus", units: 9, year_built: 1930, sf: 12400,
         description: "Three ground-floor storefronts over six apartments in downtown Brockton. Residential fully leased; one commercial suite vacant and ready for lease-up. Facade and storefront glass redone 2022.",
         f: fin({ ask: 1_400_000, cap: 7.5, gross: 168_000, occ: 88, loan: 760_000, rate: 6.8, maturity: "2031-11-01" }), img: IMG.retail },
@@ -501,7 +501,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   const inboundClient = await insertOne(db, "agent_clients", { agent_id: jordan, client_name: "Cardinal Multifamily Fund", client_company: "Cardinal Capital", client_email: "acq@cardinalcap.example", client_phone: "(508) 555-0210", notes: "Acquiring small Massachusetts multifamily.", is_demo: true, status: "active" }, "id");
   const inboundRelProp = await insertProperty(db, jordan, { name: "Salem Common Six-Family", address: "18 Winter St", city: "Salem", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 6, year_built: 1962, sf: 6400, description: "Relinquished asset for Cardinal's exchange.", f: fin({ ask: 1_150_000, cap: 3.2, gross: 84_000, occ: 96, loan: 450_000, rate: 4.8, maturity: "2030-09-01" }), img: IMG.mf }, true);
   const inboundEx = await insertOne(db, "exchanges", { agent_id: jordan, client_id: inboundClient.id, relinquished_property_id: inboundRelProp, is_demo: true, status: "active", exchange_proceeds: 700_000, estimated_equity: 700_000, identification_deadline: dFrom(40), closing_deadline: dFrom(175) }, "id");
-  const inboundCrit = await insertOne(db, "replacement_criteria", { exchange_id: inboundEx.id, target_asset_types: ["multifamily"], target_states: ["MA"], target_price_min: 900_000, target_price_max: 2_000_000 }, "id");
+  const inboundCrit = await insertOne(db, "replacement_criteria", { exchange_id: inboundEx.id, target_asset_types: ["multifamily"], target_states: ["MA"], target_price_min: 900_000, target_price_max: 5_000_000 }, "id");
   await db.from("exchanges").update({ criteria_id: inboundCrit.id }).eq("id", inboundEx.id);
   await db.from("pledged_properties").update({ exchange_id: inboundEx.id }).eq("id", inboundRelProp);
   const inboundMatchRow = await buildEngineMatch(db, inboundEx.id, prop["Dorchester Ave Three-Family"]);
