@@ -35,8 +35,14 @@ describe("representation multi-account diagnostic contract", () => {
     expect(firstMessage).toBeGreaterThan(activationCheck);
     expect(diagnostic).not.toContain("Counterparty agent accepted the pending connection before messaging");
     expect(diagnostic).toContain("Investor cannot send counterparty messages");
+    expect(diagnostic).toContain("Investor contact request automatically advances the opportunity");
+    expect(diagnostic).toContain("Starting the agent conversation automatically advances the opportunity");
+    expect(diagnostic).toContain("Investor cannot manually advance the agent-only deal workflow");
+    expect(diagnostic).toContain('"record_match_workflow_stage"');
+    expect(diagnostic).toContain("Under-contract workflow synchronizes the durable connection state");
     expect(diagnostic).toContain("Counterparty agent cannot write to the private client thread");
     expect(diagnostic).toContain('"assign_agent_to_exchange"');
+    expect(diagnostic).toContain("without changing another exchange or stranding its opportunity");
     expect(diagnostic).toContain('"unassign_agent_from_exchange"');
   });
 

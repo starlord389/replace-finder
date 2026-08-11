@@ -77,6 +77,19 @@ export const INVESTOR_STATUS_HINTS: Record<UiStatus, string> = {
 export const SIDE_EXIT_STATUSES: UiStatus[] = ["archived"];
 
 export function deriveUiStatus(rel: Relationship, local: MatchLocalState): UiStatus {
+  // Once the canonical workflow row exists it is the single source of truth
+  // across devices and workspaces. Browser-local flags are only a fallback for
+  // environments that have not applied the workflow migration yet.
+  if (rel.workflowStage) {
+    if (rel.workflowStage === "offer_sent") return "loi";
+    if ([
+      "new", "sent_to_client", "client_interested", "in_conversation",
+      "under_contract", "closed", "archived",
+    ].includes(rel.workflowStage)) {
+      return rel.workflowStage as UiStatus;
+    }
+  }
+
   // A real completed deal (DB) wins over local archive/not-a-fit flags so a
   // closed-won match never shows as "Archived" just because it was set aside locally.
   if (rel.stage === "closed_won" || local.closedAt) return "closed";
@@ -244,7 +257,12 @@ export function nextActionsForRelationship(
         : [],
     };
   }
-  if (audience === "investor" && requestStatus && !["declined", "closed"].includes(requestStatus)) {
+  if (
+    audience === "investor"
+    && status !== "archived"
+    && requestStatus
+    && !["declined", "closed"].includes(requestStatus)
+  ) {
     return {
       primary: {
         id: "view_agent_request",

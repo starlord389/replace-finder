@@ -6,6 +6,8 @@ import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationsh
 import { deriveUiStatus, nextActionsForRelationship, statusForAudience } from "./inboxHelpers";
 import { useMatchLocalState } from "./useMatchLocalState";
 import { requestAgentContact, startAgentConnection } from "@/features/representation/api";
+import { recordMatchWorkflowStage, type CanonicalWorkflowStage } from "@/features/matches/workflowApi";
+import type { MatchLocalState } from "./useMatchLocalState";
 
 interface Callbacks {
   onOpenConversation?: () => void;
@@ -25,6 +27,20 @@ export function useMatchActions(
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
+
+  async function persistWorkflow(
+    stage: CanonicalWorkflowStage,
+    source: "manual_next_step" | "pipeline_drag" | "stage_correction" | "external_share" | "reactivate" = "manual_next_step",
+    note?: string | null,
+    fallback?: Partial<MatchLocalState>,
+  ) {
+    await recordMatchWorkflowStage({ matchId: rel.matchId, stage, source, note });
+    if (fallback) update(fallback);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["unified-relationships"] }),
+      queryClient.invalidateQueries({ queryKey: ["agent-attention"] }),
+    ]);
+  }
 
   /**
    * Opens a direct line to the counterparty agent. Creates the connection
@@ -60,6 +76,7 @@ export function useMatchActions(
       });
     }
     update({ conversationStartedAt: state.conversationStartedAt ?? new Date().toISOString() });
+    await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
     cb.onOpenConversation?.();
   }
 
@@ -105,7 +122,12 @@ export function useMatchActions(
           return;
         }
         case "mark_interested":
-          update({ clientInterestedAt: new Date().toISOString() });
+          await persistWorkflow(
+            "client_interested",
+            "manual_next_step",
+            null,
+            { clientInterestedAt: new Date().toISOString() },
+          );
           toast({ title: audience === "investor" ? "Marked Interested" : "Marked Client Interested" });
           return;
         case "follow_up_client": {
@@ -122,19 +144,19 @@ export function useMatchActions(
           toast({ title: "Ask for the OM and financials in the conversation." });
           return;
         case "mark_loi_sent":
-          update({ loiSentAt: new Date().toISOString() });
+          await persistWorkflow("offer_sent", "manual_next_step", null, { loiSentAt: new Date().toISOString() });
           toast({ title: "Offer logged" });
           return;
         case "mark_under_contract":
-          update({ underContractAt: new Date().toISOString() });
+          await persistWorkflow("under_contract", "manual_next_step", null, { underContractAt: new Date().toISOString() });
           toast({ title: "Marked Under Contract" });
           return;
         case "mark_closed":
-          update({ closedAt: new Date().toISOString() });
+          await persistWorkflow("closed", "manual_next_step", null, { closedAt: new Date().toISOString() });
           toast({ title: "Deal closed", description: "Congratulations - great outcome for your client." });
           return;
         case "archive":
-          update({ archivedAt: new Date().toISOString() });
+          await persistWorkflow("archived", "manual_next_step", "Archived from match Next Steps", { archivedAt: new Date().toISOString() });
           toast({ title: "Match archived" });
           return;
         case "reactivate": {
@@ -176,6 +198,11 @@ export function useMatchActions(
             clientPassedAt: null,
             sellerUnavailableAt: null,
           });
+          await persistWorkflow(
+            counterpartyEnded || ["connected", "conversing"].includes(rel.stage) ? "in_conversation" : "new",
+            "reactivate",
+            "Reactivated from match Next Steps",
+          );
           toast({
             title: "Match reactivated",
             description: counterpartyEnded
@@ -185,11 +212,11 @@ export function useMatchActions(
           return;
         }
         case "not_a_fit":
-          update({ notFitAt: new Date().toISOString() });
+          await persistWorkflow("archived", "manual_next_step", "Agent marked this opportunity as not a fit", { notFitAt: new Date().toISOString() });
           toast({ title: "Marked Not a Fit" });
           return;
         case "client_passed":
-          update({ clientPassedAt: new Date().toISOString() });
+          await persistWorkflow("archived", "manual_next_step", "Client passed on this opportunity", { clientPassedAt: new Date().toISOString() });
           toast({ title: "Marked Client Passed" });
           return;
         default:

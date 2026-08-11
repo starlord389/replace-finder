@@ -47,19 +47,19 @@ export function MatchHistorySheet({ rel, open, onOpenChange, audience = "agent" 
   };
 
   if (audience === "agent") {
-    push(state.sentToClientAt, "Sent to client", Send);
-    push(state.clientInterestedAt, "Client marked interested", Sparkles);
+    push(rel.workflowSentToClientAt ?? state.sentToClientAt, "Sent to client", Send);
+    push(rel.workflowClientInterestedAt ?? state.clientInterestedAt, "Client marked interested", Sparkles);
   }
-  push(rel.acceptedAt ?? state.conversationStartedAt, "Conversation started with listing agent", Handshake);
-  push(state.loiSentAt, "Offer sent", FileSignature);
-  push(rel.underContractAt ?? state.underContractAt, "Under contract", FileCheck);
+  push(rel.workflowConversationStartedAt ?? rel.acceptedAt ?? state.conversationStartedAt, "Conversation started with listing agent", Handshake);
+  push(rel.workflowOfferSentAt ?? state.loiSentAt, "Offer sent", FileSignature);
+  push(rel.workflowUnderContractAt ?? rel.underContractAt ?? state.underContractAt, "Under contract", FileCheck);
   push(rel.inspectionCompleteAt, "Inspection complete", CheckCircle2);
   push(rel.financingApprovedAt, "Financing approved", Banknote);
-  push(rel.closedAt ?? state.closedAt, "Deal closed", Home);
+  push(rel.workflowClosedAt ?? rel.closedAt ?? state.closedAt, "Deal closed", Home);
   push(state.notFitAt, "Marked not a fit", XCircle);
   if (audience === "agent") push(state.clientPassedAt, "Client passed", XCircle);
   push(rel.declinedAt, "Listing agent declined", XCircle);
-  push(state.archivedAt, "Archived", Archive);
+  push(rel.workflowArchivedAt ?? state.archivedAt, "Archived", Archive);
 
   events.sort((a, b) => b.ts.localeCompare(a.ts));
 

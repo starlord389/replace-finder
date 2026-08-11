@@ -121,6 +121,18 @@ export interface Relationship {
   unreadCount: number;
   isNewMatch: boolean;          // unread/unviewed match
 
+  // Canonical, database-backed opportunity workflow. Null only while the
+  // workflow migration is unavailable; local flags remain a temporary fallback.
+  workflowStage: string | null;
+  workflowSentToClientAt: string | null;
+  workflowClientInterestedAt: string | null;
+  workflowConversationStartedAt: string | null;
+  workflowOfferSentAt: string | null;
+  workflowUnderContractAt: string | null;
+  workflowClosedAt: string | null;
+  workflowArchivedAt: string | null;
+  workflowUpdatedAt: string | null;
+
   // connection meta (if any)
   connectionStatus: string | null;
   connectionInitiatedBy: string | null;
@@ -370,7 +382,22 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     }
   }
 
-  // 10. Build Relationship[]
+  // 10. Canonical opportunity workflow state. This is deliberately fetched in
+  // the same relationship query so Matches, Next Steps, Dashboard, and Pipeline
+  // cannot derive different stages for the same opportunity.
+  const allMatchIds = Array.from(new Set([
+    ...buyerMatches.map((match) => match.id),
+    ...sellerMatches.map((match) => match.id),
+  ]));
+  const { data: workflowRows } = allMatchIds.length
+    ? await (supabase
+        .from("match_workflow_states" as any)
+        .select("match_id, current_stage, sent_to_client_at, client_interested_at, conversation_started_at, offer_sent_at, under_contract_at, closed_at, archived_at, updated_at")
+        .in("match_id", allMatchIds) as any)
+    : { data: [] as any[] };
+  const workflowByMatch = new Map((workflowRows ?? []).map((row: any) => [row.match_id, row]));
+
+  // 11. Build Relationship[]
   const out: Relationship[] = [];
   const seenMatchIds = new Set<string>();
 
@@ -404,6 +431,7 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
     const conn = connByMatch.get(match.id) ?? null;
     const contactRequest: any = contactByMatch.get(match.id) ?? null;
     const recommendation: any = recommendationByMatch.get(match.id) ?? null;
+    const workflow: any = workflowByMatch.get(match.id) ?? null;
     const prop = propMap.get(match.seller_property_id);
     const fin = finMap.get(match.seller_property_id);
     const imgs = imgMap.get(match.seller_property_id) ?? [];
@@ -539,6 +567,15 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
       lastMessageSenderId: lastMsg?.sender_id ?? null,
       unreadCount: unread,
       isNewMatch,
+      workflowStage: workflow?.current_stage ?? null,
+      workflowSentToClientAt: workflow?.sent_to_client_at ?? null,
+      workflowClientInterestedAt: workflow?.client_interested_at ?? null,
+      workflowConversationStartedAt: workflow?.conversation_started_at ?? null,
+      workflowOfferSentAt: workflow?.offer_sent_at ?? null,
+      workflowUnderContractAt: workflow?.under_contract_at ?? null,
+      workflowClosedAt: workflow?.closed_at ?? null,
+      workflowArchivedAt: workflow?.archived_at ?? null,
+      workflowUpdatedAt: workflow?.updated_at ?? null,
       connectionStatus: conn?.status ?? null,
       connectionInitiatedBy: conn?.initiated_by ?? null,
       acceptedAt: conn?.accepted_at ?? null,
@@ -609,6 +646,11 @@ export function useUnifiedRelationships(ownerType: "agent" | "investor" = "agent
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "agent_match_recommendations" },
+        () => qc.invalidateQueries({ queryKey: ["unified-relationships"] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "match_workflow_states" },
         () => qc.invalidateQueries({ queryKey: ["unified-relationships"] }),
       )
       .subscribe();

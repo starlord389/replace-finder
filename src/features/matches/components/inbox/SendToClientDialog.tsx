@@ -9,6 +9,8 @@ import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationsh
 import { useMatchLocalState } from "./useMatchLocalState";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
+import { useQueryClient } from "@tanstack/react-query";
+import { recordMatchWorkflowStage } from "@/features/matches/workflowApi";
 
 interface Props {
   rel: Relationship;
@@ -23,28 +25,55 @@ interface Props {
  */
 export function SendToClientDialog({ rel, open, onOpenChange }: Props) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { update } = useMatchLocalState(rel.matchId);
   const [note, setNote] = useState("");
-  const [sending, setSending] = useState(false);
+  const [sending, setSending] = useState<"platform" | "external" | null>(null);
 
   async function confirmSend() {
-    setSending(true);
+    setSending("platform");
     const { error } = await supabase.rpc("recommend_match_to_client" as any, {
       p_match_id: rel.matchId,
       p_note: note.trim() || null,
     });
-    setSending(false);
+    setSending(null);
     if (error) {
       toast({ title: "Couldn't recommend this match", description: error.message, variant: "destructive" });
       return;
     }
     update({ sentToClientAt: new Date().toISOString() });
+    await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
     onOpenChange(false);
     setNote("");
     toast({
       title: "Recommendation sent",
       description: "Your client can review it in their investor workspace.",
     });
+  }
+
+  async function markSharedExternally() {
+    setSending("external");
+    try {
+      await recordMatchWorkflowStage({
+        matchId: rel.matchId,
+        stage: "sent_to_client",
+        source: "external_share",
+        note: note.trim() || "Shared with client outside the platform",
+      });
+      update({ sentToClientAt: new Date().toISOString() });
+      await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
+      onOpenChange(false);
+      setNote("");
+      toast({ title: "Marked as shared", description: "The opportunity moved to Sent to Client." });
+    } catch (error: unknown) {
+      toast({
+        title: "Couldn't update the opportunity",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(null);
+    }
   }
 
   function downloadOnePager() {
@@ -89,7 +118,12 @@ export function SendToClientDialog({ rel, open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={confirmSend} disabled={sending}>{sending ? "Sending…" : "Recommend to client"}</Button>
+          <Button variant="outline" onClick={markSharedExternally} disabled={sending !== null}>
+            {sending === "external" ? "Saving…" : "Mark shared externally"}
+          </Button>
+          <Button onClick={confirmSend} disabled={sending !== null}>
+            {sending === "platform" ? "Sending…" : "Recommend in workspace"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

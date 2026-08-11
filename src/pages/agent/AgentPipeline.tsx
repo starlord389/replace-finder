@@ -1,65 +1,87 @@
 import { useEffect, useMemo } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Plus, Inbox as InboxIcon } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { BriefcaseBusiness, MessageSquareText, Plus, Sparkles, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRelationships";
-import { useAgentListings } from "@/features/pipeline/hooks/useAgentListings";
-import { PipelineKanban } from "@/features/pipeline/components/PipelineKanban";
-import { PipelineSummaryBar } from "@/features/pipeline/components/PipelineSummaryBar";
+import { deriveUiStatus, statusForAudience } from "@/features/matches/components/inbox/inboxHelpers";
+import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/matches/components/inbox/useMatchLocalState";
 import { PipelineToolbar } from "@/features/pipeline/components/PipelineToolbar";
 import {
-  applyFilters,
-  buildListingMeta,
+  OpportunityPipelineKanban,
+  type OpportunityStage,
+} from "@/features/pipeline/components/OpportunityPipelineKanban";
+import {
   DEFAULT_FILTERS,
-  sortListings,
   type PipelineFilters,
   type SortKey,
 } from "@/features/pipeline/lib/pipelineFilters";
 
 const SORT_KEYS: SortKey[] = ["activity", "value", "score"];
 
-function parseFiltersFromParams(sp: URLSearchParams): PipelineFilters {
-  const sortParam = sp.get("sort");
-  const sort: SortKey =
-    sortParam && SORT_KEYS.includes(sortParam as SortKey)
-      ? (sortParam as SortKey)
-      : "activity";
+function parseFiltersFromParams(params: URLSearchParams): PipelineFilters {
+  const sortParam = params.get("sort");
   return {
-    search: sp.get("q") ?? "",
-    clientIds: sp.get("clients")?.split(",").filter(Boolean) ?? [],
-    assetTypes: sp.get("assets")?.split(",").filter(Boolean) ?? [],
-    sort,
+    search: params.get("q") ?? "",
+    clientIds: params.get("clients")?.split(",").filter(Boolean) ?? [],
+    assetTypes: params.get("assets")?.split(",").filter(Boolean) ?? [],
+    sort: sortParam && SORT_KEYS.includes(sortParam as SortKey) ? sortParam as SortKey : "activity",
   };
 }
 
-function writeFiltersToParams(
-  base: URLSearchParams,
-  filters: PipelineFilters,
-): URLSearchParams {
+function writeFiltersToParams(base: URLSearchParams, filters: PipelineFilters) {
   const next = new URLSearchParams(base);
-  if (filters.search) next.set("q", filters.search);
-  else next.delete("q");
-  if (filters.clientIds.length) next.set("clients", filters.clientIds.join(","));
-  else next.delete("clients");
-  if (filters.assetTypes.length) next.set("assets", filters.assetTypes.join(","));
-  else next.delete("assets");
-  if (filters.sort !== "activity") next.set("sort", filters.sort);
-  else next.delete("sort");
+  if (filters.search) next.set("q", filters.search); else next.delete("q");
+  if (filters.clientIds.length) next.set("clients", filters.clientIds.join(",")); else next.delete("clients");
+  if (filters.assetTypes.length) next.set("assets", filters.assetTypes.join(",")); else next.delete("assets");
+  if (filters.sort !== "activity") next.set("sort", filters.sort); else next.delete("sort");
   return next;
+}
+
+function formatMoney(value: number) {
+  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+  return `$${value.toLocaleString()}`;
+}
+
+function SummaryCard({
+  label,
+  value,
+  detail,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  icon: typeof Sparkles;
+}) {
+  return (
+    <Card>
+      <CardContent className="flex items-start justify-between gap-3 p-4">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+          <p className="mt-1 text-xl font-bold text-foreground">{value}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{detail}</p>
+        </div>
+        <div className="rounded-xl bg-primary/10 p-2.5 text-primary"><Icon className="h-5 w-5" /></div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function AgentPipeline({ audience = "agent" }: { audience?: "agent" | "investor" }) {
   const { user } = useAuth();
   const { isDemo } = useWorkspaceMode();
+  const { data: relationships = [], isLoading } = useUnifiedRelationships(audience);
+  const [searchParams, setSearchParams] = useSearchParams();
+  useMatchLocalStateVersion();
   const isInvestor = audience === "investor";
   const basePath = isInvestor ? "/investor" : "/agent";
-  const { data: rels = [], isLoading: relsLoading } = useUnifiedRelationships(audience);
-  const { data: listings = [], isLoading: listingsLoading } = useAgentListings(user?.id, audience);
 
-  // Stamp the launchpad "pipeline" ack on first visit (Live workspace only, idempotent).
   useEffect(() => {
     if (!user || isDemo || isInvestor) return;
     supabase
@@ -69,137 +91,140 @@ export default function AgentPipeline({ audience = "agent" }: { audience?: "agen
       .is("launchpad_pipeline_ack_at", null)
       .then(() => {});
   }, [user, isDemo, isInvestor]);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-
-  // Auto-redirect legacy ?match=/?connection=/?id= deep links straight into Workspace
-  useEffect(() => {
-    const legacyId =
-      searchParams.get("id") ??
-      searchParams.get("connection") ??
-      searchParams.get("match");
-    if (!legacyId || rels.length === 0) return;
-    const found = rels.find(
-      (r) => r.id === legacyId || r.matchId === legacyId || r.connectionId === legacyId,
-    );
-    if (found)
-      navigate(`${basePath}/matches?listing=${found.buyerExchangeId}&match=${found.matchId}`, {
-        replace: true,
-      });
-  }, [searchParams, rels, navigate, basePath]);
 
   const filters = useMemo(() => parseFiltersFromParams(searchParams), [searchParams]);
   const setFilters = (next: PipelineFilters) => {
     setSearchParams(writeFiltersToParams(searchParams, next), { replace: true });
   };
 
-  const allMeta = useMemo(() => buildListingMeta(listings, rels), [listings, rels]);
+  // Pipeline is the buyer/client acquisition workflow. Seller-side incoming
+  // interest remains visible in Matches and shared conversations, but must not
+  // create a duplicate card inside the buyer's replacement-property pipeline.
+  const buyerOpportunities = useMemo(
+    () => relationships.filter((relationship) => relationship.mySide === "buyer"),
+    [relationships],
+  );
 
-  // Summary metrics - computed from all listings (ignore filters).
-  const summary = useMemo(() => {
-    const totalListings = allMeta.length;
-    const totalValue = allMeta.reduce((s, m) => s + (m.listing.askingPrice ?? 0), 0);
-    let bestScore: number | null = null;
-    let activeMatches = 0;
-    for (const m of allMeta) {
-      if (m.stage !== "closed") activeMatches += m.matchCount;
-      if (m.bestScore !== null && (bestScore === null || m.bestScore > bestScore)) {
-        bestScore = m.bestScore;
-      }
+  const stageByMatch = useMemo(() => {
+    const map = new Map<string, OpportunityStage>();
+    for (const relationship of buyerOpportunities) {
+      const status = statusForAudience(
+        deriveUiStatus(relationship, readMatchLocalState(relationship.matchId)),
+        audience,
+      );
+      if (status !== "archived") map.set(relationship.matchId, status);
     }
-    return { totalListings, totalValue, bestScore, activeMatches };
-  }, [allMeta]);
+    return map;
+  }, [buyerOpportunities, audience]);
 
-  const filtered = useMemo(() => applyFilters(allMeta, filters), [allMeta, filters]);
-  const sorted = useMemo(() => sortListings(filtered, filters.sort), [filtered, filters.sort]);
+  const archivedCount = buyerOpportunities.length - stageByMatch.size;
+  const activeOpportunities = buyerOpportunities.filter((relationship) => stageByMatch.has(relationship.matchId));
+
+  const filtered = useMemo(() => {
+    const query = filters.search.trim().toLowerCase();
+    const result = activeOpportunities.filter((relationship) => {
+      if (filters.clientIds.length && (!relationship.clientId || !filters.clientIds.includes(relationship.clientId))) return false;
+      if (filters.assetTypes.length && (!relationship.propertyAssetType || !filters.assetTypes.includes(relationship.propertyAssetType))) return false;
+      if (query) {
+        const haystack = [
+          relationship.clientName,
+          relationship.propertyName,
+          relationship.propertyCity,
+          relationship.propertyState,
+          relationship.relinquishedLabel,
+        ].filter(Boolean).join(" ").toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+    return result.sort((left, right) => {
+      if (filters.sort === "value") return (right.askingPrice ?? 0) - (left.askingPrice ?? 0);
+      if (filters.sort === "score") return right.score - left.score;
+      return right.lastActivityAt.localeCompare(left.lastActivityAt);
+    });
+  }, [activeOpportunities, filters]);
 
   const clientOptions = useMemo(() => {
     const map = new Map<string, string>();
-    for (const m of allMeta) {
-      if (m.listing.clientId && m.listing.clientName) {
-        map.set(m.listing.clientId, m.listing.clientName);
-      }
+    for (const relationship of buyerOpportunities) {
+      if (relationship.clientId && relationship.clientName) map.set(relationship.clientId, relationship.clientName);
     }
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }, [allMeta]);
+    return Array.from(map, ([id, name]) => ({ id, name })).sort((left, right) => left.name.localeCompare(right.name));
+  }, [buyerOpportunities]);
 
-  const assetOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const m of allMeta) {
-      if (m.listing.assetType) set.add(m.listing.assetType);
-    }
-    return Array.from(set).sort();
-  }, [allMeta]);
+  const assetOptions = useMemo(
+    () => Array.from(new Set(buyerOpportunities.map((relationship) => relationship.propertyAssetType).filter(Boolean) as string[])).sort(),
+    [buyerOpportunities],
+  );
 
-  const isLoading = relsLoading || listingsLoading;
-  const hasFilters =
-    filters.search.trim() !== "" ||
-    filters.clientIds.length > 0 ||
-    filters.assetTypes.length > 0;
+  const totalValue = activeOpportunities.reduce((total, relationship) => total + (relationship.askingPrice ?? 0), 0);
+  const conversationCount = activeOpportunities.filter((relationship) => {
+    const stage = stageByMatch.get(relationship.matchId);
+    return stage === "in_conversation" || stage === "loi" || stage === "under_contract";
+  }).length;
+  const bestScore = activeOpportunities.reduce<number | null>(
+    (best, relationship) => best === null || relationship.score > best ? relationship.score : best,
+    null,
+  );
+  const hasFilters = filters.search.trim() !== "" || filters.clientIds.length > 0 || filters.assetTypes.length > 0;
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-4">
-      {/* Header */}
       <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Pipeline</h1>
+          <h1 className="text-2xl font-bold text-foreground">Opportunity Pipeline</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {isInvestor
-              ? "Track each of your exchanges from new matches through closing."
-              : "Every listing across every stage. Drag cards between columns to override the stage."}
+              ? "Follow each matched replacement property from discovery through closing."
+              : "Every matched replacement property advances automatically when you take action in Next Steps."}
           </p>
+          {archivedCount > 0 ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {archivedCount} archived opportunit{archivedCount === 1 ? "y remains" : "ies remain"} available in Matches.
+            </p>
+          ) : null}
         </div>
         <Button asChild size="sm">
-          <Link to={`${basePath}/exchanges/new`}>
-            <Plus className="mr-1 h-4 w-4" /> New listing
-          </Link>
+          <Link to={`${basePath}/exchanges/new`}><Plus className="mr-1 h-4 w-4" /> New listing</Link>
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex flex-1 items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        </div>
-      ) : listings.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+      ) : buyerOpportunities.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed bg-card p-12 text-center">
-          <InboxIcon className="mb-3 h-10 w-10 text-muted-foreground/40" />
-          <p className="text-base font-semibold text-foreground">No listings yet</p>
-          <p className="mt-1 max-w-md text-sm text-muted-foreground">
-            Create a listing and we&apos;ll start tracking it through the stages here.
-          </p>
-          <Button asChild size="sm" className="mt-4">
-            <Link to={`${basePath}/exchanges/new`}>
-              <Plus className="mr-1 h-4 w-4" /> New listing
-            </Link>
-          </Button>
+          <BriefcaseBusiness className="mb-3 h-10 w-10 text-muted-foreground/40" />
+          <p className="font-semibold text-foreground">No matched opportunities yet</p>
+          <p className="mt-1 max-w-md text-sm text-muted-foreground">Create and activate a listing. Each qualified replacement property will appear here automatically.</p>
+          <Button asChild size="sm" className="mt-4"><Link to={`${basePath}/exchanges/new`}><Plus className="mr-1 h-4 w-4" /> Create listing</Link></Button>
         </div>
       ) : (
         <>
-          <PipelineSummaryBar
-            totalListings={summary.totalListings}
-            totalValue={summary.totalValue}
-            bestScore={summary.bestScore}
-            activeMatches={summary.activeMatches}
-          />
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <SummaryCard label="Active opportunities" value={`${activeOpportunities.length}`} detail="One card per matched property" icon={BriefcaseBusiness} />
+            <SummaryCard label="Replacement value" value={formatMoney(totalValue)} detail="Across active opportunities" icon={TrendingUp} />
+            <SummaryCard label="Agent conversations" value={`${conversationCount}`} detail="Active deal discussions" icon={MessageSquareText} />
+            <SummaryCard label="Best match" value={bestScore === null ? "-" : `${Math.round(bestScore)}`} detail="Highest current score" icon={Sparkles} />
+          </div>
+
           <PipelineToolbar
             filters={filters}
             onChange={setFilters}
             clientOptions={clientOptions}
             assetOptions={assetOptions}
-            resultCount={sorted.length}
-            totalCount={allMeta.length}
+            resultCount={filtered.length}
+            totalCount={activeOpportunities.length}
             audience={audience}
           />
-          <PipelineKanban
-            rows={sorted}
-            hasFilters={hasFilters}
-            onResetFilters={() => setFilters(DEFAULT_FILTERS)}
-            basePath={basePath}
-            ownerLabel={isInvestor ? "Your exchange" : undefined}
-            ownerType={audience}
-          />
+
+          {filtered.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed bg-card p-10 text-center">
+              <p className="font-semibold">No opportunities match these filters</p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => setFilters(DEFAULT_FILTERS)}>Reset filters</Button>
+            </div>
+          ) : (
+            <OpportunityPipelineKanban relationships={filtered} stageByMatch={stageByMatch} audience={audience} />
+          )}
         </>
       )}
     </div>

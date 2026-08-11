@@ -98,6 +98,7 @@ Deno.serve(async (req) => {
       relinquished_property_id: ownerPropertyId,
     });
     created.matchIds.push(matchId);
+    await assertWorkflowStage(db, matchId, "new");
     pass(checks, "Isolated investor exchange and counterparty match created");
 
     await expectDenied(
@@ -227,6 +228,8 @@ Deno.serve(async (req) => {
       p_match_id: matchId,
       p_note: "Please review this E2E match",
     });
+    await assertWorkflowStage(db, matchId, "client_interested");
+    pass(checks, "Investor contact request automatically advances the opportunity");
     await expectDenied(
       "Investor cannot invoke the agent connection RPC",
       investor.rpc("start_agent_connection", { p_match_id: matchId, p_request_id: contactRequestId }),
@@ -250,6 +253,45 @@ Deno.serve(async (req) => {
       activeConnectionError?.message ?? "Agent conversation was not active immediately",
     );
     pass(checks, "Agent conversation is active immediately without counterparty approval");
+    await assertWorkflowStage(db, matchId, "in_conversation");
+    pass(checks, "Starting the agent conversation automatically advances the opportunity");
+    await expectDenied(
+      "Investor cannot manually advance the agent-only deal workflow",
+      investor.rpc("record_match_workflow_stage", {
+        p_match_id: matchId,
+        p_stage: "offer_sent",
+        p_source: "manual_next_step",
+        p_note: "E2E investor must be blocked",
+      }),
+      checks,
+    );
+    await mustRpc(primaryAgent, "record_match_workflow_stage", {
+      p_match_id: matchId,
+      p_stage: "offer_sent",
+      p_source: "manual_next_step",
+      p_note: "E2E offer sent",
+    });
+    await assertWorkflowStage(db, matchId, "offer_sent");
+    pass(checks, "Verified agent can record an offer and Pipeline shares the state");
+    await mustRpc(primaryAgent, "record_match_workflow_stage", {
+      p_match_id: matchId,
+      p_stage: "under_contract",
+      p_source: "manual_next_step",
+      p_note: "E2E contract accepted",
+    });
+    await assertWorkflowStage(db, matchId, "under_contract");
+    const { data: progressedConnection, error: progressedConnectionError } = await db
+      .from("exchange_connections")
+      .select("status,under_contract_at")
+      .eq("id", connectionId)
+      .single();
+    must(
+      !progressedConnectionError
+        && progressedConnection?.status === "in_progress"
+        && Boolean(progressedConnection.under_contract_at),
+      progressedConnectionError?.message ?? "Under-contract workflow did not synchronize the connection",
+    );
+    pass(checks, "Under-contract workflow synchronizes the durable connection state");
     const { error: primaryMessageError } = await primaryAgent.from("messages").insert({
       connection_id: connectionId, sender_id: identities.primaryAgent.id, content: "E2E primary-agent message",
     });
@@ -320,13 +362,14 @@ Deno.serve(async (req) => {
         && transferredRequest.status === "requested" && transferredRequest.connection_id === null,
       "Reassignment did not safely transfer the waiting request",
     );
+    await assertWorkflowStage(db, matchId, "client_interested");
     const { data: formerAgentMatch, error: formerAgentMatchError } = await primaryAgent.from("matches")
       .select("id").eq("id", matchId);
     must(!formerAgentMatchError && formerAgentMatch?.length === 0, "Former agent retained live match access after reassignment");
     const { data: newAgentMatch, error: newAgentMatchError } = await alternateAgent.from("matches")
       .select("id").eq("id", matchId);
     must(!newAgentMatchError && newAgentMatch?.length === 1, "New agent did not receive match access after reassignment");
-    pass(checks, "One exchange can be reassigned without changing another exchange");
+    pass(checks, "One exchange can be reassigned without changing another exchange or stranding its opportunity");
 
     await mustRpc(investor, "set_default_representation", {
       p_representation_id: alternateInviteRow.representation_id,
@@ -447,6 +490,15 @@ async function mustRpc(client: any, name: string, args: Record<string, unknown>)
   const { data, error } = await client.rpc(name, args);
   if (error) throw new Error(`${name}: ${error.message}`);
   return data;
+}
+
+async function assertWorkflowStage(db: any, matchId: string, expectedStage: string) {
+  const { data, error } = await db.from("match_workflow_states")
+    .select("current_stage")
+    .eq("match_id", matchId)
+    .single();
+  must(!error && data?.current_stage === expectedStage,
+    error?.message ?? `Expected workflow stage ${expectedStage}, received ${data?.current_stage ?? "missing"}`);
 }
 
 function firstRow(data: any, label: string) {
