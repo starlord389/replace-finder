@@ -36,6 +36,8 @@ describe("representation multi-account diagnostic contract", () => {
     expect(diagnostic).not.toContain("Counterparty agent accepted the pending connection before messaging");
     expect(diagnostic).toContain("Investor cannot send counterparty messages");
     expect(diagnostic).toContain("Investor contact request automatically advances the opportunity");
+    expect(diagnostic).toContain("Both authorized sides can read the same opportunity stage");
+    expect(diagnostic).toContain("Investor cannot directly overwrite the opportunity workflow");
     expect(diagnostic).toContain("Starting the agent conversation automatically advances the opportunity");
     expect(diagnostic).toContain("Investor cannot manually advance the agent-only deal workflow");
     expect(diagnostic).toContain('"record_match_workflow_stage"');

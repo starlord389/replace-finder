@@ -100,6 +100,27 @@ Deno.serve(async (req) => {
     created.matchIds.push(matchId);
     await assertWorkflowStage(db, matchId, "new");
     pass(checks, "Isolated investor exchange and counterparty match created");
+    const { data: investorWorkflow, error: investorWorkflowError } = await investor
+      .from("match_workflow_states")
+      .select("current_stage")
+      .eq("match_id", matchId)
+      .single();
+    const { data: counterpartyWorkflow, error: counterpartyWorkflowError } = await counterpartyAgent
+      .from("match_workflow_states")
+      .select("current_stage")
+      .eq("match_id", matchId)
+      .single();
+    must(
+      !investorWorkflowError && investorWorkflow?.current_stage === "new"
+        && !counterpartyWorkflowError && counterpartyWorkflow?.current_stage === "new",
+      investorWorkflowError?.message ?? counterpartyWorkflowError?.message ?? "Workflow participants could not read shared state",
+    );
+    pass(checks, "Both authorized sides can read the same opportunity stage");
+    await expectDenied(
+      "Investor cannot directly overwrite the opportunity workflow",
+      investor.from("match_workflow_states").update({ current_stage: "closed" }).eq("match_id", matchId),
+      checks,
+    );
 
     await expectDenied(
       "Investor cannot create a direct listing inquiry",
