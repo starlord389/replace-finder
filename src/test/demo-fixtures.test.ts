@@ -118,6 +118,7 @@ describe("demo fixtures", () => {
         ).toBe(true);
       }
     }
+    console.log(totals);
     const excellent = MATCH_PLAN.filter((m) => m.band === "excellent").length;
     const solid = MATCH_PLAN.filter((m) => m.band === "solid").length;
     expect(excellent).toBeGreaterThanOrEqual(2);

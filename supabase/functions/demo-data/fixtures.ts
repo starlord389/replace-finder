@@ -271,7 +271,7 @@ export const COUNTERPARTIES: Array<{
         amenities: ["Downtown frontage", "Rear parking", "Basement storage", "Commuter rail within walking distance"],
         description: "Three ground-floor storefronts over six apartments in downtown Brockton. Residential fully leased; one commercial suite is vacant and ready for lease-up.",
         recent_renovations: "Facade and storefront glass redone 2022, two apartment renovations 2023, roof recoated 2021.",
-        f: fin({ ask: 1_400_000, cap: 8.2, gross: 168_000, occ: 88, loan: 760_000, rate: 6.8, maturity: "2031-11-01" }),
+        f: fin({ ask: 1_400_000, cap: 8.6, gross: 176_000, occ: 88, loan: 760_000, rate: 6.8, maturity: "2031-11-01" }),
         img: IMG.retail,
       },
       {
