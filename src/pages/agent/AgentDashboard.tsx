@@ -406,7 +406,7 @@ function ClientNetworkCard({
 
 function OpportunityList({ relationships }: { relationships: Relationship[] }) {
   const opportunities = [...relationships]
-    .filter((relationship) => relationship.stage !== "archived")
+    .filter((relationship) => isLiveStage(relationship.stage))
     .sort((left, right) => right.score - left.score || (right.lastActivityAt ?? "").localeCompare(left.lastActivityAt ?? ""))
     .slice(0, 5);
 
