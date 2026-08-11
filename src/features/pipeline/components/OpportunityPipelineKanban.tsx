@@ -121,7 +121,7 @@ function OpportunityCard({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <Badge variant="secondary" className="text-[10px]">{Math.round(relationship.score)} match</Badge>
+        <Badge variant="secondary" className="text-[10px]">Match score {Math.round(relationship.score)}</Badge>
         {relationship.propertyAssetType ? <Badge variant="outline" className="text-[10px] capitalize">{relationship.propertyAssetType}</Badge> : null}
         {relationship.unreadCount > 0 ? (
           <Badge className="gap-1 text-[10px]"><MessageSquareText className="h-3 w-3" />{relationship.unreadCount} unread</Badge>

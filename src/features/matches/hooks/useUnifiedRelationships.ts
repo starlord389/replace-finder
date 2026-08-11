@@ -172,11 +172,17 @@ async function fetchRelationships(userId: string, isDemo: boolean, ownerType: "a
   const { data: ownedExchanges } = await exchangeQuery;
   let exchanges: any[] = ownedExchanges ?? [];
   if (ownerType === "agent") {
+    // A represented investor's exchange may only enter this agent's pipeline once
+    // the representation itself has actually been accepted (status `active` with an
+    // acceptance timestamp). Pending invitations must never surface the client's
+    // properties or matches to an agent who has not taken the engagement yet.
     const { data: assignments } = await (supabase
       .from("exchange_agent_assignments" as any)
-      .select("exchange_id")
+      .select("exchange_id, agent_representations!inner(status, accepted_at)")
       .eq("agent_id", userId)
-      .eq("status", "active") as any);
+      .eq("status", "active")
+      .eq("agent_representations.status", "active")
+      .not("agent_representations.accepted_at", "is", null) as any);
     const assignedIds = (assignments ?? []).map((assignment: any) => assignment.exchange_id);
     if (assignedIds.length) {
       const { data: assignedExchanges } = await supabase
