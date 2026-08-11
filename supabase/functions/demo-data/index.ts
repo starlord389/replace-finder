@@ -367,7 +367,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
       property_id: prop["taunton_multifamily"],
       representing_agent_id: ownerId,
       status: "requested",
-      investor_note: "Please confirm the T-12 supports the projected return before contacting the listing agent.",
+      investor_note: "This one looks like a good fit for me. Can you reach out to the listing agent and find out if it's still available and what they're asking? I'd also like to know what the current rents are and whether the expenses look normal for a building like this before I get too far into it.",
     });
     await mustInsert(db, "agent_match_recommendations", {
       agent_id: ownerId,
