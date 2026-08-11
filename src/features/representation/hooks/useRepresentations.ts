@@ -94,7 +94,7 @@ export function useRepresentationInvites() {
     queryFn: async () => {
       const { data, error } = await (supabase
         .from("representation_invites" as any)
-        .select("id, representation_id, direction, email, token, status, expires_at, last_sent_at, send_count, delivery_status, delivery_error_code, created_by, created_at")
+        .select("id, representation_id, direction, email, token, status, expires_at, last_sent_at, send_count, delivery_status, delivery_error_code, created_by, created_at, metadata")
         .eq("created_by", user!.id)
         .order("created_at", { ascending: false }) as any);
       if (error) throw error;

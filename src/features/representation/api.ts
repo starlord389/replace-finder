@@ -60,6 +60,20 @@ export async function inviteInvestorClient(input: {
   }
 }
 
+export async function inviteExistingInvestorClient(clientId: string) {
+  const { data, error } = await supabase.rpc("invite_existing_investor_client" as any, {
+    p_client_id: clientId,
+  });
+  if (error) throw error;
+  const row = firstRow<{ representation_id: string; invite_token: string; invite_status: string; client_id: string }>(data);
+  try {
+    await sendRepresentationInvite(row.representation_id);
+    return { ...row, emailWarning: null };
+  } catch (error) {
+    return { ...row, emailWarning: error instanceof Error ? error.message : "Email delivery failed" };
+  }
+}
+
 export async function requestAgentReferral(input: {
   exchangeId?: string;
   location?: string;

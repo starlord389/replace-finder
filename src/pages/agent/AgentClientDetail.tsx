@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, UserPlus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
-import { inviteInvestorClient } from "@/features/representation/api";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
-// Add-a-client form. Existing clients are viewed/edited via AgentClientOverview
-// (the /agent/clients/:clientId tabs); this route is only ever "/agent/clients/new".
+// This route creates the internal client record needed for listings and matches.
+// Giving that client a login remains a separate, optional action on their profile.
 export default function AgentClientDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -24,21 +24,31 @@ export default function AgentClientDetail() {
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!user || !name.trim()) return;
     setSaving(true);
-    try {
-      const result = await inviteInvestorClient({
-        name: name.trim(), email: email.trim(), phone: phone.trim(), notes: notes.trim(), isDemo,
-      });
-      toast.success(result.emailWarning ? "Client added, but the invitation email needs attention." : "Client added and invitation sent.");
-      navigate("/agent/representation");
-    } catch (error: any) {
-      toast.error(error.message ?? "Failed to invite client");
-    } finally {
-      setSaving(false);
+    const { data, error } = await supabase
+      .from("agent_clients")
+      .insert({
+        agent_id: user.id,
+        client_name: name.trim(),
+        client_email: email.trim() || null,
+        client_phone: phone.trim() || null,
+        notes: notes.trim() || null,
+        is_demo: isDemo,
+      })
+      .select("id")
+      .single();
+    setSaving(false);
+
+    if (error || !data) {
+      toast.error(error?.message ?? "Failed to add client");
+      return;
     }
+
+    toast.success("Client added. You can now create their listing.");
+    navigate(`/agent/clients/${data.id}`);
   };
 
   return (
@@ -49,37 +59,58 @@ export default function AgentClientDetail() {
         </Link>
       </Button>
 
-      <div><h1 className="text-2xl font-bold text-foreground">Invite a Client</h1><p className="mt-1 text-sm text-muted-foreground">Your client receives an investor workspace. Once accepted, you can collaborate on assigned exchanges and recommend matches.</p></div>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Add New Client</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Create the client record you need to add listings and manage their exchange.
+        </p>
+      </div>
 
       <Card>
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Client Name *</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input id="name" value={name} onChange={(event) => setName(event.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input id="phone" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(event) => setNotes(event.target.value)}
                 placeholder="Any notes about this client's exchange goals, timeline, etc."
               />
             </div>
             <Button type="submit" disabled={saving || !name.trim()}>
-              {saving ? "Sending invitation…" : "Invite Client"}
+              {saving ? "Adding client…" : "Add Client"}
             </Button>
           </form>
         </CardContent>
+      </Card>
+
+      <Card className="border-dashed bg-muted/20">
+        <CardHeader className="pb-4">
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <UserPlus className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Client workspace access is optional</CardTitle>
+              <CardDescription className="mt-1">
+                Adding a client here does not create an account or send an email. After saving, you can invite them to their own investor workspace from their client profile.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
       </Card>
     </div>
   );

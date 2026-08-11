@@ -16,6 +16,7 @@ import { ClientDangerZoneTab } from "@/features/clients/components/ClientDangerZ
 
 interface ClientRow {
   id: string;
+  client_user_id: string | null;
   client_name: string;
   client_email: string | null;
   client_phone: string | null;
@@ -38,7 +39,7 @@ export default function AgentClientOverview() {
     (async () => {
       const { data, error } = await supabase
         .from("agent_clients")
-        .select("id, client_name, client_email, client_phone, status")
+        .select("id, client_user_id, client_name, client_email, client_phone, status")
         .eq("id", clientId)
         .eq("agent_id", user.id)
         .eq("is_demo", isDemo)
@@ -116,6 +117,7 @@ export default function AgentClientOverview() {
         <TabsContent value="profile" className="mt-4">
           <ClientProfileTab
             clientId={clientId}
+            clientUserId={client.client_user_id}
             onSaved={(info) => setClient((c) => (c ? { ...c, ...info } : c))}
           />
         </TabsContent>

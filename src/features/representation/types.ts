@@ -60,6 +60,10 @@ export interface RepresentationInvite {
   delivery_error_code: string | null;
   created_by: string;
   created_at: string;
+  metadata?: {
+    client_id?: string;
+    exchange_ids?: string[];
+  };
 }
 
 export interface AgentContactRequest {

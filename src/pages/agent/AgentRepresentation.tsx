@@ -221,7 +221,7 @@ export default function AgentRepresentation() {
           })}
         </TabsContent>
         <TabsContent value="clients" className="grid gap-3">
-          {!isLoading && activeRepresentations.length === 0 ? <Card className="border-dashed"><CardContent className="py-12 text-center"><p className="font-semibold">No represented investors yet</p><p className="mt-1 text-sm text-muted-foreground">Invite a client from My Clients or accept a referral here.</p><Button asChild className="mt-4"><Link to="/agent/clients/new">Invite a client</Link></Button></CardContent></Card> : activeRepresentations.map((representation) => {
+          {!isLoading && activeRepresentations.length === 0 ? <Card className="border-dashed"><CardContent className="py-12 text-center"><p className="font-semibold">No represented investors yet</p><p className="mt-1 text-sm text-muted-foreground">Open a saved client’s profile to invite them to a workspace, or accept a referral here.</p><Button asChild className="mt-4"><Link to="/agent/clients">Open My Clients</Link></Button></CardContent></Card> : activeRepresentations.map((representation) => {
             const investor = representation.investor_id ? profiles[representation.investor_id] : null;
             const clientAssignments = assignments.filter((assignment) => assignment.representation_id === representation.id);
             const count = clientAssignments.length;
