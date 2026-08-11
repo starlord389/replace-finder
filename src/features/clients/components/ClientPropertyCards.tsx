@@ -28,6 +28,7 @@ interface ListingRow {
   address: string | null;
   city: string | null;
   state: string | null;
+  zip: string | null;
   assetType: string | null;
   askingPrice: number | null;
   capRate: number | null;
@@ -57,6 +58,7 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
       address: null,
       city: null,
       state: null,
+      zip: null,
       assetType: null,
       askingPrice: null,
       capRate: null,
@@ -102,6 +104,7 @@ async function fetchListings(clientId: string): Promise<ListingRow[]> {
       address: prop?.address ?? null,
       city: prop?.city ?? null,
       state: prop?.state ?? null,
+      zip: prop?.zip ?? null,
       assetType: prop?.asset_type ?? null,
       askingPrice: fin?.asking_price ?? null,
       capRate: fin?.cap_rate ? Number(fin.cap_rate) : null,
@@ -131,6 +134,7 @@ function toAgentListing(l: ListingRow, clientId: string, clientName: string | nu
     address: l.address,
     city: l.city,
     state: l.state,
+    zip: l.zip,
     assetType: l.assetType,
     strategyType: null,
     askingPrice: l.askingPrice,

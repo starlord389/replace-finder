@@ -1,11 +1,12 @@
 // Demo-workspace builder for 1031 Exchange Up.
 //
 // Fills (or clears) the CALLER's Demo workspace with a rich, realistic, fully
-// isolated dataset designed to exercise every part of the app: clients in
-// varied states, listings across every status, a counterparty network, matches
-// spanning the boot/ROE scenarios, an inbound match on the caller's own listing,
-// connections at different lifecycle stages, message threads, notifications, an
-// identification list, and urgent/overdue deadlines. EVERYTHING is is_demo=true.
+// isolated Massachusetts dataset designed to exercise every part of the app:
+// clients in varied states, listings across every status, a counterparty
+// network, engine-verified matches, an inbound match on the caller's own
+// listing, connections at different lifecycle stages, message threads,
+// notifications, an identification list, and urgent/overdue deadlines.
+// EVERYTHING is is_demo=true.
 //
 // SAFETY: a reset wipes ONLY the caller's own demo rows (agent_id = caller) plus
 // the matches/connections/messages/inbound-counterparty exchange that exist solely
@@ -17,9 +18,31 @@
 //
 // Actions: "reset" (default) = wipe caller's demo data then rebuild; "clear" = wipe.
 // Admin-only. Runs with the service role.
+//
+// All fixture data lives in ./fixtures.ts so the invariants (MA-only, $500K-$8M,
+// no property labels, individual clients, engine-approved match quality) can be
+// unit tested outside Deno.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { calculateBoot, scorePairExplained } from "../_shared/matching-core.ts";
+import {
+  ALL_DEMO_PROPERTIES,
+  BAND_RANGES,
+  COUNTERPARTIES,
+  INBOUND_CLIENT,
+  INBOUND_CRITERIA,
+  INBOUND_MATCH,
+  INBOUND_PROPERTY,
+  INVESTOR_CRITERIA,
+  INVESTOR_PROPERTY,
+  MATCH_PLAN,
+  OWN,
+  assertValidDemoProperty,
+  dFrom,
+  displayLocation,
+  type DemoProperty,
+  type MatchBand,
+} from "./fixtures.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,30 +50,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Coherent financials: NOI = ask x cap and NOI = gross rent - operating
-// expenses. Occupancy remains a separately disclosed property metric; the UI
-// and listing wizard define gross_rent_roll as the annualized gross-rent input,
-// so applying occupancy a second time here would make the displayed income
-// statement fail to reconcile. Debt service is amortized on the actual balance/rate.
-function fin(o: { ask: number; cap: number; gross: number; occ: number; loan: number; rate: number; maturity: string }) {
-  const noi = Math.round(o.ask * o.cap / 100);
-  const expenses = Math.max(o.gross - noi, 0);
-  const r = o.rate / 100 / 12;
-  const monthly = o.loan > 0 ? (o.loan * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1) : 0;
-  return {
-    asking_price: o.ask, cap_rate: o.cap, noi,
-    gross_rent_roll: o.gross, total_operating_expenses: expenses,
-    annual_revenue: o.gross, annual_expenses: expenses,
-    occupancy_rate: o.occ, loan_balance: o.loan, loan_rate: o.rate,
-    loan_type: o.loan > 0 ? "Fixed-rate" : "Free & clear", loan_maturity_date: o.maturity,
-    annual_debt_service: Math.round(monthly * 12),
-  };
-}
+// Demo fixtures use the platform defaults so an experimental admin setting
+// cannot make the demo reset itself fail. The same production scoring code is
+// still used; only the inputs are held stable for repeatable QA.
+const MATCH_SETTINGS = { mortgage_interest_rate: 7, mortgage_amortization_years: 25 };
 
 async function buildEngineMatch(
   db: any,
   buyerExchangeId: string,
   sellerPropertyId: string,
+  band: MatchBand | null = null,
   opts: Record<string, unknown> = {},
 ) {
   const [{ data: exchange }, { data: sellerProperty }, { data: sellerFin }] = await Promise.all([
@@ -65,15 +74,24 @@ async function buildEngineMatch(
       ? db.from("replacement_criteria").select("*").eq("id", exchange.criteria_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
-  // Demo fixtures use the platform defaults so an experimental admin setting
-  // cannot make the demo reset itself fail. The same production scoring code is
-  // still used; only the inputs are held stable for repeatable QA.
-  const settings = { mortgage_interest_rate: 7, mortgage_amortization_years: 25 };
-  const result = scorePairExplained(exchange, buyerFin, sellerProperty, sellerFin, criteria ?? {}, settings);
+  const result = scorePairExplained(exchange, buyerFin, sellerProperty, sellerFin, criteria ?? {}, MATCH_SETTINGS);
   if ("reason" in result) {
     throw new Error(`Invalid demo match ${buyerExchangeId}/${sellerPropertyId}: ${result.reason}`);
   }
   const s = result.score;
+  // 1031 trade-up rule is enforced by the engine, but assert it explicitly so a
+  // bad fixture fails loudly instead of silently seeding a trade-down.
+  if ((s.replacement_value ?? 0) < (s.relinquished_value ?? 0)) {
+    throw new Error(`Demo match ${buyerExchangeId}/${sellerPropertyId} violates the trade-up rule`);
+  }
+  if (band) {
+    const [min, max] = BAND_RANGES[band];
+    if (s.total < min || s.total > max) {
+      throw new Error(
+        `Demo match ${buyerExchangeId}/${sellerPropertyId} scored ${s.total}; expected ${band} (${min}-${max})`,
+      );
+    }
+  }
   return {
     buyer_exchange_id: buyerExchangeId,
     seller_property_id: sellerPropertyId,
@@ -103,109 +121,6 @@ async function buildEngineMatch(
     ...opts,
   };
 }
-
-const IMG = {
-  mf: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&q=75&auto=format&fit=crop",
-  retail: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=75&auto=format&fit=crop",
-  industrial: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1600&q=75&auto=format&fit=crop",
-  medical: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1600&q=75&auto=format&fit=crop",
-  office: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=75&auto=format&fit=crop",
-};
-
-// ── Counterparty network: 4 Massachusetts agents, 7 active candidate listings ─
-// Demographic: mom-and-pop landlords, growing multifamily investors, and
-// small-scale commercial. All inventory is in-state (MA).
-const COUNTERPARTIES = [
-  {
-    email: "demo.agent.alvarez@replacefinder.test", full_name: "Jordan Alvarez", brokerage_name: "Alvarez Commercial Group",
-    properties: [
-      { name: "Elm Park Triple-Deckers", address: "145 Russell St", city: "Worcester", state: "MA", asset_type: "multifamily", strategy_type: "value_add", units: 12, year_built: 1920, sf: 11400,
-        description: "Four classic Worcester triple-deckers sold as one package, 12 total units near Elm Park and Clark University. Eight units turned 2021-2024; remaining four are ~$250/mo under market. New rubber roofs on two buildings, separate gas heat, tenants pay heat and electric.",
-        f: fin({ ask: 1_650_000, cap: 6.8, gross: 195_000, occ: 95, loan: 900_000, rate: 6.25, maturity: "2031-03-01" }), img: IMG.mf },
-      { name: "Shrewsbury Street Storefronts", address: "310 Shrewsbury St", city: "Worcester", state: "MA", asset_type: "retail", strategy_type: "core", units: 5, year_built: 1985, sf: 7800,
-        description: "Five-tenant neighborhood retail strip on Worcester's restaurant row. Long-standing local tenants on staggered leases, all reimbursing taxes and insurance. Roof replaced 2021, striped parking for 22 cars.",
-        f: fin({ ask: 1_250_000, cap: 7.0, gross: 128_000, occ: 92, loan: 680_000, rate: 5.9, maturity: "2029-09-01" }), img: IMG.retail },
-    ],
-  },
-  {
-    email: "demo.agent.mehta@replacefinder.test", full_name: "Priya Mehta", brokerage_name: "Mehta Investment Realty",
-    properties: [
-      { name: "Merrimack Mill Lofts", address: "88 Market St", city: "Lowell", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 42, year_built: 1998, sf: 41000,
-        description: "42-unit converted mill building in downtown Lowell, 96% occupied with a steady renter base from UMass Lowell and the medical corridor. Elevator served, in-unit laundry, on-site parking. Boiler replaced 2022. The largest MA offering currently in the network.",
-        f: fin({ ask: 4_950_000, cap: 6.5, gross: 545_000, occ: 96, loan: 2_700_000, rate: 5.75, maturity: "2033-01-01" }), img: IMG.mf },
-      { name: "Chelmsford Flex Building", address: "12 Katrina Rd", city: "Chelmsford", state: "MA", asset_type: "industrial", strategy_type: "core_plus", units: 3, year_built: 2004, sf: 21000,
-        description: "Three-tenant flex/light industrial building off Route 3, fully leased to established local contractors. 18' clear, three drive-in doors, small office build-outs. Assumable loan at 5.4%.",
-        f: fin({ ask: 1_850_000, cap: 8.2, gross: 196_000, occ: 100, loan: 1_000_000, rate: 5.4, maturity: "2032-06-01" }), img: IMG.industrial },
-    ],
-  },
-  {
-    email: "demo.agent.brooks@replacefinder.test", full_name: "Daniel Brooks", brokerage_name: "Brooks & Lane CRE",
-    properties: [
-      { name: "Forest Park Six-Family", address: "45 Sumner Ave", city: "Springfield", state: "MA", asset_type: "multifamily", strategy_type: "value_add", units: 6, year_built: 1925, sf: 6800,
-        description: "Six-family in Springfield's Forest Park neighborhood, a straightforward first step up for a small landlord. Two units renovated 2023, four original. Newer roof and updated electrical; rents roughly 15% under market.",
-        f: fin({ ask: 725_000, cap: 8.0, gross: 104_000, occ: 90, loan: 400_000, rate: 6.5, maturity: "2030-04-01" }), img: IMG.mf },
-    ],
-  },
-  {
-    email: "demo.agent.vasquez@replacefinder.test", full_name: "Elena Vasquez", brokerage_name: "Vasquez Realty Partners",
-    properties: [
-      { name: "Wollaston Court Apartments", address: "42 Beale St", city: "Quincy", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 24, year_built: 1972, sf: 22800,
-        description: "24-unit brick walk-up two blocks from the Wollaston Red Line stop, 95% occupied year-round. Fourteen units updated since 2021, common laundry, 28 off-street spaces. Windows replaced 2020.",
-        f: fin({ ask: 3_600_000, cap: 6.0, gross: 355_000, occ: 95, loan: 1_980_000, rate: 5.95, maturity: "2033-08-01" }), img: IMG.mf },
-      { name: "Brockton Main Street Mixed-Use", address: "780 Main St", city: "Brockton", state: "MA", asset_type: "mixed_use", strategy_type: "core_plus", units: 9, year_built: 1930, sf: 12400,
-        description: "Three ground-floor storefronts over six apartments in downtown Brockton. Residential fully leased; one commercial suite vacant and ready for lease-up. Facade and storefront glass redone 2022.",
-        f: fin({ ask: 1_400_000, cap: 7.5, gross: 168_000, occ: 88, loan: 760_000, rate: 6.8, maturity: "2031-11-01" }), img: IMG.retail },
-    ],
-  },
-];
-
-// ── The caller's own clients + relinquished-property listings ─────────────────
-const TODAY = new Date();
-const dFrom = (n: number) => { const d = new Date(TODAY); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
-
-const OWN = [
-  // Draft - being prepared, not yet in the network.
-  { client: { client_name: "Chen Family Investments", client_company: "Chen Family Investments LLC", client_email: "sarah.chen@example.com", client_phone: "(781) 555-0101", notes: "Longtime Medford landlord with two duplexes. Wants to trade up into a single 8-12 unit building closer to the Orange Line. Pre-approved with a local credit union.", status: "active" },
-    property: { name: "Highland Street Duplexes", address: "214 Highland Ave", city: "Medford", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 4, year_built: 1955, sf: 4600,
-      description: "DRAFT - gathering rent roll and last year's operating statements. Two side-by-side duplexes in Medford, fully occupied, tenants pay all utilities.",
-      f: fin({ ask: 1_350_000, cap: 5.2, gross: 118_000, occ: 100, loan: 560_000, rate: 4.6, maturity: "2030-05-01" }), img: IMG.mf },
-    exchange: { status: "draft" } },
-
-  // Active - Marcus, small multifamily, mid-clock.
-  { client: { client_name: "Marcus Rodriguez", client_company: "Rodriguez Holdings LLC", client_email: "marcus@rodriguezllc.example", client_phone: "(617) 555-0127", notes: "Second exchange. Owns a Dorchester three-family and is tired of self-managing. Wants a larger MA multifamily with professional management in place.", status: "active" },
-    property: { name: "Dorchester Ave Three-Family", address: "1420 Dorchester Ave", city: "Boston", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 3, year_built: 1910, sf: 3900,
-      description: "Classic Dorchester three-decker near Fields Corner, fully occupied with long-term tenants. Two units updated 2022, separate utilities, off-street parking for three. Owner-managed for 11 years.",
-      f: fin({ ask: 1_250_000, cap: 5.0, gross: 108_000, occ: 100, loan: 500_000, rate: 4.9, maturity: "2031-07-01" }), img: IMG.mf },
-    exchange: { status: "active", exchange_proceeds: 750_000, estimated_equity: 750_000, estimated_basis: 420_000, estimated_gain: 330_000, estimated_tax_liability: 82_500, sale_close_date: dFrom(-20), identification_deadline: dFrom(25), closing_deadline: dFrom(160) } },
-
-  // Active - Patel trust, small retail.
-  { client: { client_name: "Patel Family Trust", client_company: "Patel Family Trust", client_email: "trustee@patelfamily.example", client_phone: "(978) 555-0163", notes: "Trustee wants passive, low-maintenance income in Massachusetts. Open to small retail or mixed-use with reliable local tenants. No heavy value-add.", status: "active" },
-    property: { name: "Beverly Rantoul Retail", address: "210 Rantoul St", city: "Beverly", state: "MA", asset_type: "retail", strategy_type: "core", units: 4, year_built: 1988, sf: 6200,
-      description: "Four-tenant retail strip on Rantoul Street with a pharmacy, salon, and two service tenants. All leases reimburse taxes. New roof 2022, repaved lot 2023.",
-      f: fin({ ask: 1_100_000, cap: 6.0, gross: 96_000, occ: 100, loan: 420_000, rate: 5.1, maturity: "2030-02-01" }), img: IMG.retail },
-    exchange: { status: "active", exchange_proceeds: 680_000, estimated_equity: 680_000, estimated_basis: 390_000, estimated_gain: 290_000, estimated_tax_liability: 72_500, sale_close_date: dFrom(-10), identification_deadline: dFrom(35), closing_deadline: dFrom(170) } },
-
-  // In identification - Wilson, small commercial, URGENT clock (9 days to ID).
-  { client: { client_name: "James Wilson", client_email: "jwilson@example.com", client_phone: "(978) 555-0144", notes: "Selling a Haverhill warehouse he's owned since the 90s. Wants small flex or multifamily within an hour of home. ID window closing fast - only actionable MA deals.", status: "active" },
-    property: { name: "Haverhill Locke Street Warehouse", address: "55 Locke St", city: "Haverhill", state: "MA", asset_type: "industrial", strategy_type: "value_add", units: 1, year_built: 1978, sf: 18000,
-      description: "Single-tenant warehouse near I-495; the tenant's lease expiration is driving the exchange timeline. 18' clear, three dock doors, fenced yard. Office remodeled 2022, roof mid-life.",
-      f: fin({ ask: 1_500_000, cap: 6.5, gross: 132_000, occ: 100, loan: 700_000, rate: 5.6, maturity: "2028-11-01" }), img: IMG.industrial },
-    exchange: { status: "in_identification", exchange_proceeds: 800_000, estimated_equity: 800_000, estimated_basis: 430_000, estimated_gain: 370_000, estimated_tax_liability: 92_500, sale_close_date: dFrom(-36), identification_deadline: dFrom(9), closing_deadline: dFrom(144) } },
-
-  // In closing - Aurora, small office, closing in 12 days; ID window already passed.
-  { client: { client_name: "Aurora Holdings", client_company: "Aurora Holdings Inc.", client_email: "ops@auroraholdings.example", client_phone: "(508) 555-0188", notes: "Small family partnership closing on a Framingham office disposition. Replacement identified; coordinating QI and a local lender. Needs clean execution.", status: "active" },
-    property: { name: "Framingham Professional Building", address: "945 Concord St", city: "Framingham", state: "MA", asset_type: "office", strategy_type: "core", units: 1, year_built: 1999, sf: 14000,
-      description: "Two-story suburban professional building on Route 126, leased to accounting, insurance, and dental tenants. Surface parking, recent HVAC replacement. Replacement purchase is in closing.",
-      f: fin({ ask: 1_800_000, cap: 6.2, gross: 168_000, occ: 92, loan: 900_000, rate: 5.3, maturity: "2032-05-01" }), img: IMG.office },
-    exchange: { status: "in_closing", exchange_proceeds: 900_000, estimated_equity: 900_000, estimated_basis: 520_000, estimated_gain: 380_000, estimated_tax_liability: 95_000, sale_close_date: dFrom(-60), identification_deadline: dFrom(-15), closing_deadline: dFrom(12) } },
-
-  // Completed - historical, fully closed.
-  { client: { client_name: "Brennan Stout", client_email: "bstout@example.com", client_phone: "(413) 555-0190", notes: "Closed exchange from earlier this year. Kept on file for repeat business; eyeing another small multifamily disposition in Q4.", status: "inactive" },
-    property: { name: "Fall River Self Storage", address: "500 Airport Rd", city: "Fall River", state: "MA", asset_type: "industrial", strategy_type: "core", units: 1, year_built: 2010, sf: 22000,
-      description: "Small climate-controlled self-storage facility, sold and exchanged earlier this year. Retained for reference.",
-      f: fin({ ask: 1_300_000, cap: 6.8, gross: 122_000, occ: 90, loan: 500_000, rate: 5.0, maturity: "2029-01-01" }), img: IMG.industrial },
-    exchange: { status: "completed", exchange_proceeds: 800_000, estimated_equity: 800_000, estimated_basis: 450_000, estimated_gain: 350_000, estimated_tax_liability: 87_500, sale_close_date: dFrom(-180), identification_deadline: dFrom(-135), closing_deadline: dFrom(-8), actual_close_date: dFrom(-8) } },
-];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -342,7 +257,13 @@ async function clearOwnerDemo(db: any, ownerId: string) {
 
 // ── Build ────────────────────────────────────────────────────────────────────
 async function buildOwnerDemo(db: any, ownerId: string) {
-  const prop: Record<string, string> = {};         // property name -> id
+  // Fail fast on any fixture that breaks the MA-only / price / coherence rules
+  // BEFORE a single row is written.
+  for (const p of ALL_DEMO_PROPERTIES()) assertValidDemoProperty(p);
+
+  const prop: Record<string, string> = {};          // internal fixture key -> id
+  const fixture: Record<string, DemoProperty> = {}; // internal fixture key -> fixture
+  for (const p of ALL_DEMO_PROPERTIES()) fixture[p.key] = p;
   const cpAgent: Record<string, string> = {};       // agent full_name -> id
 
   // Counterparty agents + their active demo properties.
@@ -353,34 +274,30 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     const { data: hasRole } = await db.from("user_roles").select("user_id").eq("user_id", id).eq("role", "agent").maybeSingle();
     if (!hasRole) await mustInsert(db, "user_roles", { user_id: id, role: "agent" });
     for (const p of cp.properties) {
-      prop[p.name] = await insertProperty(db, id, p, true, "active", true); // shared → idempotent
+      prop[p.key] = await insertProperty(db, id, p, true, "active", true); // shared → idempotent by address
     }
   }
 
   // Caller's demo clients + listings.
-  const own: { exId: string; clientName: string }[] = [];
+  const own: { exId: string; key: string }[] = [];
   for (const o of OWN) {
     const client = await insertOne(db, "agent_clients", { agent_id: ownerId, ...o.client, is_demo: true }, "id");
     const propId = await insertProperty(db, ownerId, o.property, true, o.exchange.status === "draft" ? "draft" : "active");
-    prop[o.property.name] = propId;
+    prop[o.property.key] = propId;
     const ex = await insertOne(db, "exchanges", { agent_id: ownerId, client_id: client.id, relinquished_property_id: propId, is_demo: true, ...o.exchange }, "id");
-    const crit = await insertOne(db, "replacement_criteria", { exchange_id: ex.id, target_asset_types: [], target_states: [], target_price_min: 0, target_price_max: 0 }, "id");
+    const crit = await insertOne(db, "replacement_criteria", { exchange_id: ex.id, ...o.criteria }, "id");
     await db.from("exchanges").update({ criteria_id: crit.id }).eq("id", ex.id);
     await db.from("pledged_properties").update({ exchange_id: ex.id }).eq("id", propId);
-    own.push({ exId: ex.id, clientName: o.client.client_name });
+    own.push({ exId: ex.id, key: o.key });
   }
-  const exFor = (name: string) => own.find((x) => x.clientName === name)!.exId;
-  const marcus = exFor("Marcus Rodriguez"), patel = exFor("Patel Family Trust"), wilson = exFor("James Wilson");
+  const exFor = (key: string) => own.find((x) => x.key === key)!.exId;
 
   // Investor-owner demo exchange. The same admin user can switch between the
   // Investor and Agent views, so using the owner as the demo representative
   // makes the entire handoff and action queue testable without impersonation.
-  const investorProp = await insertProperty(db, ownerId, {
-    ...OWN[0].property,
-    name: "Owner Demo – Riverside Apartments",
-    address: "125 Riverside Drive",
-  }, true, "active");
-  prop["Owner Demo – Riverside Apartments"] = investorProp;
+  const investorProp = await insertProperty(db, ownerId, INVESTOR_PROPERTY, true, "active");
+  prop[INVESTOR_PROPERTY.key] = investorProp;
+  const investorEquity = INVESTOR_PROPERTY.f.asking_price - INVESTOR_PROPERTY.f.loan_balance;
   const investorEx = await insertOne(db, "exchanges", {
     agent_id: ownerId,
     client_id: null,
@@ -388,33 +305,36 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     relinquished_property_id: investorProp,
     is_demo: true,
     status: "active",
-    exchange_proceeds: 1_500_000,
-    estimated_equity: 1_500_000,
+    exchange_proceeds: investorEquity,
+    estimated_equity: investorEquity,
+    sale_close_date: dFrom(-10),
     identification_deadline: dFrom(35),
     closing_deadline: dFrom(170),
   }, "id");
-  const investorCrit = await insertOne(db, "replacement_criteria", { exchange_id: investorEx.id, target_asset_types: [], target_states: [], target_price_min: 0, target_price_max: 0 }, "id");
+  const investorCrit = await insertOne(db, "replacement_criteria", { exchange_id: investorEx.id, ...INVESTOR_CRITERIA }, "id");
   await db.from("exchanges").update({ criteria_id: investorCrit.id }).eq("id", investorEx.id);
   await db.from("pledged_properties").update({ exchange_id: investorEx.id }).eq("id", investorProp);
 
-  // Buyer-side matches (the caller's active/in-ID exchanges x candidates).
-  // Seed only pairs that the production engine itself approves. This keeps the
-  // demo useful as a QA fixture instead of presenting fabricated scores or
+  const exchangeIdFor = (buyerKey: string) => (buyerKey === "investor" ? investorEx.id : exFor(buyerKey));
+
+  // Buyer-side matches. Every pair is scored by the production engine and its
+  // quality band asserted, so the demo can never present fabricated scores or
   // impossible trade-down recommendations.
-  const matchRows = await Promise.all([
-    buildEngineMatch(db, marcus, prop["Brockton Main Street Mixed-Use"]),
-    buildEngineMatch(db, patel, prop["Chelmsford Flex Building"]),
-    buildEngineMatch(db, patel, prop["Brockton Main Street Mixed-Use"]),
-    buildEngineMatch(db, wilson, prop["Brockton Main Street Mixed-Use"], { buyer_agent_viewed: true, buyer_agent_viewed_at: dFrom(-1) + "T18:00:00Z" }),
-    buildEngineMatch(db, investorEx.id, prop["Brockton Main Street Mixed-Use"]),
-    // Leave this second investor-owned match without a contact request so the
-    // Investor Demo can exercise the complete "Ask My Agent to Connect" flow.
-    buildEngineMatch(db, investorEx.id, prop["Chelmsford Flex Building"]),
-  ]);
+  const matchRows = await Promise.all(
+    MATCH_PLAN.map((planned) =>
+      buildEngineMatch(db, exchangeIdFor(planned.buyer), prop[planned.seller], planned.band, {
+        ...(planned.buyer === "james_wilson"
+          ? { buyer_agent_viewed: true, buyer_agent_viewed_at: dFrom(-1) + "T18:00:00Z" }
+          : {}),
+        ...(planned.opts ?? {}),
+      })
+    ),
+  );
   const { data: matches, error: mErr } = await db.from("matches").insert(matchRows).select("id, buyer_exchange_id, seller_property_id");
   if (mErr) throw new Error(`matches insert failed: ${mErr.message}`);
-  const matchId = (ex: string, p: string) => (matches ?? []).find((m: any) => m.buyer_exchange_id === ex && m.seller_property_id === p)?.id;
-  const investorMatchId = matchId(investorEx.id, prop["Brockton Main Street Mixed-Use"]);
+  const matchId = (buyerKey: string, sellerKey: string) =>
+    (matches ?? []).find((m: any) => m.buyer_exchange_id === exchangeIdFor(buyerKey) && m.seller_property_id === prop[sellerKey])?.id;
+  const investorMatchId = matchId("investor", "taunton_multifamily");
 
   const { data: ownerProfile } = await db.from("profiles").select("email, full_name").eq("id", ownerId).single();
   const activeRep = await insertOne(db, "agent_representations", {
@@ -444,7 +364,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
       investor_id: ownerId,
       exchange_id: investorEx.id,
       match_id: investorMatchId,
-      property_id: prop["Brockton Main Street Mixed-Use"],
+      property_id: prop["taunton_multifamily"],
       representing_agent_id: ownerId,
       status: "requested",
       investor_note: "Please confirm the T-12 supports the projected return before contacting the listing agent.",
@@ -495,64 +415,78 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     request_context: { location: "Worcester, MA", property_type: "Multifamily", timing: "Identifying within 35 days", notes: "Demo referral awaiting administrator assignment" },
   });
 
-  // Inbound (seller-side) match: a counterparty buyer wants Boston-area small
-  // multifamily, matched against the caller's own Dorchester listing.
+  // Inbound (seller-side) match: Natalie Foster, represented by a counterparty
+  // agent, wants Boston-area small multifamily and matches the caller's own
+  // Dorchester listing.
   const jordan = cpAgent["Jordan Alvarez"];
-  const inboundClient = await insertOne(db, "agent_clients", { agent_id: jordan, client_name: "Cardinal Multifamily Fund", client_company: "Cardinal Capital", client_email: "acq@cardinalcap.example", client_phone: "(508) 555-0210", notes: "Acquiring small Massachusetts multifamily.", is_demo: true, status: "active" }, "id");
-  const inboundRelProp = await insertProperty(db, jordan, { name: "Salem Common Six-Family", address: "18 Winter St", city: "Salem", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 6, year_built: 1962, sf: 6400, description: "Relinquished asset for Cardinal's exchange.", f: fin({ ask: 1_150_000, cap: 3.2, gross: 84_000, occ: 96, loan: 450_000, rate: 4.8, maturity: "2030-09-01" }), img: IMG.mf }, true);
-  const inboundEx = await insertOne(db, "exchanges", { agent_id: jordan, client_id: inboundClient.id, relinquished_property_id: inboundRelProp, is_demo: true, status: "active", exchange_proceeds: 700_000, estimated_equity: 700_000, identification_deadline: dFrom(40), closing_deadline: dFrom(175) }, "id");
-  const inboundCrit = await insertOne(db, "replacement_criteria", { exchange_id: inboundEx.id, target_asset_types: ["multifamily"], target_states: ["MA"], target_price_min: 900_000, target_price_max: 5_000_000 }, "id");
+  const inboundClient = await insertOne(db, "agent_clients", { agent_id: jordan, ...INBOUND_CLIENT, is_demo: true }, "id");
+  const inboundRelProp = await insertProperty(db, jordan, INBOUND_PROPERTY, true);
+  prop[INBOUND_PROPERTY.key] = inboundRelProp;
+  const inboundEquity = INBOUND_PROPERTY.f.asking_price - INBOUND_PROPERTY.f.loan_balance;
+  const inboundEx = await insertOne(db, "exchanges", { agent_id: jordan, client_id: inboundClient.id, relinquished_property_id: inboundRelProp, is_demo: true, status: "active", exchange_proceeds: inboundEquity, estimated_equity: inboundEquity, identification_deadline: dFrom(40), closing_deadline: dFrom(175) }, "id");
+  const inboundCrit = await insertOne(db, "replacement_criteria", { exchange_id: inboundEx.id, ...INBOUND_CRITERIA }, "id");
   await db.from("exchanges").update({ criteria_id: inboundCrit.id }).eq("id", inboundEx.id);
   await db.from("pledged_properties").update({ exchange_id: inboundEx.id }).eq("id", inboundRelProp);
-  const inboundMatchRow = await buildEngineMatch(db, inboundEx.id, prop["Dorchester Ave Three-Family"]);
+  const inboundMatchRow = await buildEngineMatch(db, inboundEx.id, prop[INBOUND_MATCH.seller]);
   const { data: inboundMatch, error: inboundMatchError } = await db.from("matches").insert(inboundMatchRow).select("id").single();
   if (inboundMatchError) throw new Error(`inbound demo match insert failed: ${inboundMatchError.message}`);
 
   // Connections at varied lifecycle stages. Agent-to-agent conversations open
   // immediately once either verified agent starts them; no acceptance queue.
   // (a) Other agent started the conversation, no messages yet.
-  await mustInsert(db, "exchange_connections", { match_id: matchId(marcus, prop["Brockton Main Street Mixed-Use"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: marcus, seller_exchange_id: null, status: "accepted", initiated_by: "seller_agent", accepted_at: dFrom(-1) + "T10:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  await mustInsert(db, "exchange_connections", { match_id: matchId("marcus_rodriguez", "brockton_mixed_use"), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: exFor("marcus_rodriguez"), seller_exchange_id: null, status: "accepted", initiated_by: "seller_agent", accepted_at: dFrom(-1) + "T10:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (b) You started the conversation, no messages yet.
-  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Chelmsford Flex Building"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: patel, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-1) + "T11:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
-  // (c) Accepted + conversing -> live message thread.
-  const conn = await insertOne(db, "exchange_connections", { match_id: matchId(wilson, prop["Brockton Main Street Mixed-Use"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: wilson, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-2) + "T16:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true }, "id");
+  await mustInsert(db, "exchange_connections", { match_id: matchId("anita_patel", "chelmsford_industrial"), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: exFor("anita_patel"), seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-1) + "T11:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  // (c) Accepted + conversing -> live message thread on Wilson's urgent ID clock.
+  const conn = await insertOne(db, "exchange_connections", { match_id: matchId("james_wilson", "chelmsford_industrial"), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: exFor("james_wilson"), seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-2) + "T16:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true }, "id");
+  const chelmsford = fixture["chelmsford_industrial"];
   await mustInsert(db, "messages", [
-    { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Thanks for connecting - the Brockton mixed-use is available for a 1031 buyer. Happy to send the OM and rent roll." },
-    { connection_id: conn.id, sender_id: ownerId, content: "Appreciate it. My client's on a 9-day ID clock, so speed matters. Can you also share the T-12 and the tenant's lease abstract?" },
-    { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Sending the package now. The value-add plan centers on leasing the remaining vacancy and below-market renewals." },
-    { connection_id: conn.id, sender_id: ownerId, content: "Thanks - reviewing the T-12 and leasing assumptions with him this afternoon. Can we tour Thursday?" },
+    { connection_id: conn.id, sender_id: cpAgent["Priya Mehta"], content: `Thanks for connecting - the flex building at ${displayLocation(chelmsford)} is available to a 1031 buyer. Happy to send the OM and rent roll.` },
+    { connection_id: conn.id, sender_id: ownerId, content: "Appreciate it. My client's on a 9-day ID clock, so speed matters. Can you also share the T-12 and the tenants' lease abstracts?" },
+    { connection_id: conn.id, sender_id: cpAgent["Priya Mehta"], content: "Sending the package now. All three tenants are on NNN leases with annual escalators, so the expense load stays predictable." },
+    { connection_id: conn.id, sender_id: ownerId, content: "Thanks - reviewing the T-12 with James this afternoon. Can we tour Thursday?" },
   ]);
   // (d) Declined -> "closed (lost)".
-  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Brockton Main Street Mixed-Use"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: patel, seller_exchange_id: null, status: "declined", initiated_by: "buyer_agent", declined_at: dFrom(-4) + "T12:00:00Z", decline_reason: "The office value-add strategy was not a fit for the trust.", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  await mustInsert(db, "exchange_connections", { match_id: matchId("anita_patel", "brockton_mixed_use"), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: exFor("anita_patel"), seller_exchange_id: null, status: "declined", initiated_by: "buyer_agent", declined_at: dFrom(-4) + "T12:00:00Z", decline_reason: "Anita passed on the vacant storefront lease-up risk.", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (e) Inbound accepted -> seller-side conversation on the caller's listing.
   if (inboundMatch) {
-    await mustInsert(db, "exchange_connections", { match_id: inboundMatch.id, buyer_agent_id: jordan, seller_agent_id: ownerId, buyer_exchange_id: inboundEx.id, seller_exchange_id: marcus, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-1) + "T14:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true });
+    await mustInsert(db, "exchange_connections", { match_id: inboundMatch.id, buyer_agent_id: jordan, seller_agent_id: ownerId, buyer_exchange_id: inboundEx.id, seller_exchange_id: exFor("marcus_rodriguez"), status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-1) + "T14:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true });
   }
 
-  // Identification list for Wilson's in-identification exchange (his top picks).
+  // Identification list for Wilson's in-identification exchange (his top pick).
   // Best-effort: this feature's schema may vary, so don't let it break the rebuild.
   try {
     await mustInsert(db, "identification_list", [
-      { exchange_id: wilson, property_id: prop["Brockton Main Street Mixed-Use"], match_id: matchId(wilson, prop["Brockton Main Street Mixed-Use"]), position: 1, status: "identified" },
+      { exchange_id: exFor("james_wilson"), property_id: prop["chelmsford_industrial"], match_id: matchId("james_wilson", "chelmsford_industrial"), position: 1, status: "identified" },
     ]);
   } catch (e) { console.warn("identification_list seed skipped:", (e as Error).message); }
 
   // Notifications (varied types; some unread). Tagged demo for clean teardown.
   await mustInsert(db, "notifications", [
-    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Brockton Main Street Mixed-Use (Brockton, MA) matched James Wilson's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Chelmsford Flex Building (Chelmsford, MA) matched the Patel Family Trust exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "connection_request", title: "New agent conversation", message: "Elena Vasquez started a conversation about Brockton Main Street Mixed-Use.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "connection_accepted", title: "Conversation active", message: "Your conversation with Elena Vasquez is ready for messaging.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: `${displayLocation(fixture["chelmsford_industrial"])} matched James Wilson's exchange.`, link_to: "/agent/matches", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: `${displayLocation(fixture["brockton_mixed_use"])} matched Marcus Rodriguez's exchange.`, link_to: "/agent/matches", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "connection_request", title: "New agent conversation", message: `Elena Vasquez started a conversation about ${displayLocation(fixture["brockton_mixed_use"])}.`, link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "connection_accepted", title: "Conversation active", message: "Your conversation with Priya Mehta is ready for messaging.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
   ]);
 
   // Investor view: a realistic shortlist. Direct investor -> listing-agent
   // inquiries were retired; the seeded contact request above exercises the new
   // agent-mediated workflow instead.
   await mustInsert(db, "investor_saved_properties", [
-    { investor_id: ownerId, property_id: prop["Brockton Main Street Mixed-Use"], is_demo: true },
-    { investor_id: ownerId, property_id: prop["Chelmsford Flex Building"], is_demo: true },
+    { investor_id: ownerId, property_id: prop["taunton_multifamily"], is_demo: true },
+    { investor_id: ownerId, property_id: prop["worcester_multifamily"], is_demo: true },
   ]);
-  return { clients: OWN.length + 1, listings: OWN.length + 1, counterpartyProperties: Object.keys(prop).length - OWN.length - 1, matches: matchRows.length + 1, investorSaved: 2, investorInquiries: 0, representations: 4, representationInvites: 1, contactRequests: investorMatchId ? 1 : 0 };
+  return {
+    clients: OWN.length + 1,
+    listings: OWN.length + 1,
+    counterpartyProperties: COUNTERPARTIES.reduce((n, cp) => n + cp.properties.length, 0),
+    matches: matchRows.length + 1,
+    investorSaved: 2,
+    investorInquiries: 0,
+    representations: 4,
+    representationInvites: 1,
+    contactRequests: investorMatchId ? 1 : 0,
+  };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -599,16 +533,48 @@ async function findAuthUserByEmail(db: any, email: string): Promise<string | nul
 }
 
 // `idempotent` (used for the SHARED counterparty listings, which clearOwnerDemo no
-// longer deletes) reuses an existing demo row for this agent+name instead of
-// inserting a duplicate on every rebuild, refreshing its financials/image so the
-// shared data stays coherent. The caller's own + per-build inbound properties are
-// deleted on each reset, so they use a plain insert.
-async function insertProperty(db: any, agentId: string, p: any, isDemo: boolean, status = "active", idempotent = false): Promise<string> {
+// longer deletes) reuses an existing demo row for this agent + street address
+// instead of inserting a duplicate on every rebuild, refreshing its details,
+// financials and image so the shared data stays coherent. Property labels are
+// retired: `property_name` is always written as null and fixtures are keyed by a
+// TypeScript-only internal id. The caller's own + per-build inbound properties
+// are deleted on each reset, so they use a plain insert.
+async function insertProperty(db: any, agentId: string, p: DemoProperty, isDemo: boolean, status = "active", idempotent = false): Promise<string> {
+  assertValidDemoProperty(p);
   const fields = {
-    agent_id: agentId, property_name: p.name, address: p.address, city: p.city, state: p.state,
-    asset_type: p.asset_type, strategy_type: p.strategy_type, units: p.units, year_built: p.year_built,
-    building_square_footage: p.sf, description: p.description, is_demo: isDemo,
-    source: "agent_pledge", status, listed_at: status === "active" ? new Date().toISOString() : null,
+    agent_id: agentId,
+    property_name: null,
+    address: p.address,
+    address_is_public: p.address_is_public,
+    city: p.city,
+    state: p.state,
+    zip: p.zip,
+    county: p.county,
+    unit_suite: p.unit_suite ?? null,
+    asset_type: p.asset_type,
+    asset_subtype: p.asset_subtype,
+    strategy_type: p.strategy_type,
+    property_class: p.property_class,
+    property_condition: p.property_condition,
+    year_built: p.year_built,
+    units: p.units,
+    building_square_footage: p.sf,
+    land_area_acres: p.land_area_acres,
+    num_buildings: p.num_buildings,
+    num_stories: p.num_stories,
+    parking_spaces: p.parking_spaces,
+    parking_type: p.parking_type,
+    construction_type: p.construction_type,
+    roof_type: p.roof_type,
+    hvac_type: p.hvac_type,
+    zoning: p.zoning,
+    amenities: p.amenities,
+    description: p.description,
+    recent_renovations: p.recent_renovations,
+    is_demo: isDemo,
+    source: "agent_pledge",
+    status,
+    listed_at: status === "active" ? new Date().toISOString() : null,
     // Published (active) listings must carry the compliance attestation, otherwise
     // editing a seeded active listing is blocked (Save disabled) until the box is
     // re-checked. Drafts stay unconfirmed so the wizard prompts for it on publish.
@@ -618,7 +584,7 @@ async function insertProperty(db: any, agentId: string, p: any, isDemo: boolean,
   let propId: string;
   if (idempotent) {
     const { data: existing } = await db.from("pledged_properties")
-      .select("id").eq("agent_id", agentId).eq("property_name", p.name).eq("is_demo", true).maybeSingle();
+      .select("id").eq("agent_id", agentId).eq("address", p.address).eq("is_demo", true).maybeSingle();
     if (existing) {
       propId = existing.id;
       const { error: upErr } = await db.from("pledged_properties").update(fields).eq("id", propId);
