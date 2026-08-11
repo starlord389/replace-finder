@@ -5,6 +5,7 @@ import {
   Dialog, DialogContent, DialogTitle,
 } from "@/components/ui/dialog";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
+import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 
 interface Props {
   rel: Relationship;
@@ -26,12 +27,7 @@ export function ListingHero({ rel }: Props) {
           {heroSrc ? (
             <img src={heroSrc} alt={rel.propertyName} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#403a34] to-[#272320]">
-              <div className="flex flex-col items-center gap-2 text-white/70">
-                <Images className="h-8 w-8" />
-                <span className="text-xs font-medium">No photos provided yet</span>
-              </div>
-            </div>
+            <PropertyPhotoPlaceholder tone="dark" />
           )}
           <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/40 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 to-transparent" />

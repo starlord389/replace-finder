@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Building2, Calendar, Heart, MapPin, Ruler } from "lucide-react";
+import { ArrowLeft, Calendar, Heart, MapPin, Ruler } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { InvestorInquiryDialog } from "@/features/investor/components/InvestorIn
 import { useInvestorProperties } from "@/features/investor/hooks/useInvestorProperties";
 import { useInvestorSavedProperties } from "@/features/investor/hooks/useInvestorSavedProperties";
 import { investorErrorMessage } from "@/features/investor/errorMessage";
+import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const formatValue = (value: number | null, suffix = "") => value == null ? "Not provided" : `${value.toLocaleString()}${suffix}`;
@@ -34,7 +35,7 @@ export default function InvestorPropertyDetail() {
       <Button variant="ghost" asChild className="-ml-3"><Link to="/investor/marketplace"><ArrowLeft className="mr-2 h-4 w-4" />Back to marketplace</Link></Button>
       <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
         <div className="grid lg:grid-cols-[1.4fr_1fr]">
-          <div className="min-h-72 bg-slate-100">{property.imageUrls[0] ? <img src={property.imageUrls[0]} alt={property.name} className="h-full max-h-[540px] w-full object-cover" /> : <div className="flex h-full min-h-72 items-center justify-center"><Building2 className="h-16 w-16 text-slate-300" /></div>}</div>
+          <div className="min-h-72 bg-slate-100">{property.imageUrls[0] ? <img src={property.imageUrls[0]} alt={property.name} className="h-full max-h-[540px] w-full object-cover" /> : <PropertyPhotoPlaceholder className="min-h-72" />}</div>
           <div className="flex flex-col justify-between p-6 sm:p-8">
             <div>
               <div className="flex flex-wrap gap-2"><Badge>{property.assetType?.replace(/_/g, " ") || "Property"}</Badge>{property.strategyType && <Badge variant="outline">{property.strategyType.replace(/_/g, " ")}</Badge>}</div>

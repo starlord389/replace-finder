@@ -312,7 +312,7 @@ export default function AdvancedPropertyDetails({
           <section className="space-y-3 border-t pt-6">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Property photos <span className="normal-case tracking-normal">(optional)</span></h3>
-              <p className="mt-1 text-xs text-muted-foreground">The first photo becomes the cover. A clean placeholder is used if you skip photos.</p>
+              <p className="mt-1 text-xs text-muted-foreground">The first photo becomes the cover. If you skip photos, matched users will see that no property photos were provided.</p>
             </div>
             <PropertyPhotoUploader images={images} onChange={onChangeImages} />
           </section>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Building2, ChevronRight, MapPin, Search, SlidersHorizontal, X } from "lucide-react";
+import { ChevronRight, MapPin, Search, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { ASSET_TYPE_LABELS, EXCHANGE_STATUS_LABELS } from "@/lib/constants";
 import { useAuth } from "@/hooks/useAuth";
 import type { AgentListing } from "@/features/pipeline/hooks/useAgentListings";
 import { ListingPreviewDialog } from "./ListingPreviewDialog";
+import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 import {
   EMPTY_SWITCHER_FILTERS,
   getLastListing,
@@ -361,9 +362,7 @@ export function ListingSwitcher({ listings, basePath = "/agent", ownerLabel }: {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <Building2 className="h-6 w-6 text-muted-foreground/40" />
-                            </div>
+                            <PropertyPhotoPlaceholder compact />
                           )}
                           <div className="absolute left-1.5 top-1.5">
                             <span className="rounded border border-border/60 bg-background/95 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-foreground shadow-sm backdrop-blur-sm">

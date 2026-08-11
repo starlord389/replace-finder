@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { Building2, Heart, MapPin } from "lucide-react";
+import { Heart, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { InvestorProperty } from "@/features/investor/types";
+import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
@@ -28,7 +29,7 @@ export function InvestorPropertyCard({
         {property.imageUrls[0] ? (
           <img src={property.imageUrls[0]} alt={property.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
         ) : (
-          <div className="flex h-full items-center justify-center"><Building2 className="h-12 w-12 text-slate-300" /></div>
+          <PropertyPhotoPlaceholder />
         )}
         <Button
           type="button"

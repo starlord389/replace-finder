@@ -9,7 +9,7 @@ import {
   parseCurrency,
 } from "@/lib/exchangeWizardTypes";
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
-import { propertyImage } from "@/features/matches/components/inbox/propertyImage";
+import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 
 interface Props {
   property: PropertyData;
@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function ReviewMatchPreview({ property, financials, images }: Props) {
-  const cover = images[0]?.url ?? propertyImage(null, property.city + property.state);
+  const cover = images[0]?.url ?? null;
   const cityState = [property.city, property.state].filter(Boolean).join(", ") || "Location TBD";
   const primaryLine = property.address_is_public && property.address
     ? property.address
@@ -49,7 +49,11 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
           <div className="max-w-sm rounded-2xl border border-border bg-card p-3">
             <div className="flex min-w-0 gap-3">
               <div className="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-xl bg-muted ring-1 ring-black/[0.04]">
-                <img src={cover} alt="" className="h-full w-full object-cover" />
+                {cover ? (
+                  <img src={cover} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <PropertyPhotoPlaceholder compact />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
@@ -99,7 +103,11 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
           <p className="mb-2 text-xs font-medium text-muted-foreground">When they open the match</p>
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
             <div className="relative h-32 w-full bg-muted sm:h-40">
-              <img src={cover} alt="" className="h-full w-full object-cover" />
+              {cover ? (
+                <img src={cover} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <PropertyPhotoPlaceholder />
+              )}
             </div>
             <div className="space-y-2 p-4">
               <div className="flex items-start justify-between gap-3">

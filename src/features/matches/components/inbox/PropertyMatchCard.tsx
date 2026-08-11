@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import { propertyImage } from "./propertyImage";
 import { ASSET_TYPE_LABELS } from "@/lib/constants";
+import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 import { currency, scoreDotClass } from "../helpers";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import {
@@ -69,12 +69,16 @@ export function PropertyMatchCard({ rel, selected, onSelect, assetType, hideClie
       {/* Matched property */}
       <div className="flex min-w-0 gap-3">
         <div className="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-xl bg-muted ring-1 ring-black/[0.04]">
-          <img
-            src={propertyImage(rel.propertyImageUrl, rel.id)}
-            alt=""
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
+          {rel.propertyImageUrl ? (
+            <img
+              src={rel.propertyImageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <PropertyPhotoPlaceholder compact />
+          )}
           {rel.unreadCount > 0 && (
             <span
               className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card"

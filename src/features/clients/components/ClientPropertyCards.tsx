@@ -12,6 +12,7 @@ import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 import { ListingPreviewDialog } from "@/features/workspace/components/ListingPreviewDialog";
 import type { AgentListing } from "@/features/pipeline/hooks/useAgentListings";
 import type { Enums } from "@/integrations/supabase/types";
+import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 
 interface Props {
   clientId: string;
@@ -194,9 +195,7 @@ export function ClientPropertyCards({ clientId, clientName }: Props) {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <Building2 className="h-10 w-10 text-muted-foreground/40" />
-                  </div>
+                  <PropertyPhotoPlaceholder />
                 )}
                 <div className="absolute left-2 top-2">
                   <Badge
