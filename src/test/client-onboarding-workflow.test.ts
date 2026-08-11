@@ -22,6 +22,10 @@ const launchpadPage = readFileSync(
   resolve(process.cwd(), "src/pages/agent/AgentLaunchpad.tsx"),
   "utf8",
 );
+const exchangeClientStep = readFileSync(
+  resolve(process.cwd(), "src/components/exchange/StepSelectClient.tsx"),
+  "utf8",
+);
 
 describe("agent client onboarding workflow", () => {
   it("keeps the Launchpad client step focused on creating an internal client record", () => {
@@ -43,6 +47,20 @@ describe("agent client onboarding workflow", () => {
     expect(clientProfile).toContain("Invite this client to their own workspace");
     expect(clientProfile).toContain("inviteExistingInvestorClient(clientId)");
     expect(clientProfile).toContain("Manage in Client Requests");
+  });
+
+  it("requires only a client name and explains the benefit of an optional email", () => {
+    for (const clientForm of [addClientPage, exchangeClientStep]) {
+      expect(clientForm).toContain("Client name");
+      expect(clientForm).toContain("(required)");
+      expect(clientForm).toContain("Email");
+      expect(clientForm).toContain("Phone");
+      expect(clientForm).toContain("(optional)");
+      expect(clientForm).toContain("send matching properties directly to this client");
+    }
+
+    expect(addClientPage).toContain("client_email: email.trim() || null");
+    expect(exchangeClientStep).toContain("client_email: newClient.email.trim() || null");
   });
 
   it("keeps inline Launchpad education complete after its panel is closed", () => {

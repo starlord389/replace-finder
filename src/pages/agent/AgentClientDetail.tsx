@@ -109,23 +109,43 @@ export default function AgentClientDetail() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Client information</CardTitle>
-            <CardDescription>Only the client name is required to begin creating their listing.</CardDescription>
+            <CardDescription>
+              Only the client name is required. Contact information can be added now or later.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Client Name *</Label>
+              <Label htmlFor="name">
+                Client name <span className="text-muted-foreground">(required)</span>
+              </Label>
               <Input id="name" value={name} onChange={(event) => setName(event.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+              <Label htmlFor="email">
+                Email <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                aria-describedby="client-email-help"
+              />
+              <p id="client-email-help" className="text-xs leading-relaxed text-muted-foreground">
+                Add an email to send matching properties directly to this client from ExchangeUp. You can
+                always add it later.
+              </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">
+                Phone <span className="text-muted-foreground">(optional)</span>
+              </Label>
               <Input id="phone" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">
+                Notes <span className="text-muted-foreground">(optional)</span>
+              </Label>
               <Textarea
                 id="notes"
                 value={notes}

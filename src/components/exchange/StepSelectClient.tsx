@@ -214,21 +214,52 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
       ) : (
         <Card>
           <CardContent className="space-y-4 p-4">
-            <h3 className="font-medium text-foreground">New Client</h3>
+            <div>
+              <h3 className="font-medium text-foreground">New Client</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Only the client name is required. Contact information can be added now or later.
+              </p>
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <Label>Name *</Label>
-                <Input value={newClient.name} onChange={e => setNewClient(p => ({ ...p, name: e.target.value }))} />
+              <div className="space-y-2">
+                <Label htmlFor="new-client-name">
+                  Client name <span className="text-muted-foreground">(required)</span>
+                </Label>
+                <Input
+                  id="new-client-name"
+                  value={newClient.name}
+                  onChange={e => setNewClient(p => ({ ...p, name: e.target.value }))}
+                  required
+                />
               </div>
-              <div>
-                <Label>Email</Label>
-                <Input type="email" value={newClient.email} onChange={e => setNewClient(p => ({ ...p, email: e.target.value }))} />
+              <div className="space-y-2">
+                <Label htmlFor="new-client-email">
+                  Email <span className="text-muted-foreground">(optional)</span>
+                </Label>
+                <Input
+                  id="new-client-email"
+                  type="email"
+                  value={newClient.email}
+                  onChange={e => setNewClient(p => ({ ...p, email: e.target.value }))}
+                  aria-describedby="new-client-email-help"
+                />
               </div>
-              <div>
-                <Label>Phone</Label>
-                <Input type="tel" value={newClient.phone} onChange={e => setNewClient(p => ({ ...p, phone: e.target.value }))} />
+              <div className="space-y-2">
+                <Label htmlFor="new-client-phone">
+                  Phone <span className="text-muted-foreground">(optional)</span>
+                </Label>
+                <Input
+                  id="new-client-phone"
+                  type="tel"
+                  value={newClient.phone}
+                  onChange={e => setNewClient(p => ({ ...p, phone: e.target.value }))}
+                />
               </div>
             </div>
+            <p id="new-client-email-help" className="text-xs leading-relaxed text-muted-foreground">
+              Add an email to send matching properties directly to this client from ExchangeUp. You can
+              always add it later.
+            </p>
             <div className="flex gap-2">
               <Button onClick={handleAddClient} disabled={saving || !newClient.name.trim()}>
                 {saving ? "Adding…" : "Add & Select"}
