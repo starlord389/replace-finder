@@ -112,47 +112,49 @@ const IMG = {
   office: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=75&auto=format&fit=crop",
 };
 
-// ── Counterparty network: 4 agents, 7 active replacement-candidate properties ─
+// ── Counterparty network: 4 Massachusetts agents, 7 active candidate listings ─
+// Demographic: mom-and-pop landlords, growing multifamily investors, and
+// small-scale commercial. All inventory is in-state (MA).
 const COUNTERPARTIES = [
   {
     email: "demo.agent.alvarez@replacefinder.test", full_name: "Jordan Alvarez", brokerage_name: "Alvarez Commercial Group",
     properties: [
-      { name: "Sunrise Apartments", address: "1420 N 44th St", city: "Phoenix", state: "AZ", asset_type: "multifamily", strategy_type: "value_add", units: 48, year_built: 1998, sf: 42000,
-        description: "Stabilized garden-style community in the Arcadia Lite corridor. 38 of 48 units renovated 2021-2023; remaining 10 classic units offer ~$180/mo mark-to-market upside. New roofs 2019, pool deck refreshed 2022. Easy access to Loop 202 and Sky Harbor.",
-        f: fin({ ask: 4_950_000, cap: 6.6, gross: 555_000, occ: 94, loan: 2_700_000, rate: 6.25, maturity: "2031-03-01" }), img: IMG.mf },
-      { name: "Mesa Gateway Plaza", address: "2210 S Power Rd", city: "Mesa", state: "AZ", asset_type: "retail", strategy_type: "core", units: 12, year_built: 2007, sf: 18400,
-        description: "Fully leased neighborhood strip center at a signalized hard corner near Phoenix-Mesa Gateway Airport. 9 of 12 tenants on NNN leases with staggered expirations; national pharmacy anchor. Roof replaced 2021, LED site lighting 2022.",
-        f: fin({ ask: 2_450_000, cap: 6.9, gross: 232_000, occ: 92, loan: 1_320_000, rate: 5.9, maturity: "2029-09-01" }), img: IMG.retail },
+      { name: "Elm Park Triple-Deckers", address: "145 Russell St", city: "Worcester", state: "MA", asset_type: "multifamily", strategy_type: "value_add", units: 12, year_built: 1920, sf: 11400,
+        description: "Four classic Worcester triple-deckers sold as one package, 12 total units near Elm Park and Clark University. Eight units turned 2021-2024; remaining four are ~$250/mo under market. New rubber roofs on two buildings, separate gas heat, tenants pay heat and electric.",
+        f: fin({ ask: 1_650_000, cap: 6.8, gross: 195_000, occ: 95, loan: 900_000, rate: 6.25, maturity: "2031-03-01" }), img: IMG.mf },
+      { name: "Shrewsbury Street Storefronts", address: "310 Shrewsbury St", city: "Worcester", state: "MA", asset_type: "retail", strategy_type: "core", units: 5, year_built: 1985, sf: 7800,
+        description: "Five-tenant neighborhood retail strip on Worcester's restaurant row. Long-standing local tenants on staggered leases, all reimbursing taxes and insurance. Roof replaced 2021, striped parking for 22 cars.",
+        f: fin({ ask: 1_250_000, cap: 7.0, gross: 128_000, occ: 92, loan: 680_000, rate: 5.9, maturity: "2029-09-01" }), img: IMG.retail },
     ],
   },
   {
     email: "demo.agent.mehta@replacefinder.test", full_name: "Priya Mehta", brokerage_name: "Mehta Investment Realty",
     properties: [
-      { name: "Crosspoint Industrial", address: "880 Industrial Pkwy", city: "Charlotte", state: "NC", asset_type: "industrial", strategy_type: "core_plus", units: 1, year_built: 2012, sf: 78000,
-        description: "Single-tenant distribution facility leased to a regional 3PL through 2030 with 2.5% annual escalations. 24' clear, 8 dock-high doors, ESFR, fenced trailer yard. Assumable loan at 5.4%. I-485 access within a mile.",
-        f: fin({ ask: 3_200_000, cap: 7.0, gross: 268_000, occ: 100, loan: 1_760_000, rate: 5.4, maturity: "2032-06-01" }), img: IMG.industrial },
-      { name: "Queen City Medical Commons", address: "4310 Park Rd", city: "Charlotte", state: "NC", asset_type: "medical_office", strategy_type: "core", units: 14, year_built: 2016, sf: 26500,
-        description: "96% occupied multi-tenant medical office adjacent to Atrium Health Pineville. WALT of 5.8 years across imaging, dental, and primary-care tenants. Generator backup, ADA suites, covered drop-off. Lobby refresh 2024.",
-        f: fin({ ask: 4_100_000, cap: 6.5, gross: 392_000, occ: 96, loan: 2_250_000, rate: 5.75, maturity: "2033-01-01" }), img: IMG.medical },
+      { name: "Merrimack Mill Lofts", address: "88 Market St", city: "Lowell", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 16, year_built: 1998, sf: 15200,
+        description: "16-unit converted mill building in downtown Lowell, 96% occupied with a steady renter base from UMass Lowell and the medical corridor. Elevator served, in-unit laundry, on-site parking. Boiler replaced 2022.",
+        f: fin({ ask: 2_400_000, cap: 6.5, gross: 268_000, occ: 96, loan: 1_320_000, rate: 5.75, maturity: "2033-01-01" }), img: IMG.mf },
+      { name: "Chelmsford Flex Building", address: "12 Katrina Rd", city: "Chelmsford", state: "MA", asset_type: "industrial", strategy_type: "core_plus", units: 3, year_built: 2004, sf: 21000,
+        description: "Three-tenant flex/light industrial building off Route 3, fully leased to established local contractors. 18' clear, three drive-in doors, small office build-outs. Assumable loan at 5.4%.",
+        f: fin({ ask: 1_850_000, cap: 7.2, gross: 178_000, occ: 100, loan: 1_000_000, rate: 5.4, maturity: "2032-06-01" }), img: IMG.industrial },
     ],
   },
   {
     email: "demo.agent.brooks@replacefinder.test", full_name: "Daniel Brooks", brokerage_name: "Brooks & Lane CRE",
     properties: [
-      { name: "Lakeline Flex Park", address: "11500 Lakeline Blvd", city: "Cedar Park", state: "TX", asset_type: "industrial", strategy_type: "value_add", units: 6, year_built: 2009, sf: 41200,
-        description: "Six-suite flex/light-industrial park in the Austin growth corridor, 88% leased with two suites in shell condition ready for lease-up. In-place rents ~12% under market. Grade-level doors, 14-18' clear. Suite 4 white-boxed 2024.",
-        f: fin({ ask: 2_850_000, cap: 7.3, gross: 296_000, occ: 88, loan: 1_540_000, rate: 6.5, maturity: "2030-04-01" }), img: IMG.industrial },
+      { name: "Forest Park Six-Family", address: "45 Sumner Ave", city: "Springfield", state: "MA", asset_type: "multifamily", strategy_type: "value_add", units: 6, year_built: 1925, sf: 6800,
+        description: "Six-family in Springfield's Forest Park neighborhood, a straightforward first step up for a small landlord. Two units renovated 2023, four original. Newer roof and updated electrical; rents roughly 15% under market.",
+        f: fin({ ask: 725_000, cap: 8.0, gross: 104_000, occ: 90, loan: 400_000, rate: 6.5, maturity: "2030-04-01" }), img: IMG.mf },
     ],
   },
   {
     email: "demo.agent.vasquez@replacefinder.test", full_name: "Elena Vasquez", brokerage_name: "Vasquez Realty Partners",
     properties: [
-      { name: "Bayshore Court Apartments", address: "3804 W Azeele St", city: "Tampa", state: "FL", asset_type: "multifamily", strategy_type: "core_plus", units: 32, year_built: 2003, sf: 28400,
-        description: "Courtyard community a mile from Bayshore Boulevard, 95% occupied. All roofs replaced 2023 post-storm (insurance-grade); 12 units upgraded 2022-2024 with 20 left to renovate. In-unit W/D, gated parking, courtyard pool.",
-        f: fin({ ask: 4_600_000, cap: 6.4, gross: 470_000, occ: 95, loan: 2_530_000, rate: 5.95, maturity: "2033-08-01" }), img: IMG.mf },
-      { name: "Westshore Corporate Center", address: "501 N Westshore Blvd", city: "Tampa", state: "FL", asset_type: "office", strategy_type: "value_add", units: 1, year_built: 2001, sf: 54000,
-        description: "Multi-tenant suburban office in the Westshore submarket, 79% leased with recent spec-suite program driving leasing momentum. Below-market rents, structured parking, fitness center. Priced well below replacement cost.",
-        f: fin({ ask: 5_200_000, cap: 7.6, gross: 690_000, occ: 79, loan: 2_900_000, rate: 6.8, maturity: "2031-11-01" }), img: IMG.office },
+      { name: "Wollaston Court Apartments", address: "42 Beale St", city: "Quincy", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 10, year_built: 1972, sf: 9400,
+        description: "Ten-unit brick walk-up two blocks from the Wollaston Red Line stop, 95% occupied year-round. Six units updated since 2021, common laundry, 12 off-street spaces. Windows replaced 2020.",
+        f: fin({ ask: 2_150_000, cap: 6.0, gross: 218_000, occ: 95, loan: 1_180_000, rate: 5.95, maturity: "2033-08-01" }), img: IMG.mf },
+      { name: "Brockton Main Street Mixed-Use", address: "780 Main St", city: "Brockton", state: "MA", asset_type: "mixed_use", strategy_type: "core_plus", units: 9, year_built: 1930, sf: 12400,
+        description: "Three ground-floor storefronts over six apartments in downtown Brockton. Residential fully leased; one commercial suite vacant and ready for lease-up. Facade and storefront glass redone 2022.",
+        f: fin({ ask: 1_400_000, cap: 7.5, gross: 168_000, occ: 88, loan: 760_000, rate: 6.8, maturity: "2031-11-01" }), img: IMG.retail },
     ],
   },
 ];
@@ -163,46 +165,46 @@ const dFrom = (n: number) => { const d = new Date(TODAY); d.setDate(d.getDate() 
 
 const OWN = [
   // Draft - being prepared, not yet in the network.
-  { client: { client_name: "Chen Family Investments", client_company: "Chen Family Investments LLC", client_email: "sarah.chen@example.com", client_phone: "(512) 555-0101", notes: "Repeat client. Sold a duplex portfolio in 2023. Prefers Texas multifamily, hands-off. Pre-approved with regional bank.", status: "active" },
-    property: { name: "Riverbend Court", address: "1208 Pleasant Valley Rd", city: "Austin", state: "TX", asset_type: "multifamily", strategy_type: "core_plus", units: 18, year_built: 2008, sf: 16200,
-      description: "DRAFT - gathering rent roll and T-12. 18-unit garden community in southeast Austin, 96% occupied, individually metered.",
-      f: fin({ ask: 3_150_000, cap: 5.3, gross: 232_000, occ: 96, loan: 1_350_000, rate: 4.6, maturity: "2030-05-01" }), img: IMG.mf },
+  { client: { client_name: "Chen Family Investments", client_company: "Chen Family Investments LLC", client_email: "sarah.chen@example.com", client_phone: "(781) 555-0101", notes: "Longtime Medford landlord with two duplexes. Wants to trade up into a single 8-12 unit building closer to the Orange Line. Pre-approved with a local credit union.", status: "active" },
+    property: { name: "Highland Street Duplexes", address: "214 Highland Ave", city: "Medford", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 4, year_built: 1955, sf: 4600,
+      description: "DRAFT - gathering rent roll and last year's operating statements. Two side-by-side duplexes in Medford, fully occupied, tenants pay all utilities.",
+      f: fin({ ask: 1_350_000, cap: 5.2, gross: 118_000, occ: 100, loan: 560_000, rate: 4.6, maturity: "2030-05-01" }), img: IMG.mf },
     exchange: { status: "draft" } },
 
-  // Active - Marcus, multifamily, mid-clock.
-  { client: { client_name: "Marcus Rodriguez", client_company: "Rodriguez Holdings LLC", client_email: "marcus@rodriguezllc.example", client_phone: "(713) 555-0127", notes: "1031 veteran on his fourth exchange. Targets stabilized Sun Belt multifamily or retail. Open to assumable debt. Decisive once numbers pencil.", status: "active" },
-    property: { name: "Heights Multifamily 24", address: "2400 Heights Blvd", city: "Houston", state: "TX", asset_type: "multifamily", strategy_type: "core_plus", units: 24, year_built: 2005, sf: 22800,
-      description: "24-unit walk-up in Houston Heights. 14 of 24 units renovated 2021-2023; in-place rents ~8% under market on classic units. Roof replaced 2020, individual HVAC, gated parking. Walkable to the Heights hike-and-bike trail and I-10.",
-      f: fin({ ask: 3_450_000, cap: 5.4, gross: 270_000, occ: 95, loan: 1_450_000, rate: 4.9, maturity: "2031-07-01" }), img: IMG.mf },
-    exchange: { status: "active", exchange_proceeds: 2_000_000, estimated_equity: 2_000_000, estimated_basis: 1_150_000, estimated_gain: 850_000, estimated_tax_liability: 212_500, sale_close_date: dFrom(-20), identification_deadline: dFrom(25), closing_deadline: dFrom(160) } },
+  // Active - Marcus, small multifamily, mid-clock.
+  { client: { client_name: "Marcus Rodriguez", client_company: "Rodriguez Holdings LLC", client_email: "marcus@rodriguezllc.example", client_phone: "(617) 555-0127", notes: "Second exchange. Owns a Dorchester three-family and is tired of self-managing. Wants a larger MA multifamily with professional management in place.", status: "active" },
+    property: { name: "Dorchester Ave Three-Family", address: "1420 Dorchester Ave", city: "Boston", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 3, year_built: 1910, sf: 3900,
+      description: "Classic Dorchester three-decker near Fields Corner, fully occupied with long-term tenants. Two units updated 2022, separate utilities, off-street parking for three. Owner-managed for 11 years.",
+      f: fin({ ask: 1_250_000, cap: 5.0, gross: 108_000, occ: 100, loan: 500_000, rate: 4.9, maturity: "2031-07-01" }), img: IMG.mf },
+    exchange: { status: "active", exchange_proceeds: 750_000, estimated_equity: 750_000, estimated_basis: 420_000, estimated_gain: 330_000, estimated_tax_liability: 82_500, sale_close_date: dFrom(-20), identification_deadline: dFrom(25), closing_deadline: dFrom(160) } },
 
-  // Active - Patel trust, retail.
-  { client: { client_name: "Patel Family Trust", client_company: "Patel Family Trust", client_email: "trustee@patelfamily.example", client_phone: "(305) 555-0163", notes: "Trustee prioritizes passive, credit-tenant income. Open to medical office and net lease. No development or heavy value-add. Quarterly distributions matter.", status: "active" },
-    property: { name: "Coral Way Retail Center", address: "5200 Coral Way", city: "Miami", state: "FL", asset_type: "retail", strategy_type: "core", units: 8, year_built: 2010, sf: 18500,
-      description: "Eight-suite Coral Way strip center on a hard corner, credit anchor + local service tenants. Facade refresh and TPO roof 2022, hurricane-rated glazing. Stable in-place income with annual bumps.",
-      f: fin({ ask: 2_900_000, cap: 5.8, gross: 235_000, occ: 100, loan: 1_220_000, rate: 5.1, maturity: "2030-02-01" }), img: IMG.retail },
-    exchange: { status: "active", exchange_proceeds: 2_800_000, estimated_equity: 2_800_000, estimated_basis: 1_600_000, estimated_gain: 1_200_000, estimated_tax_liability: 300_000, sale_close_date: dFrom(-10), identification_deadline: dFrom(35), closing_deadline: dFrom(170) } },
+  // Active - Patel trust, small retail.
+  { client: { client_name: "Patel Family Trust", client_company: "Patel Family Trust", client_email: "trustee@patelfamily.example", client_phone: "(978) 555-0163", notes: "Trustee wants passive, low-maintenance income in Massachusetts. Open to small retail or mixed-use with reliable local tenants. No heavy value-add.", status: "active" },
+    property: { name: "Beverly Rantoul Retail", address: "210 Rantoul St", city: "Beverly", state: "MA", asset_type: "retail", strategy_type: "core", units: 4, year_built: 1988, sf: 6200,
+      description: "Four-tenant retail strip on Rantoul Street with a pharmacy, salon, and two service tenants. All leases reimburse taxes. New roof 2022, repaved lot 2023.",
+      f: fin({ ask: 1_100_000, cap: 6.0, gross: 96_000, occ: 100, loan: 420_000, rate: 5.1, maturity: "2030-02-01" }), img: IMG.retail },
+    exchange: { status: "active", exchange_proceeds: 680_000, estimated_equity: 680_000, estimated_basis: 390_000, estimated_gain: 290_000, estimated_tax_liability: 72_500, sale_close_date: dFrom(-10), identification_deadline: dFrom(35), closing_deadline: dFrom(170) } },
 
-  // In identification - Wilson, industrial, URGENT clock (9 days to ID).
-  { client: { client_name: "James Wilson", client_email: "jwilson@example.com", client_phone: "(602) 555-0144", notes: "Selling a Phoenix warehouse; wants industrial near Austin or Charlotte. 45-day window closing fast - only actionable, well-located deals. Cash buyer if needed.", status: "active" },
-    property: { name: "Desert Ridge Industrial", address: "9100 N Desert Ridge Dr", city: "Phoenix", state: "AZ", asset_type: "industrial", strategy_type: "value_add", units: 1, year_built: 2001, sf: 65000,
-      description: "Single-tenant Phoenix warehouse; lease expires in 14 months, driving the exchange timeline. 20' clear, 6 dock doors, fenced yard. Office remodeled 2022, roof mid-life. Infill location with redevelopment optionality.",
-      f: fin({ ask: 3_750_000, cap: 6.2, gross: 305_000, occ: 100, loan: 1_980_000, rate: 5.6, maturity: "2028-11-01" }), img: IMG.industrial },
-    exchange: { status: "in_identification", exchange_proceeds: 1_770_000, estimated_equity: 1_770_000, estimated_basis: 1_000_000, estimated_gain: 770_000, estimated_tax_liability: 192_500, sale_close_date: dFrom(-36), identification_deadline: dFrom(9), closing_deadline: dFrom(144) } },
+  // In identification - Wilson, small commercial, URGENT clock (9 days to ID).
+  { client: { client_name: "James Wilson", client_email: "jwilson@example.com", client_phone: "(978) 555-0144", notes: "Selling a Haverhill warehouse he's owned since the 90s. Wants small flex or multifamily within an hour of home. ID window closing fast - only actionable MA deals.", status: "active" },
+    property: { name: "Haverhill Locke Street Warehouse", address: "55 Locke St", city: "Haverhill", state: "MA", asset_type: "industrial", strategy_type: "value_add", units: 1, year_built: 1978, sf: 18000,
+      description: "Single-tenant warehouse near I-495; the tenant's lease expiration is driving the exchange timeline. 18' clear, three dock doors, fenced yard. Office remodeled 2022, roof mid-life.",
+      f: fin({ ask: 1_500_000, cap: 6.5, gross: 132_000, occ: 100, loan: 700_000, rate: 5.6, maturity: "2028-11-01" }), img: IMG.industrial },
+    exchange: { status: "in_identification", exchange_proceeds: 800_000, estimated_equity: 800_000, estimated_basis: 430_000, estimated_gain: 370_000, estimated_tax_liability: 92_500, sale_close_date: dFrom(-36), identification_deadline: dFrom(9), closing_deadline: dFrom(144) } },
 
-  // In closing - Aurora, office, closing in 12 days; ID window already passed.
-  { client: { client_name: "Aurora Holdings", client_company: "Aurora Holdings Inc.", client_email: "ops@auroraholdings.example", client_phone: "(919) 555-0188", notes: "Family office, in closing on a Raleigh office disposition. Replacement identified; coordinating QI and lender. Needs clean execution.", status: "active" },
-    property: { name: "Triangle Office Park", address: "120 Research Triangle Pkwy", city: "Raleigh", state: "NC", asset_type: "office", strategy_type: "core", units: 1, year_built: 2015, sf: 48000,
-      description: "Class A office near Research Triangle Park, recently re-leased. Conference center, EV charging, structured parking. Lobby modernization 2023. Replacement purchase is in closing.",
-      f: fin({ ask: 4_400_000, cap: 5.6, gross: 540_000, occ: 92, loan: 2_340_000, rate: 5.3, maturity: "2032-05-01" }), img: IMG.office },
-    exchange: { status: "in_closing", exchange_proceeds: 2_060_000, estimated_equity: 2_060_000, estimated_basis: 1_400_000, estimated_gain: 660_000, estimated_tax_liability: 165_000, sale_close_date: dFrom(-60), identification_deadline: dFrom(-15), closing_deadline: dFrom(12) } },
+  // In closing - Aurora, small office, closing in 12 days; ID window already passed.
+  { client: { client_name: "Aurora Holdings", client_company: "Aurora Holdings Inc.", client_email: "ops@auroraholdings.example", client_phone: "(508) 555-0188", notes: "Small family partnership closing on a Framingham office disposition. Replacement identified; coordinating QI and a local lender. Needs clean execution.", status: "active" },
+    property: { name: "Framingham Professional Building", address: "945 Concord St", city: "Framingham", state: "MA", asset_type: "office", strategy_type: "core", units: 1, year_built: 1999, sf: 14000,
+      description: "Two-story suburban professional building on Route 126, leased to accounting, insurance, and dental tenants. Surface parking, recent HVAC replacement. Replacement purchase is in closing.",
+      f: fin({ ask: 1_800_000, cap: 6.2, gross: 168_000, occ: 92, loan: 900_000, rate: 5.3, maturity: "2032-05-01" }), img: IMG.office },
+    exchange: { status: "in_closing", exchange_proceeds: 900_000, estimated_equity: 900_000, estimated_basis: 520_000, estimated_gain: 380_000, estimated_tax_liability: 95_000, sale_close_date: dFrom(-60), identification_deadline: dFrom(-15), closing_deadline: dFrom(12) } },
 
   // Completed - historical, fully closed.
-  { client: { client_name: "Brennan Stout", client_email: "bstout@example.com", client_phone: "(214) 555-0190", notes: "Closed exchange from earlier this year. Kept on file for repeat business; eyeing another disposition in Q4.", status: "inactive" },
-    property: { name: "Lamar Self Storage", address: "6601 S Lamar Blvd", city: "Austin", state: "TX", asset_type: "industrial", strategy_type: "core", units: 1, year_built: 2014, sf: 52000,
-      description: "Climate-controlled self-storage facility, sold and exchanged earlier this year. Retained for reference.",
-      f: fin({ ask: 3_100_000, cap: 6.0, gross: 300_000, occ: 90, loan: 1_300_000, rate: 5.0, maturity: "2029-01-01" }), img: IMG.industrial },
-    exchange: { status: "completed", exchange_proceeds: 1_800_000, estimated_equity: 1_800_000, estimated_basis: 1_050_000, estimated_gain: 750_000, estimated_tax_liability: 187_500, sale_close_date: dFrom(-180), identification_deadline: dFrom(-135), closing_deadline: dFrom(-8), actual_close_date: dFrom(-8) } },
+  { client: { client_name: "Brennan Stout", client_email: "bstout@example.com", client_phone: "(413) 555-0190", notes: "Closed exchange from earlier this year. Kept on file for repeat business; eyeing another small multifamily disposition in Q4.", status: "inactive" },
+    property: { name: "Fall River Self Storage", address: "500 Airport Rd", city: "Fall River", state: "MA", asset_type: "industrial", strategy_type: "core", units: 1, year_built: 2010, sf: 22000,
+      description: "Small climate-controlled self-storage facility, sold and exchanged earlier this year. Retained for reference.",
+      f: fin({ ask: 1_300_000, cap: 6.8, gross: 122_000, occ: 90, loan: 500_000, rate: 5.0, maturity: "2029-01-01" }), img: IMG.industrial },
+    exchange: { status: "completed", exchange_proceeds: 800_000, estimated_equity: 800_000, estimated_basis: 450_000, estimated_gain: 350_000, estimated_tax_liability: 87_500, sale_close_date: dFrom(-180), identification_deadline: dFrom(-135), closing_deadline: dFrom(-8), actual_close_date: dFrom(-8) } },
 ];
 
 Deno.serve(async (req) => {
