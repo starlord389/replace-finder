@@ -37,6 +37,7 @@ async function fetchAgentAttention(userId: string, isDemo: boolean): Promise<Age
       .from("exchanges")
       .select("id, client_id, agent_clients(client_name)")
       .eq("agent_id", userId)
+      .eq("owner_type", "agent")
       .eq("is_demo", isDemo),
     supabase
       .from("exchange_connections")

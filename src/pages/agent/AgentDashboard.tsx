@@ -7,29 +7,42 @@ import {
   CheckCircle2,
   Compass,
   Handshake,
+  Inbox,
+  MailWarning,
   Plus,
   Sparkles,
+  UserPlus,
+  UserRoundCheck,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import { parseISO } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useAgentAttentionQuery } from "@/features/agent/hooks/useAgentAttentionQuery";
-import type { AgentAttentionData } from "@/features/agent/hooks/useAgentAttentionQuery";
-import { useAgentExchangesQuery } from "@/features/agent/hooks/useAgentExchangesQuery";
-import { useAgentListings, type AgentListing } from "@/features/pipeline/hooks/useAgentListings";
+import { useAgentAttentionQuery, type AgentAttentionData } from "@/features/agent/hooks/useAgentAttentionQuery";
 import { useAgentClientsCount } from "@/features/agent/hooks/useAgentClientsCount";
 import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
+import { useAgentListings, type AgentListing } from "@/features/pipeline/hooks/useAgentListings";
 import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRelationships";
+import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { deriveUiStatus } from "@/features/matches/components/inbox/inboxHelpers";
 import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/matches/components/inbox/useMatchLocalState";
+import {
+  useAgentContactRequests,
+  useRepresentationInvites,
+  useRepresentations,
+} from "@/features/representation/hooks/useRepresentations";
+import type {
+  AgentContactRequest,
+  Representation,
+  RepresentationInvite,
+} from "@/features/representation/types";
 import { DemoDataControls } from "@/features/workspace/components/DemoDataControls";
 import { ListingPreviewDialog } from "@/features/workspace/components/ListingPreviewDialog";
-import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
+import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 import { getAgentVerificationUiState } from "@/lib/agentVerification";
-
-import { getClientAccent } from "@/features/matches/lib/clientAccent";
 import { cn } from "@/lib/utils";
 
 const OPEN_MATCH_STAGES = new Set([
@@ -41,218 +54,453 @@ const OPEN_MATCH_STAGES = new Set([
   "conversing",
 ]);
 
-function fmtPrice(v: number | null | undefined) {
-  if (!v) return null;
-  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K`;
-  return `$${v.toLocaleString()}`;
+const PENDING_REPRESENTATION_STATUSES = new Set([
+  "pending_signup",
+  "pending_verification",
+  "awaiting_acceptance",
+  "awaiting_investor_confirmation",
+]);
+
+function formatMoney(value: number | null | undefined) {
+  if (!value) return "Price pending";
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+  return `$${value.toLocaleString()}`;
+}
+
+function formatStatus(status: string) {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function KpiCard({
   label,
   value,
-  sublabel,
+  detail,
   icon: Icon,
+  href,
+  attention = false,
 }: {
   label: string;
-  value: number | string;
-  sublabel?: string;
-  icon: typeof Users;
+  value: number;
+  detail: string;
+  icon: LucideIcon;
+  href: string;
+  attention?: boolean;
 }) {
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-          <Icon className="h-3.5 w-3.5" />
-          {label}
-        </div>
-        <div className="mt-2 text-2xl font-bold text-foreground">{value}</div>
-        {sublabel && (
-          <div className="mt-0.5 text-[11px] text-muted-foreground">{sublabel}</div>
-        )}
-      </CardContent>
-    </Card>
+    <Link to={href} className="group block">
+      <Card className={cn(
+        "h-full transition-all group-hover:-translate-y-0.5 group-hover:border-primary/30 group-hover:shadow-sm",
+        attention && value > 0 && "border-amber-200 bg-amber-50/40",
+      )}>
+        <CardContent className="flex h-full items-start justify-between gap-3 p-4">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+          </div>
+          <div className={cn(
+            "rounded-xl bg-primary/10 p-2.5 text-primary",
+            attention && value > 0 && "bg-amber-100 text-amber-700",
+          )}>
+            <Icon className="h-5 w-5" />
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
-interface TodayItem {
-  key: string;
-  tone: "red" | "amber" | "blue";
+interface DashboardAction {
+  id: string;
   title: string;
-  subtitle: string;
-  href: string;
+  detail: string;
+  category: string;
   cta: string;
+  href: string;
+  icon: LucideIcon;
+  tone: "amber" | "blue" | "red" | "green";
+  priority: number;
+  timestamp?: string | null;
 }
 
-function buildTodayItems(attention: AgentAttentionData | undefined): TodayItem[] {
-  if (!attention) return [];
-  const items: TodayItem[] = [];
+function buildActionCenterItems({
+  attention,
+  representations,
+  contactRequests,
+  invitations,
+}: {
+  attention?: AgentAttentionData;
+  representations: Representation[];
+  contactRequests: AgentContactRequest[];
+  invitations: RepresentationInvite[];
+}) {
+  const actions: DashboardAction[] = [];
+  const representationIds = new Set(representations.map((representation) => representation.id));
 
-  const topMatch = [...attention.unreviewedMatches].sort(
-    (a, b) => b.totalScore - a.totalScore,
-  )[0];
-  if (topMatch) {
-    items.push({
-      key: `match-${topMatch.matchId}`,
-      tone: "amber",
-      title: `${topMatch.clientName} · new match`,
-      subtitle: `${topMatch.propertyName} · score ${Math.round(topMatch.totalScore)}`,
-      href: `/agent/matches?listing=${topMatch.buyerExchangeId}&match=${topMatch.matchId}`,
-      cta: "Review",
+  for (const request of contactRequests.filter((item) => item.status === "requested")) {
+    actions.push({
+      id: `contact-${request.id}`,
+      title: "A client wants you to review a match",
+      detail: request.investor_note?.trim() || "Review the selected property before contacting the listing agent.",
+      category: "Client request",
+      cta: "Review request",
+      href: `/agent/representation?request=${request.id}`,
+      icon: Inbox,
+      tone: "green",
+      priority: 1,
+      timestamp: request.requested_at,
     });
   }
 
-  const conn = [...attention.pendingConnections].sort((a, b) =>
-    (a.initiatedAt ?? "").localeCompare(b.initiatedAt ?? ""),
-  )[0];
-  if (conn) {
-    items.push({
-      key: `conn-${conn.connectionId}`,
-      tone: "blue",
-      title: `Connection request from ${conn.otherAgentName}`,
-      subtitle: conn.propertyName ?? "Exchange connection",
-      href: `/agent/connections/${conn.connectionId}`,
+  for (const representation of representations.filter(
+    (item) => item.source !== "agent_invite" && ["awaiting_acceptance", "pending_verification"].includes(item.status),
+  )) {
+    actions.push({
+      id: `representation-${representation.id}`,
+      title: "New representation request",
+      detail: `${representation.investor_email} would like to work with you. Review the relationship before accepting.`,
+      category: "Potential client",
+      cta: "Review client",
+      href: "/agent/representation",
+      icon: UserPlus,
+      tone: "green",
+      priority: 2,
+      timestamp: representation.created_at,
+    });
+  }
+
+  for (const connection of attention?.pendingConnections ?? []) {
+    actions.push({
+      id: `connection-${connection.connectionId}`,
+      title: `Connection request from ${connection.otherAgentName}`,
+      detail: connection.propertyName || "Another verified agent is waiting for your response.",
+      category: "Agent connection",
       cta: "Respond",
+      href: `/agent/connections/${connection.connectionId}`,
+      icon: Handshake,
+      tone: "blue",
+      priority: 3,
+      timestamp: connection.initiatedAt,
     });
   }
 
-  return items;
+  for (const invitation of invitations.filter(
+    (item) => representationIds.has(item.representation_id) && item.status === "pending" && item.delivery_status === "failed",
+  )) {
+    actions.push({
+      id: `invitation-${invitation.id}`,
+      title: "A client invitation needs attention",
+      detail: `The workspace invitation to ${invitation.email} was not delivered.`,
+      category: "Invitation",
+      cta: "Fix invitation",
+      href: "/agent/representation",
+      icon: MailWarning,
+      tone: "red",
+      priority: 4,
+      timestamp: invitation.created_at,
+    });
+  }
+
+  for (const match of attention?.unreviewedMatches ?? []) {
+    actions.push({
+      id: `match-${match.matchId}`,
+      title: `New match for ${match.clientName}`,
+      detail: `${match.propertyName} · Match score ${Math.round(match.totalScore)}`,
+      category: "Match review",
+      cta: "Review match",
+      href: `/agent/matches?listing=${match.buyerExchangeId}&match=${match.matchId}`,
+      icon: Sparkles,
+      tone: "amber",
+      priority: 5,
+      timestamp: match.createdAt,
+    });
+  }
+
+  return actions
+    .sort((left, right) => left.priority - right.priority || (right.timestamp ?? "").localeCompare(left.timestamp ?? ""))
+    .slice(0, 6);
 }
 
-function TodayPanel({ attention }: { attention: AgentAttentionData | undefined }) {
-  const items = buildTodayItems(attention);
-  const toneClasses = {
-    red: { dot: "bg-red-500", ring: "ring-red-100" },
-    amber: { dot: "bg-amber-500", ring: "ring-amber-100" },
-    blue: { dot: "bg-blue-500", ring: "ring-blue-100" },
+function ActionCenter({ actions }: { actions: DashboardAction[] }) {
+  const toneStyles = {
+    amber: "bg-amber-100 text-amber-700",
+    blue: "bg-blue-100 text-blue-700",
+    red: "bg-red-100 text-red-700",
+    green: "bg-emerald-100 text-emerald-700",
   } as const;
 
   return (
     <Card className="overflow-hidden">
-      <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/70 to-primary/30" />
+      <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/20" />
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Sparkles className="h-5 w-5 text-primary" />
-          What to do first
-        </CardTitle>
-        <CardDescription>
-          The three highest-priority actions on your desk right now.
-        </CardDescription>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Action center
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Your highest-priority client, match, and agent tasks in one place.
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/agent/representation">Open Client Requests</Link>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        {items.length === 0 ? (
-          <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-800">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <p className="font-medium">You&apos;re ahead of everything today.</p>
+        {actions.length === 0 ? (
+          <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
+            <div>
+              <p className="text-sm font-semibold text-emerald-900">Everything is handled</p>
+              <p className="mt-1 text-sm text-emerald-800">
+                No new client requests, match reviews, invitation problems, or agent responses need you right now.
+              </p>
+            </div>
           </div>
         ) : (
-          <ol className="divide-y overflow-hidden rounded-lg border">
-            {items.map((it, idx) => {
-              const tone = toneClasses[it.tone];
+          <ul className="divide-y overflow-hidden rounded-xl border">
+            {actions.map((action) => {
+              const Icon = action.icon;
               return (
-                <li
-                  key={it.key}
-                  className="flex items-center gap-3 px-4 py-3"
-                >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-muted-foreground ring-1 ring-border">
-                    {idx + 1}
-                  </span>
-                  <span
-                    className={cn(
-                      "h-2.5 w-2.5 shrink-0 rounded-full ring-4",
-                      tone.dot,
-                      tone.ring,
-                    )}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {it.title}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {it.subtitle}
-                    </p>
+                <li key={action.id} className="flex items-center gap-3 p-3.5 sm:p-4">
+                  <div className={cn("rounded-xl p-2.5", toneStyles[action.tone])}>
+                    <Icon className="h-4 w-4" />
                   </div>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={it.href}>
-                      {it.cta}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">{action.title}</p>
+                      <Badge variant="secondary" className="text-[10px]">{action.category}</Badge>
+                    </div>
+                    <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{action.detail}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild className="shrink-0">
+                    <Link to={action.href}>
+                      {action.cta}
                       <ArrowRight className="ml-1 h-3.5 w-3.5" />
                     </Link>
                   </Button>
                 </li>
               );
             })}
-          </ol>
+          </ul>
         )}
       </CardContent>
     </Card>
   );
 }
 
-function PipelineFunnel({ relationships }: { relationships: Relationship[] }) {
-  // Re-render when a match's local lifecycle status changes.
+function PipelineSnapshot({ relationships }: { relationships: Relationship[] }) {
   useMatchLocalStateVersion();
-  const counts = { new: 0, conversing: 0, loi: 0, uc: 0, closed: 0 };
-  for (const r of relationships) {
-    // Bucket by the UI lifecycle status - loi / under_contract live there, not in r.stage.
-    switch (deriveUiStatus(r, readMatchLocalState(r.matchId))) {
+  const counts = { new: 0, conversation: 0, loi: 0, contract: 0, closed: 0 };
+  for (const relationship of relationships) {
+    switch (deriveUiStatus(relationship, readMatchLocalState(relationship.matchId))) {
       case "new":
       case "sent_to_client":
         counts.new += 1;
         break;
       case "client_interested":
       case "in_conversation":
-        counts.conversing += 1;
+        counts.conversation += 1;
         break;
       case "loi":
         counts.loi += 1;
         break;
       case "under_contract":
-        counts.uc += 1;
+        counts.contract += 1;
         break;
       case "closed":
         counts.closed += 1;
         break;
       default:
-        break; // archived → not counted
+        break;
     }
   }
-  const stages: Array<{ key: keyof typeof counts; label: string }> = [
-    { key: "new", label: "New" },
-    { key: "conversing", label: "Conv." },
-    { key: "loi", label: "LOI" },
-    { key: "uc", label: "UC" },
-    { key: "closed", label: "Closed" },
+
+  const stages = [
+    ["New", counts.new],
+    ["Talking", counts.conversation],
+    ["LOI", counts.loi],
+    ["Contract", counts.contract],
+    ["Closed", counts.closed],
+  ] as const;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <CardTitle className="text-base">Pipeline snapshot</CardTitle>
+            <CardDescription>Where active opportunities stand.</CardDescription>
+          </div>
+          <Link to="/agent/pipeline" className="text-xs font-semibold text-primary hover:underline">
+            Open pipeline
+          </Link>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Link to="/agent/pipeline" className="grid grid-cols-5 overflow-hidden rounded-xl border hover:bg-muted/30">
+          {stages.map(([label, count], index) => (
+            <div key={label} className={cn("px-1 py-3 text-center", index > 0 && "border-l")}>
+              <p className="text-lg font-bold text-foreground">{count}</p>
+              <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+            </div>
+          ))}
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ClientNetworkCard({
+  activeRepresentations,
+  pendingInvitations,
+  matchRequests,
+}: {
+  activeRepresentations: number;
+  pendingInvitations: number;
+  matchRequests: number;
+}) {
+  const rows = [
+    { label: "Connected property owners", value: activeRepresentations, icon: UserRoundCheck },
+    { label: "Invitations awaiting acceptance", value: pendingInvitations, icon: Users },
+    { label: "Match requests ready to review", value: matchRequests, icon: Inbox },
   ];
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-base">Pipeline</CardTitle>
-          <Link
-            to="/agent/pipeline"
-            className="text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            View →
-          </Link>
+        <CardTitle className="text-base">Client network</CardTitle>
+        <CardDescription>Owners using the platform with you as their agent.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {rows.map((row) => {
+          const Icon = row.icon;
+          return (
+            <div key={row.label} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Icon className="h-4 w-4 text-primary" />
+                {row.label}
+              </div>
+              <span className="font-semibold text-foreground">{row.value}</span>
+            </div>
+          );
+        })}
+        <Button variant="outline" className="w-full" asChild>
+          <Link to="/agent/representation">Manage Client Requests</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function OpportunityList({ relationships }: { relationships: Relationship[] }) {
+  const opportunities = [...relationships]
+    .filter((relationship) => relationship.stage !== "archived")
+    .sort((left, right) => right.score - left.score || (right.lastActivityAt ?? "").localeCompare(left.lastActivityAt ?? ""))
+    .slice(0, 5);
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <CardTitle className="text-lg">Best current opportunities</CardTitle>
+            <CardDescription>Highest-ranked active matches across your client portfolio.</CardDescription>
+          </div>
+          <Link to="/agent/matches" className="shrink-0 text-xs font-semibold text-primary hover:underline">View all matches</Link>
         </div>
       </CardHeader>
       <CardContent>
-        <Link
-          to="/agent/pipeline"
-          className="grid grid-cols-5 gap-1 rounded-lg border bg-card p-1 transition-colors hover:bg-muted/40"
-        >
-          {stages.map((s) => (
-            <div key={s.key} className="flex flex-col items-center px-1 py-2">
-              <span className="text-lg font-semibold text-foreground">
-                {counts[s.key]}
-              </span>
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                {s.label}
-              </span>
-            </div>
-          ))}
-        </Link>
+        {opportunities.length === 0 ? (
+          <div className="rounded-xl border border-dashed p-8 text-center">
+            <Sparkles className="mx-auto h-7 w-7 text-muted-foreground/50" />
+            <p className="mt-2 text-sm font-medium">No active matches yet</p>
+            <p className="mt-1 text-xs text-muted-foreground">Activate a client listing to start matching.</p>
+          </div>
+        ) : (
+          <ul className="divide-y overflow-hidden rounded-xl border">
+            {opportunities.map((relationship) => {
+              const location = [relationship.propertyCity, relationship.propertyState].filter(Boolean).join(", ");
+              return (
+                <li key={relationship.id} className="flex items-center gap-3 px-4 py-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-bold text-primary">
+                    {Math.round(relationship.score)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">{relationship.propertyName}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {relationship.clientName || "Client"}{location ? ` · ${location}` : ""}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to={relationship.openHref}>
+                      Review <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ListingPortfolio({
+  listings,
+  onOpen,
+}: {
+  listings: AgentListing[];
+  onOpen: (listing: AgentListing) => void;
+}) {
+  const recent = listings.slice(0, 4);
+  if (recent.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <CardTitle className="text-lg">Client listings</CardTitle>
+            <CardDescription>Recent relinquished properties and their current status.</CardDescription>
+          </div>
+          <Link to="/agent/listings" className="shrink-0 text-xs font-semibold text-primary hover:underline">View all listings</Link>
+        </div>
+      </CardHeader>
+      <CardContent className="grid gap-3 sm:grid-cols-2">
+        {recent.map((listing) => {
+          const location = [listing.city, listing.state].filter(Boolean).join(", ");
+          return (
+            <button
+              key={listing.id}
+              type="button"
+              onClick={() => onOpen(listing)}
+              className="group flex overflow-hidden rounded-xl border bg-background text-left transition-colors hover:border-primary/30 hover:bg-muted/20"
+            >
+              <div className="h-24 w-28 shrink-0 overflow-hidden bg-muted">
+                {listing.coverUrl ? (
+                  <img src={listing.coverUrl} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]" />
+                ) : (
+                  <PropertyPhotoPlaceholder compact />
+                )}
+              </div>
+              <div className="min-w-0 flex-1 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="truncate text-sm font-semibold text-foreground">{listing.clientName || "Client"}</p>
+                  <Badge variant={listing.status === "active" ? "default" : "secondary"} className="text-[9px]">
+                    {formatStatus(listing.status)}
+                  </Badge>
+                </div>
+                <p className="mt-1 truncate text-xs text-muted-foreground">{listing.propertyName || location || "Property details pending"}</p>
+                <p className="mt-2 text-xs font-semibold text-foreground">{formatMoney(listing.askingPrice)}</p>
+              </div>
+            </button>
+          );
+        })}
       </CardContent>
     </Card>
   );
@@ -267,23 +515,61 @@ export default function AgentDashboard() {
     isSuspendedAgent,
   } = useAuth();
   const { data: attention, isLoading: attentionLoading } = useAgentAttentionQuery(user?.id);
-  const { data: exchanges = [], isLoading: exchangesLoading } = useAgentExchangesQuery(user?.id);
   const { data: clientCount = 0, isLoading: clientsLoading } = useAgentClientsCount(user?.id);
-  const { data: relationships = [], isLoading: relsLoading } = useUnifiedRelationships();
+  const { data: relationships = [], isLoading: relationshipsLoading } = useUnifiedRelationships();
   const { data: launchpadProgress, isLoading: launchpadLoading } = useAgentLaunchpadProgress(user?.id);
-  const { data: agentListings = [] } = useAgentListings(user?.id);
-  const listingById = useMemo(
-    () => new Map(agentListings.map((l) => [l.id, l])),
-    [agentListings],
-  );
+  const { data: listings = [], isLoading: listingsLoading } = useAgentListings(user?.id);
+  const { data: representations = [], isLoading: representationsLoading } = useRepresentations("agent");
+  const { data: contactRequests = [], isLoading: requestsLoading } = useAgentContactRequests("agent");
+  const { data: invitations = [], isLoading: invitationsLoading } = useRepresentationInvites();
   const [previewListing, setPreviewListing] = useState<AgentListing | null>(null);
 
   const verificationUi = getAgentVerificationUiState(agentVerificationStatus);
-  const launchpadIncomplete =
-    !isSuspendedAgent && !launchpadProgress?.profile.launchpad_completed_at;
+  const launchpadIncomplete = !isSuspendedAgent && !launchpadProgress?.profile.launchpad_completed_at;
 
-  const isLoading =
-    attentionLoading || exchangesLoading || clientsLoading || relsLoading || launchpadLoading;
+  const isLoading = attentionLoading
+    || clientsLoading
+    || relationshipsLoading
+    || launchpadLoading
+    || listingsLoading
+    || representationsLoading
+    || requestsLoading
+    || invitationsLoading;
+
+  const scopedInvitationIds = useMemo(
+    () => new Set(representations.map((representation) => representation.id)),
+    [representations],
+  );
+  const activeRepresentations = representations.filter((representation) => representation.status === "active");
+  const pendingOutboundInvitations = representations.filter(
+    (representation) => representation.source === "agent_invite" && PENDING_REPRESENTATION_STATUSES.has(representation.status),
+  );
+  const actionableContactRequests = contactRequests.filter((request) => request.status === "requested");
+  const incomingRepresentationRequests = representations.filter(
+    (representation) => representation.source !== "agent_invite" && ["awaiting_acceptance", "pending_verification"].includes(representation.status),
+  );
+  const failedInvitations = invitations.filter(
+    (invitation) => scopedInvitationIds.has(invitation.representation_id) && invitation.status === "pending" && invitation.delivery_status === "failed",
+  );
+  const clientRequestAttentionCount = actionableContactRequests.length
+    + incomingRepresentationRequests.length
+    + failedInvitations.length;
+
+  const activeListings = listings.filter((listing) => listing.status === "active").length;
+  const draftListings = listings.filter((listing) => listing.status === "draft").length;
+  const agentRelationships = relationships.filter((relationship) => Boolean(relationship.clientId));
+  const openMatchCount = agentRelationships.filter((relationship) => OPEN_MATCH_STAGES.has(relationship.stage)).length;
+  const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const newThisWeek = agentRelationships.filter((relationship) => {
+    if (relationship.stage !== "new" && relationship.stage !== "incoming") return false;
+    const timestamp = relationship.lastActivityAt ? parseISO(relationship.lastActivityAt).getTime() : Number.NaN;
+    return Number.isFinite(timestamp) && timestamp >= oneWeekAgo;
+  }).length;
+
+  const actionItems = useMemo(
+    () => buildActionCenterItems({ attention, representations, contactRequests, invitations }),
+    [attention, contactRequests, invitations, representations],
+  );
 
   if (isLoading) {
     return (
@@ -293,417 +579,111 @@ export default function AgentDashboard() {
     );
   }
 
-  // KPI derivations
-  const activeListings = exchanges.filter((e) => e.status === "active").length;
-  // Only true drafts - not completed/failed/cancelled/in-progress (those aren't "drafts").
-  const draftListings = exchanges.filter((e) => e.status === "draft").length;
-  const clientsWithActiveListing = new Set(
-    exchanges.filter((e) => e.status === "active" && e.client_id).map((e) => e.client_id),
-  ).size;
-  const openMatchCount = relationships.filter((r) => OPEN_MATCH_STAGES.has(r.stage)).length;
-  const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const newThisWeek = relationships.filter((r) => {
-    if (r.stage !== "new" && r.stage !== "incoming") return false;
-    const t = r.lastActivityAt ? parseISO(r.lastActivityAt).getTime() : NaN;
-    return Number.isFinite(t) && t >= oneWeekAgo;
-  }).length;
-
-  // Top matches across all clients
-  const topMatches = [...relationships]
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? "");
-    })
-    .slice(0, 6);
-
-  // Listings summary (top 6 newest)
-  const topListings = exchanges.slice(0, 6);
-  const hasAnyExchange = exchanges.length > 0;
-
   return (
     <div className="space-y-6">
       <DemoDataControls />
-      {/* Header */}
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
             Welcome back{profileName ? `, ${profileName}` : ""}
           </h1>
-          {!isVerifiedAgent && (
-            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1 text-red-600">
-                <AlertTriangle className="h-3.5 w-3.5" /> Suspended
-              </span>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Here is what needs attention across your clients, matches, and active deals.
+          </p>
+          {!isVerifiedAgent ? (
+            <div className="mt-2 inline-flex items-center gap-1.5 text-sm text-red-600">
+              <AlertTriangle className="h-3.5 w-3.5" /> Suspended
             </div>
-          )}
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild size="sm">
+            <Link to="/agent/exchanges/new">
+              <Building2 className="mr-1.5 h-4 w-4" /> New Listing
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
             <Link to="/agent/clients/new">
               <Plus className="mr-1.5 h-4 w-4" /> Add Client
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <Link to="/agent/exchanges/new">
-              <Building2 className="mr-1.5 h-4 w-4" /> New Listing
+            <Link to="/agent/representation">
+              <Inbox className="mr-1.5 h-4 w-4" /> Client Requests
+              {clientRequestAttentionCount > 0 ? (
+                <Badge className="ml-2 h-5 min-w-5 justify-center px-1.5">{clientRequestAttentionCount}</Badge>
+              ) : null}
             </Link>
           </Button>
         </div>
       </div>
 
       {isSuspendedAgent ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {verificationUi.description}
         </div>
       ) : null}
 
       {launchpadIncomplete ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <div className="flex items-center gap-3">
             <Compass className="h-5 w-5 shrink-0 text-amber-600" />
             <div>
               <p className="font-medium">Finish your Launchpad</p>
-              <p className="text-amber-800">
-                A few Launchpad steps are still open. Complete them to unlock your full match pipeline.
-              </p>
+              <p className="text-amber-800">Complete the remaining setup and workflow walkthrough steps.</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="border-amber-300 bg-white hover:bg-amber-100"
-          >
-            <Link to="/agent/launchpad">
-              Open launchpad <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Link>
+          <Button variant="outline" size="sm" asChild className="border-amber-300 bg-white hover:bg-amber-100">
+            <Link to="/agent/launchpad">Continue Launchpad <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
           </Button>
         </div>
       ) : null}
 
-      {/* Two-column cockpit */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Main column */}
-        <div className="space-y-6 min-w-0">
-          <TodayPanel attention={attention} />
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard label="Clients" value={clientCount} detail={`${activeRepresentations.length} connected to a workspace`} icon={Users} href="/agent/clients" />
+        <KpiCard label="Active listings" value={activeListings} detail={draftListings > 0 ? `${draftListings} draft${draftListings === 1 ? "" : "s"}` : "No drafts waiting"} icon={Building2} href="/agent/listings" />
+        <KpiCard label="Open matches" value={openMatchCount} detail={newThisWeek > 0 ? `${newThisWeek} new this week` : "No new matches this week"} icon={Sparkles} href="/agent/matches" />
+        <KpiCard label="Client Requests" value={clientRequestAttentionCount} detail={clientRequestAttentionCount > 0 ? "Ready for your attention" : "Nothing waiting"} icon={Inbox} href="/agent/representation" attention />
+      </div>
 
-          {/* Needs your attention */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
-                Needs your attention
-              </CardTitle>
-              <CardDescription>Everything open on your desk right now.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {attention?.isEmpty ? (
-                <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-6 text-sm text-green-800">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <div>
-                    <p className="font-medium">You&apos;re all caught up.</p>
-                    <p className="text-green-700">
-                      No unreviewed matches or pending connection requests. Nice.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {attention && attention.unreviewedMatches.length > 0 && (
-                    <div>
-                      <div className="mb-2 flex items-center justify-between">
-                        <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                          <Handshake className="h-4 w-4 text-primary" />
-                          New opportunities to review ({attention.unreviewedMatches.length})
-                        </h3>
-                        <Link
-                          to="/agent/matches"
-                          className="text-xs font-medium text-muted-foreground hover:text-foreground"
-                        >
-                          View all matches →
-                        </Link>
-                      </div>
-                      <ul className="divide-y overflow-hidden rounded-lg border">
-                        {attention.unreviewedMatches.map((m) => {
-                          const accent = getClientAccent(m.clientId ?? m.clientName);
-                          const target = `/agent/matches?listing=${m.buyerExchangeId}&match=${m.matchId}`;
-                          return (
-                            <li
-                              key={m.matchId}
-                              className={`flex items-center justify-between gap-3 border-l-[3px] ${accent.borderLeft} px-4 py-3`}
-                            >
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <span className={`h-2 w-2 shrink-0 rounded-full ${accent.dot}`} />
-                                  <p className="truncate text-sm font-semibold text-foreground">
-                                    {m.clientName}
-                                  </p>
-                                </div>
-                                <p className="truncate text-xs text-muted-foreground">
-                                  {m.propertyName} · Score {Math.round(m.totalScore)}
-                                </p>
-                              </div>
-                              <Button variant="ghost" size="sm" asChild>
-                                <Link to={target}>
-                                  Review <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                                </Link>
-                              </Button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-
-                  {attention && attention.pendingConnections.length > 0 && (
-                    <div>
-                      <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                        <Users className="h-4 w-4 text-blue-600" />
-                        Connection requests awaiting you ({attention.pendingConnections.length})
-                      </h3>
-                      <ul className="divide-y rounded-lg border">
-                        {attention.pendingConnections.map((c) => (
-                          <li
-                            key={c.connectionId}
-                            className="flex items-center justify-between gap-3 px-4 py-3"
-                          >
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-foreground">
-                                From {c.otherAgentName}
-                                {c.otherAgentBrokerage ? ` · ${c.otherAgentBrokerage}` : ""}
-                              </p>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {c.propertyName ?? "Exchange connection"}
-                              </p>
-                            </div>
-                            <Button variant="ghost" size="sm" asChild>
-                              <Link to={`/agent/connections/${c.connectionId}`}>
-                                Respond <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                              </Link>
-                            </Button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Top matches across all clients */}
-          {topMatches.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">Top matches</CardTitle>
-                    <CardDescription>Highest-scoring opportunities across every client.</CardDescription>
-                  </div>
-                  <Link
-                    to="/agent/matches"
-                    className="text-xs font-medium text-muted-foreground hover:text-foreground"
-                  >
-                    View all →
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="divide-y overflow-hidden rounded-lg border">
-                  {topMatches.map((r) => {
-                    const accent = getClientAccent(r.clientId ?? r.clientName);
-                    const target = r.openHref;
-                    const location = [r.propertyCity, r.propertyState].filter(Boolean).join(", ");
-                    return (
-                      <li
-                        key={r.id}
-                        className={`flex items-center justify-between gap-3 border-l-[3px] ${accent.borderLeft} px-4 py-3`}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`h-2 w-2 shrink-0 rounded-full ${accent.dot}`} />
-                            <p className="truncate text-sm font-semibold text-foreground">
-                              {r.clientName ?? "Client"}
-                            </p>
-                            {r.relinquishedLabel && (
-                              <span className="truncate text-xs text-muted-foreground">
-                                · {r.relinquishedLabel}
-                              </span>
-                            )}
-                          </div>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {r.propertyName}
-                            {location ? ` · ${location}` : ""}
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-3">
-                          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                            {Math.round(r.score)}
-                          </span>
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link to={target}>
-                              Open <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Listings summary */}
-          {topListings.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">Listings</CardTitle>
-                    <CardDescription>
-                      {exchanges.length} {exchanges.length === 1 ? "listing" : "listings"} across your clients.
-                    </CardDescription>
-                  </div>
-                  <Link
-                    to="/agent/listings"
-                    className="text-xs font-medium text-muted-foreground hover:text-foreground"
-                  >
-                    View all →
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="divide-y overflow-hidden rounded-lg border">
-                  {topListings.map((e) => {
-                    const accent = getClientAccent(e.client_id ?? e.agent_clients?.client_name ?? e.id);
-                    const city = e.pledged_properties?.city ?? null;
-                    const state = e.pledged_properties?.state ?? null;
-                    const location = [city, state].filter(Boolean).join(", ");
-                    const price = fmtPrice(e.exchange_proceeds);
-                    return (
-                      <li
-                        key={e.id}
-                        className={`flex items-center justify-between gap-3 border-l-[3px] ${accent.borderLeft} px-4 py-3`}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`h-2 w-2 shrink-0 rounded-full ${accent.dot}`} />
-                            <p className="truncate text-sm font-semibold text-foreground">
-                              {e.agent_clients?.client_name ?? "Client"}
-                            </p>
-                            {location && (
-                              <span className="truncate text-xs text-muted-foreground">
-                                · {location}
-                              </span>
-                            )}
-                          </div>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {e.pledged_properties?.address ?? "Address pending"}
-                            {price ? ` · ${price}` : ""}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            setPreviewListing(
-                              listingById.get(e.id) ?? {
-                                id: e.id,
-                                status: e.status,
-                                createdAt: e.created_at,
-                                clientId: e.client_id,
-                                clientName: e.agent_clients?.client_name ?? null,
-                                propertyId: e.relinquished_property_id,
-                                propertyName: e.pledged_properties?.address ?? null,
-                                address: e.pledged_properties?.address ?? null,
-                                city: e.pledged_properties?.city ?? null,
-                                state: e.pledged_properties?.state ?? null,
-                                assetType: null,
-                                strategyType: null,
-                                askingPrice: null,
-                                pipelineStageOverride: null,
-                                coverUrl: null,
-                              },
-                            )
-                          }
-                        >
-                          Open <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                        </Button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          <ListingPreviewDialog
-            listing={previewListing}
-            open={!!previewListing}
-            onOpenChange={(o) => {
-              if (!o) setPreviewListing(null);
-            }}
-          />
-
-          {/* Empty onboarding */}
-          {!hasAnyExchange && (
-            <Card className="border-dashed">
-              <CardHeader>
-                <CardTitle className="text-lg">Start your first 1031 exchange</CardTitle>
-                <CardDescription>
-                  Add a client, pledge their property to the network, and the dashboard will start
-                  filling up with replacement-property matches you can act on.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                <Button asChild>
-                  <Link to="/agent/clients/new">
-                    Add your first client <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/agent/exchanges/new">New listing</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0 space-y-6">
+          <ActionCenter actions={actionItems} />
+          <OpportunityList relationships={agentRelationships} />
         </div>
-
-        {/* Right rail */}
         <aside className="space-y-6">
-          <div className="grid grid-cols-2 gap-3">
-            <KpiCard
-              label="Active clients"
-              value={clientCount}
-              sublabel={`${clientsWithActiveListing} with active listing`}
-              icon={Users}
-            />
-            <KpiCard
-              label="Listings"
-              value={activeListings}
-              sublabel={
-                draftListings > 0
-                  ? `${draftListings} draft${draftListings === 1 ? "" : "s"}`
-                  : "All active"
-              }
-              icon={Building2}
-            />
-            <KpiCard
-              label="Open matches"
-              value={openMatchCount}
-              sublabel={
-                newThisWeek > 0
-                  ? `${newThisWeek} new this week`
-                  : "No new this week"
-              }
-              icon={Handshake}
-            />
-          </div>
-
-          <PipelineFunnel relationships={relationships} />
+          <PipelineSnapshot relationships={agentRelationships} />
+          <ClientNetworkCard
+            activeRepresentations={activeRepresentations.length}
+            pendingInvitations={pendingOutboundInvitations.length}
+            matchRequests={actionableContactRequests.length}
+          />
         </aside>
       </div>
+
+      <ListingPortfolio listings={listings} onOpen={setPreviewListing} />
+
+      {listings.length === 0 ? (
+        <Card className="border-dashed">
+          <CardHeader>
+            <CardTitle className="text-lg">Start your first 1031 exchange</CardTitle>
+            <CardDescription>Add a client and create their relinquished-property listing to begin matching.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <Button asChild><Link to="/agent/clients/new">Add your first client <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+            <Button variant="outline" asChild><Link to="/agent/exchanges/new">Create listing</Link></Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <ListingPreviewDialog
+        listing={previewListing}
+        open={Boolean(previewListing)}
+        onOpenChange={(open) => {
+          if (!open) setPreviewListing(null);
+        }}
+      />
     </div>
   );
 }
