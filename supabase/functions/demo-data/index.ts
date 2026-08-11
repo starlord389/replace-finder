@@ -492,16 +492,16 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   await mustInsert(db, "agent_representations", {
     investor_id: ownerId, investor_email: ownerProfile.email, agent_id: null, agent_email: "",
     status: "awaiting_agent", source: "platform_referral", is_demo: true, invited_by: ownerId,
-    request_context: { location: "Houston, TX", property_type: "Multifamily", timing: "Identifying within 35 days", notes: "Demo referral awaiting administrator assignment" },
+    request_context: { location: "Worcester, MA", property_type: "Multifamily", timing: "Identifying within 35 days", notes: "Demo referral awaiting administrator assignment" },
   });
 
-  // Inbound (seller-side) match: a counterparty buyer wants Houston multifamily,
-  // matched against the caller's own Heights listing - exercises "incoming interest".
+  // Inbound (seller-side) match: a counterparty buyer wants Boston-area small
+  // multifamily, matched against the caller's own Dorchester listing.
   const jordan = cpAgent["Jordan Alvarez"];
-  const inboundClient = await insertOne(db, "agent_clients", { agent_id: jordan, client_name: "Cardinal Multifamily Fund", client_company: "Cardinal Capital", client_email: "acq@cardinalcap.example", client_phone: "(602) 555-0210", notes: "Acquiring Texas multifamily.", is_demo: true, status: "active" }, "id");
-  const inboundRelProp = await insertProperty(db, jordan, { name: "Tempe Town Lake Apartments", address: "60 E Rio Salado Pkwy", city: "Tempe", state: "AZ", asset_type: "multifamily", strategy_type: "core_plus", units: 40, year_built: 2006, sf: 36000, description: "Relinquished asset for Cardinal's exchange.", f: fin({ ask: 3_000_000, cap: 3.2, gross: 160_000, occ: 96, loan: 1_200_000, rate: 4.8, maturity: "2030-09-01" }), img: IMG.mf }, true);
-  const inboundEx = await insertOne(db, "exchanges", { agent_id: jordan, client_id: inboundClient.id, relinquished_property_id: inboundRelProp, is_demo: true, status: "active", exchange_proceeds: 1_800_000, estimated_equity: 1_800_000, identification_deadline: dFrom(40), closing_deadline: dFrom(175) }, "id");
-  const inboundCrit = await insertOne(db, "replacement_criteria", { exchange_id: inboundEx.id, target_asset_types: ["multifamily"], target_states: ["TX"], target_price_min: 2_500_000, target_price_max: 4_500_000 }, "id");
+  const inboundClient = await insertOne(db, "agent_clients", { agent_id: jordan, client_name: "Cardinal Multifamily Fund", client_company: "Cardinal Capital", client_email: "acq@cardinalcap.example", client_phone: "(508) 555-0210", notes: "Acquiring small Massachusetts multifamily.", is_demo: true, status: "active" }, "id");
+  const inboundRelProp = await insertProperty(db, jordan, { name: "Salem Common Six-Family", address: "18 Winter St", city: "Salem", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 6, year_built: 1962, sf: 6400, description: "Relinquished asset for Cardinal's exchange.", f: fin({ ask: 1_150_000, cap: 3.2, gross: 84_000, occ: 96, loan: 450_000, rate: 4.8, maturity: "2030-09-01" }), img: IMG.mf }, true);
+  const inboundEx = await insertOne(db, "exchanges", { agent_id: jordan, client_id: inboundClient.id, relinquished_property_id: inboundRelProp, is_demo: true, status: "active", exchange_proceeds: 700_000, estimated_equity: 700_000, identification_deadline: dFrom(40), closing_deadline: dFrom(175) }, "id");
+  const inboundCrit = await insertOne(db, "replacement_criteria", { exchange_id: inboundEx.id, target_asset_types: ["multifamily"], target_states: ["MA"], target_price_min: 900_000, target_price_max: 2_000_000 }, "id");
   await db.from("exchanges").update({ criteria_id: inboundCrit.id }).eq("id", inboundEx.id);
   await db.from("pledged_properties").update({ exchange_id: inboundEx.id }).eq("id", inboundRelProp);
   const inboundMatchRow = await buildEngineMatch(db, inboundEx.id, prop["Dorchester Ave Three-Family"]);
@@ -517,7 +517,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   // (c) Accepted + conversing -> live message thread.
   const conn = await insertOne(db, "exchange_connections", { match_id: matchId(wilson, prop["Brockton Main Street Mixed-Use"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: wilson, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-2) + "T16:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true }, "id");
   await mustInsert(db, "messages", [
-    { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Thanks for connecting - Westshore is available for a 1031 buyer. Happy to send the OM and rent roll." },
+    { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Thanks for connecting - the Brockton mixed-use is available for a 1031 buyer. Happy to send the OM and rent roll." },
     { connection_id: conn.id, sender_id: ownerId, content: "Appreciate it. My client's on a 9-day ID clock, so speed matters. Can you also share the T-12 and the tenant's lease abstract?" },
     { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Sending the package now. The value-add plan centers on leasing the remaining vacancy and below-market renewals." },
     { connection_id: conn.id, sender_id: ownerId, content: "Thanks - reviewing the T-12 and leasing assumptions with him this afternoon. Can we tour Thursday?" },
@@ -539,8 +539,8 @@ async function buildOwnerDemo(db: any, ownerId: string) {
 
   // Notifications (varied types; some unread). Tagged demo for clean teardown.
   await mustInsert(db, "notifications", [
-    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Brockton Main Street Mixed-Use (Tampa, FL) matched James Wilson's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Chelmsford Flex Building (Charlotte, NC) matched the Patel Family Trust exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Brockton Main Street Mixed-Use (Brockton, MA) matched James Wilson's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Chelmsford Flex Building (Chelmsford, MA) matched the Patel Family Trust exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
     { user_id: ownerId, type: "connection_request", title: "New agent conversation", message: "Elena Vasquez started a conversation about Brockton Main Street Mixed-Use.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
     { user_id: ownerId, type: "connection_accepted", title: "Conversation active", message: "Your conversation with Elena Vasquez is ready for messaging.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
   ]);
