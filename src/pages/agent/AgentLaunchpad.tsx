@@ -129,9 +129,8 @@ export default function AgentLaunchpad() {
       setExpandedStep(nextExpanded ? step.id : null);
       if (!nextExpanded) return;
 
-      const acknowledgementField = step.id === "matching"
-        ? "launchpad_matching_ack_at"
-        : "launchpad_client_requests_ack_at";
+      const acknowledgementField: "launchpad_matching_ack_at" | "launchpad_client_requests_ack_at" =
+        step.id === "matching" ? "launchpad_matching_ack_at" : "launchpad_client_requests_ack_at";
       const alreadyAcknowledged = step.id === "matching"
         ? data?.profile.launchpad_matching_ack_at
         : data?.profile.launchpad_client_requests_ack_at;
@@ -147,9 +146,14 @@ export default function AgentLaunchpad() {
       // Demo walkthroughs count for the current visit without writing to the
       // live profile. Live acknowledgement persists after the panel is closed.
       if (!isDemo && user && !alreadyAcknowledged) {
+        const now = new Date().toISOString();
+        const patch =
+          acknowledgementField === "launchpad_matching_ack_at"
+            ? { launchpad_matching_ack_at: now }
+            : { launchpad_client_requests_ack_at: now };
         supabase
           .from("profiles")
-          .update({ [acknowledgementField]: new Date().toISOString() })
+          .update(patch)
           .eq("id", user.id)
           .is(acknowledgementField, null)
           .then(() => refetch());
