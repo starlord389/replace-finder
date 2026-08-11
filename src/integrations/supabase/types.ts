@@ -2695,6 +2695,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      invite_existing_investor_client: {
+        Args: { p_client_id: string }
+        Returns: {
+          client_id: string
+          invite_status: string
+          invite_token: string
+          representation_id: string
+        }[]
+      }
       invite_investor_client: {
         Args: {
           p_client_email: string

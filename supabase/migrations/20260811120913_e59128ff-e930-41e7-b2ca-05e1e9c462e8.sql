@@ -94,7 +94,6 @@ $$;
 
 REVOKE ALL ON FUNCTION public.invite_existing_investor_client(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.invite_existing_investor_client(uuid) TO authenticated;
-REVOKE EXECUTE ON FUNCTION public.invite_existing_investor_client(uuid) FROM anon;
 
 COMMENT ON FUNCTION public.invite_existing_investor_client(uuid) IS
   'Creates an optional investor workspace invitation for an existing agent client without duplicating the client record.';
