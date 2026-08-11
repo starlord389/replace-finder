@@ -25,7 +25,7 @@ import { useAgentAttentionQuery, type AgentAttentionData } from "@/features/agen
 import { useAgentClientsCount } from "@/features/agent/hooks/useAgentClientsCount";
 import { useAgentLaunchpadProgress } from "@/features/agent/hooks/useAgentLaunchpadProgress";
 import { useAgentListings, type AgentListing } from "@/features/pipeline/hooks/useAgentListings";
-import { useUnifiedRelationships } from "@/features/matches/hooks/useUnifiedRelationships";
+import { useUnifiedRelationships, isLiveStage } from "@/features/matches/hooks/useUnifiedRelationships";
 import type { Relationship } from "@/features/matches/hooks/useUnifiedRelationships";
 import { deriveUiStatus } from "@/features/matches/components/inbox/inboxHelpers";
 import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/matches/components/inbox/useMatchLocalState";
@@ -406,7 +406,7 @@ function ClientNetworkCard({
 
 function OpportunityList({ relationships }: { relationships: Relationship[] }) {
   const opportunities = [...relationships]
-    .filter((relationship) => relationship.stage !== "archived")
+    .filter((relationship) => isLiveStage(relationship.stage))
     .sort((left, right) => right.score - left.score || (right.lastActivityAt ?? "").localeCompare(left.lastActivityAt ?? ""))
     .slice(0, 5);
 
