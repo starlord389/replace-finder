@@ -40,6 +40,8 @@ const actionSource = readFileSync(
   resolve(process.cwd(), "src/features/matches/components/inbox/useMatchActions.ts"),
   "utf8",
 );
+import { MATCH_PLAN } from "../../supabase/functions/demo-data/fixtures";
+
 const demoDataSource = readFileSync(
   resolve(process.cwd(), "supabase/functions/demo-data/index.ts"),
   "utf8",
@@ -76,7 +78,8 @@ describe("investor match workflow", () => {
     expect(listingSource).not.toContain('isDemo && ownerType === "investor"');
     expect(actionSource).toContain('queryKey: ["unified-relationships"]');
     expect(actionSource).toContain("Couldn't complete this action");
-    expect(demoDataSource).toContain('buildEngineMatch(db, investorEx.id, prop["Crosspoint Industrial"])');
+    expect(demoDataSource).toContain("exchangeIdFor(planned.buyer)");
+    expect(MATCH_PLAN.filter((m) => m.buyer === "investor").length).toBeGreaterThanOrEqual(2);
   });
 
   it("does not expose counterparty deal controls to investors after contact begins", () => {
