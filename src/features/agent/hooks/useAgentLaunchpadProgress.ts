@@ -10,6 +10,7 @@ export interface AgentLaunchpadProfileSnapshot {
   launchpad_completed_at: string | null;
   launchpad_version: string | null;
   launchpad_matching_ack_at: string | null;
+  launchpad_client_requests_ack_at: string | null;
   launchpad_matches_ack_at: string | null;
   launchpad_pipeline_ack_at: string | null;
 }
@@ -50,7 +51,7 @@ async function fetchAgentLaunchpadProgress(userId: string, isDemo: boolean): Pro
   const [profileRes, clientsRes, exchangesRes, exchangeIdsRes, connectionsRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("brokerage_name, brokerage_address, bio, specializations, launchpad_completed_at, launchpad_version, launchpad_matching_ack_at, launchpad_matches_ack_at, launchpad_pipeline_ack_at")
+      .select("brokerage_name, brokerage_address, bio, specializations, launchpad_completed_at, launchpad_version, launchpad_matching_ack_at, launchpad_client_requests_ack_at, launchpad_matches_ack_at, launchpad_pipeline_ack_at")
       .eq("id", userId)
       .single(),
     // Onboarding progress must reflect ONLY the active workspace. Without the
@@ -94,6 +95,7 @@ async function fetchAgentLaunchpadProgress(userId: string, isDemo: boolean): Pro
     launchpad_completed_at: profileRes.data?.launchpad_completed_at ?? null,
     launchpad_version: profileRes.data?.launchpad_version ?? null,
     launchpad_matching_ack_at: profileRes.data?.launchpad_matching_ack_at ?? null,
+    launchpad_client_requests_ack_at: profileRes.data?.launchpad_client_requests_ack_at ?? null,
     launchpad_matches_ack_at: profileRes.data?.launchpad_matches_ack_at ?? null,
     launchpad_pipeline_ack_at: profileRes.data?.launchpad_pipeline_ack_at ?? null,
   };

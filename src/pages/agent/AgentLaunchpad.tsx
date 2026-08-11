@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp, ShieldCheck, Sparkles, Target } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Handshake, Inbox, ShieldCheck, Sparkles, Target, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,32 +17,43 @@ import LaunchpadChecklistCard, {
   type LaunchpadStepStatus,
 } from "@/components/agent/LaunchpadChecklistCard";
 
-const LAUNCHPAD_VERSION = "v3";
+const LAUNCHPAD_VERSION = "v4";
+type InlineStepId = "matching" | "clientRequests";
+
+function demoAcknowledgementKey(userId: string | undefined, stepId: InlineStepId) {
+  return userId ? `agent-launchpad:${userId}:demo:${stepId}:viewed` : null;
+}
+
+function hasDemoAcknowledgement(userId: string | undefined, stepId: InlineStepId) {
+  if (typeof window === "undefined") return false;
+  const key = demoAcknowledgementKey(userId, stepId);
+  return key ? window.sessionStorage.getItem(key) === "true" : false;
+}
 
 export default function AgentLaunchpad() {
   const { user, profileName } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isDemo } = useWorkspaceMode();
-  const [matchingExpanded, setMatchingExpanded] = useState(false);
+  const [expandedStep, setExpandedStep] = useState<InlineStepId | null>(null);
+  const [matchingViewed, setMatchingViewed] = useState(false);
+  const [clientRequestsViewed, setClientRequestsViewed] = useState(false);
   const [savingCompletion, setSavingCompletion] = useState(false);
   const [showChecklistWhenDone, setShowChecklistWhenDone] = useState(false);
 
   const { data, isLoading, refetch } = useAgentLaunchpadProgress(user?.id);
 
-  // Auto-expand explainer if already acknowledged so the "done" state is visible.
-  useEffect(() => {
-    if (data?.profile.launchpad_matching_ack_at && !matchingExpanded) {
-      // no-op - don't auto-open, but the step will already show done
-    }
-  }, [data?.profile.launchpad_matching_ack_at, matchingExpanded]);
-
   const completionMap = useMemo(() => {
     const profileComplete = data?.profileComplete ?? false;
     const clientComplete = (data?.clientCount ?? 0) > 0;
     const exchangeComplete = (data?.exchangeCount ?? 0) > 0;
-    const matchingComplete = Boolean(data?.profile.launchpad_matching_ack_at) || matchingExpanded;
+    const matchingComplete = Boolean(data?.profile.launchpad_matching_ack_at)
+      || matchingViewed
+      || (isDemo && hasDemoAcknowledgement(user?.id, "matching"));
     const matchesComplete = data?.matchesTouched ?? false;
+    const clientRequestsComplete = Boolean(data?.profile.launchpad_client_requests_ack_at)
+      || clientRequestsViewed
+      || (isDemo && hasDemoAcknowledgement(user?.id, "clientRequests"));
     const pipelineComplete = data?.pipelineTouched ?? false;
 
     return {
@@ -51,9 +62,10 @@ export default function AgentLaunchpad() {
       exchange: exchangeComplete,
       matching: matchingComplete,
       matches: matchesComplete,
+      clientRequests: clientRequestsComplete,
       pipeline: pipelineComplete,
     } satisfies Record<AgentLaunchpadStepId, boolean>;
-  }, [data, matchingExpanded]);
+  }, [clientRequestsViewed, data, isDemo, matchingViewed, user?.id]);
 
   const totalSteps = AGENT_LAUNCHPAD_STEPS.length;
   const totalCompleted = Object.values(completionMap).filter(Boolean).length;
@@ -112,15 +124,34 @@ export default function AgentLaunchpad() {
 
   const handleStepClick = (step: (typeof AGENT_LAUNCHPAD_STEPS)[number]) => {
     if (step.isInline) {
-      const nextExpanded = !matchingExpanded;
-      setMatchingExpanded(nextExpanded);
-      // Persist the ack the first time they open it (Live workspace only).
-      if (nextExpanded && !isDemo && user && !data?.profile.launchpad_matching_ack_at) {
+      if (step.id !== "matching" && step.id !== "clientRequests") return;
+      const nextExpanded = expandedStep !== step.id;
+      setExpandedStep(nextExpanded ? step.id : null);
+      if (!nextExpanded) return;
+
+      const acknowledgementField = step.id === "matching"
+        ? "launchpad_matching_ack_at"
+        : "launchpad_client_requests_ack_at";
+      const alreadyAcknowledged = step.id === "matching"
+        ? data?.profile.launchpad_matching_ack_at
+        : data?.profile.launchpad_client_requests_ack_at;
+
+      if (step.id === "matching") setMatchingViewed(true);
+      else setClientRequestsViewed(true);
+
+      if (isDemo) {
+        const key = demoAcknowledgementKey(user?.id, step.id);
+        if (key) window.sessionStorage.setItem(key, "true");
+      }
+
+      // Demo walkthroughs count for the current visit without writing to the
+      // live profile. Live acknowledgement persists after the panel is closed.
+      if (!isDemo && user && !alreadyAcknowledged) {
         supabase
           .from("profiles")
-          .update({ launchpad_matching_ack_at: new Date().toISOString() })
+          .update({ [acknowledgementField]: new Date().toISOString() })
           .eq("id", user.id)
-          .is("launchpad_matching_ack_at", null)
+          .is(acknowledgementField, null)
           .then(() => refetch());
       }
     } else if (step.href) {
@@ -261,7 +292,7 @@ export default function AgentLaunchpad() {
                 {groupSteps.map((step, idx) => {
                   const complete = completionMap[step.id];
                   const isLast = idx === groupSteps.length - 1;
-                  const expanded = step.id === "matching" && matchingExpanded;
+                  const expanded = step.id === expandedStep;
 
                   return (
                     <LaunchpadChecklistCard
@@ -276,7 +307,10 @@ export default function AgentLaunchpad() {
                       isLast={isLast && !expanded}
                       onClick={() => handleStepClick(step)}
                     >
-                      {expanded ? <MatchingExplainer /> : null}
+                      {expanded && step.id === "matching" ? <MatchingExplainer /> : null}
+                      {expanded && step.id === "clientRequests" ? (
+                        <ClientRequestsExplainer onOpenRequests={() => navigate("/agent/representation")} />
+                      ) : null}
                     </LaunchpadChecklistCard>
                   );
                 })}
@@ -292,37 +326,94 @@ export default function AgentLaunchpad() {
 function MatchingExplainer() {
   return (
     <div className="space-y-4">
+      <div>
+        <p className="text-sm font-semibold text-foreground">What happens when a listing is activated</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Exchange IQ™ automatically evaluates the network. Optional preferences refine the results, but they are never required to begin matching.
+        </p>
+      </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border bg-background p-3">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Target className="h-4 w-4 text-primary" />
-            Automatic foundation
+            1. Establish buying power
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Equity, financing capacity, and projected return on equity run for every listing without requiring a wish list.
-          </p>
-        </div>
-        <div className="rounded-lg border bg-background p-3">
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Sparkles className="h-4 w-4 text-primary" />
-            Optional preferences
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Additional cash, location, property type, price, leverage, return, and cash-flow preferences refine results only when entered.
+            We estimate exchange proceeds from property value and debt, then apply the platform&apos;s financing limits and any additional cash supplied.
           </p>
         </div>
         <div className="rounded-lg border bg-background p-3">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <ShieldCheck className="h-4 w-4 text-primary" />
-            Focused private results
+            2. Screen eligible properties
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Only qualifying properties appear in Matches, ranked by return improvement and the preferences your client chose to provide.
+            A replacement must fit the purchasing-capacity ceiling, trade-up rules, and required criteria such as location or property type when selected.
+          </p>
+        </div>
+        <div className="rounded-lg border bg-background p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Sparkles className="h-4 w-4 text-primary" />
+            3. Rank the strongest fits
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Eligible properties are ranked by projected return-on-equity improvement and the client&apos;s optional preferences, with clear reasons behind each match.
           </p>
         </div>
       </div>
-      <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-        Pipeline gives you one board to move every client&apos;s matches from new to closed - so the next property is lined up early.
+      <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">Your role:</span> review the private matches, decide which opportunities deserve action, and use Pipeline once agent-to-agent communication begins. Closing this walkthrough will not remove your completion.
+      </div>
+    </div>
+  );
+}
+
+function ClientRequestsExplainer({ onOpenRequests }: { onOpenRequests: () => void }) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-sm font-semibold text-foreground">How new property owners can become your clients</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Property owners and investors can use the platform directly, but only verified agents communicate with the agent representing the other side of a deal.
+        </p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border bg-background p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <UserPlus className="h-4 w-4 text-primary" />
+            1. An owner chooses you
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            A property owner in your market can invite you as their agent or be referred to you when they need representation.
+          </p>
+        </div>
+        <div className="rounded-lg border bg-background p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Inbox className="h-4 w-4 text-primary" />
+            2. You review the request
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Client Requests shows representation invitations and client requests to pursue a specific matched property. You can review before accepting or passing.
+          </p>
+        </div>
+        <div className="rounded-lg border bg-background p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Handshake className="h-4 w-4 text-primary" />
+            3. You move the deal forward
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Once connected, the client remains active in their workspace while you handle agent-to-agent outreach and move qualified opportunities into Pipeline.
+          </p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3 rounded-lg bg-muted/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted-foreground">
+          You stay in control: every request can be reviewed before you accept the relationship or contact the listing agent.
+        </p>
+        <Button size="sm" onClick={onOpenRequests} className="shrink-0">
+          Open Client Requests
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

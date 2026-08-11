@@ -18,6 +18,10 @@ const migration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20260811101500_invite_existing_client_workspace.sql"),
   "utf8",
 );
+const launchpadPage = readFileSync(
+  resolve(process.cwd(), "src/pages/agent/AgentLaunchpad.tsx"),
+  "utf8",
+);
 
 describe("agent client onboarding workflow", () => {
   it("keeps the Launchpad client step focused on creating an internal client record", () => {
@@ -29,11 +33,23 @@ describe("agent client onboarding workflow", () => {
     expect(addClientPage).not.toContain("Client added and invitation sent");
   });
 
-  it("makes workspace access a separate optional action on the saved client profile", () => {
-    expect(addClientPage).toContain("Client workspace access is optional");
+  it("makes workspace access an explicit, benefit-led optional choice", () => {
+    expect(addClientPage).toContain("Want to invite this client to the platform?");
+    expect(addClientPage).toContain("Add their properties");
+    expect(addClientPage).toContain("Review their matches");
+    expect(addClientPage).toContain("Stay their preferred agent");
+    expect(addClientPage).toContain("Add Client & Send Invitation");
+    expect(addClientPage).toContain("inviteExistingInvestorClient(data.id)");
     expect(clientProfile).toContain("Invite this client to their own workspace");
     expect(clientProfile).toContain("inviteExistingInvestorClient(clientId)");
     expect(clientProfile).toContain("Manage in Client Requests");
+  });
+
+  it("keeps inline Launchpad education complete after its panel is closed", () => {
+    expect(launchpadPage).toContain("matchingViewed");
+    expect(launchpadPage).toContain("clientRequestsViewed");
+    expect(launchpadPage).toContain("launchpad_client_requests_ack_at");
+    expect(launchpadPage).toContain("Closing this walkthrough will not remove your completion");
   });
 
   it("invites an existing record without creating a duplicate client", () => {

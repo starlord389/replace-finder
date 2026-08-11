@@ -9,6 +9,7 @@ describe("agent launchpad content", () => {
       "exchange",
       "matching",
       "matches",
+      "clientRequests",
       "pipeline",
     ]);
   });
@@ -16,6 +17,13 @@ describe("agent launchpad content", () => {
   it("uses grouped sections for setup and daily workflow", () => {
     expect(AGENT_LAUNCHPAD_GROUPS.map((group) => group.id)).toEqual(["setup", "workflow"]);
     expect(AGENT_LAUNCHPAD_GROUPS[0].steps).toEqual(["profile", "client", "exchange"]);
-    expect(AGENT_LAUNCHPAD_GROUPS[1].steps).toEqual(["matching", "matches", "pipeline"]);
+    expect(AGENT_LAUNCHPAD_GROUPS[1].steps).toEqual(["matching", "matches", "clientRequests", "pipeline"]);
+  });
+
+  it("explains how agent-only communication creates client requests", () => {
+    const clientRequests = AGENT_LAUNCHPAD_STEPS.find((step) => step.id === "clientRequests");
+    expect(clientRequests?.title).toBe("Understand Client Requests");
+    expect(clientRequests?.description).toContain("property owners");
+    expect(clientRequests?.isInline).toBe(true);
   });
 });

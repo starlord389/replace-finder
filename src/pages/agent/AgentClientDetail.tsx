@@ -1,18 +1,31 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, UserPlus } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Handshake,
+  MailPlus,
+  Search,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
+import { inviteExistingInvestorClient } from "@/features/representation/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 // This route creates the internal client record needed for listings and matches.
-// Giving that client a login remains a separate, optional action on their profile.
+// Giving that client a login remains a separate, optional choice in this flow or
+// later from their saved client profile.
 export default function AgentClientDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -22,11 +35,18 @@ export default function AgentClientDetail() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
+  const [invitePanelOpen, setInvitePanelOpen] = useState(false);
+  const [inviteToPlatform, setInviteToPlatform] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!user || !name.trim()) return;
+    if (inviteToPlatform && !email.trim()) {
+      toast.error("Enter an email address to send the client a workspace invitation.");
+      return;
+    }
+
     setSaving(true);
     const { data, error } = await supabase
       .from("agent_clients")
@@ -40,14 +60,33 @@ export default function AgentClientDetail() {
       })
       .select("id")
       .single();
-    setSaving(false);
 
     if (error || !data) {
+      setSaving(false);
       toast.error(error?.message ?? "Failed to add client");
       return;
     }
 
-    toast.success("Client added. You can now create their listing.");
+    if (inviteToPlatform) {
+      try {
+        const result = await inviteExistingInvestorClient(data.id);
+        if (result.emailWarning) {
+          toast.warning("Client added, but invitation delivery needs attention in Client Requests.");
+        } else {
+          toast.success("Client added and workspace invitation sent.");
+        }
+      } catch (inviteError) {
+        toast.warning(
+          inviteError instanceof Error
+            ? `Client added, but the invitation was not sent: ${inviteError.message}`
+            : "Client added, but the workspace invitation was not sent.",
+        );
+      }
+    } else {
+      toast.success("Client added. You can now create their listing.");
+    }
+
+    setSaving(false);
     navigate(`/agent/clients/${data.id}`);
   };
 
@@ -66,9 +105,13 @@ export default function AgentClientDetail() {
         </p>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Client information</CardTitle>
+            <CardDescription>Only the client name is required to begin creating their listing.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Client Name *</Label>
               <Input id="name" value={name} onChange={(event) => setName(event.target.value)} required />
@@ -90,28 +133,113 @@ export default function AgentClientDetail() {
                 placeholder="Any notes about this client's exchange goals, timeline, etc."
               />
             </div>
-            <Button type="submit" disabled={saving || !name.trim()}>
-              {saving ? "Adding client…" : "Add Client"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card className="border-dashed bg-muted/20">
-        <CardHeader className="pb-4">
-          <div className="flex items-start gap-3">
+        <Card className="overflow-hidden border-primary/20 bg-primary/[0.025]">
+          <button
+            type="button"
+            className="flex w-full items-start gap-3 p-5 text-left transition-colors hover:bg-primary/[0.035]"
+            onClick={() => setInvitePanelOpen((open) => !open)}
+            aria-expanded={invitePanelOpen}
+          >
             <div className="rounded-lg bg-primary/10 p-2">
-              <UserPlus className="h-4 w-4 text-primary" />
+              <MailPlus className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <CardTitle className="text-base">Client workspace access is optional</CardTitle>
-              <CardDescription className="mt-1">
-                Adding a client here does not create an account or send an email. After saving, you can invite them to their own investor workspace from their client profile.
-              </CardDescription>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold text-foreground">Want to invite this client to the platform?</p>
+                <Badge variant="secondary">Optional</Badge>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Give them their own investor workspace while you remain the agent representing them.
+              </p>
             </div>
-          </div>
-        </CardHeader>
-      </Card>
+            {invitePanelOpen ? (
+              <ChevronUp className="mt-1 h-5 w-5 shrink-0 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="mt-1 h-5 w-5 shrink-0 text-muted-foreground" />
+            )}
+          </button>
+
+          {invitePanelOpen ? (
+            <CardContent className="space-y-4 border-t bg-background/70 p-5">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <InviteBenefit
+                  icon={Building2}
+                  title="Add their properties"
+                  description="Your client can create and manage their own exchange listings."
+                />
+                <InviteBenefit
+                  icon={Search}
+                  title="Review their matches"
+                  description="They can evaluate opportunities and ask you to move a match forward."
+                />
+                <InviteBenefit
+                  icon={Handshake}
+                  title="Stay their preferred agent"
+                  description="Once accepted, you are connected as their default agent for agent-to-agent deal communication."
+                />
+              </div>
+
+              <label
+                htmlFor="invite-client-workspace"
+                className="flex cursor-pointer items-start gap-3 rounded-lg border bg-background p-4"
+              >
+                <Checkbox
+                  id="invite-client-workspace"
+                  checked={inviteToPlatform}
+                  onCheckedChange={(checked) => setInviteToPlatform(checked === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-foreground">
+                    Send a workspace invitation after adding this client
+                  </span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    They will receive an email invitation. Nothing is shared until they accept.
+                  </span>
+                </span>
+              </label>
+
+              {inviteToPlatform && !email.trim() ? (
+                <p className="text-xs font-medium text-amber-700">
+                  Add the client’s email above so we know where to send the invitation.
+                </p>
+              ) : null}
+            </CardContent>
+          ) : null}
+        </Card>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={saving || !name.trim() || (inviteToPlatform && !email.trim())}>
+            {saving
+              ? inviteToPlatform ? "Adding client and sending invitation…" : "Adding client…"
+              : inviteToPlatform ? "Add Client & Send Invitation" : "Add Client"}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            {inviteToPlatform ? "The client record is created first, then the invitation is sent." : "No account or email invitation will be created."}
+          </p>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function InviteBenefit({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof CheckCircle2;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-lg border bg-background p-3">
+      <Icon className="h-4 w-4 text-primary" />
+      <p className="mt-2 text-sm font-medium text-foreground">{title}</p>
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
     </div>
   );
 }

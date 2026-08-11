@@ -1,6 +1,6 @@
 import {
   Settings2, Compass,
-  UserCircle, UserPlus, FileText, Workflow, Search, KanbanSquare,
+  UserCircle, UserPlus, FileText, Workflow, Search, Handshake, KanbanSquare,
   type LucideIcon,
 } from "lucide-react";
 
@@ -10,6 +10,7 @@ export type AgentLaunchpadStepId =
   | "exchange"
   | "matching"
   | "matches"
+  | "clientRequests"
   | "pipeline";
 
 export interface AgentLaunchpadGroup {
@@ -44,7 +45,7 @@ export const AGENT_LAUNCHPAD_GROUPS: AgentLaunchpadGroup[] = [
     title: "Run your pipeline",
     description: "The day-to-day flow: review matches, connect, and move deals to close.",
     icon: Compass,
-    steps: ["matching", "matches", "pipeline"],
+    steps: ["matching", "matches", "clientRequests", "pipeline"],
   },
 ];
 
@@ -93,6 +94,15 @@ export const AGENT_LAUNCHPAD_STEPS: AgentLaunchpadStepContent[] = [
     actionLabel: "View matches",
     icon: Search,
     href: "/agent/matches",
+  },
+  {
+    id: "clientRequests",
+    title: "Understand Client Requests",
+    description: "See how property owners can ask you to represent them or move a matched opportunity forward.",
+    tip: "You review every request and decide whether to accept it before it becomes part of your working pipeline.",
+    actionLabel: "See how requests work",
+    icon: Handshake,
+    isInline: true,
   },
   {
     id: "pipeline",

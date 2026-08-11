@@ -1743,6 +1743,7 @@ export type Database = {
           full_name: string | null
           id: string
           launchpad_completed_at: string | null
+          launchpad_client_requests_ack_at: string | null
           launchpad_matches_ack_at: string | null
           launchpad_matching_ack_at: string | null
           launchpad_pipeline_ack_at: string | null
@@ -1769,6 +1770,7 @@ export type Database = {
           full_name?: string | null
           id: string
           launchpad_completed_at?: string | null
+          launchpad_client_requests_ack_at?: string | null
           launchpad_matches_ack_at?: string | null
           launchpad_matching_ack_at?: string | null
           launchpad_pipeline_ack_at?: string | null
@@ -1795,6 +1797,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           launchpad_completed_at?: string | null
+          launchpad_client_requests_ack_at?: string | null
           launchpad_matches_ack_at?: string | null
           launchpad_matching_ack_at?: string | null
           launchpad_pipeline_ack_at?: string | null
