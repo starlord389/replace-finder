@@ -80,7 +80,7 @@ export const AGENT_LAUNCHPAD_STEPS: AgentLaunchpadStepContent[] = [
   {
     id: "matching",
     title: "See how matching works",
-    description: "A quick tour of how we privately score fit for your clients before you review results.",
+    description: "Learn how Exchange IQ™ privately evaluates and ranks replacement properties for each client’s exchange.",
     tip: "This is a private platform - your clients never browse a public marketplace.",
     actionLabel: "See how matching works",
     icon: Workflow,
