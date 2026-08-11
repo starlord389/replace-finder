@@ -16,6 +16,8 @@ DECLARE
   v_rep public.agent_representations%ROWTYPE;
   v_invite public.representation_invites%ROWTYPE;
   v_status text;
+  v_existing_rep_status text;
+  v_existing_invite_status text;
 BEGIN
   IF NOT public.is_verified_agent(v_uid) THEN
     RAISE EXCEPTION 'Only a verified agent can invite an investor client.';
@@ -38,7 +40,7 @@ BEGIN
   SELECT lower(email) INTO v_agent_email FROM public.profiles WHERE id = v_uid;
   IF v_email = v_agent_email THEN RAISE EXCEPTION 'You cannot invite your own account as a client.'; END IF;
 
-  SELECT r, i INTO v_rep, v_invite
+  SELECT r.status, i.status INTO v_existing_rep_status, v_existing_invite_status
   FROM public.agent_representations r
   JOIN public.representation_invites i ON i.representation_id = r.id
   WHERE r.agent_id = v_uid
@@ -51,7 +53,7 @@ BEGIN
   LIMIT 1;
 
   IF FOUND THEN
-    IF v_rep.status = 'active' OR v_invite.status = 'accepted' THEN
+    IF v_existing_rep_status = 'active' OR v_existing_invite_status = 'accepted' THEN
       RAISE EXCEPTION 'This client already has a connected workspace.';
     END IF;
     RAISE EXCEPTION 'A workspace invitation is already pending for this client. Manage it from Client Requests.';
@@ -92,6 +94,7 @@ $$;
 
 REVOKE ALL ON FUNCTION public.invite_existing_investor_client(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.invite_existing_investor_client(uuid) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.invite_existing_investor_client(uuid) FROM anon;
 
 COMMENT ON FUNCTION public.invite_existing_investor_client(uuid) IS
   'Creates an optional investor workspace invitation for an existing agent client without duplicating the client record.';
