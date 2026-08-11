@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.invite_existing_investor_client(uuid) FROM anon;
