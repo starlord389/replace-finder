@@ -69,6 +69,8 @@ interface Props {
   allClientsActive?: boolean;
   /** Label for the active property when the "All properties" mode is active. */
   allPropertiesActive?: boolean;
+  emptyTitle?: string;
+  emptyDescription?: string;
   audience?: "agent" | "investor";
 }
 
@@ -97,6 +99,8 @@ export function InboxList({
   onSelectAllPropertiesForClient,
   allClientsActive = false,
   allPropertiesActive = false,
+  emptyTitle = "No matches",
+  emptyDescription = "Try a different filter or search.",
   audience = "agent",
 }: Props) {
   const totalInScope = scopeRels.length;
@@ -449,9 +453,9 @@ export function InboxList({
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         {rels.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-            <p className="text-sm font-medium text-foreground">No matches</p>
+            <p className="text-sm font-medium text-foreground">{emptyTitle}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Try a different filter or search.
+              {emptyDescription}
             </p>
             {anyActive && (
               <Button variant="outline" size="sm" className="mt-3" onClick={clearAll}>

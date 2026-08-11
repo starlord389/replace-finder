@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Inbox as InboxIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,11 +27,11 @@ import {
   type MatchFilters,
 } from "@/features/matches/components/inbox/SortFilterBar";
 import { readMatchLocalState, useMatchLocalStateVersion } from "@/features/matches/components/inbox/useMatchLocalState";
+import { buildMatchesScopeSearch, findMatchScopeGroup } from "@/features/matches/lib/matchScope";
 
 export default function AgentMatches({ audience = "agent" }: { audience?: "agent" | "investor" }) {
   const { user } = useAuth();
   const { isDemo } = useWorkspaceMode();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isInvestor = audience === "investor";
   const basePath = isInvestor ? "/investor" : "/agent";
@@ -100,12 +100,12 @@ export default function AgentMatches({ audience = "agent" }: { audience?: "agent
 
   // Scope: "all" by default; can narrow to a client (all properties) via the toolbar.
   const scopeClientId = searchParams.get("client"); // null = all clients
+  const listingFilterId = searchParams.get("listing");
   const activeClient = useMemo(
-    () => clientGroups.find((c) => (c.clientId ?? "") === (scopeClientId ?? "__skip")) ?? null,
-    [clientGroups, scopeClientId],
+    () => findMatchScopeGroup(clientGroups, listingFilterId, scopeClientId),
+    [clientGroups, listingFilterId, scopeClientId],
   );
 
-  const listingFilterId = searchParams.get("listing");
   const listingFilterName = useMemo(() => {
     if (!listingFilterId) return null;
     const l = agentListings.find((x) => x.id === listingFilterId);
@@ -120,10 +120,25 @@ export default function AgentMatches({ audience = "agent" }: { audience?: "agent
 
   const scopedRels = useMemo(() => {
     let rels = buyerRels;
-    if (scopeClientId) rels = rels.filter((r) => r.clientId === scopeClientId);
+    // The listing is the most specific scope. Do not intersect it with a stale
+    // or mismatched client parameter, which would incorrectly produce 0 rows.
     if (listingFilterId) rels = rels.filter((r) => r.buyerExchangeId === listingFilterId);
+    else if (scopeClientId) rels = rels.filter((r) => r.clientId === scopeClientId);
     return rels;
   }, [buyerRels, scopeClientId, listingFilterId]);
+
+  // Canonicalize older listing-only links once listing metadata loads. The URL,
+  // the visible client selector, and the visible property selector then all tell
+  // the same story.
+  useEffect(() => {
+    if (isInvestor || !listingFilterId) return;
+    const listing = agentListings.find((item) => item.id === listingFilterId);
+    if (!listing || listing.clientId === scopeClientId) return;
+    const next = new URLSearchParams(searchParams);
+    if (listing.clientId) next.set("client", listing.clientId);
+    else next.delete("client");
+    setSearchParams(next, { replace: true });
+  }, [agentListings, isInvestor, listingFilterId, scopeClientId, searchParams, setSearchParams]);
 
   // Filter / sort / search state
   const [search, setSearch] = useState("");
@@ -234,7 +249,17 @@ export default function AgentMatches({ audience = "agent" }: { audience?: "agent
     const next = new URLSearchParams(searchParams);
     if (clientId) next.set("client", clientId);
     else next.delete("client");
+    next.delete("listing");
     next.delete("match");
+    next.delete("view");
+    setSearchParams(next);
+  }
+
+  function setScopeExchange(exchangeId: string) {
+    const listing = agentListings.find((item) => item.id === exchangeId);
+    const next = new URLSearchParams(
+      buildMatchesScopeSearch(audience, exchangeId, listing?.clientId),
+    );
     setSearchParams(next);
   }
 
@@ -338,11 +363,15 @@ export default function AgentMatches({ audience = "agent" }: { audience?: "agent
               activeClientId={activeClient?.clientId ?? null}
               activeExchangeId={listingFilterId ?? undefined}
               allClientsActive={isInvestor ? !listingFilterId : !activeClient}
-              allPropertiesActive={isInvestor ? false : !!activeClient}
+              allPropertiesActive={isInvestor ? false : !!activeClient && !listingFilterId}
               audience={audience}
-              onSelectExchange={(id) => navigate(`${basePath}/matches?listing=${id}`)}
+              onSelectExchange={setScopeExchange}
               onSelectAllClients={isInvestor ? clearInvestorExchangeScope : () => setScopeClient(null)}
               onSelectAllPropertiesForClient={isInvestor ? undefined : (clientId) => setScopeClient(clientId)}
+              emptyTitle={listingFilterId && scopedRels.length === 0 ? "No opportunities for this exchange yet" : undefined}
+              emptyDescription={listingFilterId && scopedRels.length === 0
+                ? "Monitoring is active. New qualifying matches will appear here automatically."
+                : undefined}
             />
           </div>
 
@@ -379,9 +408,13 @@ export default function AgentMatches({ audience = "agent" }: { audience?: "agent
               <div className="flex w-full items-center justify-center rounded-xl border border-dashed bg-card p-12 text-center">
                 <div>
                   <InboxIcon className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
-                  <p className="text-sm font-medium text-foreground">Select a match</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {listingFilterId && scopedRels.length === 0 ? "No opportunities yet" : "Select a match"}
+                  </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Pick a property from the inbox to review the deal.
+                    {listingFilterId && scopedRels.length === 0
+                      ? "ExchangeUp™ is monitoring the network for qualifying replacement properties."
+                      : "Pick a property from the inbox to review the deal."}
                   </p>
                 </div>
               </div>

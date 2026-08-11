@@ -13,6 +13,7 @@ import ActivateResultDialog, { ActivateResultState } from "@/components/exchange
 import { useCreateExchange } from "@/features/exchanges/hooks/useCreateExchange";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { trackEvent } from "@/lib/telemetry";
+import { buildMatchesScopeSearch } from "@/features/matches/lib/matchScope";
 
 const AGENT_STEPS = ["Select Client", "Property & Financials", "Preferences", "Review"];
 const AGENT_MOBILE_STEP_LABELS = ["Client", "Property", "Prefs", "Review"];
@@ -175,7 +176,9 @@ export default function NewExchange({ ownerType = "agent" }: { ownerType?: "agen
         }}
         onGoToMatches={() => {
           setResultOpen(false);
-          navigate(lastExchangeId ? `${basePath}/matches?listing=${lastExchangeId}` : `${basePath}/matches`);
+          navigate(lastExchangeId
+            ? `${basePath}/matches?${buildMatchesScopeSearch(ownerType, lastExchangeId, data.selectedClientId)}`
+            : `${basePath}/matches`);
         }}
         onRetry={() => setResultOpen(false)}
         onSaveAsDraft={() => {
