@@ -308,13 +308,11 @@ export function hasAdvancedPropertyDetails(
   imageCount = 0,
 ): boolean {
   return Boolean(
-    property.property_name.trim() ||
     property.address.trim() ||
     property.address_is_public ||
     property.zip.trim() ||
     property.county.trim() ||
     property.unit_suite.trim() ||
-    property.asset_subtype.trim() ||
     property.strategy_type ||
     property.property_class.trim() ||
     property.property_condition.trim() ||

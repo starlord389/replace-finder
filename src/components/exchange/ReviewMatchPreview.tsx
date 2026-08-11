@@ -24,10 +24,14 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
     ? property.address
     : cityState;
   const secondaryLine = property.address_is_public && property.address ? cityState : null;
-  const name = property.property_name || property.address || cityState || "Untitled property";
   const assetLabel = property.asset_type
     ? ASSET_TYPE_LABELS[property.asset_type as keyof typeof ASSET_TYPE_LABELS]
     : null;
+  const name = property.address_is_public && property.address
+    ? property.address
+    : assetLabel
+      ? `${assetLabel} in ${cityState}`
+      : cityState;
   const askingPrice = parseCurrency(financials.asking_price);
   const { noi, capRate } = getDerivedFinancials(financials);
 
@@ -152,7 +156,7 @@ export default function ReviewMatchPreview({ property, financials, images }: Pro
         <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
-            Detailed financials (gross rent, expenses, loan balance) stay hidden until you accept a connection with a matched buyer.
+            Matched participants can review the asking price, gross income, operating expenses, NOI, cap rate, and occupancy before connecting. The seller's loan balance, equity, and exchange proceeds stay private.
             {!property.address_is_public && " The exact street address is also hidden - matched participants see only city and state."}
           </span>
         </div>

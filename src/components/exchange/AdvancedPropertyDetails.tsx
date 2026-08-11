@@ -174,12 +174,10 @@ export default function AdvancedPropertyDetails({
         <div className="space-y-8 border-t p-4 sm:p-5">
           <section className="space-y-4">
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Property identity & exact location</h3>
-              <p className="mt-1 text-xs text-muted-foreground">Useful for organizing and presenting the listing; the street address can remain private.</p>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Exact location</h3>
+              <p className="mt-1 text-xs text-muted-foreground">Add the street address and any useful location details; the street address can remain private.</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <OptionalTextField id="property-name" label="Property name" value={property.property_name} onChange={(value) => set("property_name", value)} placeholder="e.g., Lakeside Apartments" />
-              <OptionalTextField id="property-subtype" label="Property subtype" value={property.asset_subtype} onChange={(value) => set("asset_subtype", value)} placeholder="e.g., Garden-style apartments" />
               <div className="sm:col-span-2">
                 <OptionalTextField id="property-address" label="Street address" value={property.address} onChange={(value) => set("address", value)} placeholder="e.g., 123 Main St" maxLength={250} />
                 <div className="mt-2 flex items-start gap-3 rounded-md border bg-muted/30 p-3">

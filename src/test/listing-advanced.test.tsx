@@ -52,7 +52,9 @@ describe("listing Basic and Advanced information", () => {
     expect(screen.queryByLabelText(/monthly mortgage payment/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /advanced property information/i }));
-    expect(screen.getByLabelText(/property name/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/property name/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/property subtype/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/street address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/year built/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/monthly mortgage payment/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/recent renovations/i)).toBeInTheDocument();

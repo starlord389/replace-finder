@@ -79,8 +79,7 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Pledged Property</CardTitle></CardHeader>
         <CardContent className="space-y-1">
-          {(p.property_name || p.address) && <p className="font-medium">{p.property_name || p.address}</p>}
-          {p.property_name && p.address && <p className="text-sm text-muted-foreground">{p.address}</p>}
+          {p.address && <p className="font-medium">{p.address}</p>}
           <p className="text-sm text-muted-foreground">{[p.city, p.state, p.zip].filter(Boolean).join(", ")}</p>
           <p className="text-xs text-muted-foreground">
             {p.address_is_public
@@ -89,7 +88,6 @@ export default function StepReview({ data, clientName, onBack, onSubmit, saving,
           </p>
           <div className="mt-3 grid grid-cols-2 gap-x-8">
             <Field label="Asset Type" value={p.asset_type ? ASSET_TYPE_LABELS[p.asset_type as keyof typeof ASSET_TYPE_LABELS] : undefined} />
-            <Field label="Subtype" value={p.asset_subtype} />
             <Field label="Property Class" value={p.property_class} />
             <Field label="Condition" value={p.property_condition} />
             <Field label="Year Built" value={p.year_built} />

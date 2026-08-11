@@ -18,6 +18,16 @@ export function FinancialsTab({ rel }: { rel: Relationship }) {
 
   return (
     <div className="space-y-8">
+      <section className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
+        <div>
+          <p className="text-sm font-semibold text-foreground">Operating performance is available before connection</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Matched participants can review asking price, gross income, operating expenses, NOI, cap rate, and occupancy while evaluating the opportunity. The seller's loan balance, equity, and exchange proceeds remain private.
+          </p>
+        </div>
+      </section>
+
       {/* 4-up KPI hero */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiHero icon={DollarSign} label="Gross Income" value={grossIncome} sub="/year" />

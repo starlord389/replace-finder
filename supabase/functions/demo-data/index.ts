@@ -27,18 +27,20 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Coherent financials: NOI = ask x cap; expenses = effective income - NOI; debt
-// service amortized on the actual balance/rate. Stored figures are annual.
+// Coherent financials: NOI = ask x cap and NOI = gross rent - operating
+// expenses. Occupancy remains a separately disclosed property metric; the UI
+// and listing wizard define gross_rent_roll as the annualized gross-rent input,
+// so applying occupancy a second time here would make the displayed income
+// statement fail to reconcile. Debt service is amortized on the actual balance/rate.
 function fin(o: { ask: number; cap: number; gross: number; occ: number; loan: number; rate: number; maturity: string }) {
   const noi = Math.round(o.ask * o.cap / 100);
-  const egi = Math.round(o.gross * o.occ / 100);
-  const expenses = Math.max(egi - noi, Math.round(egi * 0.2));
+  const expenses = Math.max(o.gross - noi, 0);
   const r = o.rate / 100 / 12;
   const monthly = o.loan > 0 ? (o.loan * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1) : 0;
   return {
     asking_price: o.ask, cap_rate: o.cap, noi,
     gross_rent_roll: o.gross, total_operating_expenses: expenses,
-    annual_revenue: egi, annual_expenses: expenses,
+    annual_revenue: o.gross, annual_expenses: expenses,
     occupancy_rate: o.occ, loan_balance: o.loan, loan_rate: o.rate,
     loan_type: o.loan > 0 ? "Fixed-rate" : "Free & clear", loan_maturity_date: o.maturity,
     annual_debt_service: Math.round(monthly * 12),

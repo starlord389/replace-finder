@@ -93,7 +93,9 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
       const [sellerPropRes, sellerFinRes] = await Promise.all([
         // Counterparty's listing when we're the buyer-side agent → masked view.
         supabase.from("pledged_properties_secure").select("*").eq("id", matchRes.data.seller_property_id).single(),
-        supabase.from("property_financials").select("*").eq("property_id", matchRes.data.seller_property_id).maybeSingle(),
+        // Fetch buyer-relevant operating performance only. Seller debt/equity
+        // belongs to the seller's exchange and is never needed in this workspace.
+        supabase.from("property_financials").select("property_id, asking_price, cap_rate, occupancy_rate, gross_rent_roll, total_operating_expenses, noi").eq("property_id", matchRes.data.seller_property_id).maybeSingle(),
       ]);
       setSellerProp(sellerPropRes.data);
       setSellerFin(sellerFinRes.data);
@@ -105,7 +107,7 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
       const [relPropRes, relFinRes, clientRes] = await Promise.all([
         // Buyer's relinquished property - counterparty-owned when we're the seller-side agent → masked view.
         exchange.relinquished_property_id ? supabase.from("pledged_properties_secure").select("*").eq("id", exchange.relinquished_property_id).single() : Promise.resolve({ data: null }),
-        exchange.relinquished_property_id ? supabase.from("property_financials").select("*").eq("property_id", exchange.relinquished_property_id).maybeSingle() : Promise.resolve({ data: null }),
+        exchange.relinquished_property_id ? supabase.from("property_financials").select("property_id, asking_price, cap_rate, occupancy_rate, gross_rent_roll, total_operating_expenses, noi").eq("property_id", exchange.relinquished_property_id).maybeSingle() : Promise.resolve({ data: null }),
         exchange.client_id
           ? supabase.from("agent_clients").select("client_name").eq("id", exchange.client_id).single()
           : Promise.resolve({ data: null }),
