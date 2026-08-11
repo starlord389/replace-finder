@@ -130,9 +130,9 @@ const COUNTERPARTIES = [
   {
     email: "demo.agent.mehta@replacefinder.test", full_name: "Priya Mehta", brokerage_name: "Mehta Investment Realty",
     properties: [
-      { name: "Merrimack Mill Lofts", address: "88 Market St", city: "Lowell", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 16, year_built: 1998, sf: 15200,
-        description: "16-unit converted mill building in downtown Lowell, 96% occupied with a steady renter base from UMass Lowell and the medical corridor. Elevator served, in-unit laundry, on-site parking. Boiler replaced 2022.",
-        f: fin({ ask: 2_400_000, cap: 6.5, gross: 268_000, occ: 96, loan: 1_320_000, rate: 5.75, maturity: "2033-01-01" }), img: IMG.mf },
+      { name: "Merrimack Mill Lofts", address: "88 Market St", city: "Lowell", state: "MA", asset_type: "multifamily", strategy_type: "core_plus", units: 42, year_built: 1998, sf: 41000,
+        description: "42-unit converted mill building in downtown Lowell, 96% occupied with a steady renter base from UMass Lowell and the medical corridor. Elevator served, in-unit laundry, on-site parking. Boiler replaced 2022. The largest MA offering currently in the network.",
+        f: fin({ ask: 4_950_000, cap: 6.5, gross: 545_000, occ: 96, loan: 2_700_000, rate: 5.75, maturity: "2033-01-01" }), img: IMG.mf },
       { name: "Chelmsford Flex Building", address: "12 Katrina Rd", city: "Chelmsford", state: "MA", asset_type: "industrial", strategy_type: "core_plus", units: 3, year_built: 2004, sf: 21000,
         description: "Three-tenant flex/light industrial building off Route 3, fully leased to established local contractors. 18' clear, three drive-in doors, small office build-outs. Assumable loan at 5.4%.",
         f: fin({ ask: 1_850_000, cap: 7.2, gross: 178_000, occ: 100, loan: 1_000_000, rate: 5.4, maturity: "2032-06-01" }), img: IMG.industrial },
