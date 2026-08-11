@@ -129,9 +129,8 @@ export default function AgentLaunchpad() {
       setExpandedStep(nextExpanded ? step.id : null);
       if (!nextExpanded) return;
 
-      const acknowledgementField = step.id === "matching"
-        ? "launchpad_matching_ack_at"
-        : "launchpad_client_requests_ack_at";
+      const acknowledgementField: "launchpad_matching_ack_at" | "launchpad_client_requests_ack_at" =
+        step.id === "matching" ? "launchpad_matching_ack_at" : "launchpad_client_requests_ack_at";
       const alreadyAcknowledged = step.id === "matching"
         ? data?.profile.launchpad_matching_ack_at
         : data?.profile.launchpad_client_requests_ack_at;
