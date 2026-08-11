@@ -402,19 +402,19 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   // demo useful as a QA fixture instead of presenting fabricated scores or
   // impossible trade-down recommendations.
   const matchRows = await Promise.all([
-    buildEngineMatch(db, marcus, prop["Westshore Corporate Center"]),
-    buildEngineMatch(db, patel, prop["Crosspoint Industrial"]),
-    buildEngineMatch(db, patel, prop["Westshore Corporate Center"]),
-    buildEngineMatch(db, wilson, prop["Westshore Corporate Center"], { buyer_agent_viewed: true, buyer_agent_viewed_at: dFrom(-1) + "T18:00:00Z" }),
-    buildEngineMatch(db, investorEx.id, prop["Westshore Corporate Center"]),
+    buildEngineMatch(db, marcus, prop["Brockton Main Street Mixed-Use"]),
+    buildEngineMatch(db, patel, prop["Chelmsford Flex Building"]),
+    buildEngineMatch(db, patel, prop["Brockton Main Street Mixed-Use"]),
+    buildEngineMatch(db, wilson, prop["Brockton Main Street Mixed-Use"], { buyer_agent_viewed: true, buyer_agent_viewed_at: dFrom(-1) + "T18:00:00Z" }),
+    buildEngineMatch(db, investorEx.id, prop["Brockton Main Street Mixed-Use"]),
     // Leave this second investor-owned match without a contact request so the
     // Investor Demo can exercise the complete "Ask My Agent to Connect" flow.
-    buildEngineMatch(db, investorEx.id, prop["Crosspoint Industrial"]),
+    buildEngineMatch(db, investorEx.id, prop["Chelmsford Flex Building"]),
   ]);
   const { data: matches, error: mErr } = await db.from("matches").insert(matchRows).select("id, buyer_exchange_id, seller_property_id");
   if (mErr) throw new Error(`matches insert failed: ${mErr.message}`);
   const matchId = (ex: string, p: string) => (matches ?? []).find((m: any) => m.buyer_exchange_id === ex && m.seller_property_id === p)?.id;
-  const investorMatchId = matchId(investorEx.id, prop["Westshore Corporate Center"]);
+  const investorMatchId = matchId(investorEx.id, prop["Brockton Main Street Mixed-Use"]);
 
   const { data: ownerProfile } = await db.from("profiles").select("email, full_name").eq("id", ownerId).single();
   const activeRep = await insertOne(db, "agent_representations", {
@@ -444,7 +444,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
       investor_id: ownerId,
       exchange_id: investorEx.id,
       match_id: investorMatchId,
-      property_id: prop["Westshore Corporate Center"],
+      property_id: prop["Brockton Main Street Mixed-Use"],
       representing_agent_id: ownerId,
       status: "requested",
       investor_note: "Please confirm the T-12 supports the projected return before contacting the listing agent.",
@@ -504,18 +504,18 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   const inboundCrit = await insertOne(db, "replacement_criteria", { exchange_id: inboundEx.id, target_asset_types: ["multifamily"], target_states: ["TX"], target_price_min: 2_500_000, target_price_max: 4_500_000 }, "id");
   await db.from("exchanges").update({ criteria_id: inboundCrit.id }).eq("id", inboundEx.id);
   await db.from("pledged_properties").update({ exchange_id: inboundEx.id }).eq("id", inboundRelProp);
-  const inboundMatchRow = await buildEngineMatch(db, inboundEx.id, prop["Heights Multifamily 24"]);
+  const inboundMatchRow = await buildEngineMatch(db, inboundEx.id, prop["Dorchester Ave Three-Family"]);
   const { data: inboundMatch, error: inboundMatchError } = await db.from("matches").insert(inboundMatchRow).select("id").single();
   if (inboundMatchError) throw new Error(`inbound demo match insert failed: ${inboundMatchError.message}`);
 
   // Connections at varied lifecycle stages. Agent-to-agent conversations open
   // immediately once either verified agent starts them; no acceptance queue.
   // (a) Other agent started the conversation, no messages yet.
-  await mustInsert(db, "exchange_connections", { match_id: matchId(marcus, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: marcus, seller_exchange_id: null, status: "accepted", initiated_by: "seller_agent", accepted_at: dFrom(-1) + "T10:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  await mustInsert(db, "exchange_connections", { match_id: matchId(marcus, prop["Brockton Main Street Mixed-Use"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: marcus, seller_exchange_id: null, status: "accepted", initiated_by: "seller_agent", accepted_at: dFrom(-1) + "T10:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (b) You started the conversation, no messages yet.
-  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Crosspoint Industrial"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: patel, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-1) + "T11:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Chelmsford Flex Building"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: patel, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-1) + "T11:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (c) Accepted + conversing -> live message thread.
-  const conn = await insertOne(db, "exchange_connections", { match_id: matchId(wilson, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: wilson, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-2) + "T16:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true }, "id");
+  const conn = await insertOne(db, "exchange_connections", { match_id: matchId(wilson, prop["Brockton Main Street Mixed-Use"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: wilson, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-2) + "T16:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true }, "id");
   await mustInsert(db, "messages", [
     { connection_id: conn.id, sender_id: cpAgent["Elena Vasquez"], content: "Thanks for connecting - Westshore is available for a 1031 buyer. Happy to send the OM and rent roll." },
     { connection_id: conn.id, sender_id: ownerId, content: "Appreciate it. My client's on a 9-day ID clock, so speed matters. Can you also share the T-12 and the tenant's lease abstract?" },
@@ -523,7 +523,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     { connection_id: conn.id, sender_id: ownerId, content: "Thanks - reviewing the T-12 and leasing assumptions with him this afternoon. Can we tour Thursday?" },
   ]);
   // (d) Declined -> "closed (lost)".
-  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: patel, seller_exchange_id: null, status: "declined", initiated_by: "buyer_agent", declined_at: dFrom(-4) + "T12:00:00Z", decline_reason: "The office value-add strategy was not a fit for the trust.", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Brockton Main Street Mixed-Use"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: patel, seller_exchange_id: null, status: "declined", initiated_by: "buyer_agent", declined_at: dFrom(-4) + "T12:00:00Z", decline_reason: "The office value-add strategy was not a fit for the trust.", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (e) Inbound accepted -> seller-side conversation on the caller's listing.
   if (inboundMatch) {
     await mustInsert(db, "exchange_connections", { match_id: inboundMatch.id, buyer_agent_id: jordan, seller_agent_id: ownerId, buyer_exchange_id: inboundEx.id, seller_exchange_id: marcus, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-1) + "T14:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true });
@@ -533,15 +533,15 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   // Best-effort: this feature's schema may vary, so don't let it break the rebuild.
   try {
     await mustInsert(db, "identification_list", [
-      { exchange_id: wilson, property_id: prop["Westshore Corporate Center"], match_id: matchId(wilson, prop["Westshore Corporate Center"]), position: 1, status: "identified" },
+      { exchange_id: wilson, property_id: prop["Brockton Main Street Mixed-Use"], match_id: matchId(wilson, prop["Brockton Main Street Mixed-Use"]), position: 1, status: "identified" },
     ]);
   } catch (e) { console.warn("identification_list seed skipped:", (e as Error).message); }
 
   // Notifications (varied types; some unread). Tagged demo for clean teardown.
   await mustInsert(db, "notifications", [
-    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Westshore Corporate Center (Tampa, FL) matched James Wilson's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Crosspoint Industrial (Charlotte, NC) matched the Patel Family Trust exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "connection_request", title: "New agent conversation", message: "Elena Vasquez started a conversation about Westshore Corporate Center.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Brockton Main Street Mixed-Use (Tampa, FL) matched James Wilson's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Chelmsford Flex Building (Charlotte, NC) matched the Patel Family Trust exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "connection_request", title: "New agent conversation", message: "Elena Vasquez started a conversation about Brockton Main Street Mixed-Use.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
     { user_id: ownerId, type: "connection_accepted", title: "Conversation active", message: "Your conversation with Elena Vasquez is ready for messaging.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
   ]);
 
@@ -549,8 +549,8 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   // inquiries were retired; the seeded contact request above exercises the new
   // agent-mediated workflow instead.
   await mustInsert(db, "investor_saved_properties", [
-    { investor_id: ownerId, property_id: prop["Westshore Corporate Center"], is_demo: true },
-    { investor_id: ownerId, property_id: prop["Crosspoint Industrial"], is_demo: true },
+    { investor_id: ownerId, property_id: prop["Brockton Main Street Mixed-Use"], is_demo: true },
+    { investor_id: ownerId, property_id: prop["Chelmsford Flex Building"], is_demo: true },
   ]);
   return { clients: OWN.length + 1, listings: OWN.length + 1, counterpartyProperties: Object.keys(prop).length - OWN.length - 1, matches: matchRows.length + 1, investorSaved: 2, investorInquiries: 0, representations: 4, representationInvites: 1, contactRequests: investorMatchId ? 1 : 0 };
 }
