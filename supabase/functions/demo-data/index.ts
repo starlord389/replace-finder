@@ -403,7 +403,9 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     direction: "investor_to_agent",
     email: COUNTERPARTIES.find((agent) => agent.full_name === "Elena Vasquez")!.email,
     status: "pending",
-    metadata: { exchange_ids: [investorEx.id], assign_future: false, is_demo: true },
+    // No exchange is attached: the invite is still pending, so nothing of this
+    // investor's may land in the invited agent's pipeline before acceptance.
+    metadata: { exchange_ids: [], assign_future: false, is_demo: true },
     created_by: ownerId,
     last_sent_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
     send_count: 1,
