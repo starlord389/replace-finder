@@ -238,26 +238,18 @@ Deno.serve(async (req) => {
     });
     must(typeof connectionId === "string", "Agent connection RPC did not return a connection id");
     created.connectionIds.push(connectionId);
-    const acceptedAt = new Date().toISOString();
-    const { data: acceptedConnection, error: acceptConnectionError } = await counterpartyAgent
+    const { data: activeConnection, error: activeConnectionError } = await primaryAgent
       .from("exchange_connections")
-      .update({
-        status: "accepted",
-        accepted_at: acceptedAt,
-        facilitation_fee_agreed: true,
-      })
+      .select("id,status,accepted_at")
       .eq("id", connectionId)
-      .eq("status", "pending")
-      .select("id,status,accepted_at,facilitation_fee_agreed")
       .single();
     must(
-      !acceptConnectionError
-        && acceptedConnection?.status === "accepted"
-        && Boolean(acceptedConnection.accepted_at)
-        && acceptedConnection.facilitation_fee_agreed === true,
-      acceptConnectionError?.message ?? "Counterparty agent could not accept the pending connection",
+      !activeConnectionError
+        && activeConnection?.status === "accepted"
+        && Boolean(activeConnection.accepted_at),
+      activeConnectionError?.message ?? "Agent conversation was not active immediately",
     );
-    pass(checks, "Counterparty agent accepted the pending connection before messaging");
+    pass(checks, "Agent conversation is active immediately without counterparty approval");
     const { error: primaryMessageError } = await primaryAgent.from("messages").insert({
       connection_id: connectionId, sender_id: identities.primaryAgent.id, content: "E2E primary-agent message",
     });

@@ -49,6 +49,7 @@ export default function AgentRepresentation() {
   const [busy, setBusy] = useState<string | null>(null);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [selectedRequestTab, setSelectedRequestTab] = useState("overview");
 
   useEffect(() => {
     const requestId = searchParams.get("request");
@@ -59,6 +60,7 @@ export default function AgentRepresentation() {
 
   function setRequestDialog(requestId: string | null) {
     setSelectedRequestId(requestId);
+    setSelectedRequestTab("overview");
     const next = new URLSearchParams(searchParams);
     if (requestId) next.set("request", requestId);
     else next.delete("request");
@@ -123,7 +125,14 @@ export default function AgentRepresentation() {
     setBusy(request.id);
     try {
       const connectionId = await startAgentConnection(request.match_id, request.id);
-      if (connectionId) toast.success("Connection request sent to the other agent.");
+      if (connectionId) {
+        toast.success("Conversation ready. You can message the listing agent now.");
+        setSelectedRequestId(request.id);
+        setSelectedRequestTab("conversation");
+        const next = new URLSearchParams(searchParams);
+        next.set("request", request.id);
+        setSearchParams(next, { replace: true });
+      }
       else toast.info("The other property owner is assigning an agent. This request was saved.");
       await refresh();
     } catch (error: unknown) {
@@ -255,7 +264,11 @@ export default function AgentRepresentation() {
           )}
           <div className="max-h-[84vh] overflow-y-auto p-3 sm:p-4">
             {selectedRequestRel ? (
-              <PropertyReviewPanel rel={selectedRequestRel} />
+              <PropertyReviewPanel
+                key={`${selectedRequestRel.matchId}-${selectedRequestTab}`}
+                rel={selectedRequestRel}
+                initialTab={selectedRequestTab}
+              />
             ) : (
               <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed p-8 text-center">
                 <div>

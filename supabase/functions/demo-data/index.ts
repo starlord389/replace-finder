@@ -506,11 +506,12 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   const { data: inboundMatch, error: inboundMatchError } = await db.from("matches").insert(inboundMatchRow).select("id").single();
   if (inboundMatchError) throw new Error(`inbound demo match insert failed: ${inboundMatchError.message}`);
 
-  // Connections at varied lifecycle stages.
-  // (a) Pending, the OTHER side initiated -> "needs your reply".
-  await mustInsert(db, "exchange_connections", { match_id: matchId(marcus, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: marcus, seller_exchange_id: null, status: "pending", initiated_by: "seller_agent", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
-  // (b) Pending, YOU initiated -> "awaiting response".
-  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Crosspoint Industrial"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: patel, seller_exchange_id: null, status: "pending", initiated_by: "buyer_agent", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  // Connections at varied lifecycle stages. Agent-to-agent conversations open
+  // immediately once either verified agent starts them; no acceptance queue.
+  // (a) Other agent started the conversation, no messages yet.
+  await mustInsert(db, "exchange_connections", { match_id: matchId(marcus, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: marcus, seller_exchange_id: null, status: "accepted", initiated_by: "seller_agent", accepted_at: dFrom(-1) + "T10:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
+  // (b) You started the conversation, no messages yet.
+  await mustInsert(db, "exchange_connections", { match_id: matchId(patel, prop["Crosspoint Industrial"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Priya Mehta"], buyer_exchange_id: patel, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-1) + "T11:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (c) Accepted + conversing -> live message thread.
   const conn = await insertOne(db, "exchange_connections", { match_id: matchId(wilson, prop["Westshore Corporate Center"]), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: wilson, seller_exchange_id: null, status: "accepted", initiated_by: "buyer_agent", accepted_at: dFrom(-2) + "T16:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: true }, "id");
   await mustInsert(db, "messages", [
@@ -538,8 +539,8 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   await mustInsert(db, "notifications", [
     { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Westshore Corporate Center (Tampa, FL) matched James Wilson's exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
     { user_id: ownerId, type: "new_match", title: "Qualified new match", message: "Crosspoint Industrial (Charlotte, NC) matched the Patel Family Trust exchange.", link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "connection_request", title: "Connection request", message: "Elena Vasquez wants to connect on Westshore Corporate Center.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "connection_accepted", title: "Connection accepted", message: "Elena Vasquez accepted your connection on Westshore Corporate Center.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
+    { user_id: ownerId, type: "connection_request", title: "New agent conversation", message: "Elena Vasquez started a conversation about Westshore Corporate Center.", link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "connection_accepted", title: "Conversation active", message: "Your conversation with Elena Vasquez is ready for messaging.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
   ]);
 
   // Investor view: a realistic shortlist. Direct investor -> listing-agent

@@ -6,9 +6,9 @@ import {
   Building2,
   CheckCircle2,
   Compass,
-  Handshake,
   Inbox,
   MailWarning,
+  MessageSquareText,
   Plus,
   Sparkles,
   UserPlus,
@@ -129,14 +129,37 @@ function buildActionCenterItems({
   representations,
   contactRequests,
   invitations,
+  relationships,
 }: {
   attention?: AgentAttentionData;
   representations: Representation[];
   contactRequests: AgentContactRequest[];
   invitations: RepresentationInvite[];
+  relationships: Relationship[];
 }) {
   const actions: DashboardAction[] = [];
   const representationIds = new Set(representations.map((representation) => representation.id));
+
+  for (const relationship of relationships.filter((item) => item.unreadCount > 0 && item.connectionId)) {
+    const unreadLabel = `${relationship.unreadCount} unread message${relationship.unreadCount === 1 ? "" : "s"}`;
+    const conversationHref = relationship.mySide === "buyer"
+      ? `/agent/matches?listing=${relationship.buyerExchangeId}&match=${relationship.matchId}&view=conversation`
+      : relationship.openHref;
+    actions.push({
+      id: `message-${relationship.connectionId}`,
+      title: relationship.counterpartyName
+        ? `New message from ${relationship.counterpartyName}`
+        : "New message from the other agent",
+      detail: `${unreadLabel} · ${relationship.propertyName}`,
+      category: "Conversation",
+      cta: "Reply",
+      href: conversationHref,
+      icon: MessageSquareText,
+      tone: "blue",
+      priority: 1,
+      timestamp: relationship.lastActivityAt,
+    });
+  }
 
   for (const request of contactRequests.filter((item) => item.status === "requested")) {
     actions.push({
@@ -148,7 +171,7 @@ function buildActionCenterItems({
       href: `/agent/representation?request=${request.id}`,
       icon: Inbox,
       tone: "green",
-      priority: 1,
+      priority: 2,
       timestamp: request.requested_at,
     });
   }
@@ -165,23 +188,8 @@ function buildActionCenterItems({
       href: "/agent/representation",
       icon: UserPlus,
       tone: "green",
-      priority: 2,
-      timestamp: representation.created_at,
-    });
-  }
-
-  for (const connection of attention?.pendingConnections ?? []) {
-    actions.push({
-      id: `connection-${connection.connectionId}`,
-      title: `Connection request from ${connection.otherAgentName}`,
-      detail: connection.propertyName || "Another verified agent is waiting for your response.",
-      category: "Agent connection",
-      cta: "Respond",
-      href: `/agent/connections/${connection.connectionId}`,
-      icon: Handshake,
-      tone: "blue",
       priority: 3,
-      timestamp: connection.initiatedAt,
+      timestamp: representation.created_at,
     });
   }
 
@@ -256,7 +264,7 @@ function ActionCenter({ actions }: { actions: DashboardAction[] }) {
             <div>
               <p className="text-sm font-semibold text-emerald-900">Everything is handled</p>
               <p className="mt-1 text-sm text-emerald-800">
-                No new client requests, match reviews, invitation problems, or agent responses need you right now.
+                No unread conversations, client requests, match reviews, or invitation problems need you right now.
               </p>
             </div>
           </div>
@@ -566,9 +574,22 @@ export default function AgentDashboard() {
     return Number.isFinite(timestamp) && timestamp >= oneWeekAgo;
   }).length;
 
+  const conversationRelationships = useMemo(
+    () => relationships.filter((relationship) => Boolean(relationship.connectionId)),
+    [relationships],
+  );
+  const unreadMessageCount = conversationRelationships.reduce((total, relationship) => total + relationship.unreadCount, 0);
+  const unreadConversationCount = conversationRelationships.filter((relationship) => relationship.unreadCount > 0).length;
+  const firstUnreadConversation = conversationRelationships.find((relationship) => relationship.unreadCount > 0);
+  const unreadConversationHref = firstUnreadConversation
+    ? firstUnreadConversation.mySide === "buyer"
+      ? `/agent/matches?listing=${firstUnreadConversation.buyerExchangeId}&match=${firstUnreadConversation.matchId}&view=conversation`
+      : firstUnreadConversation.openHref
+    : "/agent/pipeline";
+
   const actionItems = useMemo(
-    () => buildActionCenterItems({ attention, representations, contactRequests, invitations }),
-    [attention, contactRequests, invitations, representations],
+    () => buildActionCenterItems({ attention, representations, contactRequests, invitations, relationships: conversationRelationships }),
+    [attention, contactRequests, invitations, representations, conversationRelationships],
   );
 
   if (isLoading) {
@@ -640,10 +661,11 @@ export default function AgentDashboard() {
         </div>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <KpiCard label="Clients" value={clientCount} detail={`${activeRepresentations.length} connected to a workspace`} icon={Users} href="/agent/clients" />
         <KpiCard label="Active listings" value={activeListings} detail={draftListings > 0 ? `${draftListings} draft${draftListings === 1 ? "" : "s"}` : "No drafts waiting"} icon={Building2} href="/agent/listings" />
         <KpiCard label="Open matches" value={openMatchCount} detail={newThisWeek > 0 ? `${newThisWeek} new this week` : "No new matches this week"} icon={Sparkles} href="/agent/matches" />
+        <KpiCard label="Unread messages" value={unreadMessageCount} detail={unreadMessageCount > 0 ? `Across ${unreadConversationCount} conversation${unreadConversationCount === 1 ? "" : "s"}` : "All conversations caught up"} icon={MessageSquareText} href={unreadConversationHref} attention />
         <KpiCard label="Client Requests" value={clientRequestAttentionCount} detail={clientRequestAttentionCount > 0 ? "Ready for your attention" : "Nothing waiting"} icon={Inbox} href="/agent/representation" attention />
       </div>
 

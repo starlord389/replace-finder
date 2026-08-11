@@ -20,6 +20,9 @@ describe("agent dashboard command center", () => {
     expect(dashboard).toContain("A client wants you to review a match");
     expect(dashboard).toContain("New representation request");
     expect(dashboard).toContain("A client invitation needs attention");
+    expect(dashboard).toContain("New message from");
+    expect(dashboard).toContain("Unread messages");
+    expect(dashboard).toContain("relationship.unreadCount");
     expect(dashboard).not.toContain("What to do first");
     expect(dashboard).not.toContain("Needs your attention");
   });

@@ -167,7 +167,7 @@ export function NextStepsTab({
         )}
       </div>
 
-      {/* Listed by - anonymized until the intro is accepted */}
+      {/* Listed by - contact details are revealed when the verified-agent conversation starts. */}
       <div className="rounded-2xl border bg-card p-5">
         <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Listed by</h3>
         <div className="mt-2.5 flex items-center gap-3">
@@ -184,7 +184,7 @@ export function NextStepsTab({
           <span>
             {audience === "investor"
               ? "Your representing agent handles all contact with the agent on the other side. You can continue reviewing and managing the opportunity here."
-              : "Contact details stay private until your client expresses interest and the listing agent accepts the intro. All messages happen in-app."}
+              : "Contact details stay private until a verified agent starts the conversation. Messaging opens immediately and stays in-app."}
           </span>
         </div>
       </div>

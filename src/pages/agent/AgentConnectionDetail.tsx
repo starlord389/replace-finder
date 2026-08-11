@@ -15,7 +15,7 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  ArrowLeft, MessageSquare, CalendarIcon, AlertTriangle, CheckCircle2, Circle, Pencil, X, CheckCircle, XCircle,
+  ArrowLeft, MessageSquare, CalendarIcon, AlertTriangle, CheckCircle2, Circle, Pencil, X,
 } from "lucide-react";
 import { BOOT_STATUS_LABELS, BOOT_STATUS_COLORS } from "@/lib/constants";
 import { format } from "date-fns";
@@ -32,8 +32,8 @@ function scoreColor(score: number) {
 }
 
 const MILESTONES = [
-  { key: "initiated_at", label: "Requested", editable: false, description: "Initial connection request sent." },
-  { key: "accepted_at", label: "Accepted", editable: false, description: "Both agents accepted the connection." },
+  { key: "initiated_at", label: "Conversation started", editable: false, description: "A verified agent opened the agent-to-agent conversation." },
+  { key: "accepted_at", label: "Messaging opened", editable: false, description: "Both verified agents can communicate in the shared thread." },
   { key: "under_contract_at", label: "Under Contract", editable: true, description: "Purchase agreement signed." },
   { key: "inspection_complete_at", label: "Inspection Complete", editable: true, description: "Property inspection finished and reviewed." },
   { key: "financing_approved_at", label: "Financing Approved", editable: true, description: "Buyer's financing has cleared." },
@@ -65,8 +65,6 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
   const [milestoneNote, setMilestoneNote] = useState("");
   const [failOpen, setFailOpen] = useState(false);
   const [failReason, setFailReason] = useState("");
-  const [declineOpen, setDeclineOpen] = useState(false);
-  const [declineReason, setDeclineReason] = useState("");
   const [acting, setActing] = useState(false);
 
   useEffect(() => {
@@ -118,60 +116,6 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
     }
 
     setLoading(false);
-  };
-
-  const handleAccept = async () => {
-    if (!conn) return;
-    setActing(true);
-    const { error: updateErr } = await supabase.from("exchange_connections").update({
-      status: "accepted",
-      accepted_at: new Date().toISOString(),
-      facilitation_fee_agreed: true,
-    }).eq("id", conn.id);
-    if (updateErr) {
-      toast({ title: "Couldn't accept connection", description: updateErr.message, variant: "destructive" });
-      setActing(false);
-      return;
-    }
-    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty" as any, {
-      p_connection_id: conn.id,
-      p_type: "connection_accepted",
-      p_title: "Connection Accepted",
-      p_message: "Your connection request has been accepted. You can now view agent details and start messaging.",
-      p_link_to: `${basePath}/connections/${conn.id}`,
-    });
-    if (notifyErr) console.error("Failed to notify counterparty of acceptance:", notifyErr);
-    toast({ title: "Connection accepted!", description: "You can now message the other participant." });
-    setActing(false);
-    loadData();
-  };
-
-  const handleDecline = async () => {
-    if (!conn) return;
-    setActing(true);
-    const { error: updateErr } = await supabase.from("exchange_connections").update({
-      status: "declined",
-      declined_at: new Date().toISOString(),
-      decline_reason: declineReason || null,
-    }).eq("id", conn.id);
-    if (updateErr) {
-      toast({ title: "Couldn't decline connection", description: updateErr.message, variant: "destructive" });
-      setActing(false);
-      return;
-    }
-    const { error: notifyErr } = await supabase.rpc("notify_connection_counterparty" as any, {
-      p_connection_id: conn.id,
-      p_type: "connection_declined",
-      p_title: "Connection Declined",
-      p_message: "Your connection request was declined.",
-      p_link_to: `${basePath}/connections/${conn.id}`,
-    });
-    if (notifyErr) console.error("Failed to notify counterparty of decline:", notifyErr);
-    toast({ title: "Connection declined." });
-    setActing(false);
-    setDeclineOpen(false);
-    setDeclineReason("");
-    loadData();
   };
 
   const openStageDialog = (key: MilestoneKey, mode: "set" | "edit") => {
@@ -329,31 +273,13 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
         {audience === "investor" ? "Your exchange" : `${clientName}'s exchange`} · Started {format(new Date(conn.initiated_at), "MMM d, yyyy")}
       </p>
 
-      {/* Pending: accept/decline actions */}
+      {/* Legacy pending rows are activated by the immediate-conversation migration. */}
       {conn.status === "pending" && (
-        <div className="mt-6 rounded-xl border bg-amber-50 border-amber-200 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h3 className="font-semibold text-foreground">
-                {conn.seller_agent_id === user!.id ? "Incoming Connection Request" : "Awaiting Response"}
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {conn.seller_agent_id === user!.id
-                  ? "Review the match and respond to the connection request."
-                  : "The listing participant will be notified. You'll see their response here."}
-              </p>
-            </div>
-            {conn.seller_agent_id === user!.id && (
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handleAccept} disabled={acting}>
-                  <CheckCircle className="mr-1.5 h-3.5 w-3.5" />Accept
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setDeclineOpen(true)} disabled={acting}>
-                  <XCircle className="mr-1.5 h-3.5 w-3.5" />Decline
-                </Button>
-              </div>
-            )}
-          </div>
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
+          <h3 className="font-semibold text-foreground">Finishing conversation setup</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Refresh in a moment. No approval from the other agent is required.
+          </p>
         </div>
       )}
 
@@ -483,28 +409,6 @@ export default function AgentConnectionDetail({ audience = "agent" }: { audience
           </div>
         </div>
       )}
-
-      {/* Decline Dialog */}
-      <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Decline Connection</DialogTitle>
-            <DialogDescription>Optionally provide a reason for declining.</DialogDescription>
-          </DialogHeader>
-          <Textarea
-            value={declineReason}
-            onChange={(e) => setDeclineReason(e.target.value)}
-            placeholder="Reason (optional)..."
-            rows={3}
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeclineOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDecline} disabled={acting}>
-              {acting ? "Declining..." : "Decline"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Stage Edit Dialog */}
       <Dialog open={stageDialog.open} onOpenChange={(o) => { if (!o) closeStageDialog(); }}>

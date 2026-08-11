@@ -272,8 +272,9 @@ export default function AgentSettings() {
     description: string;
   }> = [
     { key: "notify_new_match", label: "New opportunities", description: "When ExchangeUp™ detects a new opportunity for one of your properties or clients." },
-    { key: "notify_connection_request", label: "Incoming connection requests", description: "When another agent requests a connection on one of your listings." },
-    { key: "notify_connection_accepted", label: "Connection accepted", description: "When an agent accepts your connection request." },
+    { key: "notify_connection_request", label: "New agent conversations", description: "When a verified agent starts a conversation about one of your listings." },
+    { key: "notify_new_message", label: "New messages", description: "When the agent on the other side sends a message in an active conversation." },
+    { key: "notify_connection_accepted", label: "Conversation updates", description: "Important updates to an active agent conversation." },
   ];
 
   return (

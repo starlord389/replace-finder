@@ -22,7 +22,7 @@ export const AGENT_FAQS: FaqCategory[] = [
     items: [
       { q: "What's the difference between draft and active?", a: "Draft exchanges aren't visible to Exchange IQ™ - use them while you collect property details. Active exchanges are queued for matching as soon as you publish them." },
       { q: "How do I edit an exchange after creating it?", a: "Open the exchange detail page and click Edit. The wizard re-opens prefilled with everything except the client (the client is locked once an exchange exists)." },
-      { q: "Can I move an active exchange back to draft?", a: "Yes, as long as no agent has accepted a connection on it yet. Use the Save as Draft button on the detail page." },
+      { q: "Can I move an active exchange back to draft?", a: "Yes, as long as no agent-to-agent conversation or active deal has started on it. Use the Save as Draft button on the detail page." },
       { q: "Why can't I publish my exchange?", a: "Publishing requires a relinquished property and replacement criteria to be filled in. The Review step shows what's missing." },
       { q: "Can I delete an exchange?", a: "Only fresh drafts (no matches generated yet) can be deleted. Once matches exist we keep the exchange for audit purposes - you can move it back to draft instead." },
     ],
@@ -42,8 +42,8 @@ export const AGENT_FAQS: FaqCategory[] = [
     items: [
       { q: "How do I start a connection with another agent?", a: "Open a match you're interested in and click Initiate Connection. The other agent gets a notification and can accept or decline." },
       { q: "What information is shared at each stage?", a: "Pending: your name, brokerage, and the exchange/property in question. Accepted: full property details, financials, and a private message thread. Client identity is never shared without explicit opt-in." },
-      { q: "How do messages work?", a: "Once a connection is accepted, both agents can chat from the connection detail page or the unified Messages inbox in the sidebar." },
-      { q: "Why can't I see my messages in the Messages tab?", a: "The inbox only shows accepted connections with at least one message. Pending connections don't appear until they're accepted." },
+      { q: "How do messages work?", a: "When a verified representing agent starts a conversation, messaging opens immediately for both agents. No additional approval is required." },
+      { q: "Where can I find new messages?", a: "Unread agent conversations appear in the dashboard Action center and Unread messages card, and the full thread stays attached to its match." },
     ],
   },
   {

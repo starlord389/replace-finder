@@ -91,13 +91,13 @@ export function AgentCommsCard({ rel, audience = "agent" }: Props) {
           <div>
             <p className="text-sm font-medium text-foreground">
               {rel.stage === "pending_out"
-                ? "Awaiting their response"
+                ? "Starting the conversation"
                 : rel.stage === "pending_in"
-                ? "They want to connect"
+                ? "Starting the conversation"
                 : "Connect to start messaging"}
             </p>
             <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-              Once connected, you can message directly and use quick replies above.
+              Verified agents can message directly; no approval from the other agent is required.
             </p>
           </div>
         </div>

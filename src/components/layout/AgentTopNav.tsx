@@ -76,7 +76,7 @@ function NotificationsBell() {
         <div className="max-h-96 overflow-y-auto">
           {notifications.length === 0 ? (
             <p className="px-3 py-6 text-center text-xs text-muted-foreground">
-              No notifications yet. You'll be notified about new matches and connection requests.
+              No notifications yet. You'll be notified about new matches and agent conversations.
             </p>
           ) : (
             <ul className="divide-y">

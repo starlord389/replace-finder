@@ -28,34 +28,11 @@ export function useMatchActions(
 
   /**
    * Opens a direct line to the counterparty agent. Creates the connection
-   * row on first use (no intro-request handshake - your client's interest
-   * is the green light), then drops the agent into the live conversation.
+   * row on first use. Both sides are already verified agents with authority
+   * over their respective exchanges, so no second approval is required.
    */
   async function startConversation() {
-    // A pending request can only be accepted by the OTHER side. If we initiated
-    // it, we're awaiting their response - don't let the requester self-accept and
-    // bypass the counterparty's consent.
-    if (rel.connectionId && rel.connectionStatus === "pending") {
-      const iInitiated =
-        rel.connectionInitiatedBy === (rel.mySide === "buyer" ? "buyer_agent" : "seller_agent");
-      if (iInitiated) {
-        toast({
-          title: "Awaiting their response",
-          description: "You've already requested to connect - the other agent needs to accept before the conversation opens.",
-        });
-        return;
-      }
-      const { error } = await supabase
-        .from("exchange_connections")
-        .update({ status: "accepted", accepted_at: new Date().toISOString() })
-        .eq("id", rel.connectionId);
-      if (error) {
-        toast({ title: "Couldn't accept", description: error.message, variant: "destructive" });
-        return;
-      }
-      await queryClient.invalidateQueries({ queryKey: ["unified-relationships"] });
-    }
-    if (!rel.connectionId) {
+    if (!rel.connectionId || rel.connectionStatus === "pending") {
       try {
         const connectionId = await startAgentConnection(
           rel.matchId,
@@ -77,8 +54,10 @@ export function useMatchActions(
         });
         return;
       }
-      toast({ title: "Connection requested", description: "The other agent needs to accept before messaging opens." });
-      return;
+      toast({
+        title: "Conversation ready",
+        description: "You can message the listing agent now. They have been notified.",
+      });
     }
     update({ conversationStartedAt: state.conversationStartedAt ?? new Date().toISOString() });
     cb.onOpenConversation?.();
@@ -163,8 +142,7 @@ export function useMatchActions(
           // match. But when the connection itself was ended at the DB level
           // (counterparty declined/cancelled → stage "closed_lost"), the row stays
           // "archived" no matter what we clear locally. Re-send it as a fresh
-          // connection request so the counterparty can accept again - anything else
-          // would be a false success.
+          // live conversation so the match can resume without another approval step.
           const counterpartyEnded =
             rel.stage === "closed_lost" &&
             !!rel.connectionId &&
@@ -174,8 +152,9 @@ export function useMatchActions(
             const { error } = await supabase
               .from("exchange_connections")
               .update({
-                status: "pending",
+                status: "accepted",
                 initiated_by: rel.mySide === "buyer" ? "buyer_agent" : "seller_agent",
+                accepted_at: new Date().toISOString(),
                 declined_at: null,
                 closed_at: null,
                 decline_reason: null,
@@ -200,7 +179,7 @@ export function useMatchActions(
           toast({
             title: "Match reactivated",
             description: counterpartyEnded
-              ? "Sent a fresh request - the other agent needs to accept before the conversation reopens."
+              ? "The agent conversation is open again."
               : undefined,
           });
           return;

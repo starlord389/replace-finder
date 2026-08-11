@@ -51,7 +51,8 @@ describe("representation management interfaces", () => {
   it("reviews client-requested matches in place instead of navigating away", () => {
     expect(agentWorkspace).toContain("selectedRequestId");
     expect(agentWorkspace).toContain('searchParams.get("request")');
-    expect(agentWorkspace).toContain("<PropertyReviewPanel rel={selectedRequestRel}");
+    expect(agentWorkspace).toContain("rel={selectedRequestRel}");
+    expect(agentWorkspace).toContain('initialTab={selectedRequestTab}');
     expect(agentWorkspace).toContain("Your client has already reviewed this match");
     expect(agentWorkspace).not.toContain("to={`/agent/matches?match=${request.match_id}`}");
   });

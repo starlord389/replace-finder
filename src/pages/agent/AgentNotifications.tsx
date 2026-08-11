@@ -15,7 +15,7 @@ export default function AgentNotifications() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Notifications</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Connection requests, new matches, milestones, and messages.
+            New agent conversations, matches, milestones, and messages.
           </p>
         </div>
         {unreadCount > 0 && (

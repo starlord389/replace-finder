@@ -27,12 +27,13 @@ describe("representation multi-account diagnostic contract", () => {
     expect(diagnostic).toContain('"accept_representation_invite"');
     expect(diagnostic).toContain('"request_agent_contact"');
     expect(diagnostic).toContain('"start_agent_connection"');
-    const acceptanceCheck = diagnostic.indexOf(
-      "Counterparty agent accepted the pending connection before messaging",
+    const activationCheck = diagnostic.indexOf(
+      "Agent conversation is active immediately without counterparty approval",
     );
     const firstMessage = diagnostic.indexOf("E2E primary-agent message");
-    expect(acceptanceCheck).toBeGreaterThan(-1);
-    expect(firstMessage).toBeGreaterThan(acceptanceCheck);
+    expect(activationCheck).toBeGreaterThan(-1);
+    expect(firstMessage).toBeGreaterThan(activationCheck);
+    expect(diagnostic).not.toContain("Counterparty agent accepted the pending connection before messaging");
     expect(diagnostic).toContain("Investor cannot send counterparty messages");
     expect(diagnostic).toContain("Counterparty agent cannot write to the private client thread");
     expect(diagnostic).toContain('"assign_agent_to_exchange"');
