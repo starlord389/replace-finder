@@ -194,6 +194,122 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_connection_intents: {
+        Row: {
+          buyer_exchange_id: string
+          connection_id: string | null
+          contact_request_id: string | null
+          created_at: string
+          id: string
+          initiated_by: string
+          initiating_agent_id: string
+          is_demo: boolean
+          last_requested_at: string
+          match_id: string
+          property_id: string
+          resolution_note: string | null
+          resolved_at: string | null
+          seller_exchange_id: string | null
+          status: string
+          updated_at: string
+          waiting_exchange_id: string
+          waiting_on_side: string
+          waiting_owner_id: string
+        }
+        Insert: {
+          buyer_exchange_id: string
+          connection_id?: string | null
+          contact_request_id?: string | null
+          created_at?: string
+          id?: string
+          initiated_by: string
+          initiating_agent_id: string
+          is_demo?: boolean
+          last_requested_at?: string
+          match_id: string
+          property_id: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          seller_exchange_id?: string | null
+          status?: string
+          updated_at?: string
+          waiting_exchange_id: string
+          waiting_on_side: string
+          waiting_owner_id: string
+        }
+        Update: {
+          buyer_exchange_id?: string
+          connection_id?: string | null
+          contact_request_id?: string | null
+          created_at?: string
+          id?: string
+          initiated_by?: string
+          initiating_agent_id?: string
+          is_demo?: boolean
+          last_requested_at?: string
+          match_id?: string
+          property_id?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          seller_exchange_id?: string | null
+          status?: string
+          updated_at?: string
+          waiting_exchange_id?: string
+          waiting_on_side?: string
+          waiting_owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_connection_intents_buyer_exchange_id_fkey"
+            columns: ["buyer_exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_connection_intents_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_connection_intents_contact_request_id_fkey"
+            columns: ["contact_request_id"]
+            isOneToOne: false
+            referencedRelation: "agent_contact_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_connection_intents_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_connection_intents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "pledged_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_connection_intents_seller_exchange_id_fkey"
+            columns: ["seller_exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_connection_intents_waiting_exchange_id_fkey"
+            columns: ["waiting_exchange_id"]
+            isOneToOne: false
+            referencedRelation: "exchanges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_contact_requests: {
         Row: {
           acted_at: string | null
@@ -2881,6 +2997,18 @@ export type Database = {
           token: string
         }[]
       }
+      queue_agent_connection_intent: {
+        Args: {
+          p_initiated_by: string
+          p_initiating_agent_id: string
+          p_match_id: string
+          p_request_id: string
+          p_waiting_exchange_id: string
+          p_waiting_owner_id: string
+          p_waiting_side: string
+        }
+        Returns: string
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -2906,6 +3034,10 @@ export type Database = {
           p_property_type?: string
           p_timing?: string
         }
+        Returns: string
+      }
+      resolve_agent_connection_intent: {
+        Args: { p_intent_id: string }
         Returns: string
       }
       respond_to_match_recommendation: {
