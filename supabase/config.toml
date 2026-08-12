@@ -29,3 +29,10 @@ verify_jwt = true
 [functions.twilio-status-callback]
 verify_jwt = false
 
+# Avatars are read exclusively through short-lived signed URLs. This bucket must
+# never be public: a public bucket bypasses storage.objects retrieval policies.
+# Fresh/local environments seed it via `supabase start` / `supabase db reset`.
+[storage.buckets.profile-avatars]
+public = false
+file_size_limit = "5MiB"
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]
