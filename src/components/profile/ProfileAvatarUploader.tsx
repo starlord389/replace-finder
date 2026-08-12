@@ -36,21 +36,21 @@ export function ProfileAvatarUploader({
     if (file.size > MAX_AVATAR_BYTES) return toast.error("Choose an image under 5MB.");
 
     setUploading(true);
-    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    // The bucket is private: we store the object path, never a public URL.
+    const extension = EXTENSION_BY_TYPE[file.type] ?? "jpg";
     const path = `${userId}/avatar-${Date.now()}.${extension}`;
     const { error: uploadError } = await supabase.storage
       .from("profile-avatars")
-      .upload(path, file, { upsert: true, cacheControl: "3600" });
+      .upload(path, file, { upsert: true, cacheControl: "3600", contentType: file.type });
     if (uploadError) {
       setUploading(false);
       toast.error(`Upload failed: ${uploadError.message}`);
       return;
     }
 
-    const { data } = supabase.storage.from("profile-avatars").getPublicUrl(path);
     const { error: profileError } = await supabase
       .from("profiles")
-      .update({ profile_photo_url: data.publicUrl })
+      .update({ profile_photo_url: path })
       .eq("id", userId);
     if (profileError) {
       await supabase.storage.from("profile-avatars").remove([path]);
@@ -63,21 +63,25 @@ export function ProfileAvatarUploader({
     const stale = (existing ?? [])
       .map((item) => `${userId}/${item.name}`)
       .filter((item) => item !== path);
-    if (stale.length) await supabase.storage.from("profile-avatars").remove(stale);
+    if (stale.length) {
+      await supabase.storage.from("profile-avatars").remove(stale);
+      stale.forEach(invalidateAvatarUrl);
+    }
 
-    onPhotoChange(data.publicUrl);
+    invalidateAvatarUrl(path);
+    onPhotoChange(path);
     setUploading(false);
     toast.success("Profile photo updated");
   }
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-      <Avatar className="h-24 w-24 border shadow-sm">
-        {photoUrl ? <AvatarImage src={photoUrl} alt={name || "Profile photo"} /> : null}
-        <AvatarFallback className="bg-primary/10 text-xl font-semibold text-primary">
-          {initials(name)}
-        </AvatarFallback>
-      </Avatar>
+      <ProfileAvatar
+        photoUrl={photoUrl}
+        name={name}
+        className="h-24 w-24 border shadow-sm"
+        fallbackClassName="text-xl"
+      />
       <div>
         <label className="inline-flex cursor-pointer">
           <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleUpload} disabled={uploading} />
