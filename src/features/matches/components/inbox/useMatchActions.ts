@@ -102,6 +102,9 @@ export function useMatchActions(
         case "view_agent_request":
           toast({ title: "Your request is in progress", description: "Open My Agent to see representation and request status." });
           return;
+        case "manage_listing_representation":
+          window.location.assign("/investor/representation");
+          return;
         case "decline_client_request": {
           if (!rel.agentContactRequestId) return;
           const reason = window.prompt("Add a short explanation for your client (optional):");

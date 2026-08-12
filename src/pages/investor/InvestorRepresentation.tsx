@@ -21,10 +21,11 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
 import { inviteRepresentingAgent, requestAgentReferral, setDefaultRepresentation, unassignAgentFromExchange } from "@/features/representation/api";
-import { useAgentContactRequests, useExchangeAssignments, useRepresentationInvites, useRepresentations } from "@/features/representation/hooks/useRepresentations";
+import { useAgentConnectionIntents, useAgentContactRequests, useExchangeAssignments, useRepresentationInvites, useRepresentations } from "@/features/representation/hooks/useRepresentations";
 import {
   investorContactRequestStatusLabel,
   representationStatusLabel,
+  type AgentConnectionIntent,
   type AgentContactRequest,
   type ExchangeAssignment,
   type Representation,
@@ -69,6 +70,7 @@ const EMPTY_REPRESENTATIONS: Representation[] = [];
 const EMPTY_ASSIGNMENTS: ExchangeAssignment[] = [];
 const EMPTY_INVITES: RepresentationInvite[] = [];
 const EMPTY_CONTACT_REQUESTS: AgentContactRequest[] = [];
+const EMPTY_CONNECTION_INTENTS: AgentConnectionIntent[] = [];
 
 const contactRequestGuidance: Record<AgentContactRequest["status"], string> = {
   waiting_for_agent: "Choose an agent before the other side can be contacted.",
@@ -96,6 +98,7 @@ export default function InvestorRepresentation() {
   const { data: representations = EMPTY_REPRESENTATIONS, isLoading } = useRepresentations("investor");
   const { data: assignments = EMPTY_ASSIGNMENTS } = useExchangeAssignments("investor");
   const { data: contactRequests = EMPTY_CONTACT_REQUESTS } = useAgentContactRequests("investor");
+  const { data: connectionIntents = EMPTY_CONNECTION_INTENTS } = useAgentConnectionIntents();
   const { data: invites = EMPTY_INVITES } = useRepresentationInvites();
   const [exchanges, setExchanges] = useState<ExchangeOption[]>([]);
   const [profiles, setProfiles] = useState<Record<string, AgentProfile>>({});
@@ -108,6 +111,7 @@ export default function InvestorRepresentation() {
   const [defaultRepresentationId, setDefaultRepresentationId] = useState("");
   const [assignFuture, setAssignFuture] = useState(true);
   const [activeView, setActiveView] = useState("overview");
+  const [agentSetupOpen, setAgentSetupOpen] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -142,14 +146,17 @@ export default function InvestorRepresentation() {
   }, [representations]);
 
   useEffect(() => {
-    const propertyIds = [...new Set(contactRequests.map((request) => request.property_id))];
+    const propertyIds = [...new Set([
+      ...contactRequests.map((request) => request.property_id),
+      ...connectionIntents.map((intent) => intent.property_id),
+    ])];
     if (!propertyIds.length) return setRequestPropertyLabels({});
     supabase.from("pledged_properties_secure").select("id, property_name, address, address_is_public, city, state, zip, asset_type").in("id", propertyIds)
       .then(({ data }) => setRequestPropertyLabels(Object.fromEntries((data ?? []).map((property) => [
         property.id,
         resolveListingName(property, false),
       ]))));
-  }, [contactRequests]);
+  }, [connectionIntents, contactRequests]);
 
   const active = representations.find((representation) => representation.status === "active" && representation.is_default)
     ?? representations.find((representation) => representation.status === "active");
@@ -169,6 +176,10 @@ export default function InvestorRepresentation() {
     () => contactRequests.filter((request) => !["closed", "declined"].includes(request.status)),
     [contactRequests],
   );
+  const inboundInterest = useMemo(
+    () => connectionIntents.filter((intent) => intent.status === "awaiting_representation"),
+    [connectionIntents],
+  );
   const activeAgentName = active
     ? profiles[active.agent_id!]?.full_name || active.agent_name || active.agent_email || "Your agent"
     : "Your agent";
@@ -184,8 +195,12 @@ export default function InvestorRepresentation() {
     const confirmations = pendingRepresentations.filter((representation) => representation.status === "awaiting_investor_confirmation").length;
     const failedInvitations = pendingRepresentations.filter((representation) => inviteByRepresentation.get(representation.id)?.delivery_status === "failed").length;
     const requestsNeedingAgent = contactRequests.filter((request) => request.status === "waiting_for_agent").length;
-    return confirmations + failedInvitations + (active ? unassignedExchanges.length : 0) + requestsNeedingAgent;
-  }, [active, contactRequests, inviteByRepresentation, pendingRepresentations, unassignedExchanges.length]);
+    return confirmations + failedInvitations + (active ? unassignedExchanges.length : 0) + requestsNeedingAgent + inboundInterest.length;
+  }, [active, contactRequests, inboundInterest.length, inviteByRepresentation, pendingRepresentations, unassignedExchanges.length]);
+
+  useEffect(() => {
+    if (!isLoading && !active) setAgentSetupOpen("connect-agent");
+  }, [active, isLoading]);
 
   useEffect(() => {
     const selectedDefault = representations.find((representation) => representation.status === "active" && representation.is_default);
@@ -203,6 +218,7 @@ export default function InvestorRepresentation() {
       queryClient.invalidateQueries({ queryKey: ["representations"] }),
       queryClient.invalidateQueries({ queryKey: ["exchange-agent-assignments"] }),
       queryClient.invalidateQueries({ queryKey: ["agent-contact-requests"] }),
+      queryClient.invalidateQueries({ queryKey: ["agent-connection-intents"] }),
       queryClient.invalidateQueries({ queryKey: ["representation-invites"] }),
     ]);
   }
@@ -256,6 +272,31 @@ export default function InvestorRepresentation() {
     if (error) return toast.error(error.message);
     toast.success(assignmentByExchange.has(exchangeId) ? "Exchange reassigned to the selected agent." : "Agent assigned to the exchange.");
     await refresh();
+  }
+
+  async function assignAgentForInterest(intent: AgentConnectionIntent, representationId: string) {
+    const representation = representationById.get(representationId);
+    if (!representation) return toast.error("Choose an active agent.");
+    setBusy(intent.id);
+    const { error } = await supabase.rpc("assign_agent_to_exchange", {
+      p_representation_id: representation.id,
+      p_exchange_id: intent.waiting_exchange_id,
+    });
+    setBusy(null);
+    if (error) return toast.error(error.message);
+    toast.success("Agent assigned. The agent-to-agent conversation is being opened automatically.");
+    await refresh();
+  }
+
+  function openAgentSetup(intent: AgentConnectionIntent, mode: "invite" | "referral") {
+    setActiveView("agents");
+    setAgentSetupOpen("connect-agent");
+    if (mode === "invite") {
+      setSelectedExchanges((current) => current.includes(intent.waiting_exchange_id) ? current : [...current, intent.waiting_exchange_id]);
+    } else {
+      setReferralForm((current) => ({ ...current, exchangeId: intent.waiting_exchange_id }));
+    }
+    window.setTimeout(() => document.getElementById("connect-agent")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
   async function removeExchangeAgent(exchangeId: string) {
@@ -325,6 +366,71 @@ export default function InvestorRepresentation() {
         <h1 className="text-2xl font-bold text-foreground">My Agent</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Work with your agent, follow match outreach, and control who can act on each exchange.</p>
       </div>
+
+      {inboundInterest.map((intent) => {
+        const assignment = assignmentByExchange.get(intent.waiting_exchange_id);
+        const selectedRepresentationId = assignmentSelections[intent.waiting_exchange_id]
+          ?? (activeRepresentations.length === 1 ? activeRepresentations[0].id : defaultRepresentationId);
+        const listingName = requestPropertyLabels[intent.property_id] || "your property";
+        return (
+          <Card key={intent.id} className="overflow-hidden border-amber-300 bg-gradient-to-br from-amber-50 via-background to-background shadow-sm">
+            <CardContent className="p-5 sm:p-6">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="rounded-full bg-amber-100 p-2.5 text-amber-800"><MessageSquareText className="h-5 w-5" /></div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className="bg-amber-600 hover:bg-amber-600">Agent interest</Badge>
+                      <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(intent.last_requested_at), { addSuffix: true })}</span>
+                    </div>
+                    <h2 className="mt-2 text-lg font-semibold">A matched party wants to discuss {listingName}</h2>
+                    <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                      A verified agent is ready to speak with the other side. Assign an agent to this exchange and the platform will open their private agent-to-agent conversation automatically.
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">Your contact information remains private, and you can continue following progress here.</p>
+                  </div>
+                </div>
+
+                <div className="shrink-0 lg:min-w-[310px]">
+                  {assignment ? (
+                    <div className="rounded-lg border bg-background/80 p-3 text-sm">
+                      <p className="font-medium">Agent assigned</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Finishing the secure agent connection now.</p>
+                    </div>
+                  ) : activeRepresentations.length > 0 ? (
+                    <div className="space-y-2">
+                      {activeRepresentations.length > 1 && (
+                        <select
+                          aria-label={`Agent for inquiry about ${listingName}`}
+                          className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                          value={selectedRepresentationId}
+                          onChange={(event) => setAssignmentSelections((current) => ({ ...current, [intent.waiting_exchange_id]: event.target.value }))}
+                        >
+                          <option value="">Choose an active agent</option>
+                          {activeRepresentations.map((representation) => (
+                            <option key={representation.id} value={representation.id}>
+                              {profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <Button className="w-full" onClick={() => assignAgentForInterest(intent, selectedRepresentationId)} disabled={!selectedRepresentationId || busy === intent.id}>
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        {busy === intent.id ? "Connecting agents…" : activeRepresentations.length === 1 ? "Assign my agent and connect" : "Assign selected agent and connect"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                      <Button onClick={() => openAgentSetup(intent, "invite")}><UserRoundPlus className="mr-2 h-4 w-4" />Invite my agent</Button>
+                      <Button variant="outline" onClick={() => openAgentSetup(intent, "referral")}><Search className="mr-2 h-4 w-4" />Help me find an agent</Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
 
       {active ? (
         <Card className="overflow-hidden border-emerald-200 bg-gradient-to-br from-emerald-50/80 via-background to-background">
@@ -567,8 +673,8 @@ export default function InvestorRepresentation() {
             </Card>
           )}
 
-          <Accordion type="single" collapsible defaultValue={active ? undefined : "connect-agent"}>
-            <AccordionItem value="connect-agent" className="rounded-xl border px-5">
+          <Accordion type="single" collapsible value={agentSetupOpen} onValueChange={setAgentSetupOpen}>
+            <AccordionItem id="connect-agent" value="connect-agent" className="rounded-xl border px-5">
               <AccordionTrigger className="text-left hover:no-underline">
                 <span><span className="block font-semibold">{active ? "Change or add representation" : "Connect an agent"}</span><span className="mt-1 block text-sm font-normal text-muted-foreground">{active ? "Only needed when replacing your agent or using different representation for another exchange." : "Invite your agent or ask the platform to help find one."}</span></span>
               </AccordionTrigger>

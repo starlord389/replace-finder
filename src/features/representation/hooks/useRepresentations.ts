@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceMode } from "@/features/workspace/workspaceMode";
-import type { AgentContactRequest, ExchangeAssignment, Representation, RepresentationInvite } from "../types";
+import type { AgentConnectionIntent, AgentContactRequest, ExchangeAssignment, Representation, RepresentationInvite } from "../types";
 
 export function useRepresentations(perspective: "investor" | "agent") {
   const { user } = useAuth();
@@ -82,6 +82,43 @@ export function useAgentContactRequests(perspective: "investor" | "agent") {
       supabase.removeChannel(channel);
     };
   }, [perspective, queryClient, user?.id]);
+
+  return query;
+}
+
+export function useAgentConnectionIntents() {
+  const { user } = useAuth();
+  const { isDemo } = useWorkspaceMode();
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: ["agent-connection-intents", user?.id, isDemo],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await (supabase
+        .from("agent_connection_intents" as any)
+        .select("*")
+        .eq("waiting_owner_id", user!.id)
+        .eq("is_demo", isDemo)
+        .order("last_requested_at", { ascending: false }) as any);
+      if (error) throw error;
+      return (data ?? []) as AgentConnectionIntent[];
+    },
+  });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`agent-connection-intents-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "agent_connection_intents" },
+        () => queryClient.invalidateQueries({ queryKey: ["agent-connection-intents"] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, user?.id]);
 
   return query;
 }

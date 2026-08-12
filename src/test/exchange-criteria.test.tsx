@@ -64,4 +64,16 @@ describe("optional exchange criteria", () => {
     fireEvent.click(screen.getByRole("button", { name: /^continue$/i }));
     expect(onNext).toHaveBeenCalledOnce();
   });
+
+  it("shows $8M capacity for $1M equity plus $1M additional cash", () => {
+    expect(getCriteriaPurchasingCapacity(financials, {
+      ...initialCriteriaData,
+      additional_cash_available: "1000000",
+    })).toEqual({
+      equity: 1_000_000,
+      additionalCash: 1_000_000,
+      maxLtvPercent: 75,
+      capacity: 8_000_000,
+    });
+  });
 });

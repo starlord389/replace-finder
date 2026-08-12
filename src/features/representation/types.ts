@@ -88,6 +88,26 @@ export interface AgentContactRequest {
   acted_at: string | null;
 }
 
+export interface AgentConnectionIntent {
+  id: string;
+  match_id: string;
+  buyer_exchange_id: string;
+  seller_exchange_id: string | null;
+  property_id: string;
+  initiating_agent_id: string;
+  initiated_by: "buyer_agent" | "seller_agent";
+  waiting_on_side: "buyer" | "seller";
+  waiting_exchange_id: string;
+  waiting_owner_id: string;
+  contact_request_id: string | null;
+  connection_id: string | null;
+  status: "awaiting_representation" | "connected" | "conflict" | "cancelled";
+  is_demo: boolean;
+  last_requested_at: string;
+  resolved_at: string | null;
+  resolution_note: string | null;
+}
+
 export const representationStatusLabel: Record<RepresentationStatus, string> = {
   pending_signup: "Waiting for signup",
   pending_verification: "Waiting for agent verification",

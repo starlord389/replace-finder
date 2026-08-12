@@ -152,7 +152,7 @@ export default function AgentRepresentation() {
         next.set("request", request.id);
         setSearchParams(next, { replace: true });
       }
-      else toast.info("The other property owner is assigning an agent. This request was saved.");
+      else toast.info("The property owner was notified. Your interest is saved, and the conversation will open automatically when they assign an agent.");
       await refresh();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Unable to start the connection.");

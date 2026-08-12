@@ -237,6 +237,12 @@ export function nextActionsForRelationship(
   audience: "agent" | "investor",
 ) {
   const requestStatus = rel.agentContactRequestStatus;
+  if (audience === "investor" && rel.mySide === "seller" && status === "new") {
+    return {
+      primary: { id: "manage_listing_representation", label: "Manage Listing Agent" },
+      secondary: [{ id: "archive", label: "Archive", tone: "destructive" as const }],
+    };
+  }
   if (
     audience === "agent"
     && status === "client_interested"

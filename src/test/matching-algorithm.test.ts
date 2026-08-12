@@ -26,6 +26,23 @@ describe("production matching invariants", () => {
     expect(result.score.roe_improvement_pp).toBeGreaterThan(0);
   });
 
+  it("doubles purchasing capacity to $8M when the owner adds $1M cash", () => {
+    const withoutCash = scorePairExplained(
+      {}, buyer, {}, { asking_price: 8_000_000, noi: 800_000 }, {}, settings,
+    );
+    expect(withoutCash.ok).toBe(false);
+
+    const withCash = scorePairExplained(
+      {}, buyer, {}, { asking_price: 8_000_000, noi: 800_000 },
+      { additional_cash_available: 1_000_000 }, settings,
+    );
+    expect(withCash.ok).toBe(true);
+    if (!withCash.ok) return;
+    expect(withCash.score.estimated_purchasing_capacity).toBe(8_000_000);
+    expect(withCash.score.estimated_replacement_loan).toBe(6_000_000);
+    expect(withCash.score.estimated_ltv).toBe(0.75);
+  });
+
   it("uses all exchange equity below the ceiling instead of always borrowing 75%", () => {
     const result = scorePairExplained({}, buyer, {}, { asking_price: 3_000_000, noi: 320_000 }, {}, settings);
     expect(result.ok).toBe(true);

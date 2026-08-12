@@ -71,6 +71,18 @@ describe("investor match workflow", () => {
     ]);
   });
 
+  it("does not treat an inbound match on the investor's own listing as a buyer request", () => {
+    const inboundListingMatch = {
+      mySide: "seller",
+      agentContactRequestStatus: null,
+    } as unknown as Relationship;
+    expect(nextActionsForRelationship(inboundListingMatch, "new", "investor").primary).toEqual({
+      id: "manage_listing_representation",
+      label: "Manage Listing Agent",
+    });
+    expect(actionSource).toContain('window.location.assign("/investor/representation")');
+  });
+
   it("keeps investor demo actions on investor-owned exchanges and refreshes request state", () => {
     expect(relationshipSource).toContain('.eq("owner_type", ownerType)');
     expect(listingSource).toContain('.eq("owner_type", ownerType)');
