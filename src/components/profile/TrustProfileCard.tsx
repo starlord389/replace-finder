@@ -1,5 +1,5 @@
 import { BadgeCheck, BriefcaseBusiness, Building2, MapPin } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { Badge } from "@/components/ui/badge";
 
 export interface TrustProfileData {
