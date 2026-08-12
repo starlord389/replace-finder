@@ -41,10 +41,16 @@ describe("fresh-environment avatar bucket configuration", () => {
 
   it("has no migration that creates or updates profile-avatars as a public bucket", () => {
     for (const { file, sql } of migrations) {
-      if (!sql.includes("profile-avatars")) continue;
-      expect(sql, file).not.toMatch(/storage\.buckets/i);
+      const executable = sql
+        .split("\n")
+        .filter((line) => !line.trimStart().startsWith("--"))
+        .join("\n");
+      if (!executable.includes("profile-avatars")) continue;
+      expect(executable, file).not.toMatch(/storage\.buckets/i);
+      expect(executable, file).not.toMatch(/public\s*=\s*true/i);
     }
   });
+
 
   it("leaves no public-read avatar policy in the final ordered chain", () => {
     let publicReadPolicy = false;
