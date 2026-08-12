@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileAvatarUploader } from "@/components/profile/ProfileAvatarUploader";
 import {
   Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
@@ -23,9 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useNotificationPrefs, type NotificationPrefs } from "@/features/notifications/hooks/useNotificationPrefs";
-import { Bell, Lock, User, Database, Download, Trash2, UploadCloud } from "lucide-react";
+import { Bell, Lock, User, Database, Download, Trash2 } from "lucide-react";
 
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB
 const BIO_MAX = 1000;
 
 const profileSchema = z.object({
@@ -40,6 +39,21 @@ const profileSchema = z.object({
     .trim()
     .refine((v) => v === "" || (/^\d{1,2}$/.test(v) && Number(v) <= 99), "Enter a whole number between 0 and 99")
     .default(""),
+  profileHeadline: z.string().trim().max(160, "Keep this under 160 characters").default(""),
+  specializations: z.string().trim().max(500, "Keep this under 500 characters").default(""),
+  serviceAreas: z.string().trim().max(500, "Keep this under 500 characters").default(""),
+  completedExchanges: z.string().trim().refine(
+    (v) => v === "" || (/^\d{1,6}$/.test(v) && Number(v) <= 100000),
+    "Enter a whole number between 0 and 100,000",
+  ).default(""),
+  transactionVolume: z.string().trim().refine(
+    (v) => {
+      if (v === "") return true;
+      const amount = Number(v.replace(/[$,]/g, ""));
+      return !Number.isNaN(amount) && amount >= 0 && amount <= 1_000_000_000_000_000;
+    },
+    "Enter a valid dollar amount",
+  ).default(""),
   bio: z.string().trim().max(BIO_MAX, `Bio must be ${BIO_MAX} characters or less`).default(""),
 });
 type ProfileForm = z.infer<typeof profileSchema>;
@@ -62,7 +76,6 @@ export default function AgentSettings() {
 
   const [email, setEmail] = useState("");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Account state
@@ -75,7 +88,8 @@ export default function AgentSettings() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       fullName: "", phone: "", brokerageName: "", brokerageAddress: "",
-      licenseState: "", licenseNumber: "", yearsExperience: "", bio: "",
+      licenseState: "", licenseNumber: "", yearsExperience: "", profileHeadline: "",
+      specializations: "", serviceAreas: "", completedExchanges: "", transactionVolume: "", bio: "",
     },
   });
 
@@ -89,7 +103,7 @@ export default function AgentSettings() {
     let active = true;
     supabase
       .from("profiles")
-      .select("full_name, email, phone, brokerage_name, brokerage_address, license_state, license_number, years_experience, bio, profile_photo_url")
+      .select("full_name, email, phone, brokerage_name, brokerage_address, license_state, license_number, years_experience, bio, profile_photo_url, profile_headline, specializations, service_areas, completed_1031_exchanges, career_transaction_volume")
       .eq("id", user.id)
       .single()
       .then(({ data, error }) => {
@@ -110,6 +124,11 @@ export default function AgentSettings() {
             licenseState: data.license_state ?? "",
             licenseNumber: data.license_number ?? "",
             yearsExperience: data.years_experience != null ? String(data.years_experience) : "",
+            profileHeadline: data.profile_headline ?? "",
+            specializations: (data.specializations ?? []).join(", "),
+            serviceAreas: (data.service_areas ?? []).join(", "),
+            completedExchanges: data.completed_1031_exchanges != null ? String(data.completed_1031_exchanges) : "",
+            transactionVolume: data.career_transaction_volume != null ? String(data.career_transaction_volume) : "",
             bio: data.bio ?? "",
           });
         }
@@ -123,49 +142,12 @@ export default function AgentSettings() {
   const bioValue = profileForm.watch("bio");
   const phoneValue = profileForm.watch("phone");
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!user) return;
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow re-selecting the same file
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please choose an image file.");
-      return;
-    }
-    if (file.size > MAX_AVATAR_BYTES) {
-      toast.error("Image is too large. Please choose a file under 5MB.");
-      return;
-    }
-    setUploading(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage
-      .from("agent-avatars")
-      .upload(path, file, { upsert: true, cacheControl: "3600" });
-    if (upErr) {
-      setUploading(false);
-      toast.error("Upload failed: " + upErr.message);
-      return;
-    }
-    const { data: pub } = supabase.storage.from("agent-avatars").getPublicUrl(path);
-    const url = pub.publicUrl;
-    await supabase.from("profiles").update({ profile_photo_url: url }).eq("id", user.id);
-
-    // Clean up any previous avatars so storage doesn't accumulate orphans.
-    const { data: existing } = await supabase.storage.from("agent-avatars").list(user.id);
-    const stale = (existing ?? [])
-      .map((f) => `${user.id}/${f.name}`)
-      .filter((p) => p !== path);
-    if (stale.length) await supabase.storage.from("agent-avatars").remove(stale);
-
-    setPhotoUrl(url);
-    setUploading(false);
-    toast.success("Photo updated");
-  };
-
   const handleSaveProfile = async (values: ProfileForm) => {
     if (!user) return;
     const yrs = values.yearsExperience.trim() ? Number(values.yearsExperience) : null;
+    const completed = values.completedExchanges.trim() ? Number(values.completedExchanges) : null;
+    const volume = values.transactionVolume.trim() ? Number(values.transactionVolume.replace(/[$,]/g, "")) : null;
+    const asList = (value: string) => value.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 20);
     const { error } = await supabase.from("profiles").update({
       full_name: values.fullName.trim() || null,
       phone: values.phone.trim() || null,
@@ -174,6 +156,11 @@ export default function AgentSettings() {
       license_state: values.licenseState.trim() || null,
       license_number: values.licenseNumber.trim() || null,
       years_experience: yrs,
+      profile_headline: values.profileHeadline.trim() || null,
+      specializations: asList(values.specializations),
+      service_areas: asList(values.serviceAreas),
+      completed_1031_exchanges: completed,
+      career_transaction_volume: volume,
       bio: values.bio.trim() || null,
     }).eq("id", user.id);
     if (error) { toast.error("Failed to save"); return; }
@@ -264,8 +251,6 @@ export default function AgentSettings() {
     );
   }
 
-  const initials = (profileForm.getValues("fullName") || profileName || user?.email || "?").charAt(0).toUpperCase();
-
   const NOTIFICATION_TYPES: Array<{
     key: keyof NonNullable<typeof prefs>;
     label: string;
@@ -298,37 +283,29 @@ export default function AgentSettings() {
         <TabsContent value="profile" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Photo</CardTitle>
-              <CardDescription>A clear headshot helps build trust with counterparts.</CardDescription>
+              <CardTitle className="text-base">Profile photo</CardTitle>
+              <CardDescription>
+                Recommended. Your photo appears to represented clients and verified agents when a relationship or deal gives them profile access.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20">
-                  {photoUrl && <AvatarImage src={photoUrl} alt={profileForm.getValues("fullName") || "Avatar"} />}
-                  <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <label className="inline-flex cursor-pointer">
-                    <input type="file" accept="image/*" className="sr-only" onChange={handleUpload} disabled={uploading} />
-                    <Button asChild variant="outline" size="sm" disabled={uploading}>
-                      <span>
-                        <UploadCloud className="mr-1.5 h-3.5 w-3.5" />
-                        {uploading ? "Uploading…" : photoUrl ? "Change photo" : "Upload photo"}
-                      </span>
-                    </Button>
-                  </label>
-                  <p className="mt-2 text-xs text-muted-foreground">JPG or PNG, max 5MB.</p>
-                </div>
-              </div>
+              {user && (
+                <ProfileAvatarUploader
+                  userId={user.id}
+                  name={profileForm.getValues("fullName") || profileName || user.email || "Agent"}
+                  photoUrl={photoUrl}
+                  onPhotoChange={setPhotoUrl}
+                />
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Profile Information</CardTitle>
-              <CardDescription>Shown to other agents when you share an active connection.</CardDescription>
+              <CardTitle className="text-base">Professional profile</CardTitle>
+              <CardDescription>
+                Help clients understand who will represent them. Every professional statistic is optional and clearly labeled as self-reported.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...profileForm}>
@@ -419,10 +396,77 @@ export default function AgentSettings() {
 
                   <FormField
                     control={profileForm.control}
+                    name="profileHeadline"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Professional headline <span className="font-normal text-muted-foreground">(optional)</span></FormLabel>
+                        <FormControl><Input maxLength={160} placeholder="1031 exchange advisor for multifamily owners in South Florida" {...field} /></FormControl>
+                        <FormDescription>A one-line introduction shown at the top of your profile.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={profileForm.control}
+                      name="specializations"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Specialties <span className="font-normal text-muted-foreground">(optional)</span></FormLabel>
+                          <FormControl><Input placeholder="1031 exchanges, multifamily, NNN" {...field} /></FormControl>
+                          <FormDescription>Separate specialties with commas.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={profileForm.control}
+                      name="serviceAreas"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Markets served <span className="font-normal text-muted-foreground">(optional)</span></FormLabel>
+                          <FormControl><Input placeholder="Tampa, Orlando, Central Florida" {...field} /></FormControl>
+                          <FormDescription>Separate markets with commas.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={profileForm.control}
+                      name="completedExchanges"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Completed 1031 exchanges <span className="font-normal text-muted-foreground">(optional)</span></FormLabel>
+                          <FormControl><Input type="number" min={0} max={100000} placeholder="25" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={profileForm.control}
+                      name="transactionVolume"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Career transaction volume <span className="font-normal text-muted-foreground">(optional)</span></FormLabel>
+                          <FormControl><Input inputMode="decimal" placeholder="50000000" {...field} /></FormControl>
+                          <FormDescription>Enter the approximate total in US dollars.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-xs leading-relaxed text-amber-900">
+                    Completed exchanges and transaction volume are displayed as self-reported. Only add figures you can substantiate.
+                  </div>
+
+                  <FormField
+                    control={profileForm.control}
                     name="bio"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Bio</FormLabel>
+                        <FormLabel>About you <span className="font-normal text-muted-foreground">(optional)</span></FormLabel>
                         <FormControl>
                           <Textarea
                             rows={4}

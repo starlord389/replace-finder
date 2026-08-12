@@ -44,7 +44,7 @@ describe("representation management interfaces", () => {
   });
 
   it("shows agents the exchanges assigned by each represented client", () => {
-    expect(agentWorkspace).toContain("exchangeLabels");
+    expect(agentWorkspace).toContain("exchangeContexts");
     expect(agentWorkspace).toContain("clientAssignments");
   });
 

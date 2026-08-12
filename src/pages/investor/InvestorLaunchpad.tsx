@@ -36,15 +36,20 @@ export default function InvestorLaunchpad() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, phone, company")
+        .select("full_name, profile_photo_url, profile_headline, bio, specializations, service_areas")
         .eq("id", user!.id)
         .single();
       if (error) throw error;
 
-      const filled = [data.full_name, data.phone, data.company].filter((value) =>
-        Boolean(value?.trim()),
-      ).length;
-      return { filled, total: 3 };
+      const filled = [
+        data.full_name,
+        data.profile_photo_url,
+        data.profile_headline,
+        data.bio,
+        data.specializations?.length ? data.specializations.join(",") : null,
+        data.service_areas?.length ? data.service_areas.join(",") : null,
+      ].filter((value) => Boolean(value?.trim())).length;
+      return { filled, total: 6, complete: Boolean(data.full_name?.trim()) && filled >= 3 };
     },
     enabled: Boolean(user?.id),
   });
@@ -67,7 +72,7 @@ export default function InvestorLaunchpad() {
     const hasConnection = relationships.some((relationship) => Boolean(relationship.connectionId));
 
     return {
-      profile: profileProgress?.filled === profileProgress?.total,
+      profile: profileProgress?.complete ?? false,
       listing: hasListing,
       publish: hasPublishedExchange,
       matching: matchingExpanded,
@@ -97,7 +102,7 @@ export default function InvestorLaunchpad() {
 
   const progressLabelFor = (id: InvestorLaunchpadStepId) => {
     if (id !== "profile" || completionMap.profile || !profileProgress) return undefined;
-    return `${profileProgress.filled} of ${profileProgress.total}`;
+    return `${profileProgress.filled} of ${profileProgress.total} recommended details`;
   };
 
   const handleStepClick = (step: (typeof INVESTOR_LAUNCHPAD_STEPS)[number]) => {

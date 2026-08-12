@@ -39,7 +39,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { TrustProfileCard } from "@/components/profile/TrustProfileCard";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ClientAgentConversation } from "@/features/representation/components/ClientAgentConversation";
 import { InvitationManagementActions } from "@/features/representation/components/InvitationManagementActions";
@@ -55,7 +56,9 @@ interface ExchangeOption {
 
 type AgentProfile = Pick<
   Tables<"profiles">,
-  "id" | "full_name" | "email" | "phone" | "brokerage_name" | "license_state" | "verification_status"
+  "id" | "full_name" | "email" | "phone" | "brokerage_name" | "brokerage_address" | "license_state" | "license_number" |
+  "verification_status" | "profile_photo_url" | "profile_headline" | "bio" | "years_experience" | "completed_1031_exchanges" |
+  "career_transaction_volume" | "specializations" | "service_areas"
 >;
 type PropertySummary = Pick<
   Tables<"pledged_properties_secure">,
@@ -134,7 +137,7 @@ export default function InvestorRepresentation() {
   useEffect(() => {
     const agentIds = [...new Set(representations.map((representation) => representation.agent_id).filter(Boolean))] as string[];
     if (!agentIds.length) return setProfiles({});
-    supabase.from("profiles").select("id, full_name, email, phone, brokerage_name, license_state, verification_status").in("id", agentIds)
+    supabase.from("profiles").select("id, full_name, email, phone, brokerage_name, brokerage_address, license_state, license_number, verification_status, profile_photo_url, profile_headline, bio, years_experience, completed_1031_exchanges, career_transaction_volume, specializations, service_areas").in("id", agentIds)
       .then(({ data }) => setProfiles(Object.fromEntries((data ?? []).map((profile) => [profile.id, profile]))));
   }, [representations]);
 
@@ -328,7 +331,7 @@ export default function InvestorRepresentation() {
           <CardContent className="grid p-0 lg:grid-cols-[1fr_360px]">
             <div className="p-5 sm:p-6">
               <div className="flex items-start gap-4">
-                <Avatar className="h-12 w-12 border border-emerald-200 shadow-sm"><AvatarFallback className="bg-emerald-100 font-semibold text-emerald-800">{initials(activeAgentName)}</AvatarFallback></Avatar>
+                <Avatar className="h-12 w-12 border border-emerald-200 shadow-sm">{activeAgentProfile?.profile_photo_url ? <AvatarImage src={activeAgentProfile.profile_photo_url} alt={activeAgentName} /> : null}<AvatarFallback className="bg-emerald-100 font-semibold text-emerald-800">{initials(activeAgentName)}</AvatarFallback></Avatar>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-semibold">{activeAgentName}</h2>
@@ -548,18 +551,11 @@ export default function InvestorRepresentation() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {activeRepresentations.map((representation) => {
-                  const name = profiles[representation.agent_id ?? ""]?.full_name || representation.agent_name || representation.agent_email || "Agent";
                   const assignmentCount = assignments.filter((assignment) => assignment.representation_id === representation.id).length;
                   return (
-                    <div key={representation.id} className="flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <Avatar className="h-10 w-10"><AvatarFallback className="bg-primary/10 font-semibold text-primary">{initials(name)}</AvatarFallback></Avatar>
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2"><p className="font-medium">{name}</p>{representation.is_default && <Badge variant="secondary">Default agent</Badge>}</div>
-                          <p className="mt-0.5 truncate text-sm text-muted-foreground">{profiles[representation.agent_id ?? ""]?.brokerage_name || representation.agent_email}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">Covers {assignmentCount} exchange{assignmentCount === 1 ? "" : "s"}</p>
-                        </div>
-                      </div>
+                    <div key={representation.id} className="rounded-xl border p-4">
+                      <TrustProfileCard profile={profiles[representation.agent_id ?? ""]} roleLabel={representation.is_default ? "Default agent" : "Representing agent"} showContact />
+                      <p className="mt-3 text-xs text-muted-foreground">Covers {assignmentCount} exchange{assignmentCount === 1 ? "" : "s"}</p>
                       <div className="flex flex-wrap gap-2">
                         {representation.id === active?.id && <Button size="sm" variant="outline" onClick={() => setActiveView("messages")}><MessageSquareText className="mr-1.5 h-4 w-4" />Message</Button>}
                         <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => endRepresentation(representation)} disabled={busy === representation.id}>End relationship</Button>

@@ -1737,7 +1737,9 @@ export type Database = {
           bio: string | null
           brokerage_address: string | null
           brokerage_name: string | null
+          career_transaction_volume: number | null
           company: string | null
+          completed_1031_exchanges: number | null
           created_at: string
           email: string | null
           full_name: string | null
@@ -1752,7 +1754,9 @@ export type Database = {
           license_state: string | null
           mls_number: string | null
           phone: string | null
+          profile_headline: string | null
           profile_photo_url: string | null
+          service_areas: string[] | null
           specializations: string[] | null
           updated_at: string
           verification_status: string
@@ -1764,7 +1768,9 @@ export type Database = {
           bio?: string | null
           brokerage_address?: string | null
           brokerage_name?: string | null
+          career_transaction_volume?: number | null
           company?: string | null
+          completed_1031_exchanges?: number | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -1779,7 +1785,9 @@ export type Database = {
           license_state?: string | null
           mls_number?: string | null
           phone?: string | null
+          profile_headline?: string | null
           profile_photo_url?: string | null
+          service_areas?: string[] | null
           specializations?: string[] | null
           updated_at?: string
           verification_status?: string
@@ -1791,7 +1799,9 @@ export type Database = {
           bio?: string | null
           brokerage_address?: string | null
           brokerage_name?: string | null
+          career_transaction_volume?: number | null
           company?: string | null
+          completed_1031_exchanges?: number | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -1806,7 +1816,9 @@ export type Database = {
           license_state?: string | null
           mls_number?: string | null
           phone?: string | null
+          profile_headline?: string | null
           profile_photo_url?: string | null
+          service_areas?: string[] | null
           specializations?: string[] | null
           updated_at?: string
           verification_status?: string

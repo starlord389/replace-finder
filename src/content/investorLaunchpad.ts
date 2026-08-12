@@ -56,9 +56,9 @@ export const INVESTOR_LAUNCHPAD_GROUPS: InvestorLaunchpadGroup[] = [
 export const INVESTOR_LAUNCHPAD_STEPS: InvestorLaunchpadStepContent[] = [
   {
     id: "profile",
-    title: "Complete your profile",
-    description: "Add your name, company or ownership entity, and phone number for exchange communications.",
-    tip: "You can keep reviewing matches before choosing an agent. Counterparty contact begins only after representation is active.",
+    title: "Introduce yourself",
+    description: "Add a photo and a few details so an agent can understand who you are and what you want to accomplish.",
+    tip: "Only your name is required. A photo, short introduction, investment focus, and markets are recommended because agents see this profile with your representation request.",
     icon: UserCircle,
     href: "/investor/settings",
   },
