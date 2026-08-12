@@ -22,23 +22,14 @@ COMMENT ON COLUMN public.profiles.career_transaction_volume IS
 
 -- One avatar bucket for every account type. Existing agent-avatars URLs remain
 -- valid; future agent and investor uploads use this shared bucket.
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-  'profile-avatars',
-  'profile-avatars',
-  true,
-  5242880,
-  ARRAY['image/jpeg', 'image/png', 'image/webp']
-)
-ON CONFLICT (id) DO UPDATE SET
-  public = true,
-  file_size_limit = EXCLUDED.file_size_limit,
-  allowed_mime_types = EXCLUDED.allowed_mime_types;
-
-DROP POLICY IF EXISTS "Profile avatars are publicly readable" ON storage.objects;
-CREATE POLICY "Profile avatars are publicly readable"
-ON storage.objects FOR SELECT
-USING (bucket_id = 'profile-avatars');
+--
+-- The bucket itself is declared in supabase/config.toml as PRIVATE with a 5MiB
+-- limit and a jpeg/png/webp MIME allowlist. Fresh or local environments must
+-- run the Supabase bucket-seeding step (`supabase start` / `supabase db reset`,
+-- which applies [storage.buckets] from config.toml) before avatar uploads work.
+-- This migration deliberately does not create or update storage.buckets:
+-- avatars are read through short-lived signed URLs only, and a public bucket
+-- would bypass retrieval access control entirely.
 
 DROP POLICY IF EXISTS "Users upload their own profile avatar" ON storage.objects;
 CREATE POLICY "Users upload their own profile avatar"
