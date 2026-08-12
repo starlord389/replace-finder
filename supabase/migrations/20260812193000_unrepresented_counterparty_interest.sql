@@ -241,6 +241,8 @@ BEGIN
   SELECT id, status INTO v_connection_id, v_connection_status
   FROM public.exchange_connections
   WHERE match_id = v_intent.match_id
+    AND buyer_agent_id = v_buyer_agent
+    AND seller_agent_id = v_seller_agent
   ORDER BY created_at DESC
   LIMIT 1
   FOR UPDATE;
@@ -427,7 +429,10 @@ BEGIN
   IF v_buyer_agent = v_seller_agent THEN RAISE EXCEPTION 'The same agent cannot automatically represent both sides. Ask an administrator to review the conflict.'; END IF;
 
   SELECT id, status INTO v_connection_id, v_connection_status
-  FROM public.exchange_connections WHERE match_id = p_match_id
+  FROM public.exchange_connections
+  WHERE match_id = p_match_id
+    AND buyer_agent_id = v_buyer_agent
+    AND seller_agent_id = v_seller_agent
   ORDER BY created_at DESC LIMIT 1 FOR UPDATE;
 
   IF v_connection_id IS NULL THEN

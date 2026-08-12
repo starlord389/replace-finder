@@ -28,6 +28,8 @@ describe("unrepresented investor listing interest", () => {
     expect(migration).toContain("public.resolve_agent_connection_intent");
     expect(migration).toContain("trg_resolve_connection_intents_on_assignment");
     expect(migration).toContain("'accepted', now()");
+    expect(migration).toContain("AND buyer_agent_id = v_buyer_agent");
+    expect(migration).toContain("AND seller_agent_id = v_seller_agent");
   });
 
   it("does not grant investors direct write access or agent conversation access", () => {
