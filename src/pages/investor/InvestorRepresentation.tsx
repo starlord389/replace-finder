@@ -331,7 +331,7 @@ export default function InvestorRepresentation() {
           <CardContent className="grid p-0 lg:grid-cols-[1fr_360px]">
             <div className="p-5 sm:p-6">
               <div className="flex items-start gap-4">
-                <Avatar className="h-12 w-12 border border-emerald-200 shadow-sm">{activeAgentProfile?.profile_photo_url ? <AvatarImage src={activeAgentProfile.profile_photo_url} alt={activeAgentName} /> : null}<AvatarFallback className="bg-emerald-100 font-semibold text-emerald-800">{initials(activeAgentName)}</AvatarFallback></Avatar>
+                <ProfileAvatar photoUrl={activeAgentProfile?.profile_photo_url} name={activeAgentName} className="h-12 w-12 border border-emerald-200 shadow-sm" fallbackClassName="bg-emerald-100 font-semibold text-emerald-800" />
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-semibold">{activeAgentName}</h2>
