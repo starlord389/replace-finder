@@ -2,20 +2,18 @@ import { useState } from "react";
 import { UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { invalidateAvatarUrl } from "@/components/profile/avatarUrl";
 import { Button } from "@/components/ui/button";
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const EXTENSION_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
 
-function initials(value: string) {
-  return value
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("") || "?";
-}
 
 export function ProfileAvatarUploader({
   userId,
