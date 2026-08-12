@@ -51,7 +51,6 @@ describe("fresh-environment avatar bucket configuration", () => {
     for (const { sql } of migrations) {
       const statements = sql.split(";");
       for (const statement of statements) {
-        if (!statement.includes("profile-avatars")) continue;
         if (/DROP\s+POLICY[\s\S]*Profile avatars are publicly readable/i.test(statement)) {
           publicReadPolicy = false;
         } else if (/CREATE\s+POLICY[\s\S]*Profile avatars are publicly readable/i.test(statement)) {

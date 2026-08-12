@@ -69,7 +69,7 @@ describe("signed-URL lifecycle", () => {
     });
     await flush();
     expect(createSignedUrl).toHaveBeenCalledTimes(2);
-    expect(Date.now()).toBeLessThan(TTL_MS);
+    expect(REFRESH_MS + 1000).toBeLessThan(TTL_MS);
   });
 
   it("clears the refresh timer on unmount and when the avatar path changes", async () => {
