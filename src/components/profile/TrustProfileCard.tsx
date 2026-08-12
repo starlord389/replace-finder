@@ -1,5 +1,5 @@
 import { BadgeCheck, BriefcaseBusiness, Building2, MapPin } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { Badge } from "@/components/ui/badge";
 
 export interface TrustProfileData {
@@ -54,10 +54,11 @@ export function TrustProfileCard({
   return (
     <section className="rounded-xl border bg-card p-4 sm:p-5">
       <div className="flex items-start gap-3.5">
-        <Avatar className={compact ? "h-12 w-12" : "h-16 w-16"}>
-          {profile?.profile_photo_url ? <AvatarImage src={profile.profile_photo_url} alt={name} /> : null}
-          <AvatarFallback className="bg-primary/10 font-semibold text-primary">{initials(name)}</AvatarFallback>
-        </Avatar>
+        <ProfileAvatar
+          photoUrl={profile?.profile_photo_url}
+          name={name}
+          className={compact ? "h-12 w-12" : "h-16 w-16"}
+        />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold text-foreground">{name}</h3>
