@@ -76,6 +76,14 @@ export default function BookDemo() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  useHead({
+    title: "Book a Demo — 1031ExchangeUp™",
+    description:
+      "See how 1031ExchangeUp™ organizes 1031 clients, replacement criteria, and match scoring in one workspace. Book a short walkthrough.",
+    canonical: "/book-demo",
+  });
+
+
   function updateField(field: keyof DemoFormState, value: string) {
     // Editing after a successful submit means a new request - clear the banner.
     setSubmitted(false);
