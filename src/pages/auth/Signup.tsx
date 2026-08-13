@@ -14,10 +14,18 @@ import { ASSET_TYPE_LABELS, US_STATES } from "@/lib/constants";
 import { SMS_DISCLOSURE_VERSION } from "@/lib/smsCompliance";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { Briefcase, Home, ArrowLeft, CheckCircle2, Mail, Phone, Search, Handshake, Clock, Shield } from "lucide-react";
+import { useHead } from "@/hooks/useHead";
 
 type Step = "choose" | "agent" | "investor" | "referral";
 
 export default function Signup() {
+  useHead({
+    title: "Join Free — 1031ExchangeUp™",
+    description:
+      "Create a free 1031ExchangeUp™ account as an agent or property owner and get matched with 1031 exchange replacement properties.",
+    canonical: "/signup",
+  });
+
   const [step, setStep] = useState<Step>("choose");
 
   return (

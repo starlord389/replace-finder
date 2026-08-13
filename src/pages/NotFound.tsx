@@ -1,6 +1,14 @@
 import { Link } from "react-router-dom";
+import { useHead } from "@/hooks/useHead";
 
 const NotFound = () => {
+  useHead({
+    title: "Page Not Found — 1031ExchangeUp™",
+    description:
+      "This page doesn't exist. Head back to 1031ExchangeUp™ to find 1031 exchange replacement properties and connect with agents and investors.",
+    noindex: true,
+  });
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <div className="text-center">
