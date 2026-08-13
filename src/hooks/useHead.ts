@@ -10,11 +10,14 @@ export function useHead({
   title,
   description,
   canonical,
+  noindex,
 }: {
   title?: string;
   description?: string;
   /** Route path (e.g. "/agents") or an absolute URL. */
   canonical?: string;
+  /** Utility routes that should stay out of search results. */
+  noindex?: boolean;
 }) {
   useEffect(() => {
     if (title) document.title = title;
@@ -39,7 +42,14 @@ export function useHead({
       link.href = href;
       upsertMeta("property", "og:url", href);
     }
-  }, [title, description, canonical]);
+
+    upsertMeta("name", "robots", noindex ? "noindex, follow" : "index, follow");
+
+    if (noindex) {
+      // Utility routes must not claim a canonical URL of their own.
+      document.querySelector('link[rel="canonical"]')?.remove();
+    }
+  }, [title, description, canonical, noindex]);
 }
 
 function upsertMeta(attr: "name" | "property", key: string, content: string) {
