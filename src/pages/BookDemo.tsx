@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useHead } from "@/hooks/useHead";
 
 const introPoints = [
   "See how agents can manage active 1031 clients, replacement criteria, and deal activity without juggling spreadsheets or inbox threads.",

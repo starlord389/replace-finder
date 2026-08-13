@@ -1,12 +1,15 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { LegalDoc } from "./LegalDoc";
+import { useHead } from "@/hooks/useHead";
 
 export default function PrivacyPolicy() {
-  useEffect(() => {
-    document.title = "Privacy Policy - 1031 Exchange Up";
-  }, []);
+  useHead({
+    title: "Privacy Policy — 1031ExchangeUp™",
+    description:
+      "How 1031ExchangeUp™ collects, uses, shares, and protects your information when you use our website and platform.",
+    canonical: "/privacy",
+  });
 
   return (
     <LegalDoc title="Privacy Policy" lastUpdated="August 4, 2026">

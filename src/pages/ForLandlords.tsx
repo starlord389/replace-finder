@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useHead } from "@/hooks/useHead";
 import { SmsConsentField } from "@/components/compliance/SmsConsentField";
 import {
   LANDING_BASE_CSS, LandingBackdrop, Pill, inDelay, scrollToId, useLandingMotion,
@@ -1011,9 +1012,12 @@ export default function ForLandlords() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    document.title = "For Property Owners - 1031 Exchange Up";
-  }, []);
+  useHead({
+    title: "For Landlords — 1031ExchangeUp™",
+    description:
+      "Landlords: get matched with a 1031 exchange agent and replacement properties that fit your portfolio, timeline, and equity position.",
+    canonical: "/landlords",
+  });
 
   function updateField(field: keyof ReferralFormState, value: string) {
     setFormState((current) => ({ ...current, [field]: value }));
