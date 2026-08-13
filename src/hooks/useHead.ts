@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 
+export const SITE_URL = "https://1031exchangeup.com";
+
 /**
  * Lightweight document head manager - no external dependency needed.
  * Sets document.title and updates/creates meta tags on mount.
@@ -11,6 +13,7 @@ export function useHead({
 }: {
   title?: string;
   description?: string;
+  /** Route path (e.g. "/agents") or an absolute URL. */
   canonical?: string;
 }) {
   useEffect(() => {
@@ -26,13 +29,15 @@ export function useHead({
       upsertMeta("name", "twitter:title", title);
     }
     if (canonical) {
+      const href = canonical.startsWith("http") ? canonical : `${SITE_URL}${canonical}`;
       let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
       if (!link) {
         link = document.createElement("link");
         link.rel = "canonical";
         document.head.appendChild(link);
       }
-      link.href = canonical;
+      link.href = href;
+      upsertMeta("property", "og:url", href);
     }
   }, [title, description, canonical]);
 }

@@ -1,20 +1,16 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
+import { useHead } from "@/hooks/useHead";
 import { NB_STYLE, SkyBackdrop } from "@/pages/Home";
 import { EXTRA_CSS, SECTIONS_CSS, Sec_agents, Sec_how } from "./HomeSections";
 
 export default function ForAgents() {
-  useEffect(() => {
-    document.title = "For Agents - 1031ExchangeUp™";
-    const desc = document.querySelector('meta[name="description"]');
-    if (desc) {
-      desc.setAttribute(
-        "content",
-        "Built for agents: add clients, properties and investment criteria to 1031ExchangeUp™. Your database and the network are monitored continuously for new investment and 1031 exchange opportunities.",
-      );
-    }
-  }, []);
+  useHead({
+    title: "For Agents — 1031ExchangeUp™",
+    description:
+      "Add clients, properties, and investment criteria. 1031ExchangeUp™ monitors your database and the network for new 1031 exchange opportunities.",
+    canonical: "/agents",
+  });
 
   return (
     <div data-nb className="min-h-screen bg-white">

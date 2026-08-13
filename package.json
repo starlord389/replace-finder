@@ -12,7 +12,9 @@
     "test": "vitest run",
     "test:landing:breakpoints": "playwright test tests/landing-breakpoints.spec.ts",
     "test:watch": "vitest",
-    "verify:domain": "node scripts/verify-canonical-domain.mjs"
+    "verify:domain": "node scripts/verify-canonical-domain.mjs",
+    "predev": "bunx tsx scripts/generate-sitemap.ts",
+    "prebuild": "bunx tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

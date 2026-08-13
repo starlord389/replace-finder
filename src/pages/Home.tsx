@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
+import { useHead } from "@/hooks/useHead";
 import networkDiagramAsset from "@/assets/network-diagram.png.asset.json";
 import AgentNetworkSection from "./AgentNetworkSection";
 import InvestorNetworkSection from "./InvestorNetworkSection";
@@ -289,16 +290,13 @@ function NbMonitorSteps() {
 
 
 export default function Home() {
-  useEffect(() => {
-    document.title = "1031ExchangeUp™ - The biggest obstacle to a 1031 Exchange is finding a replacement property.";
-    const desc = document.querySelector('meta[name="description"]');
-    if (desc) {
-      desc.setAttribute(
-        "content",
-        "1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.",
-      );
-    }
-  }, []);
+  useHead({
+    title: "1031ExchangeUp™ — 1031 Replacement Property Network",
+    description:
+      "Find 1031 exchange replacement properties faster. 1031ExchangeUp™ connects property owners, agents, and investment properties in one monitored network.",
+    canonical: "/",
+  });
+
 
   // Scroll to the hash target once sections have mounted (deep links like /#steps).
   useEffect(() => {

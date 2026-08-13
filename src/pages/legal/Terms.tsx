@@ -1,12 +1,15 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
 import { LegalDoc } from "./LegalDoc";
+import { useHead } from "@/hooks/useHead";
 
 export default function Terms() {
-  useEffect(() => {
-    document.title = "Terms & Conditions - 1031 Exchange Up";
-  }, []);
+  useHead({
+    title: "Terms & Conditions — 1031ExchangeUp™",
+    description:
+      "The terms and conditions governing use of the 1031ExchangeUp™ platform, accounts, listings, and matching services.",
+    canonical: "/terms",
+  });
 
   return (
     <LegalDoc title="Terms & Conditions" lastUpdated="August 4, 2026">

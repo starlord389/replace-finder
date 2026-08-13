@@ -1,20 +1,16 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/routes/routeManifest";
+import { useHead } from "@/hooks/useHead";
 import { NB_STYLE, SkyBackdrop } from "@/pages/Home";
 import { EXTRA_CSS, SECTIONS_CSS, Sec_how, Sec_investors, Sec_why } from "./HomeSections";
 
 export default function ForInvestors() {
-  useEffect(() => {
-    document.title = "For Property Owners - 1031ExchangeUp™";
-    const desc = document.querySelector('meta[name="description"]');
-    if (desc) {
-      desc.setAttribute(
-        "content",
-        "Built for property owners: add your investment property criteria to 1031ExchangeUp™ and discover opportunities through intelligent opportunity monitoring.",
-      );
-    }
-  }, []);
+  useHead({
+    title: "For Property Owners — 1031ExchangeUp™",
+    description:
+      "Add your investment property criteria and let 1031ExchangeUp™ monitor the network for replacement opportunities that fit your equity and strategy.",
+    canonical: "/investors",
+  });
 
   return (
     <div data-nb className="min-h-screen bg-white">

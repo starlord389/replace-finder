@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useHead } from "@/hooks/useHead";
 
 const introPoints = [
   "See how agents can manage active 1031 clients, replacement criteria, and deal activity without juggling spreadsheets or inbox threads.",
@@ -74,6 +75,14 @@ export default function BookDemo() {
   const [formState, setFormState] = useState(INITIAL_FORM_STATE);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useHead({
+    title: "Book a Demo — 1031ExchangeUp™",
+    description:
+      "See how 1031ExchangeUp™ organizes 1031 clients, replacement criteria, and match scoring in one workspace. Book a short walkthrough.",
+    canonical: "/book-demo",
+  });
+
 
   function updateField(field: keyof DemoFormState, value: string) {
     // Editing after a successful submit means a new request - clear the banner.
