@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, AlertCircle, Mail } from "lucide-react";
+import { useHead } from "@/hooks/useHead";
 
 const SUPABASE_URL = "https://mosuewptjslfrcibjtwc.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -18,6 +19,13 @@ type State =
   | { kind: "error"; message: string };
 
 export default function Unsubscribe() {
+  useHead({
+    title: "Email Preferences — 1031ExchangeUp™",
+    description:
+      "Manage or cancel email notifications from 1031ExchangeUp™, including new match alerts and platform updates.",
+    noindex: true,
+  });
+
   const [params] = useSearchParams();
   const token = params.get("token");
   const [state, setState] = useState<State>({ kind: "loading" });

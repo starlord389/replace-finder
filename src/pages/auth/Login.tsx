@@ -9,8 +9,16 @@ import { useToast } from "@/hooks/use-toast";
 import { getAgentPostLoginRoute, getDefaultRouteForRole } from "@/app/routes/routeManifest";
 import { trackEvent } from "@/lib/telemetry";
 import { isEmailConfirmationError } from "@/lib/agentVerification";
+import { useHead } from "@/hooks/useHead";
 
 export default function Login() {
+  useHead({
+    title: "Log In — 1031ExchangeUp™",
+    description:
+      "Log in to 1031ExchangeUp™ to review your 1031 exchange matches, listings, and messages with agents and investors.",
+    canonical: "/login",
+  });
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
