@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
   }
 
   const kind = body.kind
-  if (kind !== 'agent_signup' && kind !== 'landlord_referral') {
+  if (typeof kind !== 'string' || !ALL_KINDS.includes(kind as Kind)) {
     return json(400, { error: 'unsupported kind' })
   }
 
@@ -127,11 +127,208 @@ Deno.serve(async (req) => {
     return json(429, { error: 'rate limited' })
   }
 
-  if (kind === 'agent_signup') {
-    return await handleAgentSignup(body, admin, fingerprint)
+  if (kind === 'agent_signup' || kind === 'investor_signup') {
+    return await handleSignup(kind, body, admin, fingerprint)
   }
-  return await handleLandlordReferral(body, admin, fingerprint)
+  if (kind === 'landlord_referral') {
+    return await handleLandlordReferral(body, admin, fingerprint)
+  }
+  return await handleRecordIntake(kind as RecordKind, body, admin, fingerprint)
 })
+
+// ---------------------------------------------------------------------------
+// Record-backed intake notifications (demo requests, event registrations,
+// support tickets, listing inquiries). The caller only supplies a record id;
+// every value in the email is read back from the database with the service
+// role so nothing user-supplied controls recipients or content.
+// ---------------------------------------------------------------------------
+
+type RecordKind = 'demo_request' | 'event_registration' | 'support_ticket' | 'listing_inquiry'
+
+async function handleRecordIntake(
+  kind: RecordKind,
+  body: IncomingBody,
+  admin: Admin,
+  fingerprint: string,
+): Promise<Response> {
+  const recordId = typeof body.recordId === 'string' ? body.recordId : ''
+  if (!UUID_RE.test(recordId)) return json(400, { error: 'invalid record id' })
+
+  const idemKey = `admin-${kind}-${recordId}`
+  const c = await claim(admin, idemKey, kind as unknown as Kind, recordId, fingerprint)
+  if (!c) return json(503, { error: 'temporarily unavailable' })
+  if (!c.claimed) {
+    if (c.currentStatus === 'sent') return json(200, { ok: true, duplicate: true })
+    if (c.currentStatus === 'failed' && c.attempts >= MAX_ATTEMPTS) {
+      return json(200, { ok: false, status: 'failed', duplicate: true })
+    }
+    return json(202, { ok: true, pending: true })
+  }
+
+  let payload:
+    | { eventType: string; title: string; summary: string; details: Array<{ label: string; value: string }> }
+    | null = null
+
+  if (kind === 'demo_request') {
+    const { data, error } = await admin
+      .from('demo_requests')
+      .select('id, full_name, work_email, company, role, phone, timeline, use_case')
+      .eq('id', recordId)
+      .maybeSingle()
+    if (error) {
+      await finalize(admin, idemKey, false, 'lookup_failed')
+      return json(500, { error: 'lookup failed' })
+    }
+    if (!data) {
+      await finalize(admin, idemKey, false, 'not_found')
+      return json(404, { error: 'not found' })
+    }
+    payload = {
+      eventType: 'New demo request',
+      title: `${(data.full_name as string) || 'Someone'} requested a demo`,
+      summary: 'A new demo request was submitted on 1031ExchangeUp.',
+      details: [
+        { label: 'Name', value: str(data.full_name) },
+        { label: 'Email', value: str(data.work_email) },
+        { label: 'Phone', value: str(data.phone) },
+        { label: 'Company', value: str(data.company) },
+        { label: 'Role', value: str(data.role) },
+        { label: 'Timeline', value: str(data.timeline) },
+        { label: 'What they need', value: str(data.use_case) },
+      ],
+    }
+  } else if (kind === 'event_registration') {
+    const { data, error } = await admin
+      .from('event_registrations')
+      .select('id, full_name, email, role, event, created_at')
+      .eq('id', recordId)
+      .maybeSingle()
+    if (error) {
+      await finalize(admin, idemKey, false, 'lookup_failed')
+      return json(500, { error: 'lookup failed' })
+    }
+    if (!data) {
+      await finalize(admin, idemKey, false, 'not_found')
+      return json(404, { error: 'not found' })
+    }
+    payload = {
+      eventType: 'New event registration',
+      title: `${(data.full_name as string) || 'Someone'} registered for an event`,
+      summary: 'A new registration came in for an upcoming session.',
+      details: [
+        { label: 'Name', value: str(data.full_name) },
+        { label: 'Email', value: str(data.email) },
+        { label: 'Role', value: str(data.role) },
+        { label: 'Event', value: str(data.event) },
+      ],
+    }
+  } else if (kind === 'support_ticket') {
+    const { data, error } = await admin
+      .from('support_tickets')
+      .select('id, subject, message, category, status, user_id')
+      .eq('id', recordId)
+      .maybeSingle()
+    if (error) {
+      await finalize(admin, idemKey, false, 'lookup_failed')
+      return json(500, { error: 'lookup failed' })
+    }
+    if (!data) {
+      await finalize(admin, idemKey, false, 'not_found')
+      return json(404, { error: 'not found' })
+    }
+    const submitter = await profileSummary(admin, data.user_id as string)
+    payload = {
+      eventType: 'New support ticket',
+      title: `Support ticket: ${str(data.subject)}`,
+      summary: 'A user submitted a support request.',
+      details: [
+        { label: 'From', value: submitter.name },
+        { label: 'Email', value: submitter.email },
+        { label: 'Phone', value: submitter.phone },
+        { label: 'Category', value: str(data.category) },
+        { label: 'Subject', value: str(data.subject) },
+        { label: 'Message', value: str(data.message) },
+      ],
+    }
+  } else {
+    const { data, error } = await admin
+      .from('listing_inquiries')
+      .select('id, initial_message, investor_id, listing_agent_id, property_id, is_demo')
+      .eq('id', recordId)
+      .maybeSingle()
+    if (error) {
+      await finalize(admin, idemKey, false, 'lookup_failed')
+      return json(500, { error: 'lookup failed' })
+    }
+    if (!data) {
+      await finalize(admin, idemKey, false, 'not_found')
+      return json(404, { error: 'not found' })
+    }
+    if (data.is_demo === true) {
+      await finalize(admin, idemKey, true)
+      return json(200, { ok: true, skipped: 'demo' })
+    }
+    const [investor, agent] = await Promise.all([
+      profileSummary(admin, data.investor_id as string),
+      profileSummary(admin, data.listing_agent_id as string),
+    ])
+    const { data: property } = await admin
+      .from('pledged_properties')
+      .select('city, state, asset_type, asking_price')
+      .eq('id', data.property_id as string)
+      .maybeSingle()
+    const price = property?.asking_price
+    payload = {
+      eventType: 'New listing inquiry',
+      title: `${investor.name} inquired about a listing`,
+      summary: 'An investor contacted a listing agent through the platform.',
+      details: [
+        { label: 'Investor', value: investor.name },
+        { label: 'Investor email', value: investor.email },
+        { label: 'Investor phone', value: investor.phone },
+        { label: 'Listing agent', value: agent.name },
+        { label: 'Listing agent email', value: agent.email },
+        {
+          label: 'Property',
+          value: [property?.city, property?.state].filter(Boolean).join(', ') || '-',
+        },
+        { label: 'Asset type', value: str(property?.asset_type) },
+        {
+          label: 'Asking price',
+          value: typeof price === 'number' && Number.isFinite(price) ? `$${price.toLocaleString()}` : '-',
+        },
+        { label: 'Message', value: str(data.initial_message) },
+      ],
+    }
+  }
+
+  const result = await notifyAdmins({ ...payload, idempotencySuffix: `${kind}-${recordId}` })
+  await finalize(admin, idemKey, result.ok, result.errorCode)
+  return json(200, { ok: result.ok })
+}
+
+function str(value: unknown): string {
+  const s = typeof value === 'string' ? value.trim() : value != null ? String(value) : ''
+  return s ? s.slice(0, 2000) : '-'
+}
+
+async function profileSummary(
+  admin: Admin,
+  userId: string | null,
+): Promise<{ name: string; email: string; phone: string }> {
+  if (!userId || !UUID_RE.test(userId)) return { name: '-', email: '-', phone: '-' }
+  const { data } = await admin
+    .from('profiles')
+    .select('full_name, email, phone')
+    .eq('id', userId)
+    .maybeSingle()
+  return {
+    name: str(data?.full_name),
+    email: str(data?.email),
+    phone: str(data?.phone),
+  }
+}
+
 
 async function handleAgentSignup(
   body: IncomingBody,
