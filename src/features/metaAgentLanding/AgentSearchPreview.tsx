@@ -1,15 +1,9 @@
-import { useEffect, useRef, useState } from "react";
 import {
-  BellRing,
   Building2,
   Check,
-  CircleCheck,
-  FileCheck2,
   Landmark,
   MapPin,
-  MessageSquareText,
   Radar,
-  Search,
   SlidersHorizontal,
   Sparkles,
   TrendingUp,
@@ -37,46 +31,33 @@ const ILLUSTRATIVE_MATCHES = [
 ] as const;
 
 export function AgentSearchPreview() {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [storyActive, setStoryActive] = useState(false);
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage || !("IntersectionObserver" in window)) {
-      setStoryActive(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.intersectionRatio >= 0.42) setStoryActive(true);
-        if (entry.intersectionRatio < 0.12) setStoryActive(false);
-      },
-      { threshold: [0, 0.12, 0.42] },
-    );
-
-    observer.observe(stage);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div
-      ref={stageRef}
-      className={`agent-console-stage${storyActive ? " is-story-active" : ""}`}
-    >
-      <aside className="agent-story-satellite agent-story-satellite--client" aria-hidden="true">
-        <span className="agent-story-satellite__icon"><MessageSquareText /></span>
-        <div><small>Client brief updated</small><strong>$1.3M equity confirmed</strong><span>Riverside exchange · just now</span></div>
+    <div className="agent-console-stage">
+      <aside className="agent-rollout-window agent-rollout-window--conversation" aria-hidden="true">
+        <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong># private-search</strong></div>
+        <div className="agent-rollout-chat">
+          <span className="agent-rollout-chat__avatar">ET</span>
+          <div><strong>Elaine Thomas</strong><small>10:24 AM</small><p>Keep the search focused on Northeast income properties with stronger cash flow.</p></div>
+        </div>
+        <div className="agent-rollout-chat agent-rollout-chat--system">
+          <span className="agent-rollout-chat__mark">UP</span>
+          <div><strong>ExchangeUp</strong><small>10:24 AM</small><p>Exchange criteria updated for the agent workspace.</p></div>
+        </div>
       </aside>
 
-      <aside className="agent-story-satellite agent-story-satellite--listing" aria-hidden="true">
-        <span className="agent-story-satellite__icon"><BellRing /></span>
-        <div><small>New listing signal</small><strong>Industrial · 7.2% cap</strong><span>Manchester, NH · $4.2M</span></div>
+      <aside className="agent-rollout-window agent-rollout-window--activity" aria-hidden="true">
+        <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong>Exchange analysis</strong></div>
+        <div className="agent-rollout-activity">
+          <p><span>›</span> Preparing Riverside replacement search</p>
+          <ul><li><Check /> Equity calculated <strong>$1.3M</strong></li><li><Check /> Purchase range verified</li><li><Check /> Return improvement required</li></ul>
+          <div><i /> Monitoring eligible inventory</div>
+        </div>
       </aside>
 
-      <aside className="agent-story-satellite agent-story-satellite--verified" aria-hidden="true">
-        <span className="agent-story-satellite__icon"><FileCheck2 /></span>
-        <div><small>Exchange readiness</small><strong>Financials verified</strong><span>Search can begin</span></div>
+      <aside className="agent-rollout-window agent-rollout-window--listing" aria-hidden="true">
+        <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong>New opportunity</strong></div>
+        <div className="agent-rollout-listing__visual"><Building2 /><span>Potential match</span></div>
+        <div className="agent-rollout-listing__details"><small>Industrial · Manchester, NH</small><strong>Merrimack Commerce Park</strong><dl><div><dt>Asking</dt><dd>$4.2M</dd></div><div><dt>Cap rate</dt><dd>7.2%</dd></div></dl></div>
       </aside>
 
       <figure aria-labelledby="agent-search-preview-caption" className="agent-console">
@@ -135,39 +116,6 @@ export function AgentSearchPreview() {
               <span className="agent-console__radar"><Radar aria-hidden="true" /></span>
               <div><small>Search remains active</small><strong>Monitoring for new opportunities</strong></div>
               <i aria-hidden="true" />
-            </div>
-          </section>
-        </div>
-
-        <div className="agent-console-story" aria-hidden="true">
-          <aside className="agent-console-story__sidebar">
-            <div className="agent-console-story__sidebar-title"><span><Building2 /></span><strong>Riverside exchange</strong></div>
-            <div className="agent-console-story__sidebar-item is-active"><Search /><span>Replacement search</span></div>
-            <div className="agent-console-story__sidebar-item"><FileCheck2 /><span>Property & financials</span></div>
-            <div className="agent-console-story__sidebar-item"><SlidersHorizontal /><span>Exchange criteria</span></div>
-            <div className="agent-console-story__sidebar-status"><CircleCheck /><span><small>Search ready</small><strong>3 checks complete</strong></span></div>
-          </aside>
-
-          <section className="agent-console-story__main">
-            <div className="agent-console-story__heading"><span>Ask ExchangeUp</span><small>Private workspace</small></div>
-            <div className="agent-console-story__question"><span>Find replacement properties that improve my client’s return.</span><i /></div>
-            <div className="agent-console-story__thinking"><Sparkles /><span>Analyzing equity, debt capacity, return, and exchange criteria</span><i /><i /><i /></div>
-            <div className="agent-console-story__answer">
-              <div className="agent-console-story__answer-heading"><span><Sparkles /></span><div><small>Exchange search ready</small><strong>2 opportunities fit the exchange</strong></div></div>
-              <div className="agent-console-story__metrics">
-                <div><small>Available equity</small><strong>$1.3M</strong></div>
-                <div><small>Purchase range</small><strong>$3.2M–$4.8M</strong></div>
-                <div><small>Priority</small><strong>Better return</strong></div>
-              </div>
-              <div className="agent-console-story__checks">
-                <span><Check /> Capacity verified</span><span><Check /> ROE improves</span><span><Check /> Criteria aligned</span>
-              </div>
-              <article className="agent-console-story__result">
-                <span className="agent-console-story__result-rank">01</span>
-                <div><small>Top potential match</small><strong>Blackstone Mill Lofts</strong><span><MapPin /> Providence, RI</span></div>
-                <dl><div><dt>Asking</dt><dd>$3.8M</dd></div><div><dt>Cap rate</dt><dd>6.9%</dd></div></dl>
-                <span className="agent-console-story__result-score"><strong>92</strong><small>match</small></span>
-              </article>
             </div>
           </section>
         </div>
