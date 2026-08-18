@@ -114,10 +114,17 @@ describe("Meta agent replacement-property landing page", () => {
     );
 
     expect(
-      screen.getByLabelText("Illustrative live replacement-property matching workflow"),
+      screen.getByLabelText(
+        "Illustrative live journey through the real ExchangeUp agent match workflow",
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText("ExchangeUp Matching Engine")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "2 qualified matches" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: "Illustrative agent workspace navigation" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Elaine Thomas · Matches")).toBeInTheDocument();
+    expect(screen.getByText("Financials")).toBeInTheDocument();
+    expect(screen.getByText("Next steps")).toBeInTheDocument();
+    expect(screen.getByText("Match sent successfully")).toBeInTheDocument();
     expect(screen.getAllByText("Blackstone Mill Lofts")).not.toHaveLength(0);
     expect(screen.getAllByText("Merrimack Commerce Park")).not.toHaveLength(0);
     expect(screen.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
