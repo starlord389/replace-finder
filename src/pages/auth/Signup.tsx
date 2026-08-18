@@ -141,9 +141,17 @@ function InvestorSignupForm({ onBack }: { onBack: () => void }) {
       return;
     }
     if (data.user) {
+      // Fire-and-forget internal notification to platform operators.
+      supabase.functions
+        .invoke("notify-admin-signup", {
+          body: { kind: "investor_signup", idempotencySuffix: data.user.id },
+        })
+        .catch((err) => console.warn("admin signup notify failed", err));
+
       setSubmittedEmail(form.email.trim());
       toast({ title: "Check your email", description: "Confirm your email to unlock your investor / owner workspace." });
     }
+
   };
   const fieldError = (key: string) => errors[key] ? <p className="text-sm text-destructive">{errors[key]}</p> : null;
 
