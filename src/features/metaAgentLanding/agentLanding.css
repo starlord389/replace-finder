@@ -51,25 +51,148 @@
 
 /* Header */
 [data-meta-agent-landing] .agent-header {
-  position: absolute;
-  inset: 0 0 auto;
-  z-index: 30;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(7, 22, 45, 0.72);
-  backdrop-filter: blur(18px);
+  position: fixed;
+  inset: 16px 0 auto;
+  z-index: 50;
+  pointer-events: none;
 }
 
 [data-meta-agent-landing] .agent-header__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 76px;
+  min-height: 68px;
+  padding: 8px 10px 8px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 18px;
+  background: rgba(251, 250, 246, 0.94);
+  box-shadow: 0 18px 55px rgba(0, 10, 26, 0.2), 0 2px 8px rgba(0, 10, 26, 0.08);
+  backdrop-filter: blur(22px) saturate(140%);
+  pointer-events: auto;
+}
+
+[data-meta-agent-landing] .agent-header__brand {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  color: var(--agent-navy-900);
+  text-decoration: none;
+}
+
+[data-meta-agent-landing] .agent-header__brand-context {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  margin-left: 18px;
+  padding-left: 18px;
+  border-left: 1px solid #d9dedb;
+  color: #687488;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+[data-meta-agent-landing] .agent-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline: auto;
+}
+
+[data-meta-agent-landing] .agent-header__nav a,
+[data-meta-agent-landing] .agent-header__login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border-radius: 10px;
+  color: #4f5c70;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+[data-meta-agent-landing] .agent-header__nav a {
+  padding-inline: 13px;
+}
+
+[data-meta-agent-landing] .agent-header__nav a:hover,
+[data-meta-agent-landing] .agent-header__nav a:focus-visible,
+[data-meta-agent-landing] .agent-header__login:hover,
+[data-meta-agent-landing] .agent-header__login:focus-visible {
+  background: #ebece7;
+  color: var(--agent-navy-900);
+  outline: none;
+}
+
+[data-meta-agent-landing] .agent-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+[data-meta-agent-landing] .agent-header__login {
+  padding-inline: 14px;
 }
 
 [data-meta-agent-landing] .agent-header__cta {
-  min-height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: none;
+  min-height: 48px;
+  gap: 7px;
+  padding-inline: 18px;
+  border: 1px solid rgba(18, 92, 31, 0.14);
+  border-radius: 12px;
+  box-shadow: 0 9px 24px rgba(31, 104, 45, 0.2);
+}
+
+[data-meta-agent-landing] #how-it-works,
+[data-meta-agent-landing] #agent-control,
+[data-meta-agent-landing] #faq {
+  scroll-margin-top: 104px;
+}
+
+@media (max-width: 1040px) {
+  [data-meta-agent-landing] .agent-header__nav {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  [data-meta-agent-landing] .agent-header {
+    inset-block-start: 10px;
+  }
+
+  [data-meta-agent-landing] .agent-header__inner {
+    min-height: 60px;
+    padding: 6px 7px 6px 14px;
+    border-radius: 15px;
+  }
+
+  [data-meta-agent-landing] .agent-header__brand-context,
+  [data-meta-agent-landing] .agent-header__login {
+    display: none;
+  }
+
+  [data-meta-agent-landing] .agent-header__cta {
+    min-height: 44px;
+    padding-inline: 14px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 430px) {
+  [data-meta-agent-landing] .agent-header__cta span {
+    font-size: 0;
+  }
+
+  [data-meta-agent-landing] .agent-header__cta span::after {
+    font-size: 12px;
+    content: "Start free";
+  }
 }
 
 /* Hero */
@@ -1961,11 +2084,11 @@
   }
 
   [data-meta-agent-landing] .agent-header__inner {
-    min-height: 70px;
+    min-height: 60px;
   }
 
   [data-meta-agent-landing] .agent-header__cta {
-    display: none;
+    display: inline-flex;
   }
 
   [data-meta-agent-landing] .agent-hero {
@@ -1993,6 +2116,10 @@
 
   [data-meta-agent-landing] .agent-primary-cta {
     width: 100%;
+  }
+
+  [data-meta-agent-landing] .agent-header .agent-header__cta {
+    width: auto;
   }
 
   [data-meta-agent-landing] .agent-hero__microcopy {

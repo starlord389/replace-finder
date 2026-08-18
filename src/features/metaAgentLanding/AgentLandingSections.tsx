@@ -107,7 +107,7 @@ export function AgentWorkflowSection() {
   }, []);
 
   return (
-    <section aria-labelledby="workflow-title" className="agent-workflow">
+    <section id="how-it-works" aria-labelledby="workflow-title" className="agent-workflow">
       <svg className="agent-workflow__parcel-field" viewBox="0 0 1600 1900" preserveAspectRatio="none" aria-hidden="true">
         <path d="M0 180 H312 V0 M312 180 H602 V450 H920 V214 H1254 V524 H1600" />
         <path d="M0 1120 H256 V870 H532 V1320 H824 V1030 H1152 V1450 H1410 V1190 H1600" />
@@ -219,7 +219,7 @@ function ResultsState() {
 
 export function AgentControlSection() {
   return (
-    <section aria-labelledby="agent-control-title" className="agent-control">
+    <section id="agent-control" aria-labelledby="agent-control-title" className="agent-control">
       <svg className="agent-control__field" viewBox="0 0 1600 980" preserveAspectRatio="none" aria-hidden="true">
         <path d="M0 180 H324 V0 M324 180 H602 V422 H870 V132 H1180 V338 H1600" />
         <path d="M0 760 H248 V540 H548 V910 H864 V632 H1180 V980 M1400 0 V186 H1600" />
@@ -257,7 +257,7 @@ export function AgentControlSection() {
 
 export function AgentFaqSection() {
   return (
-    <section aria-labelledby="faq-title" className="agent-faq">
+    <section id="faq" aria-labelledby="faq-title" className="agent-faq">
       <div className="agent-landing-shell agent-faq__layout">
         <div className="agent-faq__intro">
           <p className="agent-eyebrow">Before you begin</p>

@@ -81,16 +81,27 @@ export default function MetaAgentReplacementProperty() {
 
       <header className="agent-header">
         <div className="agent-landing-shell agent-header__inner">
-          <span aria-label="1031ExchangeUP™" className="text-white">
+          <a href="#main-content" aria-label="1031ExchangeUP™" className="agent-header__brand">
             <ExchangeLogoLockup textClassName="text-[16px] sm:text-[19px]" />
-          </span>
-          <AgentLandingCta
-            compact
-            destination={signupDestination}
-            location="header"
-            onClick={trackCta}
-            className="agent-header__cta"
-          />
+            <span className="agent-header__brand-context">For real estate agents</span>
+          </a>
+
+          <nav className="agent-header__nav" aria-label="Landing page">
+            <a href="#how-it-works">How it works</a>
+            <a href="#agent-control">Your control</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+
+          <div className="agent-header__actions">
+            <Link className="agent-header__login" to={ROUTES.login}>Log in</Link>
+            <AgentLandingCta
+              compact
+              destination={signupDestination}
+              location="header"
+              onClick={trackCta}
+              className="agent-header__cta"
+            />
+          </div>
         </div>
       </header>
 
