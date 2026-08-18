@@ -65,6 +65,7 @@ const AcceptInvite = lazy(() => import("@/pages/auth/AcceptInvite"));
 const AcceptRepresentationInvite = lazy(() => import("@/pages/auth/AcceptRepresentationInvite"));
 const AdminRepresentations = lazy(() => import("@/pages/admin/AdminRepresentations"));
 const Unsubscribe = lazy(() => import("@/pages/Unsubscribe"));
+const MetaAgentReplacementProperty = lazy(() => import("@/pages/meta/MetaAgentReplacementProperty"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 
@@ -93,6 +94,9 @@ const App = () => (
         <AuthProvider>
           <Suspense fallback={<RouteFallback />}>
           <Routes>
+            {/* Campaign landing page: intentionally isolated from the public navigation shell. */}
+            <Route path={ROUTES.metaAgentReplacementProperty} element={<MetaAgentReplacementProperty />} />
+
             {/* Public (marketing + auth entry) - signed-in users are redirected to their dashboard */}
             <Route element={<RequireGuest />}>
             <Route element={<PublicLayout />}>

@@ -6,7 +6,9 @@ type TelemetryEvent =
   | "exchange_update_requested"
   | "matching_invoked"
   | "connection_initiated"
-  | "auth_callback_redirect";
+  | "auth_callback_redirect"
+  | "agent_landing_view"
+  | "agent_landing_cta_clicked";
 
 interface TelemetryPayload {
   [key: string]: unknown;

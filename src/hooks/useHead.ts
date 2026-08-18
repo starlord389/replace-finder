@@ -11,6 +11,7 @@ export function useHead({
   description,
   canonical,
   noindex,
+  robots,
 }: {
   title?: string;
   description?: string;
@@ -18,6 +19,8 @@ export function useHead({
   canonical?: string;
   /** Utility routes that should stay out of search results. */
   noindex?: boolean;
+  /** Explicit robots value for campaign pages with stricter crawl rules. */
+  robots?: string;
 }) {
   useEffect(() => {
     if (title) document.title = title;
@@ -42,14 +45,37 @@ export function useHead({
       link.href = href;
       upsertMeta("property", "og:url", href);
     }
+    if (!robots) {
+      upsertMeta("name", "robots", noindex ? "noindex, follow" : "index, follow");
+    }
 
-    upsertMeta("name", "robots", noindex ? "noindex, follow" : "index, follow");
-
-    if (noindex) {
+    if (noindex || robots?.startsWith("noindex")) {
       // Utility routes must not claim a canonical URL of their own.
       document.querySelector('link[rel="canonical"]')?.remove();
     }
-  }, [title, description, canonical, noindex]);
+  }, [title, description, canonical, noindex, robots]);
+
+  useEffect(() => {
+    if (!robots) return;
+
+    const existing = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    const previousContent = existing?.content;
+    const meta = existing ?? document.createElement("meta");
+
+    if (!existing) {
+      meta.name = "robots";
+      document.head.appendChild(meta);
+    }
+    meta.content = robots;
+
+    return () => {
+      if (!existing) {
+        meta.remove();
+        return;
+      }
+      existing.content = previousContent ?? "";
+    };
+  }, [robots]);
 }
 
 function upsertMeta(attr: "name" | "property", key: string, content: string) {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,8 @@ export default function Signup() {
     canonical: "/signup",
   });
 
-  const [step, setStep] = useState<Step>("choose");
+  const [searchParams] = useSearchParams();
+  const [step, setStep] = useState<Step>(() => getSignupInitialStep(searchParams.get("role")));
 
   return (
     <div className="min-h-[100dvh] w-full bg-[#f4f7fb] px-4 py-12">
@@ -40,6 +41,11 @@ export default function Signup() {
       </div>
     </div>
   );
+}
+
+function getSignupInitialStep(role: string | null): Step {
+  if (role === "agent" || role === "investor") return role;
+  return "choose";
 }
 
 function RoleSelection({ onSelect }: { onSelect: (step: Step) => void }) {

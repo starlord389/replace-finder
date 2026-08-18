@@ -12,6 +12,7 @@ export const ROUTES = {
   resetPassword: "/reset-password",
   privacy: "/privacy",
   terms: "/terms",
+  metaAgentReplacementProperty: "/meta/agents/replacement-property",
   agentHome: "/agent",
   agentLaunchpad: "/agent/launchpad",
   investorHome: "/investor",
