@@ -654,6 +654,7 @@ async function sendNewMatchEmails(
       const recipientId = m.direction === "buyer" ? buyerAgentId : sellerAgentId;
       const recipient = recipientId ? profileById.get(recipientId) : null;
       if (!recipient?.email) return Promise.resolve();
+      if (recipientId && optedOutOfMatchEmails.has(recipientId)) return Promise.resolve();
 
       const matchId = matchIdByPair.get(`${m.buyer_exchange_id}:${m.seller_property_id}`);
       const recipientExchange = m.direction === "buyer" ? buyerExchange : sellerExchange;
