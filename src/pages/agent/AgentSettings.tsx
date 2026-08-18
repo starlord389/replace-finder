@@ -22,7 +22,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { useNotificationPrefs, type NotificationPrefs } from "@/features/notifications/hooks/useNotificationPrefs";
+import { NotificationPreferencesCard } from "@/features/notifications/components/NotificationPreferencesCard";
 import { Bell, Lock, User, Database, Download, Trash2 } from "lucide-react";
 
 const BIO_MAX = 1000;
@@ -82,7 +82,6 @@ export default function AgentSettings() {
   const [exporting, setExporting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
 
-  const { data: prefs, update: updatePrefs } = useNotificationPrefs();
 
   const profileForm = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -261,17 +260,6 @@ export default function AgentSettings() {
       </div>
     );
   }
-
-  const NOTIFICATION_TYPES: Array<{
-    key: keyof NonNullable<typeof prefs>;
-    label: string;
-    description: string;
-  }> = [
-    { key: "notify_new_match", label: "New opportunities", description: "When ExchangeUp™ detects a new opportunity for one of your properties or clients." },
-    { key: "notify_connection_request", label: "New agent conversations", description: "When a verified agent starts a conversation about one of your listings." },
-    { key: "notify_new_message", label: "New messages", description: "When the agent on the other side sends a message in an active conversation." },
-    { key: "notify_connection_accepted", label: "Conversation updates", description: "Important updates to an active agent conversation." },
-  ];
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -507,39 +495,8 @@ export default function AgentSettings() {
 
         {/* Notifications */}
         <TabsContent value="notifications" className="mt-4 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">In-app Notifications</CardTitle>
-              <CardDescription>
-                Choose which events trigger a notification in the bell menu.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="divide-y">
-                {NOTIFICATION_TYPES.map((item) => {
-                  const checked = prefs?.[item.key] ?? true;
-                  return (
-                    <li key={item.key} className="flex items-start justify-between gap-4 py-3">
-                      <div className="min-w-0">
-                        <Label htmlFor={`notif-${item.key}`} className="text-sm font-medium text-foreground">
-                          {item.label}
-                        </Label>
-                        <p className="text-xs text-muted-foreground">{item.description}</p>
-                      </div>
-                      <Switch
-                        id={`notif-${item.key}`}
-                        checked={Boolean(checked)}
-                        onCheckedChange={(v) => updatePrefs.mutate({ [item.key]: v } as Partial<NotificationPrefs>)}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
-              <p className="mt-4 text-xs text-muted-foreground">
-                Email notifications are coming soon.
-              </p>
-            </CardContent>
-          </Card>
+          <NotificationPreferencesCard />
+
           <SmsPreferencesCard
             phone={phoneValue}
             messageDescription="your account, client exchanges, property matches, connection requests, deadlines, and related service notices"

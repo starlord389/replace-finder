@@ -3,6 +3,9 @@ import { template as newMatchNotification } from './new-match-notification.tsx'
 import { template as internalAdminNotification } from './internal-admin-notification.tsx'
 import { template as adminDirectMessage } from './admin-direct-message.tsx'
 import { template as representationInvite } from './representation-invite.tsx'
+import { template as welcome } from './welcome.tsx'
+import { template as userNotification } from './user-notification.tsx'
+import { template as weeklyDigest } from './weekly-digest.tsx'
 
 export interface TemplateEntry {
   component: (props: any) => any
@@ -18,4 +21,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'internal-admin-notification': internalAdminNotification,
   'admin-direct-message': adminDirectMessage,
   'representation-invite': representationInvite,
+  'welcome': welcome,
+  'user-notification': userNotification,
+  'weekly-digest': weeklyDigest,
 }
