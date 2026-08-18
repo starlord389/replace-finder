@@ -26,8 +26,16 @@ export function useSubmitTicket() {
         .select()
         .single();
       if (error) throw error;
+
+      // Fire-and-forget internal notification to platform operators.
+      if (data?.id) {
+        supabase.functions
+          .invoke("notify-admin-signup", { body: { kind: "support_ticket", recordId: data.id } })
+          .catch((err) => console.warn("admin ticket notify failed", err));
+      }
       return data;
     },
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my-tickets", user?.id] });
     },
