@@ -231,13 +231,24 @@ export default function AgentSettings() {
   const handleDeleteAccount = async () => {
     if (deleteConfirm !== "DELETE") { toast.error("Type DELETE to confirm"); return; }
     if (user) {
-      await supabase.from("support_tickets").insert({
-        user_id: user.id,
-        category: "account",
-        subject: "Account deletion request",
-        message: `User ${user.email} has requested account deletion via Settings.`,
-        status: "open",
-      });
+      const { data: ticket } = await supabase
+        .from("support_tickets")
+        .insert({
+          user_id: user.id,
+          category: "account",
+          subject: "Account deletion request",
+          message: `User ${user.email} has requested account deletion via Settings.`,
+          status: "open",
+        })
+        .select("id")
+        .maybeSingle();
+
+      if (ticket?.id) {
+        supabase.functions
+          .invoke("notify-admin-signup", { body: { kind: "support_ticket", recordId: ticket.id } })
+          .catch((err) => console.warn("admin ticket notify failed", err));
+      }
+
     }
     toast.info("Deletion request submitted. Your data will be removed within 30 days.");
     setDeleteConfirm("");
