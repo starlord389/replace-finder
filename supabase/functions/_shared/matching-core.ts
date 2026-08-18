@@ -633,6 +633,18 @@ async function sendNewMatchEmails(
     const labelForProperty = (p: any) =>
       p ? `${p.asset_type ? p.asset_type + " · " : ""}${[p.city, p.state].filter(Boolean).join(", ") || "Property"}` : "Property";
 
+    // Respect each recipient's email notification preferences.
+    const optedOutOfMatchEmails = new Set<string>();
+    if (profiles.length) {
+      const { data: prefRows } = await db
+        .from("user_notification_preferences")
+        .select("user_id, notify_new_match")
+        .in("user_id", profiles.map((p: any) => p.id));
+      (prefRows ?? []).forEach((row: any) => {
+        if (row.notify_new_match === false) optedOutOfMatchEmails.add(row.user_id);
+      });
+    }
+
     const sends = newMatches.map((m) => {
       const buyerExchange = exchangeById.get(m.buyer_exchange_id);
       const sellerProperty = propertyById.get(m.seller_property_id);
