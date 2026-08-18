@@ -56,7 +56,7 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Find the right replacement property.",
+        name: "Find your client’s next property.",
       }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: AGENT_LANDING_CTA })).toHaveLength(3);

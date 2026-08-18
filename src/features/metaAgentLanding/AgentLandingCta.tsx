@@ -10,6 +10,7 @@ type AgentLandingCtaProps = {
   onClick: (location: AgentLandingCtaProps["location"]) => void;
   compact?: boolean;
   className?: string;
+  label?: string;
 };
 
 export function AgentLandingCta({
@@ -18,13 +19,16 @@ export function AgentLandingCta({
   onClick,
   compact = false,
   className,
+  label,
 }: AgentLandingCtaProps) {
+  const visibleLabel = label ?? (compact ? "Start a free search" : AGENT_LANDING_CTA);
+
   return (
     <Link
       to={destination}
       onClick={() => onClick(location)}
       data-cta-location={location}
-      aria-label={compact ? AGENT_LANDING_CTA : undefined}
+      aria-label={visibleLabel === AGENT_LANDING_CTA ? undefined : AGENT_LANDING_CTA}
       className={cn(
         "agent-primary-cta group inline-flex min-h-12 items-center justify-center rounded-lg bg-[#43a047] font-bold text-white shadow-[0_14px_40px_rgba(31,104,45,0.24)] transition-[background-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-[#368b3b] hover:shadow-[0_18px_46px_rgba(31,104,45,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9bdda1] focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none",
         compact
@@ -33,7 +37,7 @@ export function AgentLandingCta({
         className,
       )}
     >
-      <span>{compact ? "Start a free search" : AGENT_LANDING_CTA}</span>
+      <span>{visibleLabel}</span>
       <ArrowRight
         aria-hidden="true"
         className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"

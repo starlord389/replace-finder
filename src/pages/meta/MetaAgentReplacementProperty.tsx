@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ArrowDownRight, Check } from "lucide-react";
+import { ArrowDownRight } from "lucide-react";
 import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
 import { useHead } from "@/hooks/useHead";
 import { trackEvent } from "@/lib/telemetry";
@@ -25,12 +25,6 @@ import "@/features/metaAgentLanding/agentLanding.css";
 const PAGE_TITLE = "Find Replacement Properties for 1031 Clients | ExchangeUp";
 const PAGE_DESCRIPTION =
   "Create a private client search, set replacement-property requirements, and review potential 1031 exchange matches in ExchangeUp.";
-
-const PRODUCT_ASSURANCES = [
-  "Private agent search",
-  "No client contact information required",
-  "Monitoring when no immediate match exists",
-] as const;
 
 export default function MetaAgentReplacementProperty() {
   const location = useLocation();
@@ -118,28 +112,24 @@ export default function MetaAgentReplacementProperty() {
 
           <div className="agent-landing-shell agent-hero__grid">
             <div className="agent-hero__copy">
-              <p className="agent-eyebrow">Private replacement-property searches for agents</p>
-              <h1 id="agent-hero-title">Find the right replacement property.</h1>
+              <p className="agent-eyebrow">Built for 1031 exchange agents</p>
+              <h1 id="agent-hero-title">Find your client’s next property.</h1>
               <p className="agent-hero__lead">
-                Create a private search, set your client’s requirements, and review potential replacement properties in one place.
+                Create a private search, define what the replacement property needs to do, and review potential matches in one workspace.
               </p>
               <div className="agent-hero__action">
                 <AgentLandingCta
                   destination={signupDestination}
                   location="hero"
                   onClick={trackCta}
+                  label="Start a free search"
                 />
                 <a className="agent-hero__secondary" href="#how-it-works">
                   See how it works
                   <ArrowDownRight aria-hidden="true" />
                 </a>
               </div>
-              <p className="agent-hero__microcopy">Free to use. No credit card required.</p>
-              <ul className="agent-hero__assurances" aria-label="Product assurances">
-                {PRODUCT_ASSURANCES.map((assurance) => (
-                  <li key={assurance}><Check aria-hidden="true" />{assurance}</li>
-                ))}
-              </ul>
+              <p className="agent-hero__microcopy">Free to use · Private agent workspace · No credit card required</p>
             </div>
 
             <div className="agent-hero__product">
