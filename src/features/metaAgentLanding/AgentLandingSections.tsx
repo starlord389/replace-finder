@@ -85,10 +85,13 @@ const FAQS = [
 
 export function AgentWorkflowSection() {
   const [activeStep, setActiveStep] = useState(0);
-  const stepRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const panelRefs = useRef<Array<HTMLElement | null>>([]);
 
   useEffect(() => {
-    if (!window.matchMedia("(min-width: 1024px)").matches) return;
+    if (
+      !("IntersectionObserver" in window)
+      || !window.matchMedia("(min-width: 1024px)").matches
+    ) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -102,9 +105,14 @@ export function AgentWorkflowSection() {
       { rootMargin: "-38% 0px -38% 0px", threshold: [0, 0.25, 0.6] },
     );
 
-    stepRefs.current.forEach((step) => step && observer.observe(step));
+    panelRefs.current.forEach((panel) => panel && observer.observe(panel));
     return () => observer.disconnect();
   }, []);
+
+  const focusPanel = (index: number) => {
+    setActiveStep(index);
+    panelRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   return (
     <section id="how-it-works" aria-labelledby="workflow-title" className="agent-workflow">
@@ -113,36 +121,50 @@ export function AgentWorkflowSection() {
         <path d="M0 1120 H256 V870 H532 V1320 H824 V1030 H1152 V1450 H1410 V1190 H1600" />
         <path d="M82 1900 V1590 H396 V1750 H700 V1510 H1010 V1900 M1320 0 V318 H1530" />
       </svg>
-      <div className="agent-landing-shell">
-        <div className="agent-workflow__intro">
-          <p className="agent-eyebrow">One connected workflow</p>
-          <h2 id="workflow-title">From client property to replacement opportunity.</h2>
-          <p>ExchangeUp turns the details you already know into a focused search you can review, share, and keep active.</p>
-        </div>
+      <div className="agent-landing-shell agent-workflow__intro" data-agent-reveal>
+        <p className="agent-eyebrow">One connected workflow</p>
+        <h2 id="workflow-title">From client property to replacement opportunity.</h2>
+        <p>ExchangeUp turns the details you already know into a focused search you can review, share, and keep active.</p>
+      </div>
 
-        <div className="agent-workflow__story">
-          <div className="agent-workflow__canvas-wrap">
-            <WorkflowCanvas stage={activeStep} />
-          </div>
+      <div className="agent-landing-shell agent-workflow__story">
+        <aside className="agent-workflow__rail" aria-label="How the ExchangeUp search works">
           <ol className="agent-workflow__steps" aria-label="How the ExchangeUp search works">
             {WORKFLOW_STEPS.map((step, index) => (
               <li key={step.number}>
                 <button
-                  ref={(node) => { stepRefs.current[index] = node; }}
                   type="button"
-                  data-workflow-step={index}
                   aria-pressed={activeStep === index}
-                  onClick={() => setActiveStep(index)}
+                  onClick={() => focusPanel(index)}
                   onFocus={() => setActiveStep(index)}
-                  onPointerEnter={() => setActiveStep(index)}
                   className={activeStep === index ? "is-active" : ""}
                 >
                   <span className="agent-workflow__step-number">{step.number}</span>
-                  <div><small>{step.label}</small><h3>{step.title}</h3><p>{step.description}</p></div>
+                  <div><small>{step.label}</small><h3>{step.title}</h3></div>
                 </button>
               </li>
             ))}
           </ol>
+        </aside>
+
+        <div className="agent-workflow__panels">
+          {WORKFLOW_STEPS.map((step, index) => (
+            <article
+              key={step.number}
+              ref={(node) => { panelRefs.current[index] = node; }}
+              data-workflow-step={index}
+              className="agent-workflow__panel"
+            >
+              <div className="agent-workflow__panel-copy" data-agent-reveal>
+                <p>{step.label}</p>
+                <h3>{step.title}</h3>
+                <span>{step.description}</span>
+              </div>
+              <div className="agent-workflow__panel-visual" data-agent-reveal>
+                <WorkflowCanvas stage={index} />
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>
@@ -226,7 +248,7 @@ export function AgentControlSection() {
         <path className="active" d="M-80 820 C220 820 260 668 520 668 S788 790 1010 492 1296 300 1680 300" />
       </svg>
       <div className="agent-landing-shell agent-control__layout">
-        <div className="agent-control__copy">
+        <div className="agent-control__copy" data-agent-reveal>
           <p className="agent-eyebrow agent-eyebrow--light">Your client. Your process.</p>
           <h2 id="agent-control-title">A private search you stay in control of.</h2>
           <p>Build the search first, bring the client in when it makes sense, and keep the exchange moving without giving up control of the relationship.</p>
@@ -237,7 +259,7 @@ export function AgentControlSection() {
           </ol>
         </div>
 
-        <div className="agent-access-map" aria-label="Private agent workspace access model">
+        <div className="agent-access-map" aria-label="Private agent workspace access model" data-agent-reveal>
           <div className="agent-access-map__topbar"><span><LockKeyhole aria-hidden="true" /> Search access</span><strong>Agent controlled</strong></div>
           <div className="agent-access-map__boundary">
             <div className="agent-access-map__boundary-label"><EyeOff aria-hidden="true" /> Private workspace boundary</div>
@@ -259,12 +281,12 @@ export function AgentFaqSection() {
   return (
     <section id="faq" aria-labelledby="faq-title" className="agent-faq">
       <div className="agent-landing-shell agent-faq__layout">
-        <div className="agent-faq__intro">
+        <div className="agent-faq__intro" data-agent-reveal>
           <p className="agent-eyebrow">Before you begin</p>
           <h2 id="faq-title">Straight answers, before you start.</h2>
           <p>Everything needed to understand how a private client search starts and what happens next.</p>
         </div>
-        <Accordion type="single" collapsible className="agent-faq__accordion">
+        <Accordion type="single" collapsible className="agent-faq__accordion" data-agent-reveal>
           {FAQS.map((faq, index) => (
             <AccordionItem key={faq.question} value={`faq-${index}`}>
               <AccordionTrigger className="agent-faq__trigger"><span><small>0{index + 1}</small>{faq.question}</span></AccordionTrigger>

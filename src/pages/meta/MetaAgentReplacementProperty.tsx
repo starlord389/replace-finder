@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ArrowDownRight } from "lucide-react";
 import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
@@ -29,6 +29,7 @@ const PAGE_DESCRIPTION =
 export default function MetaAgentReplacementProperty() {
   const location = useLocation();
   const viewTracked = useRef(false);
+  const [darkHeader, setDarkHeader] = useState(false);
   const attribution = useMemo(
     () => readAgentLandingAttribution(location.search),
     [location.search],
@@ -54,6 +55,38 @@ export default function MetaAgentReplacementProperty() {
     });
   }, [attribution, location.pathname]);
 
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) return;
+
+    const darkSection = document.getElementById("agent-control");
+    if (!darkSection) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setDarkHeader(entry.isIntersecting),
+      { rootMargin: "-112px 0px -72% 0px", threshold: 0 },
+    );
+    observer.observe(darkSection);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const revealItems = document.querySelectorAll<HTMLElement>("[data-agent-reveal]");
+    if (!("IntersectionObserver" in window)) {
+      revealItems.forEach((item) => item.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        (entry.target as HTMLElement).classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }),
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.08 },
+    );
+    revealItems.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, []);
+
   const trackCta = (ctaLocation: "header" | "hero" | "final") => {
     trackEvent("agent_landing_cta_clicked", {
       route: location.pathname,
@@ -65,7 +98,7 @@ export default function MetaAgentReplacementProperty() {
   };
 
   return (
-    <div data-meta-agent-landing className="min-h-screen overflow-x-clip">
+    <div data-meta-agent-landing className="min-h-screen">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-[#16284a] focus:shadow-lg"
@@ -73,27 +106,34 @@ export default function MetaAgentReplacementProperty() {
         Skip to content
       </a>
 
-      <header className="agent-header">
-        <div className="agent-landing-shell agent-header__inner">
-          <a href="#main-content" aria-label="1031ExchangeUP™" className="agent-header__brand">
-            <ExchangeLogoLockup textClassName="text-[16px] sm:text-[19px]" />
-          </a>
+      <header className={`agent-header${darkHeader ? " is-dark" : ""}`}>
+        <a className="agent-header__announcement" href="#how-it-works">
+          See how ExchangeUp turns one property into a focused replacement search
+          <span aria-hidden="true">→</span>
+        </a>
+        <div className="agent-header__nav-row">
+          <div className="agent-landing-shell agent-header__inner">
+            <a href="#main-content" aria-label="1031ExchangeUP™" className="agent-header__brand">
+              <ExchangeLogoLockup textClassName="text-[16px] sm:text-[19px]" />
+            </a>
 
-          <nav className="agent-header__nav" aria-label="Landing page">
-            <a href="#how-it-works">How it works</a>
-            <a href="#agent-control">Your control</a>
-            <a href="#faq">FAQ</a>
-          </nav>
+            <nav className="agent-header__nav" aria-label="Landing page">
+              <a href="#how-it-works">How it works</a>
+              <a href="#agent-control">Your control</a>
+              <a href="#faq">FAQ</a>
+            </nav>
 
-          <div className="agent-header__actions">
-            <Link className="agent-header__login" to={ROUTES.login}>Log in</Link>
-            <AgentLandingCta
-              compact
-              destination={signupDestination}
-              location="header"
-              onClick={trackCta}
-              className="agent-header__cta"
-            />
+            <div className="agent-header__actions">
+              <Link className="agent-header__login" to={ROUTES.login}>Log in</Link>
+              <AgentLandingCta
+                compact
+                destination={signupDestination}
+                location="header"
+                onClick={trackCta}
+                className="agent-header__cta"
+                label="Start for free"
+              />
+            </div>
           </div>
         </div>
       </header>
@@ -129,7 +169,6 @@ export default function MetaAgentReplacementProperty() {
                   <ArrowDownRight aria-hidden="true" />
                 </a>
               </div>
-              <p className="agent-hero__microcopy">Free to use · Private agent workspace · No credit card required</p>
             </div>
 
             <div className="agent-hero__product">
