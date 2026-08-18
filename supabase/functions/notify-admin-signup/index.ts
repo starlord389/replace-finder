@@ -349,7 +349,8 @@ async function profileSummary(
 }
 
 
-async function handleAgentSignup(
+async function handleSignup(
+  kind: 'agent_signup' | 'investor_signup',
   body: IncomingBody,
   admin: Admin,
   fingerprint: string,
@@ -357,20 +358,30 @@ async function handleAgentSignup(
   const userId = typeof body.idempotencySuffix === 'string' ? body.idempotencySuffix : ''
   if (!UUID_RE.test(userId)) return json(400, { error: 'invalid user id' })
 
-  const { data: profile, error } = await admin
-    .from('profiles')
-    .select('id, full_name, email, phone, brokerage_name, license_state, mls_number')
-    .eq('id', userId)
-    .maybeSingle()
-
-  if (error) {
-    console.error('profile lookup failed', error.message)
-    return json(500, { error: 'lookup failed' })
+  // The profile row is created by a trigger, which can lag a beat behind the
+  // client's notification call - retry briefly before giving up.
+  let profile: Record<string, unknown> | null = null
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data, error } = await admin
+      .from('profiles')
+      .select('id, full_name, email, phone, brokerage_name, license_state, mls_number')
+      .eq('id', userId)
+      .maybeSingle()
+    if (error) {
+      console.error('profile lookup failed', error.message)
+      return json(500, { error: 'lookup failed' })
+    }
+    if (data) {
+      profile = data as Record<string, unknown>
+      break
+    }
+    await new Promise((r) => setTimeout(r, 700))
   }
   if (!profile) return json(404, { error: 'profile not found' })
 
+  const isAgent = kind === 'agent_signup'
   const idemKey = `admin-signup-${profile.id}`
-  const c = await claim(admin, idemKey, 'agent_signup', String(profile.id), fingerprint)
+  const c = await claim(admin, idemKey, kind, String(profile.id), fingerprint)
   if (!c) return json(503, { error: 'temporarily unavailable' })
   if (!c.claimed) {
     if (c.currentStatus === 'sent') return json(200, { ok: true, duplicate: true })
@@ -381,24 +392,33 @@ async function handleAgentSignup(
     return json(202, { ok: true, pending: true })
   }
 
+  const baseDetails = [
+    { label: 'Name', value: str(profile.full_name) },
+    { label: 'Email', value: str(profile.email) },
+    { label: 'Phone', value: str(profile.phone) },
+  ]
+
   const result = await notifyAdmins({
-    eventType: 'New agent signup',
-    title: `${profile.full_name || 'A new agent'} just created an account`,
-    summary: 'A new agent finished signup on 1031ExchangeUp.',
-    details: [
-      { label: 'Name', value: (profile.full_name as string) || '-' },
-      { label: 'Email', value: (profile.email as string) || '-' },
-      { label: 'Phone', value: (profile.phone as string) || '-' },
-      { label: 'Brokerage', value: (profile.brokerage_name as string) || '-' },
-      { label: 'License state', value: (profile.license_state as string) || '-' },
-      { label: 'MLS #', value: (profile.mls_number as string) || '-' },
-    ],
+    eventType: isAgent ? 'New agent signup' : 'New investor signup',
+    title: `${str(profile.full_name) !== '-' ? profile.full_name : isAgent ? 'A new agent' : 'A new investor'} just created an account`,
+    summary: isAgent
+      ? 'A new agent finished signup on 1031ExchangeUp.'
+      : 'A new investor / property owner finished signup on 1031ExchangeUp.',
+    details: isAgent
+      ? [
+        ...baseDetails,
+        { label: 'Brokerage', value: str(profile.brokerage_name) },
+        { label: 'License state', value: str(profile.license_state) },
+        { label: 'MLS #', value: str(profile.mls_number) },
+      ]
+      : [...baseDetails, { label: 'Account type', value: 'Investor / property owner' }],
     idempotencySuffix: `signup-${profile.id}`,
   })
 
   await finalize(admin, idemKey, result.ok, result.errorCode)
   return json(200, { ok: result.ok })
 }
+
 
 async function handleLandlordReferral(
   body: IncomingBody,
