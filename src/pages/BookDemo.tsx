@@ -159,16 +159,20 @@ export default function BookDemo() {
 
     setSubmitting(true);
 
-    const { error } = await supabase.from("demo_requests").insert({
-      full_name: payload.fullName,
-      work_email: payload.workEmail,
-      company: payload.company,
-      role: payload.role,
-      phone: payload.phone || null,
-      timeline: payload.timeline || null,
-      use_case: payload.useCase,
-      ...(payload.smsConsent ? { sms_consent: true } : {}),
-    });
+    const { data: created, error } = await supabase
+      .from("demo_requests")
+      .insert({
+        full_name: payload.fullName,
+        work_email: payload.workEmail,
+        company: payload.company,
+        role: payload.role,
+        phone: payload.phone || null,
+        timeline: payload.timeline || null,
+        use_case: payload.useCase,
+        ...(payload.smsConsent ? { sms_consent: true } : {}),
+      })
+      .select("id")
+      .single();
 
     setSubmitting(false);
 
@@ -180,6 +184,14 @@ export default function BookDemo() {
       });
       return;
     }
+
+    // Fire-and-forget internal notification to platform operators.
+    if (created?.id) {
+      supabase.functions
+        .invoke("notify-admin-signup", { body: { kind: "demo_request", recordId: created.id } })
+        .catch((err) => console.warn("admin demo notify failed", err));
+    }
+
 
     setSubmitted(true);
     setFormState(INITIAL_FORM_STATE);
