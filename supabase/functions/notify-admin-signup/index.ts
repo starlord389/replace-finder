@@ -22,14 +22,33 @@ const MAX_ATTEMPTS = 3
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-type Kind = 'agent_signup' | 'landlord_referral'
+type Kind =
+  | 'agent_signup'
+  | 'investor_signup'
+  | 'landlord_referral'
+  | 'demo_request'
+  | 'event_registration'
+  | 'support_ticket'
+  | 'listing_inquiry'
+
+const ALL_KINDS: Kind[] = [
+  'agent_signup',
+  'investor_signup',
+  'landlord_referral',
+  'demo_request',
+  'event_registration',
+  'support_ticket',
+  'listing_inquiry',
+]
 
 interface IncomingBody {
   kind?: unknown
   idempotencySuffix?: unknown
   referralId?: unknown
+  recordId?: unknown
   data?: unknown
 }
+
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
