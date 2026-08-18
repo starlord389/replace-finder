@@ -106,7 +106,7 @@ describe("Meta agent replacement-property landing page", () => {
     );
   });
 
-  it("shows an authentic live exchange workflow instead of a generic AI chat", () => {
+  it("shows a focused, product-authentic exchange value story instead of a generic AI chat", () => {
     render(
       <MemoryRouter initialEntries={["/meta/agents/replacement-property"]}>
         <MetaAgentReplacementProperty />
@@ -115,18 +115,17 @@ describe("Meta agent replacement-property landing page", () => {
 
     expect(
       screen.getByLabelText(
-        "Illustrative live journey through the real ExchangeUp agent match workflow",
+        "Illustrative live ExchangeUp value demonstration",
       ),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("navigation", { name: "Illustrative agent workspace navigation" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Elaine Thomas · Matches")).toBeInTheDocument();
-    expect(screen.getByText("Financials")).toBeInTheDocument();
-    expect(screen.getByText("Next steps")).toBeInTheDocument();
-    expect(screen.getByText("Match sent successfully")).toBeInTheDocument();
+    expect(screen.getAllByText("Current exchange")).not.toHaveLength(0);
+    expect(screen.getAllByText("$1.3M")).not.toHaveLength(0);
+    expect(screen.getByText("A stronger replacement—with the case already made.")).toBeInTheDocument();
     expect(screen.getAllByText("Blackstone Mill Lofts")).not.toHaveLength(0);
-    expect(screen.getAllByText("Merrimack Commerce Park")).not.toHaveLength(0);
+    expect(screen.getByRole("button", { name: "Review match" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("navigation", { name: "Illustrative agent workspace navigation" }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
   });
 
