@@ -20,8 +20,10 @@ const ILLUSTRATIVE_MATCHES = [
     name: "Blackstone Mill Lofts",
     type: "Multifamily",
     market: "Providence, RI",
+    image: "/meta-agent/blackstone-mill-lofts.webp",
     price: "$3.8M",
     capRate: "6.9%",
+    noi: "$262K",
     roe: "+4.8 pts ROE",
     ltv: "65.4% LTV",
     score: 92,
@@ -30,8 +32,10 @@ const ILLUSTRATIVE_MATCHES = [
     name: "Merrimack Commerce Park",
     type: "Industrial",
     market: "Manchester, NH",
+    image: "/meta-agent/merrimack-commerce-park.webp",
     price: "$4.2M",
     capRate: "7.2%",
+    noi: "$302K",
     roe: "+3.9 pts ROE",
     ltv: "69.0% LTV",
     score: 87,
@@ -211,7 +215,7 @@ function RolloutWindows() {
 
       <aside className="agent-rollout-window agent-rollout-window--listing" aria-hidden="true">
         <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong>New opportunity</strong></div>
-        <div className="agent-rollout-listing__visual"><Building2 /><span>Potential match</span></div>
+        <div className="agent-rollout-listing__visual"><img src="/meta-agent/merrimack-commerce-park.webp" alt="" /><span>Potential match</span></div>
         <div className="agent-rollout-listing__details"><small>Industrial · Manchester, NH</small><strong>Merrimack Commerce Park</strong><dl><div><dt>Asking</dt><dd>$4.2M</dd></div><div><dt>Cap rate</dt><dd>7.2%</dd></div></dl></div>
       </aside>
     </>
@@ -235,13 +239,28 @@ function LiveMatchCard({
 }) {
   return (
     <article className="agent-live-match-card">
-      <div className="agent-live-match-card__property">
-        <span className="agent-live-match-card__placeholder"><Building2 /></span>
-        <div><small>#{index + 1} · {match.type}</small><strong>{match.name}</strong><p><MapPin /> {match.market}</p></div>
+      <div className="agent-live-match-card__media">
+        <img src={match.image} alt={`${match.name} exterior`} />
+        <span className="agent-live-match-card__rank">#{index + 1} {index === 0 ? "Best match" : "Strong match"}</span>
+        <div className="agent-live-match-card__score"><strong>{match.score}</strong><small>match</small></div>
       </div>
-      <div className="agent-live-match-card__financials"><span><small>Asking</small><strong>{match.price}</strong></span><span><small>Cap rate</small><strong>{match.capRate}</strong></span></div>
-      <div className="agent-live-match-card__score"><strong>{match.score}</strong><small>match</small></div>
-      <div className="agent-live-match-card__footer"><span><Gauge /> {match.roe} · {match.ltv}</span><b>New</b><strong>Review match <ArrowRight /></strong></div>
+      <div className="agent-live-match-card__body">
+        <div className="agent-live-match-card__property">
+          <small>{match.type}</small>
+          <strong>{match.name}</strong>
+          <p><MapPin /> {match.market}</p>
+        </div>
+        <div className="agent-live-match-card__financials">
+          <span><small>Asking</small><strong>{match.price}</strong></span>
+          <span><small>Cap rate</small><strong>{match.capRate}</strong></span>
+          <span><small>NOI</small><strong>{match.noi}</strong></span>
+        </div>
+        <div className="agent-live-match-card__fit">
+          <span><TrendingUp /> {match.roe}</span>
+          <span><Gauge /> {match.ltv}</span>
+        </div>
+      </div>
+      <div className="agent-live-match-card__footer"><b>New opportunity</b><strong>Review match <ArrowRight /></strong></div>
     </article>
   );
 }

@@ -120,6 +120,14 @@ describe("Meta agent replacement-property landing page", () => {
     expect(screen.getByRole("heading", { name: "2 qualified matches" })).toBeInTheDocument();
     expect(screen.getAllByText("Blackstone Mill Lofts")).not.toHaveLength(0);
     expect(screen.getAllByText("Merrimack Commerce Park")).not.toHaveLength(0);
+    expect(screen.getByRole("img", { name: "Blackstone Mill Lofts exterior" })).toHaveAttribute(
+      "src",
+      "/meta-agent/blackstone-mill-lofts.webp",
+    );
+    expect(screen.getByRole("img", { name: "Merrimack Commerce Park exterior" })).toHaveAttribute(
+      "src",
+      "/meta-agent/merrimack-commerce-park.webp",
+    );
     expect(screen.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
   });
 
