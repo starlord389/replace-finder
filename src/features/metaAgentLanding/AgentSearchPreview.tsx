@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   Building2,
   Check,
@@ -13,32 +14,48 @@ import {
   UserRound,
 } from "lucide-react";
 
-type LivePhase = "request" | "analyzing" | "results";
+type LivePhase = "request" | "analyzing" | "results" | "detail";
 
 const ILLUSTRATIVE_MATCHES = [
   {
     name: "Blackstone Mill Lofts",
     type: "Multifamily",
     market: "Providence, RI",
-    image: "/meta-agent/blackstone-mill-lofts.webp",
+    image: "/mf-1.jpg",
     price: "$3.8M",
     capRate: "6.9%",
     noi: "$262K",
     roe: "+4.8 pts ROE",
     ltv: "65.4% LTV",
     score: 92,
+    currentRoe: "12.4%",
+    projectedRoe: "17.2%",
+    currentNoi: "$180K",
+    projectedNoi: "$262K",
+    noiChange: "+$82K / yr",
+    currentCashFlow: "$68K",
+    projectedCashFlow: "$101K",
+    cashFlowChange: "+$33K / yr",
   },
   {
     name: "Merrimack Commerce Park",
     type: "Industrial",
     market: "Manchester, NH",
-    image: "/meta-agent/merrimack-commerce-park.webp",
+    image: "/landing-prop-industrial.jpg",
     price: "$4.2M",
     capRate: "7.2%",
     noi: "$302K",
     roe: "+3.9 pts ROE",
     ltv: "69.0% LTV",
     score: 87,
+    currentRoe: "12.4%",
+    projectedRoe: "16.3%",
+    currentNoi: "$180K",
+    projectedNoi: "$302K",
+    noiChange: "+$122K / yr",
+    currentCashFlow: "$68K",
+    projectedCashFlow: "$96K",
+    cashFlowChange: "+$28K / yr",
   },
 ] as const;
 
@@ -46,11 +63,13 @@ export function AgentSearchPreview() {
   const stageRef = useRef<HTMLDivElement>(null);
   const [livePhase, setLivePhase] = useState<LivePhase>("request");
   const [cycle, setCycle] = useState(0);
+  const [selectedMatchIndex, setSelectedMatchIndex] = useState(0);
+  const selectedMatch = ILLUSTRATIVE_MATCHES[selectedMatchIndex];
 
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage || !("IntersectionObserver" in window)) {
-      setLivePhase("results");
+      setLivePhase("detail");
       return;
     }
 
@@ -66,10 +85,12 @@ export function AgentSearchPreview() {
       if (!active) return;
       clearTimers();
       setCycle((value) => value + 1);
+      setSelectedMatchIndex(0);
       setLivePhase("request");
       timers.push(window.setTimeout(() => active && setLivePhase("analyzing"), 2600));
       timers.push(window.setTimeout(() => active && setLivePhase("results"), 6600));
-      timers.push(window.setTimeout(runCycle, 13600));
+      timers.push(window.setTimeout(() => active && setLivePhase("detail"), 10100));
+      timers.push(window.setTimeout(runCycle, 16900));
     };
 
     const observer = new IntersectionObserver(
@@ -127,7 +148,7 @@ export function AgentSearchPreview() {
               <div className="agent-live-request-card__status">
                 {livePhase === "request" && <><i /> Request received</>}
                 {livePhase === "analyzing" && <><Radar /> Matching in progress</>}
-                {livePhase === "results" && <><CircleCheck /> 2 matches ready</>}
+                {(livePhase === "results" || livePhase === "detail") && <><CircleCheck /> 2 matches ready</>}
               </div>
             </article>
 
@@ -175,15 +196,64 @@ export function AgentSearchPreview() {
                 </div>
                 <div className="agent-live-results__filters"><span>All <b>2</b></span><span>New <b>2</b></span><span><TrendingUp /> Best match</span></div>
                 <div className="agent-live-results__list">
-                  {ILLUSTRATIVE_MATCHES.map((match, index) => <LiveMatchCard key={match.name} match={match} index={index} />)}
+                  {ILLUSTRATIVE_MATCHES.map((match, index) => (
+                    <LiveMatchCard
+                      key={match.name}
+                      match={match}
+                      index={index}
+                      onSelect={() => {
+                        setSelectedMatchIndex(index);
+                        setLivePhase("detail");
+                      }}
+                    />
+                  ))}
                 </div>
                 <div className="agent-live-results__monitor"><Radar /><span><small>Search remains active</small><strong>Monitoring for new qualifying opportunities</strong></span><i /></div>
+              </section>
+
+              <section className="agent-live-scene agent-live-scene--detail" aria-live="polite">
+                <div className="agent-live-detail__toolbar">
+                  <button type="button" onClick={() => setLivePhase("results")}><ArrowLeft /> All matches</button>
+                  <span>Match #{selectedMatchIndex + 1} of 2</span>
+                </div>
+
+                <div className="agent-live-detail__property">
+                  <img src={selectedMatch.image} alt={`${selectedMatch.name} property`} />
+                  <div>
+                    <small>{selectedMatch.type} · {selectedMatch.market}</small>
+                    <h3>{selectedMatch.name}</h3>
+                    <p><strong>{selectedMatch.price}</strong><span>{selectedMatch.capRate} cap</span><span>{selectedMatch.noi} NOI</span></p>
+                  </div>
+                  <div className="agent-live-detail__score"><strong>{selectedMatch.score}</strong><small>match</small></div>
+                </div>
+
+                <div className="agent-live-detail__content">
+                  <div className="agent-live-comparison">
+                    <div className="agent-live-comparison__heading"><div><small>Financial opportunity</small><h4>Current vs. replacement</h4></div><span><TrendingUp /> Stronger return</span></div>
+                    <div className="agent-live-comparison__labels"><span>Metric</span><span>Current</span><span>Replacement</span><span>Change</span></div>
+                    <ComparisonRow label="Return on equity" current={selectedMatch.currentRoe} replacement={selectedMatch.projectedRoe} change={selectedMatch.roe.replace(" ROE", "")} />
+                    <ComparisonRow label="Net operating income" current={selectedMatch.currentNoi} replacement={selectedMatch.projectedNoi} change={selectedMatch.noiChange} />
+                    <ComparisonRow label="Annual cash flow" current={selectedMatch.currentCashFlow} replacement={selectedMatch.projectedCashFlow} change={selectedMatch.cashFlowChange} />
+                  </div>
+
+                  <aside className="agent-live-detail__reasons">
+                    <small>Why this matched</small>
+                    <h4>A qualified trade-up</h4>
+                    <ul>
+                      <li><CircleCheck /><span><strong>Within purchasing range</strong><small>{selectedMatch.price} asking price</small></span></li>
+                      <li><CircleCheck /><span><strong>Improves return on equity</strong><small>{selectedMatch.roe.replace(" ROE", "")} projected lift</small></span></li>
+                      <li><CircleCheck /><span><strong>Financing fits the model</strong><small>{selectedMatch.ltv}</small></span></li>
+                    </ul>
+                  </aside>
+                </div>
+
+                <div className="agent-live-detail__footer"><span><CircleCheck /> This opportunity improves the client’s modeled position.</span><button type="button">Review full match <ArrowRight /></button></div>
               </section>
             </div>
           </section>
         </div>
 
-        <div className="agent-console__disclosure">Illustrative live product demo · no real client information</div>
+        <div className="agent-console__disclosure">Illustrative property data · real property photography · no real client information</div>
       </figure>
     </div>
   );
@@ -215,7 +285,7 @@ function RolloutWindows() {
 
       <aside className="agent-rollout-window agent-rollout-window--listing" aria-hidden="true">
         <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong>New opportunity</strong></div>
-        <div className="agent-rollout-listing__visual"><img src="/meta-agent/merrimack-commerce-park.webp" alt="" /><span>Potential match</span></div>
+        <div className="agent-rollout-listing__visual"><img src="/landing-prop-industrial.jpg" alt="" /><span>Potential match</span></div>
         <div className="agent-rollout-listing__details"><small>Industrial · Manchester, NH</small><strong>Merrimack Commerce Park</strong><dl><div><dt>Asking</dt><dd>$4.2M</dd></div><div><dt>Cap rate</dt><dd>7.2%</dd></div></dl></div>
       </aside>
     </>
@@ -233,12 +303,15 @@ function AnalysisStep({ index, label, value }: { index: string; label: string; v
 function LiveMatchCard({
   match,
   index,
+  onSelect,
 }: {
   match: (typeof ILLUSTRATIVE_MATCHES)[number];
   index: number;
+  onSelect: () => void;
 }) {
   return (
     <article className="agent-live-match-card">
+      <button type="button" className="agent-live-match-card__action" onClick={onSelect} aria-label={`Review ${match.name} comparison`} />
       <div className="agent-live-match-card__media">
         <img src={match.image} alt={`${match.name} exterior`} />
         <span className="agent-live-match-card__rank">#{index + 1} {index === 0 ? "Best match" : "Strong match"}</span>
@@ -262,5 +335,23 @@ function LiveMatchCard({
       </div>
       <div className="agent-live-match-card__footer"><b>New opportunity</b><strong>Review match <ArrowRight /></strong></div>
     </article>
+  );
+}
+
+function ComparisonRow({
+  label,
+  current,
+  replacement,
+  change,
+}: {
+  label: string;
+  current: string;
+  replacement: string;
+  change: string;
+}) {
+  return (
+    <div className="agent-live-comparison__row">
+      <strong>{label}</strong><span>{current}</span><span>{replacement}</span><b>{change}</b>
+    </div>
   );
 }

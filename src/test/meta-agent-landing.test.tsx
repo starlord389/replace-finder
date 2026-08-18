@@ -122,13 +122,36 @@ describe("Meta agent replacement-property landing page", () => {
     expect(screen.getAllByText("Merrimack Commerce Park")).not.toHaveLength(0);
     expect(screen.getByRole("img", { name: "Blackstone Mill Lofts exterior" })).toHaveAttribute(
       "src",
-      "/meta-agent/blackstone-mill-lofts.webp",
+      "/mf-1.jpg",
     );
     expect(screen.getByRole("img", { name: "Merrimack Commerce Park exterior" })).toHaveAttribute(
       "src",
-      "/meta-agent/merrimack-commerce-park.webp",
+      "/landing-prop-industrial.jpg",
     );
+    expect(screen.getByRole("button", { name: "Review Blackstone Mill Lofts comparison" })).toBeInTheDocument();
+    expect(screen.getByText("Financial opportunity")).toBeInTheDocument();
+    expect(screen.getByText("Current vs. replacement")).toBeInTheDocument();
+    expect(screen.getByText("Return on equity")).toBeInTheDocument();
+    expect(screen.getByText("Why this matched")).toBeInTheDocument();
     expect(screen.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
+  });
+
+  it("opens the selected match comparison from either photographic listing card", () => {
+    render(
+      <MemoryRouter initialEntries={["/meta/agents/replacement-property"]}>
+        <MetaAgentReplacementProperty />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Review Merrimack Commerce Park comparison" }));
+
+    expect(screen.getByRole("heading", { name: "Merrimack Commerce Park" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Merrimack Commerce Park property" })).toHaveAttribute(
+      "src",
+      "/landing-prop-industrial.jpg",
+    );
+    expect(screen.getByText("+$122K / yr")).toBeInTheDocument();
+    expect(screen.getAllByText("69.0% LTV")).not.toHaveLength(0);
   });
 
   it("uses only the expected attribution values in telemetry", () => {
