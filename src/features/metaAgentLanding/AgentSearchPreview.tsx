@@ -136,14 +136,24 @@ export function AgentSearchPreview() {
         >
           <aside className="agent-live-demo__inbox">
             <div className="agent-live-demo__inbox-heading">
-              <div><small>My clients</small><strong>Elaine Thomas · Matches</strong></div>
-              <span>2</span>
+              <div><small>My clients</small><strong>Active client workspace</strong></div>
+              <span>7</span>
             </div>
 
-            <div className="agent-live-demo__scope"><Building2 /><span><small>Active exchange</small><strong>Riverside Apartments</strong></span></div>
+            <article className="agent-live-client-profile">
+              <div className="agent-live-client-profile__identity">
+                <span>ET<i /></span>
+                <div><small>Selected client</small><strong>Elaine Thomas</strong><p>Property owner · Worcester, MA</p></div>
+              </div>
+              <dl>
+                <div><dt>Exchange</dt><dd><i /> Active</dd></div>
+                <div><dt>Deadline</dt><dd>42 days</dd></div>
+              </dl>
+            </article>
 
             <article className="agent-live-request-card">
-              <div className="agent-live-request-card__identity"><span>ET</span><div><strong>Elaine Thomas</strong><small>Client request · just now</small></div></div>
+              <div className="agent-live-request-card__label"><span>Latest client request</span><time>Just now</time></div>
+              <strong>Replacement priorities</strong>
               <p>Find a replacement property that improves cash flow without exceeding our purchasing range.</p>
               <div className="agent-live-request-card__status">
                 {livePhase === "request" && <><i /> Request received</>}
@@ -153,8 +163,9 @@ export function AgentSearchPreview() {
             </article>
 
             <article className="agent-live-property-card">
-              <div><span><Building2 /></span><div><small>Trading out</small><strong>Riverside Apartments</strong><p><MapPin /> Worcester, MA</p></div></div>
+              <div className="agent-live-property-card__summary"><img src="/mf-4.jpg" alt="Riverside Apartments property" /><div><small>Trading out</small><strong>Riverside Apartments</strong><p><MapPin /> Worcester, MA</p></div></div>
               <dl><div><dt>Value</dt><dd>$2.4M</dd></div><div><dt>Loan</dt><dd>$1.1M</dd></div><div><dt>Equity</dt><dd>$1.3M</dd></div></dl>
+              <div className="agent-live-property-card__footer"><span><i /> Search active</span><strong>2 matches</strong></div>
             </article>
           </aside>
 

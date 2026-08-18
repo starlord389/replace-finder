@@ -120,6 +120,13 @@ describe("Meta agent replacement-property landing page", () => {
     expect(screen.getByRole("heading", { name: "2 qualified matches" })).toBeInTheDocument();
     expect(screen.getAllByText("Blackstone Mill Lofts")).not.toHaveLength(0);
     expect(screen.getAllByText("Merrimack Commerce Park")).not.toHaveLength(0);
+    expect(screen.getByText("Active client workspace")).toBeInTheDocument();
+    expect(screen.getByText("Property owner · Worcester, MA")).toBeInTheDocument();
+    expect(screen.getByText("42 days")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Riverside Apartments property" })).toHaveAttribute(
+      "src",
+      "/mf-4.jpg",
+    );
     expect(screen.getByRole("img", { name: "Blackstone Mill Lofts exterior" })).toHaveAttribute(
       "src",
       "/mf-1.jpg",
