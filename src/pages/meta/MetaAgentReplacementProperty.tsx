@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Check } from "lucide-react";
+import { ArrowDownRight, Check } from "lucide-react";
 import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
 import { useHead } from "@/hooks/useHead";
 import { trackEvent } from "@/lib/telemetry";
@@ -83,7 +83,6 @@ export default function MetaAgentReplacementProperty() {
         <div className="agent-landing-shell agent-header__inner">
           <a href="#main-content" aria-label="1031ExchangeUP™" className="agent-header__brand">
             <ExchangeLogoLockup textClassName="text-[16px] sm:text-[19px]" />
-            <span className="agent-header__brand-context">For real estate agents</span>
           </a>
 
           <nav className="agent-header__nav" aria-label="Landing page">
@@ -130,8 +129,12 @@ export default function MetaAgentReplacementProperty() {
                   location="hero"
                   onClick={trackCta}
                 />
-                <p className="agent-hero__microcopy">Free to use. No credit card required.</p>
+                <a className="agent-hero__secondary" href="#how-it-works">
+                  See how it works
+                  <ArrowDownRight aria-hidden="true" />
+                </a>
               </div>
+              <p className="agent-hero__microcopy">Free to use. No credit card required.</p>
               <ul className="agent-hero__assurances" aria-label="Product assurances">
                 {PRODUCT_ASSURANCES.map((assurance) => (
                   <li key={assurance}><Check aria-hidden="true" />{assurance}</li>
