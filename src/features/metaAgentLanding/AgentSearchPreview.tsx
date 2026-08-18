@@ -1,13 +1,19 @@
+import { useEffect, useRef, useState } from "react";
 import {
+  ArrowRight,
   Building2,
   Check,
-  Landmark,
+  CircleCheck,
+  Gauge,
   MapPin,
   Radar,
-  SlidersHorizontal,
+  Search,
   Sparkles,
   TrendingUp,
+  UserRound,
 } from "lucide-react";
+
+type LivePhase = "request" | "analyzing" | "results";
 
 const ILLUSTRATIVE_MATCHES = [
   {
@@ -16,8 +22,9 @@ const ILLUSTRATIVE_MATCHES = [
     market: "Providence, RI",
     price: "$3.8M",
     capRate: "6.9%",
+    roe: "+4.8 pts ROE",
+    ltv: "65.4% LTV",
     score: 92,
-    tone: "primary",
   },
   {
     name: "Merrimack Commerce Park",
@@ -25,23 +32,171 @@ const ILLUSTRATIVE_MATCHES = [
     market: "Manchester, NH",
     price: "$4.2M",
     capRate: "7.2%",
+    roe: "+3.9 pts ROE",
+    ltv: "69.0% LTV",
     score: 87,
-    tone: "secondary",
   },
 ] as const;
 
 export function AgentSearchPreview() {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [livePhase, setLivePhase] = useState<LivePhase>("request");
+  const [cycle, setCycle] = useState(0);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage || !("IntersectionObserver" in window)) {
+      setLivePhase("results");
+      return;
+    }
+
+    let active = false;
+    let timers: number[] = [];
+
+    const clearTimers = () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      timers = [];
+    };
+
+    const runCycle = () => {
+      if (!active) return;
+      clearTimers();
+      setCycle((value) => value + 1);
+      setLivePhase("request");
+      timers.push(window.setTimeout(() => active && setLivePhase("analyzing"), 2600));
+      timers.push(window.setTimeout(() => active && setLivePhase("results"), 6600));
+      timers.push(window.setTimeout(runCycle, 13600));
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const shouldRun = entry.intersectionRatio >= 0.28;
+        if (shouldRun && !active) {
+          active = true;
+          runCycle();
+          return;
+        }
+        if (!shouldRun && active) {
+          active = false;
+          clearTimers();
+        }
+      },
+      { threshold: [0, 0.12, 0.28, 0.55] },
+    );
+
+    observer.observe(stage);
+    return () => {
+      active = false;
+      clearTimers();
+      observer.disconnect();
+    };
+  }, []);
+
   return (
-    <div className="agent-console-stage">
+    <div ref={stageRef} className="agent-console-stage">
+      <RolloutWindows />
+
+      <figure aria-labelledby="agent-search-preview-caption" className="agent-console">
+        <figcaption id="agent-search-preview-caption" className="agent-console__topbar">
+          <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
+          <span className="agent-console__workspace">Riverside exchange</span>
+          <span className="agent-console__privacy">Private agent workspace</span>
+        </figcaption>
+
+        <div
+          key={cycle}
+          className="agent-live-demo"
+          data-live-phase={livePhase}
+          aria-label="Illustrative live replacement-property matching workflow"
+        >
+          <aside className="agent-live-demo__inbox">
+            <div className="agent-live-demo__inbox-heading">
+              <div><small>My clients</small><strong>Elaine Thomas · Matches</strong></div>
+              <span>2</span>
+            </div>
+
+            <div className="agent-live-demo__scope"><Building2 /><span><small>Active exchange</small><strong>Riverside Apartments</strong></span></div>
+
+            <article className="agent-live-request-card">
+              <div className="agent-live-request-card__identity"><span>ET</span><div><strong>Elaine Thomas</strong><small>Client request · just now</small></div></div>
+              <p>Find a replacement property that improves cash flow without exceeding our purchasing range.</p>
+              <div className="agent-live-request-card__status">
+                {livePhase === "request" && <><i /> Request received</>}
+                {livePhase === "analyzing" && <><Radar /> Matching in progress</>}
+                {livePhase === "results" && <><CircleCheck /> 2 matches ready</>}
+              </div>
+            </article>
+
+            <article className="agent-live-property-card">
+              <div><span><Building2 /></span><div><small>Trading out</small><strong>Riverside Apartments</strong><p><MapPin /> Worcester, MA</p></div></div>
+              <dl><div><dt>Value</dt><dd>$2.4M</dd></div><div><dt>Loan</dt><dd>$1.1M</dd></div><div><dt>Equity</dt><dd>$1.3M</dd></div></dl>
+            </article>
+          </aside>
+
+          <section className="agent-live-demo__workspace">
+            <div className="agent-live-demo__workspace-heading">
+              <div><small>Replacement search</small><strong>Riverside exchange</strong></div>
+              <span><i /> Live monitoring</span>
+            </div>
+
+            <div className="agent-live-demo__request-line">
+              <span><UserRound /></span>
+              <p>Find a replacement property that improves cash flow without exceeding our purchasing range.</p>
+            </div>
+
+            <div className="agent-live-demo__canvas">
+              <section className="agent-live-scene agent-live-scene--request">
+                <span className="agent-live-scene__icon"><Search /></span>
+                <small>Client request received</small>
+                <h3>Ready to search the network</h3>
+                <p>ExchangeUp will compare the current property, financing capacity, return, and optional criteria.</p>
+                <div className="agent-live-scene__start"><Sparkles /> Preparing the exchange search <ArrowRight /></div>
+              </section>
+
+              <section className="agent-live-scene agent-live-scene--analysis">
+                <div className="agent-live-analysis__heading"><span><Sparkles /></span><div><small>ExchangeUp Matching Engine</small><h3>Evaluating eligible replacements</h3></div><i /></div>
+                <div className="agent-live-analysis__progress"><span /></div>
+                <div className="agent-live-analysis__steps">
+                  <AnalysisStep index="01" label="Equity and purchasing capacity" value="$4.8M ceiling" />
+                  <AnalysisStep index="02" label="Trade-up requirement" value="Qualified" />
+                  <AnalysisStep index="03" label="Projected return on equity" value="Improvement required" />
+                  <AnalysisStep index="04" label="Location and property criteria" value="New England · Income" />
+                </div>
+              </section>
+
+              <section className="agent-live-scene agent-live-scene--results">
+                <div className="agent-live-results__heading">
+                  <div><small>Elaine Thomas · Riverside Apartments</small><h3>2 qualified matches</h3></div>
+                  <span><CircleCheck /> Search complete</span>
+                </div>
+                <div className="agent-live-results__filters"><span>All <b>2</b></span><span>New <b>2</b></span><span><TrendingUp /> Best match</span></div>
+                <div className="agent-live-results__list">
+                  {ILLUSTRATIVE_MATCHES.map((match, index) => <LiveMatchCard key={match.name} match={match} index={index} />)}
+                </div>
+                <div className="agent-live-results__monitor"><Radar /><span><small>Search remains active</small><strong>Monitoring for new qualifying opportunities</strong></span><i /></div>
+              </section>
+            </div>
+          </section>
+        </div>
+
+        <div className="agent-console__disclosure">Illustrative live product demo · no real client information</div>
+      </figure>
+    </div>
+  );
+}
+
+function RolloutWindows() {
+  return (
+    <>
       <aside className="agent-rollout-window agent-rollout-window--conversation" aria-hidden="true">
-        <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong># private-search</strong></div>
+        <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong># client-request</strong></div>
         <div className="agent-rollout-chat">
           <span className="agent-rollout-chat__avatar">ET</span>
-          <div><strong>Elaine Thomas</strong><small>10:24 AM</small><p>Keep the search focused on Northeast income properties with stronger cash flow.</p></div>
+          <div><strong>Elaine Thomas</strong><small>10:24 AM</small><p>Focus on Northeast properties with stronger cash flow.</p></div>
         </div>
         <div className="agent-rollout-chat agent-rollout-chat--system">
           <span className="agent-rollout-chat__mark">UP</span>
-          <div><strong>ExchangeUp</strong><small>10:24 AM</small><p>Exchange criteria updated for the agent workspace.</p></div>
+          <div><strong>ExchangeUp</strong><small>10:24 AM</small><p>The matching engine is reviewing the exchange.</p></div>
         </div>
       </aside>
 
@@ -59,74 +214,19 @@ export function AgentSearchPreview() {
         <div className="agent-rollout-listing__visual"><Building2 /><span>Potential match</span></div>
         <div className="agent-rollout-listing__details"><small>Industrial · Manchester, NH</small><strong>Merrimack Commerce Park</strong><dl><div><dt>Asking</dt><dd>$4.2M</dd></div><div><dt>Cap rate</dt><dd>7.2%</dd></div></dl></div>
       </aside>
+    </>
+  );
+}
 
-      <figure aria-labelledby="agent-search-preview-caption" className="agent-console">
-        <figcaption id="agent-search-preview-caption" className="agent-console__topbar">
-          <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
-          <span className="agent-console__workspace">Riverside exchange</span>
-          <span className="agent-console__privacy">Private agent workspace</span>
-        </figcaption>
-
-        <div className="agent-console__body">
-          <section className="agent-console__origin" aria-label="Relinquished property and search criteria">
-            <div className="agent-console__origin-heading">
-              <div className="agent-console__step">01</div>
-              <div><p>Starting point</p><h3>Client property</h3></div>
-            </div>
-
-            <article className="agent-origin-card">
-              <span className="agent-origin-card__icon"><Building2 aria-hidden="true" /></span>
-              <div className="agent-origin-card__title"><small>Relinquished property</small><strong>Riverside Apartments</strong><span><MapPin aria-hidden="true" /> Worcester, MA</span></div>
-              <dl>
-                <div><dt>Estimated value</dt><dd>$2.4M</dd></div>
-                <div><dt>Current loan</dt><dd>$1.1M</dd></div>
-                <div className="agent-origin-card__equity"><dt>Estimated equity</dt><dd>$1.3M</dd></div>
-              </dl>
-            </article>
-
-            <div className="agent-console__criteria">
-              <div className="agent-console__criteria-title"><SlidersHorizontal aria-hidden="true" /><span><small>Search criteria</small><strong>What fits next</strong></span></div>
-              <div className="agent-console__criteria-tags"><span>New England</span><span>$3.2M–$4.8M</span><span>Income property</span></div>
-            </div>
-          </section>
-
-          <div className="agent-console__exchange-path" aria-hidden="true">
-            <span className="agent-console__path-label">Matching</span>
-            <svg viewBox="0 0 170 440" preserveAspectRatio="none">
-              <path d="M16 88 C80 88 66 212 130 212 S90 344 156 344" />
-              <circle cx="16" cy="88" r="5" />
-              <circle cx="130" cy="212" r="5" />
-              <circle cx="156" cy="344" r="8" />
-            </svg>
-          </div>
-
-          <section className="agent-console__opportunities" aria-label="Potential replacement-property matches">
-            <div className="agent-console__opportunity-heading">
-              <div><p>Matched opportunities</p><h3>Properties worth reviewing</h3></div>
-              <span><Sparkles aria-hidden="true" /> 2 potential matches</span>
-            </div>
-
-            <div className="agent-console__match-list">
-              {ILLUSTRATIVE_MATCHES.map((match, index) => (
-                <MatchRow key={match.name} match={match} index={index} />
-              ))}
-            </div>
-
-            <div className="agent-console__monitoring">
-              <span className="agent-console__radar"><Radar aria-hidden="true" /></span>
-              <div><small>Search remains active</small><strong>Monitoring for new opportunities</strong></div>
-              <i aria-hidden="true" />
-            </div>
-          </section>
-        </div>
-
-        <div className="agent-console__disclosure">Illustrative product view · no real client information</div>
-      </figure>
+function AnalysisStep({ index, label, value }: { index: string; label: string; value: string }) {
+  return (
+    <div className="agent-live-analysis__step">
+      <span>{index}</span><div><strong>{label}</strong><small>{value}</small></div><i><Check /></i>
     </div>
   );
 }
 
-function MatchRow({
+function LiveMatchCard({
   match,
   index,
 }: {
@@ -134,19 +234,14 @@ function MatchRow({
   index: number;
 }) {
   return (
-    <article className={`agent-match-row agent-match-row--${match.tone}`}>
-      <div className="agent-match-row__index">0{index + 1}</div>
-      <div className="agent-match-row__property">
-        <small>{match.type}</small>
-        <h4>{match.name}</h4>
-        <span><MapPin aria-hidden="true" /> {match.market}</span>
+    <article className="agent-live-match-card">
+      <div className="agent-live-match-card__property">
+        <span className="agent-live-match-card__placeholder"><Building2 /></span>
+        <div><small>#{index + 1} · {match.type}</small><strong>{match.name}</strong><p><MapPin /> {match.market}</p></div>
       </div>
-      <dl>
-        <div><dt><Landmark aria-hidden="true" /> Asking</dt><dd>{match.price}</dd></div>
-        <div><dt><TrendingUp aria-hidden="true" /> Cap rate</dt><dd>{match.capRate}</dd></div>
-      </dl>
-      <div className="agent-match-row__score" aria-label={`${match.score} match score`}><strong>{match.score}</strong><span>match</span></div>
-      <div className="agent-match-row__fit"><Check aria-hidden="true" /> Within range</div>
+      <div className="agent-live-match-card__financials"><span><small>Asking</small><strong>{match.price}</strong></span><span><small>Cap rate</small><strong>{match.capRate}</strong></span></div>
+      <div className="agent-live-match-card__score"><strong>{match.score}</strong><small>match</small></div>
+      <div className="agent-live-match-card__footer"><span><Gauge /> {match.roe} · {match.ltv}</span><b>New</b><strong>Review match <ArrowRight /></strong></div>
     </article>
   );
 }

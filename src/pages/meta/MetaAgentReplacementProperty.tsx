@@ -96,6 +96,7 @@ export default function MetaAgentReplacementProperty() {
     if (!root || !hero) return;
 
     const clamp = (value: number) => Math.min(1, Math.max(0, value));
+    const smoothstep = (value: number) => value * value * (3 - 2 * value);
     let frame = 0;
 
     const updateMotion = () => {
@@ -112,21 +113,27 @@ export default function MetaAgentReplacementProperty() {
       root.style.setProperty("--hero-field-scale-y", String(1 - heroProgress * 0.25));
       root.style.setProperty("--hero-field-opacity", String(0.4 + heroProgress * 0.3));
 
-      const activityReveal = clamp((heroProgress - 0.02) / 0.32);
-      const conversationReveal = clamp((heroProgress - 0.2) / 0.34);
-      const listingReveal = clamp((heroProgress - 0.28) / 0.34);
+      const activityReveal = smoothstep(clamp((heroProgress - 0.02) / 0.34));
+      const conversationReveal = smoothstep(clamp((heroProgress - 0.17) / 0.38));
+      const listingReveal = smoothstep(clamp((heroProgress - 0.25) / 0.38));
       root.style.setProperty("--roll-activity-opacity", String(activityReveal));
-      root.style.setProperty("--roll-activity-x", `${(1 - activityReveal) * 112}px`);
-      root.style.setProperty("--roll-activity-y", `${(1 - activityReveal) * -72}px`);
-      root.style.setProperty("--roll-activity-scale", String(0.86 + activityReveal * 0.14));
+      root.style.setProperty("--roll-activity-x", `${(1 - activityReveal) * 70}px`);
+      root.style.setProperty("--roll-activity-y", `${(1 - activityReveal) * -24}px`);
+      root.style.setProperty("--roll-activity-scale", String(0.94 + activityReveal * 0.06));
+      root.style.setProperty("--roll-activity-rotate", `${(1 - activityReveal) * -1.4}deg`);
+      root.style.setProperty("--roll-activity-blur", `${(1 - activityReveal) * 5}px`);
       root.style.setProperty("--roll-conversation-opacity", String(conversationReveal));
-      root.style.setProperty("--roll-conversation-x", `${(1 - conversationReveal) * 124}px`);
-      root.style.setProperty("--roll-conversation-y", `${(1 - conversationReveal) * 54}px`);
-      root.style.setProperty("--roll-conversation-scale", String(0.88 + conversationReveal * 0.12));
+      root.style.setProperty("--roll-conversation-x", `${(1 - conversationReveal) * 76}px`);
+      root.style.setProperty("--roll-conversation-y", `${(1 - conversationReveal) * 22}px`);
+      root.style.setProperty("--roll-conversation-scale", String(0.95 + conversationReveal * 0.05));
+      root.style.setProperty("--roll-conversation-rotate", `${(1 - conversationReveal) * 1.15}deg`);
+      root.style.setProperty("--roll-conversation-blur", `${(1 - conversationReveal) * 4}px`);
       root.style.setProperty("--roll-listing-opacity", String(listingReveal));
-      root.style.setProperty("--roll-listing-x", `${(1 - listingReveal) * -124}px`);
-      root.style.setProperty("--roll-listing-y", `${(1 - listingReveal) * 58}px`);
-      root.style.setProperty("--roll-listing-scale", String(0.88 + listingReveal * 0.12));
+      root.style.setProperty("--roll-listing-x", `${(1 - listingReveal) * -78}px`);
+      root.style.setProperty("--roll-listing-y", `${(1 - listingReveal) * 24}px`);
+      root.style.setProperty("--roll-listing-scale", String(0.95 + listingReveal * 0.05));
+      root.style.setProperty("--roll-listing-rotate", `${(1 - listingReveal) * -1.15}deg`);
+      root.style.setProperty("--roll-listing-blur", `${(1 - listingReveal) * 4}px`);
 
       panels.forEach((panel, index) => {
         const rect = panel.getBoundingClientRect();

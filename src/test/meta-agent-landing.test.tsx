@@ -106,6 +106,23 @@ describe("Meta agent replacement-property landing page", () => {
     );
   });
 
+  it("shows an authentic live exchange workflow instead of a generic AI chat", () => {
+    render(
+      <MemoryRouter initialEntries={["/meta/agents/replacement-property"]}>
+        <MetaAgentReplacementProperty />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByLabelText("Illustrative live replacement-property matching workflow"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("ExchangeUp Matching Engine")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "2 qualified matches" })).toBeInTheDocument();
+    expect(screen.getAllByText("Blackstone Mill Lofts")).not.toHaveLength(0);
+    expect(screen.getAllByText("Merrimack Commerce Park")).not.toHaveLength(0);
+    expect(screen.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
+  });
+
   it("uses only the expected attribution values in telemetry", () => {
     expect(readAgentLandingAttribution(`${campaignSearch}&unrelated=value`)).toEqual(
       expect.objectContaining({
