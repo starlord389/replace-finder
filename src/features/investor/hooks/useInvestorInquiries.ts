@@ -90,12 +90,21 @@ export function useInvestorInquiries() {
   const create = useMutation({
     mutationFn: async ({ propertyId, message }: { propertyId: string; listingAgentId?: string; message: string }) => {
       if (!user) throw new Error("Sign in to contact the listing agent.");
-      const { error } = await supabase.rpc("submit_listing_inquiry" as never, {
+      const { data, error } = await supabase.rpc("submit_listing_inquiry" as never, {
         p_property_id: propertyId,
         p_message: message.trim(),
       } as never);
       if (error) throw error;
+
+      // Fire-and-forget internal notification to platform operators.
+      const inquiryId = typeof data === "string" ? data : null;
+      if (inquiryId) {
+        supabase.functions
+          .invoke("notify-admin-signup", { body: { kind: "listing_inquiry", recordId: inquiryId } })
+          .catch((err) => console.warn("admin inquiry notify failed", err));
+      }
     },
+
 
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });

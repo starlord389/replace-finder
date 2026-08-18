@@ -401,9 +401,11 @@ function SummitEventCard() {
     }
 
     setSubmitting(true);
-    const { error } = await supabase
+    const { data: created, error } = await supabase
       .from("event_registrations")
-      .insert({ full_name: name, email: mail, role, event: "1031-exchange-summit" });
+      .insert({ full_name: name, email: mail, role, event: "1031-exchange-summit" })
+      .select("id")
+      .maybeSingle();
     setSubmitting(false);
 
     // A duplicate means this email is already registered for the event.
@@ -415,6 +417,14 @@ function SummitEventCard() {
       });
       return;
     }
+
+    // Fire-and-forget internal notification to platform operators.
+    if (created?.id) {
+      supabase.functions
+        .invoke("notify-admin-signup", { body: { kind: "event_registration", recordId: created.id } })
+        .catch((err) => console.warn("admin event notify failed", err));
+    }
+
 
     setDone(true);
     toast({

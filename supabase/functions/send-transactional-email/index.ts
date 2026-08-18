@@ -60,13 +60,21 @@ Deno.serve(async (req) => {
     })
   }
 
-  const callerRole = decodeJwtRole(req.headers.get('Authorization'))
-  if (callerRole !== 'service_role') {
+  // Accept either a legacy service-role JWT (role claim) or the newer
+  // non-JWT secret key format, matched against this project's own key.
+  const authHeader = req.headers.get('Authorization')
+  const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
+  const serviceKeyEnv = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  const isServiceRole =
+    decodeJwtRole(authHeader) === 'service_role' ||
+    (serviceKeyEnv.length > 0 && bearer === serviceKeyEnv)
+  if (!isServiceRole) {
     return new Response(JSON.stringify({ error: 'forbidden' }), {
       status: 403,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
+
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
