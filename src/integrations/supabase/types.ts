@@ -1681,6 +1681,8 @@ export type Database = {
       notifications: {
         Row: {
           created_at: string
+          email_status: string | null
+          emailed_at: string | null
           id: string
           link_to: string | null
           message: string
@@ -1692,6 +1694,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email_status?: string | null
+          emailed_at?: string | null
           id?: string
           link_to?: string | null
           message: string
@@ -1703,6 +1707,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email_status?: string | null
+          emailed_at?: string | null
           id?: string
           link_to?: string | null
           message?: string
@@ -2591,33 +2597,45 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          notify_account_updates: boolean
           notify_connection_accepted: boolean
           notify_connection_request: boolean
           notify_deadline_reminder: boolean
+          notify_listing_inquiry: boolean
           notify_new_match: boolean
           notify_new_message: boolean
+          notify_product_updates: boolean
+          notify_weekly_digest: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          notify_account_updates?: boolean
           notify_connection_accepted?: boolean
           notify_connection_request?: boolean
           notify_deadline_reminder?: boolean
+          notify_listing_inquiry?: boolean
           notify_new_match?: boolean
           notify_new_message?: boolean
+          notify_product_updates?: boolean
+          notify_weekly_digest?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          notify_account_updates?: boolean
           notify_connection_accepted?: boolean
           notify_connection_request?: boolean
           notify_deadline_reminder?: boolean
+          notify_listing_inquiry?: boolean
           notify_new_match?: boolean
           notify_new_message?: boolean
+          notify_product_updates?: boolean
+          notify_weekly_digest?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -2768,6 +2786,20 @@ export type Database = {
           current_status: string
         }[]
       }
+      claim_notification_emails: {
+        Args: { _limit?: number }
+        Returns: {
+          notification_id: string
+          notification_link: string
+          notification_message: string
+          notification_metadata: Json
+          notification_title: string
+          notification_type: string
+          recipient_email: string
+          recipient_first_name: string
+          recipient_user_id: string
+        }[]
+      }
       confirm_referred_agent: {
         Args: { p_accept: boolean; p_representation_id: string }
         Returns: undefined
@@ -2778,6 +2810,10 @@ export type Database = {
       }
       delete_email: {
         Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      email_pref_allows: {
+        Args: { _key: string; _user_id: string }
         Returns: boolean
       }
       email_queue_dispatch: { Args: never; Returns: undefined }
@@ -2889,6 +2925,10 @@ export type Database = {
         Returns: undefined
       }
       mark_match_viewed: { Args: { p_match_id: string }; Returns: undefined }
+      mark_notification_email: {
+        Args: { _notification_id: string; _status: string }
+        Returns: undefined
+      }
       matches_secure_rows: {
         Args: never
         Returns: {
@@ -2932,6 +2972,7 @@ export type Database = {
         }
         Returns: number
       }
+      notification_pref_key: { Args: { _type: string }; Returns: string }
       notify_connection_counterparty: {
         Args: {
           p_connection_id: string
@@ -3068,6 +3109,7 @@ export type Database = {
         Args: { p_consented: boolean; p_phone?: string }
         Returns: undefined
       }
+      skip_opted_out_notification_emails: { Args: never; Returns: number }
       start_agent_connection: {
         Args: { p_match_id: string; p_request_id?: string }
         Returns: string

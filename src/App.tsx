@@ -53,6 +53,7 @@ const AgentConnectionDetail = lazy(() => import("@/pages/agent/AgentConnectionDe
 const AgentSettings = lazy(() => import("@/pages/agent/AgentSettings"));
 const AgentHelp = lazy(() => import("@/pages/agent/AgentHelp"));
 const AgentNotifications = lazy(() => import("@/pages/agent/AgentNotifications"));
+const NotificationSettingsRedirect = lazy(() => import("@/pages/NotificationSettingsRedirect"));
 const AgentRepresentation = lazy(() => import("@/pages/agent/AgentRepresentation"));
 const InvestorDashboard = lazy(() => import("@/pages/investor/InvestorDashboard"));
 const InvestorLaunchpad = lazy(() => import("@/pages/investor/InvestorLaunchpad"));
@@ -118,6 +119,7 @@ const App = () => (
             <Route path="/auth/accept-invite" element={<AcceptInvite />} />
             <Route path="/representation-invite" element={<AcceptRepresentationInvite />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/settings/notifications" element={<NotificationSettingsRedirect />} />
 
 
 

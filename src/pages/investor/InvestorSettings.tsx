@@ -8,6 +8,7 @@ import { ProfileAvatarUploader } from "@/components/profile/ProfileAvatarUploade
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SmsPreferencesCard } from "@/components/compliance/SmsPreferencesCard";
+import { NotificationPreferencesCard } from "@/features/notifications/components/NotificationPreferencesCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -172,6 +173,7 @@ export default function InvestorSettings() {
       </form>
 
       <Card><CardHeader><CardTitle className="text-lg">Agent representation</CardTitle></CardHeader><CardContent className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-sm font-medium">Manage who represents your exchanges</p><p className="mt-1 text-xs text-muted-foreground">Invite your agent, request a referral, and control exchange access.</p></div><Button asChild variant="outline"><Link to="/investor/representation"><Handshake className="mr-2 h-4 w-4" />Open My Agent</Link></Button></CardContent></Card>
+      <div id="notifications"><NotificationPreferencesCard /></div>
       <SmsPreferencesCard phone={form.phone} messageDescription="your account, exchange activity, property matches, inquiries, and related service notices" />
     </div>
   );

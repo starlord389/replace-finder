@@ -6,12 +6,24 @@ import { toast } from "sonner";
 
 export type NotificationPrefs = Tables<"user_notification_preferences">;
 
-const DEFAULTS = {
-  notify_new_match: true,
-  notify_connection_request: true,
-  notify_connection_accepted: true,
-  notify_new_message: true,
-};
+export const PREF_KEYS = [
+  "notify_new_match",
+  "notify_connection_request",
+  "notify_connection_accepted",
+  "notify_new_message",
+  "notify_listing_inquiry",
+  "notify_deadline_reminder",
+  "notify_weekly_digest",
+  "notify_account_updates",
+  "notify_product_updates",
+] as const;
+
+export type PrefKey = (typeof PREF_KEYS)[number];
+
+const DEFAULTS = PREF_KEYS.reduce(
+  (acc, key) => ({ ...acc, [key]: true }),
+  {} as Record<PrefKey, boolean>,
+);
 
 export function useNotificationPrefs() {
   const { user } = useAuth();
@@ -26,7 +38,13 @@ export function useNotificationPrefs() {
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
-      return data ?? { user_id: user.id, ...DEFAULTS, id: "", created_at: "", updated_at: "" } as NotificationPrefs;
+      return (data ?? {
+        user_id: user.id,
+        ...DEFAULTS,
+        id: "",
+        created_at: "",
+        updated_at: "",
+      }) as NotificationPrefs;
     },
     enabled: !!user?.id,
   });
@@ -38,27 +56,36 @@ export function useNotificationPrefs() {
       // one switch never silently re-enables the others. Falls back to DEFAULTS
       // only when no row exists yet (first save).
       const current = qc.getQueryData<NotificationPrefs>(["notification-prefs", user.id]);
-      const base = current ?? DEFAULTS;
+      const base = (current ?? DEFAULTS) as Record<string, unknown>;
+      const merged: Record<string, unknown> = {};
+      for (const key of PREF_KEYS) {
+        merged[key] = base[key] ?? true;
+      }
       const { error } = await supabase
         .from("user_notification_preferences")
-        .upsert(
-          {
-            user_id: user.id,
-            notify_new_match: base.notify_new_match,
-            notify_connection_request: base.notify_connection_request,
-            notify_connection_accepted: base.notify_connection_accepted,
-            notify_new_message: base.notify_new_message,
-            ...patch,
-          },
-          { onConflict: "user_id" },
-        );
+        .upsert({ ...merged, ...patch, user_id: user.id }, { onConflict: "user_id" });
       if (error) throw error;
     },
+    onMutate: async (patch) => {
+      if (!user?.id) return;
+      const key = ["notification-prefs", user.id];
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<NotificationPrefs>(key);
+      if (previous) qc.setQueryData(key, { ...previous, ...patch });
+      return { previous };
+    },
+    onError: (_err, _patch, context) => {
+      if (user?.id && context?.previous) {
+        qc.setQueryData(["notification-prefs", user.id], context.previous);
+      }
+      toast.error("Failed to save preferences");
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["notification-prefs", user?.id] });
       toast.success("Preferences saved");
     },
-    onError: () => toast.error("Failed to save preferences"),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["notification-prefs", user?.id] });
+    },
   });
 
   return { ...query, update };
