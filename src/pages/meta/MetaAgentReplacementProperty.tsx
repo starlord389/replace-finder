@@ -87,6 +87,78 @@ export default function MetaAgentReplacementProperty() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const root = document.querySelector<HTMLElement>("[data-meta-agent-landing]");
+    const hero = document.querySelector<HTMLElement>(".agent-hero");
+    const panels = Array.from(document.querySelectorAll<HTMLElement>(".agent-workflow__panel"));
+    const control = document.querySelector<HTMLElement>(".agent-control");
+    const finalCta = document.querySelector<HTMLElement>(".agent-final-cta");
+    if (!root || !hero) return;
+
+    const clamp = (value: number) => Math.min(1, Math.max(0, value));
+    let frame = 0;
+
+    const updateMotion = () => {
+      frame = 0;
+      const viewportHeight = window.innerHeight;
+      const heroRect = hero.getBoundingClientRect();
+      const heroProgress = clamp((112 - heroRect.top) / 420);
+      root.style.setProperty("--hero-copy-opacity", String(1 - heroProgress));
+      root.style.setProperty("--hero-copy-blur", `${heroProgress * 7}px`);
+      root.style.setProperty("--hero-copy-shift", `${heroProgress * -12}px`);
+      root.style.setProperty("--hero-product-scale", String(0.992 - heroProgress * 0.042));
+      root.style.setProperty("--hero-product-lift", `${heroProgress * -20}px`);
+      root.style.setProperty("--hero-field-scale-x", String(1 - heroProgress * 0.43));
+      root.style.setProperty("--hero-field-scale-y", String(1 - heroProgress * 0.25));
+      root.style.setProperty("--hero-field-opacity", String(0.4 + heroProgress * 0.3));
+
+      panels.forEach((panel, index) => {
+        const rect = panel.getBoundingClientRect();
+        const progress = clamp((viewportHeight * 0.92 - rect.top) / (viewportHeight * 0.7));
+        panel.style.setProperty("--panel-opacity", String(0.22 + progress * 0.78));
+        panel.style.setProperty("--panel-scale", String(0.925 + progress * 0.075));
+        panel.style.setProperty("--panel-shift", `${(1 - progress) * 76}px`);
+        panel.style.setProperty("--panel-copy-shift", `${(1 - progress) * 32}px`);
+        const cardShift = (1 - progress) * (index % 2 === 0 ? 54 : -54);
+        panel.style.setProperty("--panel-card-shift", `${cardShift}px`);
+        panel.style.setProperty("--panel-card-shift-reverse", `${cardShift * -1}px`);
+        panel.style.setProperty("--panel-glow-opacity", String(progress * 0.9));
+      });
+
+      if (control) {
+        const rect = control.getBoundingClientRect();
+        const progress = clamp((viewportHeight * 0.88 - rect.top) / (viewportHeight * 0.72));
+        control.style.setProperty("--control-motion-opacity", String(0.25 + progress * 0.75));
+        control.style.setProperty("--control-motion-shift", `${(1 - progress) * 62}px`);
+        control.style.setProperty("--control-orbit-scale", String(0.36 + progress * 0.64));
+        control.style.setProperty("--control-map-scale", String(0.92 + progress * 0.08));
+        control.style.setProperty("--control-orbit-offset", String(620 - progress * 620));
+      }
+
+      if (finalCta) {
+        const rect = finalCta.getBoundingClientRect();
+        const progress = clamp((viewportHeight * 0.9 - rect.top) / (viewportHeight * 0.72));
+        finalCta.style.setProperty("--final-motion-opacity", String(0.2 + progress * 0.8));
+        finalCta.style.setProperty("--final-motion-shift", `${(1 - progress) * 52}px`);
+        finalCta.style.setProperty("--final-line-offset", String(780 - progress * 780));
+      }
+    };
+
+    const scheduleMotionUpdate = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateMotion);
+    };
+
+    updateMotion();
+    window.addEventListener("scroll", scheduleMotionUpdate, { passive: true });
+    window.addEventListener("resize", scheduleMotionUpdate);
+    return () => {
+      window.removeEventListener("scroll", scheduleMotionUpdate);
+      window.removeEventListener("resize", scheduleMotionUpdate);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const trackCta = (ctaLocation: "header" | "hero" | "final") => {
     trackEvent("agent_landing_cta_clicked", {
       route: location.pathname,
