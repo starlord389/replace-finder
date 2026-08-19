@@ -52,6 +52,7 @@ type MatchSeed = {
   type: string;
   market: string;
   image: string;
+  description: string;
   price: number;
   noi: number;
   qualityAdjustment: number;
@@ -100,6 +101,7 @@ export const ILLUSTRATIVE_MATCHES = [
     type: "Multifamily",
     market: "Providence, RI",
     image: "/mf-1.jpg",
+    description: "A 28-unit multifamily property with stabilized occupancy near Providence employment centers.",
     price: 4_000_000,
     noi: 364_000,
     qualityAdjustment: 3,
@@ -109,6 +111,7 @@ export const ILLUSTRATIVE_MATCHES = [
     type: "Industrial",
     market: "Manchester, NH",
     image: "/landing-prop-industrial.jpg",
+    description: "A multi-tenant industrial property with flexible bays and direct regional highway access.",
     price: 4_400_000,
     noi: 390_000,
     qualityAdjustment: 3,

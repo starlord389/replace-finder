@@ -21,6 +21,7 @@ import {
   AgentWorkflowBuildScenes,
 } from "@/features/metaAgentLanding/AgentWorkflowBuildSegment";
 import { AgentWorkflowDiscoverScenes } from "@/features/metaAgentLanding/AgentWorkflowDiscoverSegment";
+import { AgentWorkflowReviewScenes } from "@/features/metaAgentLanding/AgentWorkflowReviewSegment";
 import {
   getAgentWorkflowBuildVisualPhase,
   type AgentWorkflowPhaseId,
@@ -76,6 +77,8 @@ export function AgentSearchPreview() {
   const livePhase = heroVisualPhase(workflowPhase);
   const isBuildPhase = playback.phase.stage === "build";
   const isDiscoverPhase = playback.phase.stage === "discover";
+  const isReviewPhase = playback.phase.stage === "review";
+  const isAdvancePhase = playback.phase.stage === "advance";
   const [selectedMatchIndex, setSelectedMatchIndex] = useState(0);
   const selectedMatch = ILLUSTRATIVE_MATCHES[selectedMatchIndex];
 
@@ -102,13 +105,13 @@ export function AgentSearchPreview() {
       <figure aria-labelledby="agent-search-preview-caption" className="agent-console" data-workflow-phase={workflowPhase}>
         <figcaption id="agent-search-preview-caption" className="agent-console__topbar">
           <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
-          <span className="agent-console__workspace">{isBuildPhase ? `${ILLUSTRATIVE_CLIENT.name} · New listing` : isDiscoverPhase ? `${ILLUSTRATIVE_CLIENT.name} · Matches` : "Riverside exchange"}</span>
+          <span className="agent-console__workspace">{isBuildPhase ? `${ILLUSTRATIVE_CLIENT.name} · New listing` : isDiscoverPhase || isReviewPhase ? `${ILLUSTRATIVE_CLIENT.name} · Matches` : "Riverside exchange"}</span>
           <span className="agent-console__privacy">Private agent workspace</span>
         </figcaption>
 
         <div
           key={playback.cycle}
-          className={`agent-live-demo agent-workflow-master${isBuildPhase ? " workflow-build-live" : ""}${isDiscoverPhase ? " workflow-build-live workflow-discover-live workflow-discover-shared" : ""}`}
+          className={`agent-live-demo agent-workflow-master${isBuildPhase ? " workflow-build-live" : ""}${isDiscoverPhase ? " workflow-build-live workflow-discover-live workflow-discover-shared" : ""}${isReviewPhase ? " workflow-discover-live workflow-discover-shared workflow-review-live workflow-review-shared" : ""}`}
           data-live-phase={livePhase}
           data-workflow-phase={workflowPhase}
           data-workflow-stage={playback.phase.stage}
@@ -155,10 +158,10 @@ export function AgentSearchPreview() {
             <section className="agent-live-demo__workspace">
             <div className="agent-live-demo__workspace-heading">
               <div>
-                <small>{isBuildPhase ? "Create a listing" : isDiscoverPhase ? "Automatic matching" : "Replacement search"}</small>
-                <strong>{isBuildPhase ? "Add the property, exchange criteria, and publish" : isDiscoverPhase ? "Calculate the exchange position and surface matches" : "Riverside exchange"}</strong>
+                <small>{isBuildPhase ? "Create a listing" : isDiscoverPhase ? "Automatic matching" : isReviewPhase ? "Review the matches" : "Replacement search"}</small>
+                <strong>{isBuildPhase ? "Add the property, exchange criteria, and publish" : isDiscoverPhase ? "Calculate the exchange position and surface matches" : isReviewPhase ? "Understand the property, financial improvement, and match reasoning" : "Riverside exchange"}</strong>
               </div>
-              <span><i /> {isBuildPhase || isDiscoverPhase ? playback.phase.label : isReviewing ? (livePhase === "sent" ? "Agent contacted" : "Reviewing match") : "Search always on"}</span>
+              <span><i /> {isBuildPhase || isDiscoverPhase || isReviewPhase ? playback.phase.label : isReviewing ? (livePhase === "sent" ? "Agent contacted" : "Reviewing match") : "Search always on"}</span>
             </div>
 
             <div className="agent-live-demo__request-line">
@@ -179,7 +182,16 @@ export function AgentSearchPreview() {
                 />
               )}
 
-              <section className="agent-live-scene agent-live-scene--review" aria-live="polite">
+              {isReviewPhase && (
+                <AgentWorkflowReviewScenes
+                  phase={workflowPhase}
+                  selectedMatchIndex={selectedMatchIndex}
+                  onSelectMatch={setSelectedMatchIndex}
+                  onGoToPhase={playback.goToPhase}
+                />
+              )}
+
+              {isAdvancePhase && <section className="agent-live-scene agent-live-scene--review" aria-live="polite">
                 <div className="agent-live-review__toolbar">
                   <button type="button" className="agent-live-review__back" onClick={() => setManualPhase("results")}><ArrowLeft /> All matches</button>
                   <div className="agent-live-review__tabs" role="tablist" aria-label="Property review">
@@ -277,7 +289,7 @@ export function AgentSearchPreview() {
                     </div>
                   </section>
                 </div>
-              </section>
+              </section>}
             </div>
             </section>
           </div>

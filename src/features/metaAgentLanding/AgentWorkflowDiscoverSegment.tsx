@@ -30,7 +30,8 @@ type DiscoverScenesProps = {
 export function AgentWorkflowDiscoverScenes({ phase, onSelectMatch }: DiscoverScenesProps) {
   const isCalculating = phase === "calculating-position";
   const isEvaluating = phase === "evaluating-network";
-  const isMatches = phase === "matches";
+  const isMatches = phase === "matches" || phase === "opening-match";
+  const isOpeningMatch = phase === "opening-match";
 
   return (
     <>
@@ -93,7 +94,7 @@ export function AgentWorkflowDiscoverScenes({ phase, onSelectMatch }: DiscoverSc
         </div>
         <div className="workflow-discover-shared__match-grid">
           {ILLUSTRATIVE_MATCHES.map((match, index) => (
-            <article key={match.address}>
+            <article key={match.address} className={isOpeningMatch && index === 0 ? "is-opening" : undefined}>
               {onSelectMatch && <button type="button" aria-label={`Review ${match.address} comparison`} onClick={() => onSelectMatch(index)} />}
               <div className="workflow-discover-shared__match-media">
                 <img src={match.image} alt={`${match.address} exterior`} />

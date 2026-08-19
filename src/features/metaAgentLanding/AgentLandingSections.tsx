@@ -24,6 +24,7 @@ import {
 import { CURRENT_PROPERTY, ILLUSTRATIVE_MATCHES } from "@/features/metaAgentLanding/agentWorkflowData";
 import { AgentWorkflowBuildDemo } from "@/features/metaAgentLanding/AgentWorkflowBuildSegment";
 import { AgentWorkflowDiscoverDemo } from "@/features/metaAgentLanding/AgentWorkflowDiscoverSegment";
+import { AgentWorkflowReviewDemo } from "@/features/metaAgentLanding/AgentWorkflowReviewSegment";
 
 const WORKFLOW_STEPS = [
   {
@@ -251,7 +252,7 @@ export function AgentWorkflowSection() {
 function WorkflowCanvas({ stage }: { stage: number }) {
   if (stage === 0) return <AgentWorkflowBuildDemo />;
   if (stage === 1) return <AgentWorkflowDiscoverDemo />;
-  if (stage === 2) return <ReviewMatchesState />;
+  if (stage === 2) return <AgentWorkflowReviewDemo />;
   if (stage === 3) return <AdvanceOpportunityState />;
 
   return (
@@ -279,161 +280,6 @@ function WorkflowCanvas({ stage }: { stage: number }) {
       <div className="workflow-canvas__footer"><LockKeyhole aria-hidden="true" /> Private to your workspace <span>Illustrative product view</span></div>
     </div>
   );
-}
-
-type ReviewPhase = "results" | "property" | "financials" | "match";
-
-const REVIEW_PHASE_LABELS: Record<ReviewPhase, string> = {
-  results: "Reviewing matched properties",
-  property: "Opening the strongest match",
-  financials: "Comparing the financial position",
-  match: "Explaining why the property fits",
-};
-
-function ReviewMatchesState() {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [phase, setPhase] = useState<ReviewPhase>("results");
-  const [cycle, setCycle] = useState(0);
-  const selectedMatch = ILLUSTRATIVE_MATCHES[0];
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage || !("IntersectionObserver" in window)) {
-      setPhase("property");
-      return;
-    }
-
-    let active = false;
-    let timers: number[] = [];
-    const clearTimers = () => {
-      timers.forEach((timer) => window.clearTimeout(timer));
-      timers = [];
-    };
-    const runCycle = () => {
-      if (!active) return;
-      clearTimers();
-      setCycle((value) => value + 1);
-      setPhase("results");
-      timers.push(window.setTimeout(() => active && setPhase("property"), 4_200));
-      timers.push(window.setTimeout(() => active && setPhase("financials"), 8_500));
-      timers.push(window.setTimeout(() => active && setPhase("match"), 13_200));
-      timers.push(window.setTimeout(() => active && runCycle(), 19_000));
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const shouldRun = entry.intersectionRatio >= 0.2;
-        if (shouldRun && !active) {
-          active = true;
-          runCycle();
-          return;
-        }
-        if (!shouldRun && active) {
-          active = false;
-          clearTimers();
-        }
-      },
-      { threshold: [0, 0.14, 0.2, 0.28, 0.55] },
-    );
-
-    observer.observe(stage);
-    return () => {
-      active = false;
-      clearTimers();
-      observer.disconnect();
-    };
-  }, []);
-
-  return (
-    <div ref={stageRef} className="agent-console-stage workflow-review-stage">
-      <figure className="agent-console" data-review-phase={phase} aria-label="Animated matched-property review and financial comparison preview">
-        <figcaption className="agent-console__topbar">
-          <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
-          <span className="agent-console__workspace">Elaine Thomas · Matches</span>
-          <span className="agent-console__privacy">Private agent workspace</span>
-        </figcaption>
-
-        <div key={cycle} className="agent-live-demo workflow-review-live" data-live-phase={phase}>
-          <div className="agent-live-demo__camera">
-            <section className="agent-live-demo__workspace">
-              <div className="agent-live-demo__workspace-heading"><div><small>Agent decision view</small><strong>Build the financial case before presenting a property</strong></div><span><i /> {REVIEW_PHASE_LABELS[phase]}</span></div>
-              <div className="agent-live-demo__request-line"><span><Search /></span><p><small>What makes a match worth presenting</small><strong>A better projected return, affordable financing, and alignment with the client’s property criteria</strong></p><div><small>Current ROE</small><strong>{CURRENT_PROPERTY.roe}</strong></div></div>
-
-              <div className="agent-live-demo__canvas">
-                <section className="agent-live-scene agent-live-scene--results workflow-review-live__scene workflow-review-live__scene--matches" aria-hidden={phase !== "results"}>
-                  <div className="agent-live-results__heading"><div><small>Matched for Elaine’s private search</small><h3>2 stronger properties to review</h3></div><span><CheckCircle2 /> Higher projected ROE</span></div>
-                  <div className="agent-live-results__filters"><span>Current property <b>{CURRENT_PROPERTY.value}</b></span><span>Buying range <b>{CURRENT_PROPERTY.buyingRange}</b></span><span><Radar /> Search remains active</span></div>
-                  <div className="workflow-review-live__match-grid">
-                    {ILLUSTRATIVE_MATCHES.map((candidate, index) => (
-                      <article key={candidate.address} className={index === 0 ? "is-selected" : ""}>
-                        <div><img src={candidate.image} alt={`Step 3 match at ${candidate.address}`} /><span>{candidate.score} match</span></div>
-                        <section><small>{candidate.type} · {candidate.market}</small><h4>{candidate.address}</h4><dl><div><dt>Asking</dt><dd>{candidate.price}</dd></div><div><dt>Projected ROE</dt><dd>{candidate.roe}</dd></div></dl><p><CheckCircle2 /> {candidate.roeImprovement} above current ROE</p></section>
-                      </article>
-                    ))}
-                  </div>
-                  <div className="workflow-review-live__opening"><span><i /><strong>Opening the strongest match</strong></span><ArrowRight /></div>
-                </section>
-
-                <section className="agent-live-scene agent-live-scene--review workflow-review-live__scene workflow-review-live__scene--detail" aria-hidden={phase === "results"}>
-                  <div className="agent-live-review__toolbar">
-                    <span className="workflow-review-live__back"><ArrowRight /> Matched properties</span>
-                    <div className="agent-live-review__tabs" role="tablist" aria-label="Step 3 property review">
-                      <button type="button" role="tab" tabIndex={-1} aria-selected={phase === "property"}>Property</button>
-                      <button type="button" role="tab" tabIndex={-1} aria-selected={phase === "financials"}>Financial comparison</button>
-                      <button type="button" role="tab" tabIndex={-1} aria-selected={phase === "match"}>Why it fits</button>
-                    </div>
-                  </div>
-
-                  <div className="agent-live-review__panels">
-                    <section className="agent-live-review__panel agent-live-review__panel--property" aria-hidden={phase !== "property"}>
-                      <div className="agent-live-property-overview__media"><img src={selectedMatch.image} alt={`Reviewing ${selectedMatch.address}`} /><span>{selectedMatch.type}</span></div>
-                      <div className="agent-live-property-overview__body">
-                        <div className="agent-live-property-overview__heading"><div><small>Matched property</small><h3>{selectedMatch.address}</h3><p><MapPin /> {selectedMatch.market}</p></div><span><strong>{selectedMatch.score}</strong><small>match</small></span></div>
-                        <dl><div><dt>Asking price</dt><dd>{selectedMatch.price}</dd></div><div><dt>Cap rate</dt><dd>{selectedMatch.capRate}</dd></div><div><dt>Annual NOI</dt><dd>{selectedMatch.noi}</dd></div><div><dt>Asset type</dt><dd>{selectedMatch.type}</dd></div></dl>
-                        <div className="agent-live-property-overview__location"><MapPin /><span><small>Location</small><strong>{selectedMatch.market} · Inside the client’s preferred area</strong></span></div>
-                      </div>
-                    </section>
-
-                    <section className="agent-live-review__panel agent-live-review__panel--financials" aria-hidden={phase !== "financials"}>
-                      <div className="agent-live-comparison">
-                        <div className="agent-live-comparison__heading"><div><small>Current property compared with matched property</small><h4>{CURRENT_PROPERTY.address} vs. {selectedMatch.address}</h4></div><span><CheckCircle2 /> {selectedMatch.roeImprovement} projected ROE</span></div>
-                        <div className="agent-live-comparison__labels"><span>Metric</span><span>Current</span><span>Matched</span><span>Change</span></div>
-                        <ReviewComparisonRow label="Property value" current={CURRENT_PROPERTY.value} replacement={selectedMatch.price} change={selectedMatch.valueIncrease} />
-                        <ReviewComparisonRow label="Annual NOI" current={CURRENT_PROPERTY.noi} replacement={selectedMatch.noi} change={selectedMatch.noiChange} />
-                        <ReviewComparisonRow label="Loan / LTV" current={`${CURRENT_PROPERTY.loan} · ${CURRENT_PROPERTY.ltv}`} replacement={`${selectedMatch.loan} · ${selectedMatch.ltv}`} change="Within 75%" />
-                        <ReviewComparisonRow label="Cash flow / ROE" current={`${CURRENT_PROPERTY.cashFlow} · ${CURRENT_PROPERTY.roe}`} replacement={`${selectedMatch.cashFlow} · ${selectedMatch.roe}`} change={selectedMatch.roeImprovement} />
-                      </div>
-                      <div className="agent-live-financials__outcome"><CheckCircle2 /><span><small>Financial result</small><strong>Projected ROE improves from {CURRENT_PROPERTY.roe} to {selectedMatch.roe} while remaining inside the client’s purchasing capacity.</strong></span></div>
-                    </section>
-
-                    <section className="agent-live-review__panel agent-live-review__panel--match" aria-hidden={phase !== "match"}>
-                      <div className="agent-live-match-explainer__heading"><div><small>Why this match fits</small><h3>{selectedMatch.address} passed every required check</h3></div><span>{selectedMatch.score} match</span></div>
-                      <div className="agent-live-match-explainer__grid">
-                        <article><small>Financial and search fit</small><ul>
-                          <li><CheckCircle2 /><span><strong>Affordable trade-up</strong><small>{selectedMatch.price} is within the {CURRENT_PROPERTY.buyingRange} capacity</small></span></li>
-                          <li><CheckCircle2 /><span><strong>Better projected return</strong><small>{CURRENT_PROPERTY.roe} → {selectedMatch.roe} projected ROE</small></span></li>
-                          <li><CheckCircle2 /><span><strong>Financing remains inside the limit</strong><small>{selectedMatch.loan} loan · {selectedMatch.ltv} LTV</small></span></li>
-                          <li><CheckCircle2 /><span><strong>Matches the client’s priorities</strong><small>{selectedMatch.type} · {selectedMatch.market}</small></span></li>
-                        </ul></article>
-                        <aside><small>Agent review result</small><h4>Worth presenting</h4><div className="workflow-review-live__score"><strong>{selectedMatch.score}</strong><span>match score</span></div><p><strong>{selectedMatch.roeImprovement}</strong><span>projected ROE improvement</span></p><p><strong>{selectedMatch.cashFlowChange}</strong><span>projected annual cash-flow change</span></p></aside>
-                      </div>
-                    </section>
-                  </div>
-                </section>
-              </div>
-            </section>
-          </div>
-        </div>
-
-        <p className="sr-only" aria-live="polite">{REVIEW_PHASE_LABELS[phase]}</p>
-        <div className="agent-console__disclosure">Illustrative property and financing data · agent review workflow</div>
-      </figure>
-    </div>
-  );
-}
-
-function ReviewComparisonRow({ label, current, replacement, change }: { label: string; current: string; replacement: string; change: string }) {
-  return <div className="agent-live-comparison__row"><strong>{label}</strong><span>{current}</span><span>{replacement}</span><b>{change}</b></div>;
 }
 
 type AdvancePhase = "match" | "opening" | "conversation" | "typing" | "sent";

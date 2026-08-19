@@ -336,19 +336,23 @@ describe("Meta agent replacement-property landing page", () => {
       const preview = screen.getByLabelText(
         "Animated matched-property review and financial comparison preview",
       );
-      expect(preview).toHaveAttribute("data-review-phase", "results");
-      expect(preview.querySelector(".workflow-review-live__scene--matches")).toHaveAttribute("aria-hidden", "false");
+      expect(preview).toHaveAttribute("data-workflow-phase", "matches");
+      expect(preview.querySelector(".workflow-discover-shared__scene--matches")).toHaveAttribute("aria-hidden", "false");
 
       act(() => vi.advanceTimersByTime(4_200));
-      expect(preview).toHaveAttribute("data-review-phase", "property");
+      expect(preview).toHaveAttribute("data-workflow-phase", "opening-match");
+      expect(preview.querySelector(".workflow-discover-shared__match-grid > article.is-opening")).toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(1_800));
+      expect(preview).toHaveAttribute("data-workflow-phase", "property-overview");
       expect(preview.querySelector(".agent-live-review__panel--property")).toHaveAttribute("aria-hidden", "false");
 
-      act(() => vi.advanceTimersByTime(4_300));
-      expect(preview).toHaveAttribute("data-review-phase", "financials");
+      act(() => vi.advanceTimersByTime(4_000));
+      expect(preview).toHaveAttribute("data-workflow-phase", "financial-comparison");
       expect(preview.querySelector(".agent-live-review__panel--financials")).toHaveAttribute("aria-hidden", "false");
 
-      act(() => vi.advanceTimersByTime(4_700));
-      expect(preview).toHaveAttribute("data-review-phase", "match");
+      act(() => vi.advanceTimersByTime(4_500));
+      expect(preview).toHaveAttribute("data-workflow-phase", "match-rationale");
       expect(preview.querySelector(".agent-live-review__panel--match")).toHaveAttribute("aria-hidden", "false");
     } finally {
       cleanup();
@@ -510,7 +514,8 @@ describe("Meta agent replacement-property landing page", () => {
       );
 
       act(() => vi.advanceTimersByTime(23_600));
-      fireEvent.click(screen.getByRole("button", { name: "Review 675 Harvey Road comparison" }));
+      const liveWorkflow = screen.getByLabelText("Illustrative live replacement-property matching workflow");
+      fireEvent.click(within(liveWorkflow).getByRole("button", { name: "Review 675 Harvey Road comparison" }));
 
       expect(screen.getByRole("heading", { name: "675 Harvey Road" })).toBeInTheDocument();
       expect(screen.getByRole("img", { name: "675 Harvey Road property" })).toHaveAttribute(

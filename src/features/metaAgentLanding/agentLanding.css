@@ -12760,3 +12760,158 @@ body:has([data-meta-agent-landing]) {
     animation: none;
   }
 }
+
+/* Canonical matched-property review shared by the hero and Step 3. */
+[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="review"] .agent-live-demo__inbox,
+[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="review"] .agent-live-demo__request-line {
+  display: none;
+}
+
+[data-meta-agent-landing] .workflow-review-shared .agent-live-demo__canvas {
+  min-height: 348px;
+}
+
+[data-meta-agent-landing] .workflow-review-shared__scene {
+  width: min(100%, 760px);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+[data-meta-agent-landing] .workflow-review-shared__toolbar {
+  margin-top: 7px;
+}
+
+[data-meta-agent-landing] .workflow-review-shared__panels {
+  min-height: 255px;
+}
+
+[data-meta-agent-landing] .workflow-review-shared__description {
+  margin: 7px 0 0;
+  color: #697a86;
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+[data-meta-agent-landing] .workflow-review-shared .agent-live-property-overview__body {
+  padding: 9px;
+}
+
+[data-meta-agent-landing] .workflow-review-shared .agent-live-property-overview__body dl {
+  gap: 5px;
+  margin-top: 7px;
+}
+
+[data-meta-agent-landing] .workflow-review-shared .agent-live-property-overview__body dl > div {
+  padding: 5px 7px;
+}
+
+[data-meta-agent-landing] .workflow-review-shared .agent-live-property-overview__location {
+  margin-top: 6px;
+  padding: 6px 7px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared[data-workflow-phase="opening-match"] .workflow-discover-shared__match-grid > article.is-opening {
+  opacity: 1;
+  transform: none;
+  animation: workflow-review-open-match 1.5s cubic-bezier(0.2, 0.85, 0.2, 1) both;
+}
+
+@keyframes workflow-review-open-match {
+  0%, 22%, 100% { border-color: #d9e0e4; transform: scale(1); box-shadow: 0 8px 20px rgba(20, 43, 66, 0.055); }
+  48% { border-color: #68a971; transform: scale(0.985); box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.12), 0 14px 28px rgba(45, 113, 53, 0.14); }
+  72% { border-color: #8fbe95; transform: scale(1); box-shadow: 0 12px 25px rgba(45, 113, 53, 0.12); }
+}
+
+@media (max-width: 820px) {
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-demo__canvas {
+    min-height: 470px;
+  }
+}
+
+@media (max-width: 520px) {
+  [data-meta-agent-landing] .workflow-review-shared__toolbar {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared__toolbar .agent-live-review__tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared__toolbar .agent-live-review__tabs button {
+    flex: 1;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared__panels {
+    min-height: 390px;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-review__panel--property {
+    grid-template-columns: minmax(108px, 0.72fr) minmax(0, 1.28fr);
+    align-items: start;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-property-overview__media {
+    height: 244px;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-property-overview__body {
+    min-height: 244px;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-match-explainer__heading {
+    align-items: flex-start;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-match-explainer__heading h3 {
+    overflow: visible;
+    white-space: normal;
+    line-height: 1.15;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-match-explainer__grid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    margin-top: 7px;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-match-explainer__grid > article {
+    padding: 9px;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-match-explainer__grid ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-top: 7px;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-match-explainer__grid > aside {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 72px;
+    gap: 3px 9px;
+    align-items: center;
+    padding: 9px;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-match-explainer__grid > aside > small,
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-match-explainer__grid > aside > h4,
+  [data-meta-agent-landing] .workflow-review-shared .agent-live-match-explainer__grid > aside > p {
+    grid-column: 1;
+  }
+
+  [data-meta-agent-landing] .workflow-review-shared .workflow-review-live__score {
+    grid-column: 2;
+    grid-row: 1 / 5;
+    margin: 0;
+    padding: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-meta-agent-landing] .workflow-discover-shared[data-workflow-phase="opening-match"] .workflow-discover-shared__match-grid > article.is-opening {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}

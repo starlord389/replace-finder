@@ -23,6 +23,7 @@ export type AgentWorkflowSegmentId = "full" | AgentWorkflowStage;
 
 export type AgentWorkflowBuildVisualPhase = "request" | "analyzing" | "results" | "property" | "published";
 export type AgentWorkflowDiscoverVisualPhase = "published" | "analyzing" | "results";
+export type AgentWorkflowReviewVisualPhase = "results" | "property" | "financials" | "match";
 
 export type AgentWorkflowPhase = {
   id: AgentWorkflowPhaseId;
@@ -111,4 +112,11 @@ export function getAgentWorkflowDiscoverVisualPhase(phase: AgentWorkflowPhaseId)
   if (phase === "listing-published") return "published";
   if (phase === "matches") return "results";
   return "analyzing";
+}
+
+export function getAgentWorkflowReviewVisualPhase(phase: AgentWorkflowPhaseId): AgentWorkflowReviewVisualPhase {
+  if (phase === "matches" || phase === "opening-match") return "results";
+  if (phase === "property-overview") return "property";
+  if (phase === "financial-comparison") return "financials";
+  return "match";
 }
