@@ -7,6 +7,7 @@ import {
   CircleCheck,
   Gauge,
   MapPin,
+  MousePointer2,
   Radar,
   Search,
   Sparkles,
@@ -89,8 +90,8 @@ export function AgentSearchPreview() {
       setLivePhase("request");
       timers.push(window.setTimeout(() => active && setLivePhase("analyzing"), 2600));
       timers.push(window.setTimeout(() => active && setLivePhase("results"), 6600));
-      timers.push(window.setTimeout(() => active && setLivePhase("detail"), 10100));
-      timers.push(window.setTimeout(runCycle, 16900));
+      timers.push(window.setTimeout(() => active && setLivePhase("detail"), 11000));
+      timers.push(window.setTimeout(runCycle, 18200));
     };
 
     const observer = new IntersectionObserver(
@@ -134,7 +135,8 @@ export function AgentSearchPreview() {
           data-live-phase={livePhase}
           aria-label="Illustrative live replacement-property matching workflow"
         >
-          <aside className="agent-live-demo__inbox">
+          <div className="agent-live-demo__camera">
+            <aside className="agent-live-demo__inbox">
             <div className="agent-live-demo__inbox-heading">
               <div><small>My clients</small><strong>Active client workspace</strong></div>
               <span>7</span>
@@ -167,9 +169,9 @@ export function AgentSearchPreview() {
               <dl><div><dt>Value</dt><dd>$2.4M</dd></div><div><dt>Loan</dt><dd>$1.1M</dd></div><div><dt>Equity</dt><dd>$1.3M</dd></div></dl>
               <div className="agent-live-property-card__footer"><span><i /> Search active</span><strong>2 matches</strong></div>
             </article>
-          </aside>
+            </aside>
 
-          <section className="agent-live-demo__workspace">
+            <section className="agent-live-demo__workspace">
             <div className="agent-live-demo__workspace-heading">
               <div><small>Replacement search</small><strong>Riverside exchange</strong></div>
               <span><i /> Live monitoring</span>
@@ -261,7 +263,10 @@ export function AgentSearchPreview() {
                 <div className="agent-live-detail__footer"><span><CircleCheck /> This opportunity improves the client’s modeled position.</span><button type="button">Review full match <ArrowRight /></button></div>
               </section>
             </div>
-          </section>
+            </section>
+          </div>
+
+          <span className="agent-live-cursor" aria-hidden="true"><MousePointer2 /><i /></span>
         </div>
 
         <div className="agent-console__disclosure">Illustrative property data · real property photography · no real client information</div>

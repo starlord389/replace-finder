@@ -116,6 +116,8 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       screen.getByLabelText("Illustrative live replacement-property matching workflow"),
     ).toBeInTheDocument();
+    expect(document.querySelector(".agent-live-demo__camera")).toBeInTheDocument();
+    expect(document.querySelector(".agent-live-cursor")).toBeInTheDocument();
     expect(screen.getByText("ExchangeUp Matching Engine")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "2 qualified matches" })).toBeInTheDocument();
     expect(screen.getAllByText("Blackstone Mill Lofts")).not.toHaveLength(0);
