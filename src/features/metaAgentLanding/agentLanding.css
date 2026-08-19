@@ -5229,6 +5229,19 @@ body:has([data-meta-agent-landing]) {
   font-weight: 600;
 }
 
+[data-meta-agent-landing] .agent-faq__trigger[data-state="open"] {
+  color: var(--agent-page-green);
+}
+
+[data-meta-agent-landing] .agent-faq__trigger[data-state="open"] small {
+  color: var(--agent-page-green);
+}
+
+[data-meta-agent-landing] .agent-faq__content {
+  max-width: 680px;
+  padding-right: clamp(30px, 5vw, 76px);
+}
+
 [data-meta-agent-landing] .agent-final-cta {
   padding: 166px 0 160px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.09);

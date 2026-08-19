@@ -189,6 +189,25 @@ describe("Meta agent replacement-property landing page", () => {
     expect(screen.getByRole("img", { name: "Corcoran" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Redfin" })).toBeInTheDocument();
     expect(
+      screen.getByRole("heading", { name: "What agents want to know before starting." }),
+    ).toBeInTheDocument();
+    const firstFaq = screen.getByRole("button", {
+      name: /does my client need to be ready to sell/i,
+    });
+    expect(firstFaq).toHaveAttribute("data-state", "open");
+    expect(
+      screen.getByText(
+        "No. You can create a search from a client’s current property before they have decided to sell. If ExchangeUp surfaces a stronger investment opportunity, you have a concrete reason to start the exchange conversation.",
+      ),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: /is exchangeup free for agents/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /does my client need an exchangeup account/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /who communicates with the listing agent/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /how does exchangeup decide what qualifies as a match/i }),
+    ).toBeInTheDocument();
+    expect(document.querySelectorAll(".agent-faq__accordion [data-radix-collection-item]")).toHaveLength(8);
+    expect(
       screen.getByRole("list", { name: "Additional real estate brokerages" }),
     ).not.toHaveTextContent("Financial position");
     expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(

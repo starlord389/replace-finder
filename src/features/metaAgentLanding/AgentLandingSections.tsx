@@ -50,23 +50,39 @@ const WORKFLOW_STEPS = [
 
 const FAQS = [
   {
-    question: "Is ExchangeUp free?",
-    answer: "Yes. ExchangeUp is free to use, and no credit card is required.",
+    question: "Does my client need to be ready to sell?",
+    answer:
+      "No. You can create a search from a client’s current property before they have decided to sell. If ExchangeUp surfaces a stronger investment opportunity, you have a concrete reason to start the exchange conversation.",
+  },
+  {
+    question: "Is ExchangeUp free for agents?",
+    answer:
+      "Yes. Agents can create an account, add clients, publish properties, and review matches for free. No credit card is required.",
   },
   {
     question: "What do I need to start a search?",
     answer:
-      "Start with a client name. For the current property, you’ll need the city, state, asset type, estimated value or asking price, monthly gross rent, monthly operating expenses, and current loan balance. Replacement preferences are optional.",
+      "Start with a client name. For the current property, you’ll need the city, state, property type, estimated value, monthly gross rent, monthly operating expenses, and current loan balance. Replacement criteria and additional property details are optional.",
   },
   {
-    question: "Do I need to enter my client’s contact information?",
+    question: "Does my client need an ExchangeUp account?",
     answer:
-      "No. Only the client name is required. Email and phone are optional and can be added later if you choose to invite the client into their own workspace.",
+      "No. You can manage the client and their search from your agent workspace. Their email and phone number are optional, and you choose if and when to invite them into their own workspace.",
+  },
+  {
+    question: "Who communicates with the listing agent?",
+    answer:
+      "Only verified agents communicate across the transaction. When your client wants to move forward, you can start a direct conversation with the verified listing agent. If a matched property does not yet have representation, its owner must connect with an agent before that conversation can begin.",
+  },
+  {
+    question: "How does ExchangeUp decide what qualifies as a match?",
+    answer:
+      "ExchangeUp checks that the replacement property is equal to or greater in value than the client’s current property, fits their estimated purchasing capacity at the platform’s 75% maximum loan-to-value ratio, and produces a higher projected return on equity. Additional cash and optional replacement criteria can refine the results.",
   },
   {
     question: "What happens if there are no current matches?",
     answer:
-      "The search can remain active in monitoring. As matching runs against new or updated eligible properties, qualifying opportunities can appear in your Matches workspace. A match is not guaranteed.",
+      "The search stays active. As new or updated properties enter the network, ExchangeUp can evaluate them against the client’s financial position and criteria. A match is not guaranteed.",
   },
   {
     question: "Where is ExchangeUp available?",
@@ -288,11 +304,18 @@ export function AgentFaqSection() {
     <section id="faq" aria-labelledby="faq-title" className="agent-faq">
       <div className="agent-landing-shell agent-faq__layout">
         <div className="agent-faq__intro" data-agent-reveal>
-          <p className="agent-eyebrow">Before you begin</p>
-          <h2 id="faq-title">Straight answers, before you start.</h2>
-          <p>Everything needed to understand how an ExchangeUp client search starts and what happens next.</p>
+          <p className="agent-eyebrow">Common Questions</p>
+          <h2 id="faq-title">What agents want to know before starting.</h2>
+          <p>The practical details about clients, matching, communication, and cost.</p>
         </div>
-        <Accordion type="single" collapsible className="agent-faq__accordion" data-agent-reveal>
+        <Accordion
+          type="single"
+          collapsible
+          defaultValue="faq-0"
+          aria-label="Frequently asked questions for real estate agents"
+          className="agent-faq__accordion"
+          data-agent-reveal
+        >
           {FAQS.map((faq, index) => (
             <AccordionItem key={faq.question} value={`faq-${index}`}>
               <AccordionTrigger className="agent-faq__trigger"><span><small>0{index + 1}</small>{faq.question}</span></AccordionTrigger>
