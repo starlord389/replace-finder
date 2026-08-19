@@ -61,7 +61,7 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Finding a replacement property is the hardest part of a 1031 Exchange. We’ve solved it.",
+        name: "Find Replacement Properties Faster.",
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("For Real Estate Agents")).toBeInTheDocument();

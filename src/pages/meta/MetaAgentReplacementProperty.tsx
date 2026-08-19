@@ -273,7 +273,7 @@ export default function MetaAgentReplacementProperty() {
               <p className="agent-eyebrow">
                 <span>For Real Estate Agents</span>
               </p>
-              <h1 id="agent-hero-title">Finding a replacement property is the hardest part of a 1031 Exchange. We’ve solved it.</h1>
+              <h1 id="agent-hero-title">Find Replacement Properties Faster.</h1>
               <p className="agent-hero__lead">
                 1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.
               </p>
