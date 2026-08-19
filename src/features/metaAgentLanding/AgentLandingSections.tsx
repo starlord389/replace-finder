@@ -144,7 +144,7 @@ export function AgentPlatformStorySection() {
           <p className="agent-eyebrow">Built around the exchange</p>
           <h2 id="agent-platform-story-title">
             <strong>Create more deal flow from the clients you already know.</strong>{" "}
-            <span>Turn better-performing property matches into exchange conversations and new transactions.</span>
+            <span>Turn better performing properties into exchange conversations and new transactions.</span>
           </h2>
         </div>
 
