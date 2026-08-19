@@ -5002,8 +5002,9 @@ body:has([data-meta-agent-landing]) {
   position: sticky;
   top: 112px;
   display: grid;
-  align-content: center;
+  align-content: start;
   height: calc(100vh - 112px);
+  padding-top: 50px;
 }
 
 [data-meta-agent-landing] .agent-workflow__steps li {
@@ -5410,6 +5411,7 @@ body:has([data-meta-agent-landing]) {
     width: max-content;
     min-width: 100%;
     height: auto;
+    padding-top: 0;
   }
 
   [data-meta-agent-landing] .agent-workflow__steps button {
