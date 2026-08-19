@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ArrowDownRight } from "lucide-react";
+import { ArrowDownRight, ChevronRight } from "lucide-react";
 import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
 import { useHead } from "@/hooks/useHead";
 import { trackEvent } from "@/lib/telemetry";
@@ -26,6 +26,34 @@ import "@/features/metaAgentLanding/agentLanding.css";
 const PAGE_TITLE = "Find Replacement Properties for 1031 Clients | ExchangeUp";
 const PAGE_DESCRIPTION =
   "Create a private client search, set replacement-property requirements, and review potential 1031 exchange matches in ExchangeUp.";
+
+const BROKERAGE_LOGOS = [
+  { name: "Compass", src: "/logos/compass.svg", className: "is-wide" },
+  { name: "Keller Williams Realty", src: "/logos/keller-williams.svg", className: "is-tall" },
+  { name: "eXp Realty", src: "/logos/exp-realty.svg", className: "is-medium" },
+  { name: "Churchill Real Estate", src: "/logos/churchill.svg", className: "is-medium" },
+  { name: "Aluxety Real Estate", src: "/logos/aluxety.png", className: "is-wide" },
+  { name: "LYV Realty", src: "/logos/lyv-realty.png", className: "is-tall" },
+] as const;
+
+function BrokerageLogoGrid() {
+  return (
+    <section className="agent-brokerage-proof" aria-label="Real estate brokerage network">
+      <div className="agent-landing-shell agent-brokerage-proof__grid">
+        {BROKERAGE_LOGOS.map((logo) => (
+          <div className="agent-brokerage-proof__item" key={logo.name}>
+            <img
+              alt={logo.name}
+              className={logo.className}
+              loading="lazy"
+              src={logo.src}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function MetaAgentReplacementProperty() {
   const location = useLocation();
@@ -105,36 +133,16 @@ export default function MetaAgentReplacementProperty() {
       const viewportHeight = window.innerHeight;
       const heroRect = hero.getBoundingClientRect();
       const heroProgress = clamp((112 - heroRect.top) / 420);
+      const fieldOpacityReveal = smoothstep(clamp((heroProgress - 0.22) / 0.68));
+      const fieldVeilReveal = smoothstep(clamp((heroProgress - 0.25) / 0.75));
       root.style.setProperty("--hero-copy-opacity", String(1 - heroProgress));
       root.style.setProperty("--hero-copy-blur", `${heroProgress * 7}px`);
       root.style.setProperty("--hero-copy-shift", `${heroProgress * -12}px`);
       root.style.setProperty("--hero-product-scale", String(0.992 - heroProgress * 0.042));
       root.style.setProperty("--hero-product-lift", `${heroProgress * -20}px`);
-      root.style.setProperty("--hero-field-scale-x", String(1 - heroProgress * 0.43));
-      root.style.setProperty("--hero-field-scale-y", String(1 - heroProgress * 0.25));
-      root.style.setProperty("--hero-field-opacity", String(0.4 + heroProgress * 0.3));
-
-      const activityReveal = smoothstep(clamp((heroProgress - 0.02) / 0.34));
-      const conversationReveal = smoothstep(clamp((heroProgress - 0.17) / 0.38));
-      const listingReveal = smoothstep(clamp((heroProgress - 0.25) / 0.38));
-      root.style.setProperty("--roll-activity-opacity", String(activityReveal));
-      root.style.setProperty("--roll-activity-x", `${(1 - activityReveal) * 70}px`);
-      root.style.setProperty("--roll-activity-y", `${(1 - activityReveal) * -24}px`);
-      root.style.setProperty("--roll-activity-scale", String(0.94 + activityReveal * 0.06));
-      root.style.setProperty("--roll-activity-rotate", `${(1 - activityReveal) * -1.4}deg`);
-      root.style.setProperty("--roll-activity-blur", `${(1 - activityReveal) * 5}px`);
-      root.style.setProperty("--roll-conversation-opacity", String(conversationReveal));
-      root.style.setProperty("--roll-conversation-x", `${(1 - conversationReveal) * 76}px`);
-      root.style.setProperty("--roll-conversation-y", `${(1 - conversationReveal) * 22}px`);
-      root.style.setProperty("--roll-conversation-scale", String(0.95 + conversationReveal * 0.05));
-      root.style.setProperty("--roll-conversation-rotate", `${(1 - conversationReveal) * 1.15}deg`);
-      root.style.setProperty("--roll-conversation-blur", `${(1 - conversationReveal) * 4}px`);
-      root.style.setProperty("--roll-listing-opacity", String(listingReveal));
-      root.style.setProperty("--roll-listing-x", `${(1 - listingReveal) * -78}px`);
-      root.style.setProperty("--roll-listing-y", `${(1 - listingReveal) * 24}px`);
-      root.style.setProperty("--roll-listing-scale", String(0.95 + listingReveal * 0.05));
-      root.style.setProperty("--roll-listing-rotate", `${(1 - listingReveal) * -1.15}deg`);
-      root.style.setProperty("--roll-listing-blur", `${(1 - listingReveal) * 4}px`);
+      root.style.setProperty("--hero-field-scale-x", String(1 - fieldVeilReveal * 0.32));
+      root.style.setProperty("--hero-field-scale-y", String(1 - fieldVeilReveal * 0.187));
+      root.style.setProperty("--hero-field-opacity", String(0.4 + fieldOpacityReveal * 0.3));
 
       panels.forEach((panel, index) => {
         const rect = panel.getBoundingClientRect();
@@ -204,13 +212,15 @@ export default function MetaAgentReplacementProperty() {
 
       <header className={`agent-header${darkHeader ? " is-dark" : ""}`}>
         <a className="agent-header__announcement" href="#how-it-works">
-          See how ExchangeUp turns one property into a focused replacement search
-          <span aria-hidden="true">→</span>
+          <span className="agent-header__announcement-text">
+            See how ExchangeUp turns one property into a focused replacement search
+          </span>
+          <span className="agent-header__announcement-arrow" aria-hidden="true">→</span>
         </a>
         <div className="agent-header__nav-row">
           <div className="agent-landing-shell agent-header__inner">
             <a href="#main-content" aria-label="1031ExchangeUP™" className="agent-header__brand">
-              <ExchangeLogoLockup textClassName="text-[16px] sm:text-[19px]" />
+              <ExchangeLogoLockup textClassName="text-[16px] sm:text-[17px]" />
             </a>
 
             <nav className="agent-header__nav" aria-label="Landing page">
@@ -236,6 +246,13 @@ export default function MetaAgentReplacementProperty() {
 
       <main id="main-content">
         <section className="agent-hero" aria-labelledby="agent-hero-title">
+          <div className="agent-hero__background" aria-hidden="true">
+            <div className="agent-hero__background-sticky">
+              <div className="agent-hero__background-field" />
+              <div className="agent-hero__background-lines" />
+              <div className="agent-hero__background-veil" />
+            </div>
+          </div>
           <svg className="agent-hero__parcel-field" viewBox="0 0 1600 920" preserveAspectRatio="none" aria-hidden="true">
             <path className="parcel-line" d="M0 164 H372 V0 M372 164 H636 V392 H922 V108 H1240 V310 H1600" />
             <path className="parcel-line" d="M0 550 H228 V362 H510 V676 H792 V488 H1110 V744 H1404 V520 H1600" />
@@ -248,7 +265,10 @@ export default function MetaAgentReplacementProperty() {
 
           <div className="agent-landing-shell agent-hero__grid">
             <div className="agent-hero__copy">
-              <p className="agent-eyebrow">Built for 1031 exchange agents</p>
+              <p className="agent-eyebrow">
+                <span>Built for 1031 exchange agents</span>
+                <ChevronRight aria-hidden="true" />
+              </p>
               <h1 id="agent-hero-title">Find your client’s next property.</h1>
               <p className="agent-hero__lead">
                 Create a private search, define what the replacement property needs to do, and review potential matches in one workspace.
@@ -273,6 +293,7 @@ export default function MetaAgentReplacementProperty() {
           </div>
         </section>
 
+        <BrokerageLogoGrid />
         <AgentPlatformStorySection />
         <AgentWorkflowSection />
         <AgentControlSection />

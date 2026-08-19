@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Building2,
   Check,
   CircleCheck,
-  Gauge,
+  Mail,
   MapPin,
+  Phone,
   Radar,
   Search,
   Sparkles,
@@ -14,7 +14,7 @@ import {
   UserRound,
 } from "lucide-react";
 
-type LivePhase = "request" | "analyzing" | "results" | "detail";
+type LivePhase = "request" | "analyzing" | "results" | "property" | "financials" | "match" | "contact";
 
 const ILLUSTRATIVE_MATCHES = [
   {
@@ -69,7 +69,7 @@ export function AgentSearchPreview() {
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage || !("IntersectionObserver" in window)) {
-      setLivePhase("detail");
+      setLivePhase("analyzing");
       return;
     }
 
@@ -87,15 +87,18 @@ export function AgentSearchPreview() {
       setCycle((value) => value + 1);
       setSelectedMatchIndex(0);
       setLivePhase("request");
-      timers.push(window.setTimeout(() => active && setLivePhase("analyzing"), 2600));
-      timers.push(window.setTimeout(() => active && setLivePhase("results"), 6600));
-      timers.push(window.setTimeout(() => active && setLivePhase("detail"), 10100));
-      timers.push(window.setTimeout(runCycle, 16900));
+      timers.push(window.setTimeout(() => active && setLivePhase("analyzing"), 350));
+      timers.push(window.setTimeout(() => active && setLivePhase("results"), 3500));
+      timers.push(window.setTimeout(() => active && setLivePhase("property"), 7800));
+      timers.push(window.setTimeout(() => active && setLivePhase("financials"), 12300));
+      timers.push(window.setTimeout(() => active && setLivePhase("match"), 16800));
+      timers.push(window.setTimeout(() => active && setLivePhase("contact"), 21300));
+      timers.push(window.setTimeout(runCycle, 29300));
     };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const shouldRun = entry.intersectionRatio >= 0.28;
+        const shouldRun = entry.intersectionRatio >= 0.2;
         if (shouldRun && !active) {
           active = true;
           runCycle();
@@ -106,7 +109,7 @@ export function AgentSearchPreview() {
           clearTimers();
         }
       },
-      { threshold: [0, 0.12, 0.28, 0.55] },
+      { threshold: [0, 0.14, 0.2, 0.28, 0.55] },
     );
 
     observer.observe(stage);
@@ -119,8 +122,6 @@ export function AgentSearchPreview() {
 
   return (
     <div ref={stageRef} className="agent-console-stage">
-      <RolloutWindows />
-
       <figure aria-labelledby="agent-search-preview-caption" className="agent-console">
         <figcaption id="agent-search-preview-caption" className="agent-console__topbar">
           <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
@@ -137,76 +138,79 @@ export function AgentSearchPreview() {
           <div className="agent-live-demo__camera">
             <aside className="agent-live-demo__inbox">
             <div className="agent-live-demo__inbox-heading">
-              <div><small>My clients</small><strong>Active client workspace</strong></div>
-              <span>7</span>
+              <div><small>Active client workspace</small><strong>Elaine Thomas</strong></div>
+              <span className="agent-live-demo__active"><i /> Active</span>
             </div>
 
-            <article className="agent-live-client-profile">
-              <div className="agent-live-client-profile__identity">
-                <span>ET<i /></span>
-                <div><small>Selected client</small><strong>Elaine Thomas</strong><p>Property owner · Worcester, MA</p></div>
+            <article className="agent-live-client-summary">
+              <div className="agent-live-client-summary__heading">
+                <span>ET</span>
+                <div><small>Riverside exchange</small><strong>42 days remaining</strong></div>
+              </div>
+              <div className="agent-live-client-summary__property">
+                <img src="/mf-4.jpg" alt="Riverside Apartments property" />
+                <div><small>Property being sold</small><strong>Riverside Apartments</strong><p><MapPin /> Worcester, MA</p></div>
               </div>
               <dl>
-                <div><dt>Exchange</dt><dd><i /> Active</dd></div>
-                <div><dt>Deadline</dt><dd>42 days</dd></div>
+                <div><dt>Estimated equity</dt><dd>$1.3M</dd></div>
+                <div><dt>Buying range</dt><dd>Up to $4.8M</dd></div>
               </dl>
             </article>
 
-            <article className="agent-live-request-card">
-              <div className="agent-live-request-card__label"><span>Latest client request</span><time>Just now</time></div>
-              <strong>Replacement priorities</strong>
-              <p>Find a replacement property that improves cash flow without exceeding our purchasing range.</p>
-              <div className="agent-live-request-card__status">
-                {livePhase === "request" && <><i /> Request received</>}
-                {livePhase === "analyzing" && <><Radar /> Matching in progress</>}
-                {(livePhase === "results" || livePhase === "detail") && <><CircleCheck /> 2 matches ready</>}
+            <article className="agent-live-search-brief">
+              <div className="agent-live-search-brief__label"><span>Search brief</span><time>Ready</time></div>
+              <strong>Find a stronger replacement for this client</strong>
+              <ul>
+                <li><Check /> Within the $4.8M buying range</li>
+                <li><Check /> Must improve the current 12.4% ROE</li>
+                <li><Check /> New England income property</li>
+              </ul>
+              <div className="agent-live-search-brief__status">
+                {livePhase === "request" && <><i /> Search brief ready</>}
+                {livePhase === "analyzing" && <><Radar /> Ranking replacements</>}
+                {(livePhase === "results" || livePhase === "property" || livePhase === "financials" || livePhase === "match" || livePhase === "contact") && <><CircleCheck /> 2 options ready</>}
               </div>
-            </article>
-
-            <article className="agent-live-property-card">
-              <div className="agent-live-property-card__summary"><img src="/mf-4.jpg" alt="Riverside Apartments property" /><div><small>Trading out</small><strong>Riverside Apartments</strong><p><MapPin /> Worcester, MA</p></div></div>
-              <dl><div><dt>Value</dt><dd>$2.4M</dd></div><div><dt>Loan</dt><dd>$1.1M</dd></div><div><dt>Equity</dt><dd>$1.3M</dd></div></dl>
-              <div className="agent-live-property-card__footer"><span><i /> Search active</span><strong>2 matches</strong></div>
             </article>
             </aside>
 
             <section className="agent-live-demo__workspace">
             <div className="agent-live-demo__workspace-heading">
               <div><small>Replacement search</small><strong>Riverside exchange</strong></div>
-              <span><i /> Live monitoring</span>
+              <span><i /> {(livePhase === "property" || livePhase === "financials" || livePhase === "match" || livePhase === "contact") ? "Reviewing match" : "Search always on"}</span>
             </div>
 
             <div className="agent-live-demo__request-line">
               <span><UserRound /></span>
-              <p>Find a replacement property that improves cash flow without exceeding our purchasing range.</p>
+              <p><small>Client objective</small><strong>Find a better-performing replacement for Riverside Apartments</strong></p>
+              <div><small>Buying range</small><strong>Up to $4.8M</strong></div>
             </div>
 
             <div className="agent-live-demo__canvas">
               <section className="agent-live-scene agent-live-scene--request">
                 <span className="agent-live-scene__icon"><Search /></span>
-                <small>Client request received</small>
-                <h3>Ready to search the network</h3>
-                <p>ExchangeUp will compare the current property, financing capacity, return, and optional criteria.</p>
-                <button type="button" className="agent-live-scene__start" onClick={() => setLivePhase("analyzing")}><Sparkles /> Preparing the exchange search <ArrowRight /></button>
+                <small>Property + goals connected</small>
+                <h3>Turn one listing into a focused 1031 search</h3>
+                <p>ExchangeUp uses the property, equity, buying range, and return goal to find qualified replacements.</p>
+                <button type="button" className="agent-live-scene__start" onClick={() => setLivePhase("analyzing")}><Sparkles /> Find qualified replacements <ArrowRight /></button>
               </section>
 
               <section className="agent-live-scene agent-live-scene--analysis">
-                <div className="agent-live-analysis__heading"><span><Sparkles /></span><div><small>ExchangeUp Matching Engine</small><h3>Evaluating eligible replacements</h3></div><i /></div>
+                <div className="agent-live-analysis__heading"><span><Sparkles /></span><div><small>ExchangeUp matching engine</small><h3>Calculating buying power and financial fit</h3></div><i /></div>
                 <div className="agent-live-analysis__progress"><span /></div>
                 <div className="agent-live-analysis__steps">
-                  <AnalysisStep index="01" label="Equity and purchasing capacity" value="$4.8M ceiling" />
-                  <AnalysisStep index="02" label="Trade-up requirement" value="Qualified" />
-                  <AnalysisStep index="03" label="Projected return on equity" value="Improvement required" />
-                  <AnalysisStep index="04" label="Location and property criteria" value="New England · Income" />
+                  <AnalysisStep index="01" label="Available client equity" value="$1.3M" />
+                  <AnalysisStep index="02" label="Modeled buying range" value="Up to $4.8M" />
+                  <AnalysisStep index="03" label="Minimum return target" value="Above 12.4% ROE" />
+                  <AnalysisStep index="04" label="Market and asset fit" value="New England · Income" />
                 </div>
               </section>
 
               <section className="agent-live-scene agent-live-scene--results">
                 <div className="agent-live-results__heading">
-                  <div><small>Elaine Thomas · Riverside Apartments</small><h3>2 qualified matches</h3></div>
-                  <span><CircleCheck /> Search complete</span>
+                  <div><small>Ranked for Elaine's 1031 exchange</small><h3>2 replacements worth presenting</h3></div>
+                  <span><CircleCheck /> Financially qualified</span>
                 </div>
-                <div className="agent-live-results__filters"><span>All <b>2</b></span><span>New <b>2</b></span><span><TrendingUp /> Best match</span></div>
+                <div className="agent-live-results__filters"><span>Buying range <b>$4.8M</b></span><span>Best upside <b>+$33K/yr</b></span><span><Radar /> Search stays live</span></div>
                 <div className="agent-live-results__list">
                   {ILLUSTRATIVE_MATCHES.map((match, index) => (
                     <LiveMatchCard
@@ -215,51 +219,87 @@ export function AgentSearchPreview() {
                       index={index}
                       onSelect={() => {
                         setSelectedMatchIndex(index);
-                        setLivePhase("detail");
+                        setLivePhase("property");
                       }}
                     />
                   ))}
                 </div>
-                <div className="agent-live-results__monitor"><Radar /><span><small>Search remains active</small><strong>Monitoring for new qualifying opportunities</strong></span><i /></div>
               </section>
 
-              <section className="agent-live-scene agent-live-scene--detail" aria-live="polite">
-                <div className="agent-live-detail__toolbar">
-                  <button type="button" onClick={() => setLivePhase("results")}><ArrowLeft /> All matches</button>
-                  <span>Match #{selectedMatchIndex + 1} of 2</span>
-                </div>
-
-                <div className="agent-live-detail__property">
-                  <img src={selectedMatch.image} alt={`${selectedMatch.name} property`} />
-                  <div>
-                    <small>{selectedMatch.type} · {selectedMatch.market}</small>
-                    <h3>{selectedMatch.name}</h3>
-                    <p><strong>{selectedMatch.price}</strong><span>{selectedMatch.capRate} cap</span><span>{selectedMatch.noi} NOI</span></p>
+              <section className="agent-live-scene agent-live-scene--review" aria-live="polite">
+                <div className="agent-live-review__toolbar">
+                  <button type="button" className="agent-live-review__back" onClick={() => setLivePhase("results")}><ArrowLeft /> All matches</button>
+                  <div className="agent-live-review__tabs" role="tablist" aria-label="Property review">
+                    <button type="button" role="tab" aria-selected={livePhase === "property"} onClick={() => setLivePhase("property")}>Property</button>
+                    <button type="button" role="tab" aria-selected={livePhase === "financials"} onClick={() => setLivePhase("financials")}>Financials</button>
+                    <button type="button" role="tab" aria-selected={livePhase === "match"} onClick={() => setLivePhase("match")}>Why it fits</button>
+                    <button type="button" role="tab" aria-selected={livePhase === "contact"} onClick={() => setLivePhase("contact")}>Contact agent</button>
                   </div>
-                  <div className="agent-live-detail__score"><strong>{selectedMatch.score}</strong><small>match</small></div>
                 </div>
 
-                <div className="agent-live-detail__content">
-                  <div className="agent-live-comparison">
-                    <div className="agent-live-comparison__heading"><div><small>Financial opportunity</small><h4>Current vs. replacement</h4></div><span><TrendingUp /> Stronger return</span></div>
-                    <div className="agent-live-comparison__labels"><span>Metric</span><span>Current</span><span>Replacement</span><span>Change</span></div>
-                    <ComparisonRow label="Return on equity" current={selectedMatch.currentRoe} replacement={selectedMatch.projectedRoe} change={selectedMatch.roe.replace(" ROE", "")} />
-                    <ComparisonRow label="Net operating income" current={selectedMatch.currentNoi} replacement={selectedMatch.projectedNoi} change={selectedMatch.noiChange} />
-                    <ComparisonRow label="Annual cash flow" current={selectedMatch.currentCashFlow} replacement={selectedMatch.projectedCashFlow} change={selectedMatch.cashFlowChange} />
-                  </div>
+                <div className="agent-live-review__panels">
+                  <section className="agent-live-review__panel agent-live-review__panel--property">
+                    <div className="agent-live-property-overview__media">
+                      <img src={selectedMatch.image} alt={`${selectedMatch.name} property`} />
+                      <span>{selectedMatch.type}</span>
+                    </div>
+                    <div className="agent-live-property-overview__body">
+                      <div className="agent-live-property-overview__heading">
+                        <div><small>Property details</small><h3>{selectedMatch.name}</h3><p><MapPin /> {selectedMatch.market}</p></div>
+                        <span><strong>{selectedMatch.score}</strong><small>match</small></span>
+                      </div>
+                      <dl>
+                        <div><dt>Asking price</dt><dd>{selectedMatch.price}</dd></div>
+                        <div><dt>Cap rate</dt><dd>{selectedMatch.capRate}</dd></div>
+                        <div><dt>Annual NOI</dt><dd>{selectedMatch.noi}</dd></div>
+                        <div><dt>Asset type</dt><dd>{selectedMatch.type}</dd></div>
+                      </dl>
+                      <div className="agent-live-property-overview__location"><MapPin /><span><small>Location</small><strong>{selectedMatch.market} · Inside the client’s target area</strong></span></div>
+                    </div>
+                  </section>
 
-                  <aside className="agent-live-detail__reasons">
-                    <small>Why this matched</small>
-                    <h4>A qualified trade-up</h4>
-                    <ul>
-                      <li><CircleCheck /><span><strong>Within purchasing range</strong><small>{selectedMatch.price} asking price</small></span></li>
-                      <li><CircleCheck /><span><strong>Improves return on equity</strong><small>{selectedMatch.roe.replace(" ROE", "")} projected lift</small></span></li>
-                      <li><CircleCheck /><span><strong>Financing fits the model</strong><small>{selectedMatch.ltv}</small></span></li>
-                    </ul>
-                  </aside>
+                  <section className="agent-live-review__panel agent-live-review__panel--financials">
+                    <div className="agent-live-comparison">
+                      <div className="agent-live-comparison__heading"><div><small>Financial comparison</small><h4>Current property vs. replacement</h4></div><span><TrendingUp /> {selectedMatch.cashFlowChange} cash flow</span></div>
+                      <div className="agent-live-comparison__labels"><span>Metric</span><span>Current</span><span>Replacement</span><span>Change</span></div>
+                      <ComparisonRow label="Return on equity" current={selectedMatch.currentRoe} replacement={selectedMatch.projectedRoe} change={selectedMatch.roe.replace(" ROE", "")} />
+                      <ComparisonRow label="Net operating income" current={selectedMatch.currentNoi} replacement={selectedMatch.projectedNoi} change={selectedMatch.noiChange} />
+                      <ComparisonRow label="Annual cash flow" current={selectedMatch.currentCashFlow} replacement={selectedMatch.projectedCashFlow} change={selectedMatch.cashFlowChange} />
+                    </div>
+                    <div className="agent-live-financials__outcome"><CircleCheck /><span><small>Modeled client outcome</small><strong>Higher return and {selectedMatch.cashFlowChange} in annual cash flow</strong></span></div>
+                  </section>
+
+                  <section className="agent-live-review__panel agent-live-review__panel--match">
+                    <div className="agent-live-match-explainer__heading"><div><small>Match rationale</small><h3>Why {selectedMatch.name} fits</h3></div><span>{selectedMatch.score}% fit</span></div>
+                    <div className="agent-live-match-explainer__grid">
+                      <article>
+                        <small>Financial fit</small>
+                        <ul>
+                          <li><CircleCheck /><span><strong>Within buying range</strong><small>{selectedMatch.price} asking price</small></span></li>
+                          <li><CircleCheck /><span><strong>Improves return</strong><small>{selectedMatch.roe.replace(" ROE", "")} projected lift</small></span></li>
+                          <li><CircleCheck /><span><strong>Financing fits</strong><small>{selectedMatch.ltv}</small></span></li>
+                        </ul>
+                      </article>
+                      <aside>
+                        <small>Location fit</small>
+                        <h4>{selectedMatch.market}</h4>
+                        <div className="agent-live-location-route"><i /><span /><i /></div>
+                        <p><strong>Worcester, MA</strong><span>Current property</span></p>
+                        <p><strong>{selectedMatch.market}</strong><span>Target market match</span></p>
+                      </aside>
+                    </div>
+                  </section>
+
+                  <section className="agent-live-review__panel agent-live-review__panel--contact">
+                    <div className="agent-live-contact__heading"><div><small>Listing representative</small><h3>Reach the agent for this property</h3></div><span><i /> Available</span></div>
+                    <div className="agent-live-contact__card">
+                      <div className="agent-live-contact__identity"><span>JL</span><div><strong>Jordan Lee</strong><p>Northeast Commercial Realty</p><small>Listing agent for {selectedMatch.name}</small></div></div>
+                      <div className="agent-live-contact__property"><img src={selectedMatch.image} alt="" /><span><small>Regarding</small><strong>{selectedMatch.name}</strong><p>{selectedMatch.price} · {selectedMatch.market}</p></span></div>
+                      <div className="agent-live-contact__actions"><button type="button"><Mail /> Message listing agent</button><button type="button"><Phone /> View contact</button></div>
+                    </div>
+                    <div className="agent-live-contact__note"><CircleCheck /><span><small>You stay in control</small><strong>Your client’s details remain private until you choose to share them.</strong></span></div>
+                  </section>
                 </div>
-
-                <div className="agent-live-detail__footer"><span><CircleCheck /> This opportunity improves the client’s modeled position.</span><button type="button">Review full match <ArrowRight /></button></div>
               </section>
             </div>
             </section>
@@ -270,39 +310,6 @@ export function AgentSearchPreview() {
         <div className="agent-console__disclosure">Illustrative property data · real property photography · no real client information</div>
       </figure>
     </div>
-  );
-}
-
-function RolloutWindows() {
-  return (
-    <>
-      <aside className="agent-rollout-window agent-rollout-window--conversation" aria-hidden="true">
-        <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong># client-request</strong></div>
-        <div className="agent-rollout-chat">
-          <span className="agent-rollout-chat__avatar">ET</span>
-          <div><strong>Elaine Thomas</strong><small>10:24 AM</small><p>Focus on Northeast properties with stronger cash flow.</p></div>
-        </div>
-        <div className="agent-rollout-chat agent-rollout-chat--system">
-          <span className="agent-rollout-chat__mark">UP</span>
-          <div><strong>ExchangeUp</strong><small>10:24 AM</small><p>The matching engine is reviewing the exchange.</p></div>
-        </div>
-      </aside>
-
-      <aside className="agent-rollout-window agent-rollout-window--activity" aria-hidden="true">
-        <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong>Exchange analysis</strong></div>
-        <div className="agent-rollout-activity">
-          <p><span>›</span> Preparing Riverside replacement search</p>
-          <ul><li><Check /> Equity calculated <strong>$1.3M</strong></li><li><Check /> Purchase range verified</li><li><Check /> Return improvement required</li></ul>
-          <div><i /> Monitoring eligible inventory</div>
-        </div>
-      </aside>
-
-      <aside className="agent-rollout-window agent-rollout-window--listing" aria-hidden="true">
-        <div className="agent-rollout-window__chrome"><span><i /><i /><i /></span><strong>New opportunity</strong></div>
-        <div className="agent-rollout-listing__visual"><img src="/landing-prop-industrial.jpg" alt="" /><span>Potential match</span></div>
-        <div className="agent-rollout-listing__details"><small>Industrial · Manchester, NH</small><strong>Merrimack Commerce Park</strong><dl><div><dt>Asking</dt><dd>$4.2M</dd></div><div><dt>Cap rate</dt><dd>7.2%</dd></div></dl></div>
-      </aside>
-    </>
   );
 }
 
@@ -340,14 +347,9 @@ function LiveMatchCard({
         <div className="agent-live-match-card__financials">
           <span><small>Asking</small><strong>{match.price}</strong></span>
           <span><small>Cap rate</small><strong>{match.capRate}</strong></span>
-          <span><small>NOI</small><strong>{match.noi}</strong></span>
-        </div>
-        <div className="agent-live-match-card__fit">
-          <span><TrendingUp /> {match.roe}</span>
-          <span><Gauge /> {match.ltv}</span>
+          <span><small>Cash-flow lift</small><strong>{match.cashFlowChange}</strong></span>
         </div>
       </div>
-      <div className="agent-live-match-card__footer"><b>New opportunity</b><strong>Review match <ArrowRight /></strong></div>
     </article>
   );
 }

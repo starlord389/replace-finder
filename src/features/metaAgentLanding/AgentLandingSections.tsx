@@ -83,17 +83,41 @@ const FAQS = [
   },
 ] as const;
 
+const ADDITIONAL_BROKERAGE_LOGOS = [
+  {
+    name: "RE/MAX",
+    src: "https://static-images.remax.com/assets/web/branding/REMAX-logo.svg",
+    className: "",
+  },
+  {
+    name: "Coldwell Banker",
+    src: "https://bcom-coldwellbanker.directus.app/assets/90110d05-c162-4afc-9bc6-20ff283b6860",
+    className: "is-reversed",
+  },
+  {
+    name: "Corcoran",
+    src: "https://www.corcoran.com/static/logos/corcoran-logo-white.svg",
+    className: "is-reversed",
+  },
+  {
+    name: "Redfin",
+    src: "https://ssl.cdn-redfin.com/v642.0.1/images/logos/Redfin_Logo.png",
+    className: "",
+  },
+] as const;
+
 export function AgentPlatformStorySection() {
   return (
     <section className="agent-platform-story" aria-labelledby="agent-platform-story-title">
       <div className="agent-landing-shell agent-platform-story__frame">
-        <div className="agent-platform-story__rail" data-agent-reveal>
-          <p>One search, one connected record</p>
-          <ol aria-label="Information connected in an ExchangeUp search">
-            <li><Building2 aria-hidden="true" /><span><small>Property</small><strong>Financial position</strong></span></li>
-            <li><SlidersHorizontal aria-hidden="true" /><span><small>Criteria</small><strong>Client priorities</strong></span></li>
-            <li><Search aria-hidden="true" /><span><small>Matches</small><strong>Qualified opportunities</strong></span></li>
-            <li><Share2 aria-hidden="true" /><span><small>Next steps</small><strong>Agent coordination</strong></span></li>
+        <div className="agent-platform-story__rail agent-platform-story__rail--brokerages" data-agent-reveal>
+          <p>Trusted by agents from these brokerages</p>
+          <ol aria-label="Additional real estate brokerages">
+            {ADDITIONAL_BROKERAGE_LOGOS.map((logo) => (
+              <li key={logo.name}>
+                <img alt={logo.name} className={logo.className} loading="lazy" src={logo.src} />
+              </li>
+            ))}
           </ol>
         </div>
 

@@ -65,8 +65,28 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       screen.getByRole("heading", { name: /keep the full replacement story connected/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Match rationale")).toBeInTheDocument();
+    expect(screen.getAllByText("Match rationale")).toHaveLength(2);
     expect(screen.getByText("Pipeline stage")).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Real estate brokerage network" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Compass" })).toHaveAttribute(
+      "src",
+      "/logos/compass.svg",
+    );
+    expect(screen.getByRole("img", { name: "Keller Williams Realty" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "eXp Realty" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Churchill Real Estate" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Aluxety Real Estate" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "LYV Realty" })).toBeInTheDocument();
+    expect(screen.getByText("Trusted by agents from these brokerages")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "RE/MAX" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Coldwell Banker" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Corcoran" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Redfin" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("list", { name: "Additional real estate brokerages" }),
+    ).not.toHaveTextContent("Financial position");
     expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
       "content",
       "noindex, nofollow",
@@ -121,15 +141,18 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       screen.getByLabelText("Illustrative live replacement-property matching workflow"),
     ).toBeInTheDocument();
+    expect(document.querySelectorAll(".agent-rollout-window")).toHaveLength(0);
     expect(document.querySelector(".agent-live-demo__camera")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /preparing the exchange search/i })).toBeInTheDocument();
-    expect(screen.getByText("ExchangeUp Matching Engine")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "2 qualified matches" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /find qualified replacements/i })).toBeInTheDocument();
+    expect(screen.getByText("ExchangeUp matching engine")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "2 replacements worth presenting" })).toBeInTheDocument();
+    expect(screen.getAllByText("Up to $4.8M")).not.toHaveLength(0);
+    expect(screen.getByText("+$33K/yr")).toBeInTheDocument();
     expect(screen.getAllByText("Blackstone Mill Lofts")).not.toHaveLength(0);
     expect(screen.getAllByText("Merrimack Commerce Park")).not.toHaveLength(0);
     expect(screen.getByText("Active client workspace")).toBeInTheDocument();
-    expect(screen.getByText("Property owner · Worcester, MA")).toBeInTheDocument();
-    expect(screen.getByText("42 days")).toBeInTheDocument();
+    expect(screen.getByText("Property being sold")).toBeInTheDocument();
+    expect(screen.getByText("42 days remaining")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Riverside Apartments property" })).toHaveAttribute(
       "src",
       "/mf-4.jpg",
@@ -143,10 +166,19 @@ describe("Meta agent replacement-property landing page", () => {
       "/landing-prop-industrial.jpg",
     );
     expect(screen.getByRole("button", { name: "Review Blackstone Mill Lofts comparison" })).toBeInTheDocument();
-    expect(screen.getByText("Financial opportunity")).toBeInTheDocument();
-    expect(screen.getByText("Current vs. replacement")).toBeInTheDocument();
+    expect(screen.getByText("Financial comparison")).toBeInTheDocument();
+    expect(screen.getByText("Current property vs. replacement")).toBeInTheDocument();
     expect(screen.getByText("Return on equity")).toBeInTheDocument();
-    expect(screen.getByText("Why this matched")).toBeInTheDocument();
+    expect(screen.getAllByText("Match rationale")).toHaveLength(2);
+    expect(screen.getByText("Location fit")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Property" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Financials" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Why it fits" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Contact agent" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Reach the agent for this property" })).toBeInTheDocument();
+    expect(screen.getByText("Jordan Lee")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /message listing agent/i })).toBeInTheDocument();
+    expect(screen.queryByText("Give the client a clear next step")).not.toBeInTheDocument();
     expect(screen.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
   });
 
