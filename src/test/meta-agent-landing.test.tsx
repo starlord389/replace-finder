@@ -70,6 +70,13 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       screen.getByRole("heading", { name: /keep the full replacement story connected/i }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Build the search once. Keep it working." }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Start with the property. Buying power follows.")).toHaveLength(2);
+    expect(screen.getAllByText("Use standard matching—or refine what matters.")).toHaveLength(2);
+    expect(screen.getAllByText("Know why it fits before you present it.")).toHaveLength(2);
+    expect(screen.getByText("No replacement criteria are required.", { exact: false })).toBeInTheDocument();
     expect(screen.getAllByText("Match rationale")).toHaveLength(1);
     expect(screen.getByText("Pipeline stage")).toBeInTheDocument();
     expect(

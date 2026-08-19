@@ -21,21 +21,21 @@ import {
 const WORKFLOW_STEPS = [
   {
     number: "01",
-    label: "Private search",
-    title: "Start with the client’s property",
-    description: "Add the exchange information the matching system needs. The client search stays private in your workspace.",
+    label: "Exchange setup",
+    title: "Start with the property. Buying power follows.",
+    description: "Add the property being sold and its financials. ExchangeUp turns the client’s value, debt, and equity into a clear replacement-property buying range.",
   },
   {
     number: "02",
-    label: "Replacement criteria",
-    title: "Define what the next property needs to do",
-    description: "Set the markets, property types, purchase range, and optional financial preferences that matter to your client.",
+    label: "Optional criteria",
+    title: "Use standard matching—or refine what matters.",
+    description: "No replacement criteria are required. Use ExchangeUp’s standard affordability and return rules, or add preferences for location, property type, additional cash, leverage, and projected return.",
   },
   {
     number: "03",
     label: "Matches + monitoring",
-    title: "Review what fits—and keep the search active",
-    description: "Evaluate potential opportunities now. If nothing fits yet, the search continues monitoring eligible properties.",
+    title: "Know why it fits before you present it.",
+    description: "Review the property, modeled financing, return improvement, and criteria fit in one place. If nothing qualifies today, the search stays active as new listings enter the network.",
   },
 ] as const;
 
@@ -178,9 +178,9 @@ export function AgentWorkflowSection() {
         <path d="M82 1900 V1590 H396 V1750 H700 V1510 H1010 V1900 M1320 0 V318 H1530" />
       </svg>
       <div className="agent-landing-shell agent-workflow__intro" data-agent-reveal>
-        <p className="agent-eyebrow">One connected workflow</p>
-        <h2 id="workflow-title">From client property to replacement opportunity.</h2>
-        <p>ExchangeUp turns the details you already know into a focused search you can review, share, and keep active.</p>
+        <p className="agent-eyebrow">How ExchangeUp works</p>
+        <h2 id="workflow-title">Build the search once. Keep it working.</h2>
+        <p>Start with the property being exchanged. ExchangeUp calculates the client’s buying power, identifies financially stronger replacements, and keeps watching as new opportunities enter the network.</p>
       </div>
 
       <div className="agent-landing-shell agent-workflow__story">
