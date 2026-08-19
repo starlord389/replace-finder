@@ -188,7 +188,7 @@ export function AgentSearchPreview() {
                 <small>Client request received</small>
                 <h3>Ready to search the network</h3>
                 <p>ExchangeUp will compare the current property, financing capacity, return, and optional criteria.</p>
-                <div className="agent-live-scene__start"><Sparkles /> Preparing the exchange search <ArrowRight /></div>
+                <button type="button" className="agent-live-scene__start" onClick={() => setLivePhase("analyzing")}><Sparkles /> Preparing the exchange search <ArrowRight /></button>
               </section>
 
               <section className="agent-live-scene agent-live-scene--analysis">

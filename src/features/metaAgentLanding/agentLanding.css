@@ -949,7 +949,7 @@ body:has([data-meta-agent-landing]) {
   position: relative;
   min-height: 552px;
   overflow: hidden;
-  background: #f8fafc;
+  background: #e9eef3;
 }
 
 [data-meta-agent-landing] .agent-live-demo__camera {
@@ -958,13 +958,15 @@ body:has([data-meta-agent-landing]) {
   display: grid;
   grid-template-columns: 282px minmax(0, 1fr);
   min-height: 552px;
+  border-radius: 7px;
   background: #f8fafc;
+  box-shadow: 0 7px 22px rgba(15, 39, 71, 0.08);
   transform-origin: center;
   will-change: transform;
 }
 
 [data-meta-agent-landing] .agent-live-demo[data-live-phase="request"] .agent-live-demo__camera {
-  transform-origin: 14% 48%;
+  transform-origin: 63% 61%;
   animation: agent-live-camera-client 2.6s cubic-bezier(0.2, 0.82, 0.2, 1) both;
 }
 
@@ -974,12 +976,12 @@ body:has([data-meta-agent-landing]) {
 }
 
 [data-meta-agent-landing] .agent-live-demo[data-live-phase="results"] .agent-live-demo__camera {
-  transform-origin: 48% 61%;
+  transform-origin: 60% 68%;
   animation: agent-live-camera-match 4.4s cubic-bezier(0.2, 0.82, 0.2, 1) both;
 }
 
 [data-meta-agent-landing] .agent-live-demo[data-live-phase="detail"] .agent-live-demo__camera {
-  transform-origin: 64% 44%;
+  transform-origin: 60% 68%;
   animation: agent-live-camera-detail 7.2s cubic-bezier(0.2, 0.82, 0.2, 1) both;
 }
 
@@ -989,8 +991,8 @@ body:has([data-meta-agent-landing]) {
   left: 52%;
   z-index: 30;
   display: grid;
-  width: 21px;
-  height: 21px;
+  width: 18px;
+  height: 18px;
   place-items: center;
   opacity: 0;
   pointer-events: none;
@@ -1000,8 +1002,8 @@ body:has([data-meta-agent-landing]) {
 [data-meta-agent-landing] .agent-live-cursor > svg {
   position: relative;
   z-index: 2;
-  width: 19px;
-  height: 19px;
+  width: 17px;
+  height: 17px;
   fill: #fff;
   color: #102a43;
   filter: drop-shadow(0 3px 4px rgba(6, 20, 35, 0.28));
@@ -1010,11 +1012,11 @@ body:has([data-meta-agent-landing]) {
 
 [data-meta-agent-landing] .agent-live-cursor > i {
   position: absolute;
-  top: -5px;
-  left: -5px;
-  width: 30px;
-  height: 30px;
-  border: 2px solid rgba(49, 95, 134, 0.5);
+  top: -4px;
+  left: -4px;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid rgba(49, 95, 134, 0.46);
   border-radius: 50%;
   opacity: 0;
   transform: scale(0.35);
@@ -1624,9 +1626,16 @@ body:has([data-meta-agent-landing]) {
   border-radius: 9px;
   background: #fff;
   color: #47614c;
+  font: inherit;
   font-size: 7px;
   font-weight: 850;
+  cursor: pointer;
   box-shadow: 0 10px 24px rgba(20, 43, 28, 0.05);
+}
+
+[data-meta-agent-landing] .agent-live-scene__start:focus-visible {
+  outline: 2px solid #315f86;
+  outline-offset: 3px;
 }
 
 [data-meta-agent-landing] .agent-live-scene__start svg {
@@ -2530,56 +2539,56 @@ body:has([data-meta-agent-landing]) {
 }
 
 @keyframes agent-live-camera-client {
-  0%, 30% { transform: scale(1); }
-  43%, 70% { transform: scale(1.105); }
-  100% { transform: scale(1.018); }
+  0%, 37% { transform: scale(0.965); }
+  49%, 66% { transform: scale(1); }
+  100% { transform: scale(0.965); }
 }
 
 @keyframes agent-live-camera-analysis {
-  0% { transform: scale(1.018); }
-  18%, 100% { transform: scale(1); }
+  0%, 100% { transform: scale(0.965); }
 }
 
 @keyframes agent-live-camera-match {
-  0%, 55% { transform: scale(1); }
-  69%, 100% { transform: scale(1.105); }
+  0%, 55% { transform: scale(0.965); }
+  67%, 80% { transform: scale(1); }
+  100% { transform: scale(0.982); }
 }
 
 @keyframes agent-live-camera-detail {
-  0% { transform: scale(1.105); }
-  18% { transform: scale(1.048); }
-  72% { transform: scale(1.062); }
-  100% { transform: scale(1.042); }
+  0% { transform: scale(0.982); }
+  16% { transform: scale(0.97); }
+  68% { transform: scale(0.98); }
+  100% { transform: scale(0.965); }
 }
 
 @keyframes agent-live-cursor-client {
-  0% { top: 24%; left: 52%; opacity: 0; transform: scale(1); }
+  0% { top: 64%; left: 75%; opacity: 0; transform: scale(1); }
   12% { opacity: 1; }
-  35% { top: 47%; left: 17%; opacity: 1; transform: scale(1); }
-  40% { top: 47%; left: 17%; opacity: 1; transform: scale(0.82); }
-  46%, 70% { top: 47%; left: 17%; opacity: 1; transform: scale(1); }
-  86%, 100% { top: 47%; left: 17%; opacity: 0; transform: scale(1); }
+  34% { top: 61%; left: 63%; opacity: 1; transform: scale(1); }
+  40% { top: 61%; left: 63%; opacity: 1; transform: scale(0.86); }
+  46%, 66% { top: 61%; left: 63%; opacity: 1; transform: scale(1); }
+  78%, 100% { top: 61%; left: 63%; opacity: 0; transform: scale(1); }
 }
 
 @keyframes agent-live-click-client {
   0%, 37% { opacity: 0; transform: scale(0.35); }
   40% { opacity: 0.9; transform: scale(0.35); }
-  50%, 100% { opacity: 0; transform: scale(1.5); }
+  50%, 100% { opacity: 0; transform: scale(1.22); }
 }
 
 @keyframes agent-live-cursor-match {
-  0% { top: 28%; left: 80%; opacity: 0; transform: scale(1); }
+  0% { top: 75%; left: 76%; opacity: 0; transform: scale(1); }
   16% { opacity: 1; }
-  53% { top: 63%; left: 48%; opacity: 1; transform: scale(1); }
-  59% { top: 63%; left: 48%; opacity: 1; transform: scale(0.82); }
-  65%, 82% { top: 63%; left: 48%; opacity: 1; transform: scale(1); }
-  94%, 100% { top: 63%; left: 48%; opacity: 0; transform: scale(1); }
+  53% { top: 84%; left: 60%; opacity: 1; transform: scale(1); }
+  59% { top: 84%; left: 60%; opacity: 1; transform: scale(0.86); }
+  65%, 78% { top: 84%; left: 60%; opacity: 1; transform: scale(1); }
+  90%, 100% { top: 84%; left: 60%; opacity: 0; transform: scale(1); }
 }
 
 @keyframes agent-live-click-match {
   0%, 56% { opacity: 0; transform: scale(0.35); }
   59% { opacity: 0.9; transform: scale(0.35); }
-  69%, 100% { opacity: 0; transform: scale(1.5); }
+  69%, 100% { opacity: 0; transform: scale(1.22); }
 }
 
 @keyframes agent-live-progress {
@@ -2608,35 +2617,44 @@ body:has([data-meta-agent-landing]) {
 }
 
 @keyframes agent-live-camera-client-mobile {
-  0%, 30% { transform: scale(1); }
-  43%, 70% { transform: scale(1.045); }
-  100% { transform: scale(1.01); }
+  0%, 37% { transform: scale(0.982); }
+  49%, 66% { transform: scale(1); }
+  100% { transform: scale(0.982); }
 }
 
 @keyframes agent-live-camera-analysis-mobile {
-  0% { transform: scale(1.01); }
-  18%, 100% { transform: scale(1); }
+  0%, 100% { transform: scale(0.982); }
 }
 
 @keyframes agent-live-camera-match-mobile {
-  0%, 55% { transform: scale(1); }
-  69%, 100% { transform: scale(1.05); }
+  0%, 55% { transform: scale(0.982); }
+  67%, 80% { transform: scale(1); }
+  100% { transform: scale(0.991); }
 }
 
 @keyframes agent-live-camera-detail-mobile {
-  0% { transform: scale(1.05); }
-  18% { transform: scale(1.018); }
-  72% { transform: scale(1.03); }
-  100% { transform: scale(1.015); }
+  0% { transform: scale(0.991); }
+  18% { transform: scale(0.985); }
+  72% { transform: scale(0.99); }
+  100% { transform: scale(0.982); }
 }
 
 @keyframes agent-live-cursor-client-mobile {
-  0% { top: 24%; left: 30%; opacity: 0; transform: scale(1); }
+  0% { top: 68%; left: 76%; opacity: 0; transform: scale(1); }
   12% { opacity: 1; }
-  35% { top: 66%; left: 62%; opacity: 1; transform: scale(1); }
-  40% { top: 66%; left: 62%; opacity: 1; transform: scale(0.82); }
-  46%, 70% { top: 66%; left: 62%; opacity: 1; transform: scale(1); }
-  86%, 100% { top: 66%; left: 62%; opacity: 0; transform: scale(1); }
+  34% { top: 62%; left: 61%; opacity: 1; transform: scale(1); }
+  40% { top: 62%; left: 61%; opacity: 1; transform: scale(0.86); }
+  46%, 66% { top: 62%; left: 61%; opacity: 1; transform: scale(1); }
+  78%, 100% { top: 62%; left: 61%; opacity: 0; transform: scale(1); }
+}
+
+@keyframes agent-live-cursor-match-mobile {
+  0% { top: 70%; left: 78%; opacity: 0; transform: scale(1); }
+  16% { opacity: 1; }
+  53% { top: 79%; left: 62%; opacity: 1; transform: scale(1); }
+  59% { top: 79%; left: 62%; opacity: 1; transform: scale(0.86); }
+  65%, 78% { top: 79%; left: 62%; opacity: 1; transform: scale(1); }
+  90%, 100% { top: 79%; left: 62%; opacity: 0; transform: scale(1); }
 }
 
 @media (max-width: 820px) {
@@ -2650,7 +2668,7 @@ body:has([data-meta-agent-landing]) {
   }
 
   [data-meta-agent-landing] .agent-live-demo[data-live-phase="request"] .agent-live-demo__camera {
-    transform-origin: 50% 44%;
+    transform-origin: 61% 62%;
     animation-name: agent-live-camera-client-mobile;
   }
 
@@ -2659,17 +2677,21 @@ body:has([data-meta-agent-landing]) {
   }
 
   [data-meta-agent-landing] .agent-live-demo[data-live-phase="results"] .agent-live-demo__camera {
-    transform-origin: 48% 60%;
+    transform-origin: 60% 68%;
     animation-name: agent-live-camera-match-mobile;
   }
 
   [data-meta-agent-landing] .agent-live-demo[data-live-phase="detail"] .agent-live-demo__camera {
-    transform-origin: 56% 46%;
+    transform-origin: 60% 68%;
     animation-name: agent-live-camera-detail-mobile;
   }
 
   [data-meta-agent-landing] .agent-live-demo[data-live-phase="request"] .agent-live-cursor {
     animation-name: agent-live-cursor-client-mobile;
+  }
+
+  [data-meta-agent-landing] .agent-live-demo[data-live-phase="results"] .agent-live-cursor {
+    animation-name: agent-live-cursor-match-mobile;
   }
 
   [data-meta-agent-landing] .agent-live-demo__inbox {
