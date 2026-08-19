@@ -61,14 +61,14 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "The biggest obstacle to a 1031 Exchange is finding a replacement property. We’ve solved that.",
+        name: "Finding a replacement property is the hardest part of a 1031 Exchange. We’ve solved it.",
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("For Real Estate Agents")).toBeInTheDocument();
     expect(document.querySelector(".agent-hero .agent-eyebrow svg")).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "Create a private search using the property your client is selling. Add their replacement criteria, review potential matches, and keep the search active as new opportunities enter the network.",
+        "1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.",
       ),
     ).toBeInTheDocument();
     const announcement = screen.getByRole("link", {
