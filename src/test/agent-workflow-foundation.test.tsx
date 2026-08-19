@@ -28,6 +28,19 @@ function PlaybackHarness({ segment }: { segment: AgentWorkflowSegmentId }) {
   return <div ref={playback.stageRef} data-testid="playback" data-phase={playback.phase.id}>{playback.phase.label}</div>;
 }
 
+const VisibleIntersectionObserver = class {
+  constructor(private readonly callback: IntersectionObserverCallback) {}
+  observe(target: Element) {
+    this.callback(
+      [{ isIntersecting: true, intersectionRatio: 0.55, target } as IntersectionObserverEntry],
+      this as unknown as IntersectionObserver,
+    );
+  }
+  disconnect() {}
+  unobserve() {}
+  takeRecords() { return []; }
+};
+
 describe("canonical agent workflow foundation", () => {
   it("defines one continuous story with shared boundaries and no notification phase", () => {
     expect(AGENT_WORKFLOW_STORY.map((phase) => phase.id)).toEqual([
@@ -67,18 +80,6 @@ describe("canonical agent workflow foundation", () => {
 
   it("plays a selected segment from its shared first phase when it enters view", () => {
     vi.useFakeTimers();
-    const VisibleIntersectionObserver = class {
-      constructor(private readonly callback: IntersectionObserverCallback) {}
-      observe(target: Element) {
-        this.callback(
-          [{ isIntersecting: true, intersectionRatio: 0.55, target } as IntersectionObserverEntry],
-          this as unknown as IntersectionObserver,
-        );
-      }
-      disconnect() {}
-      unobserve() {}
-      takeRecords() { return []; }
-    };
     vi.stubGlobal("IntersectionObserver", VisibleIntersectionObserver);
 
     render(<PlaybackHarness segment="discover" />);
@@ -93,6 +94,24 @@ describe("canonical agent workflow foundation", () => {
 
     act(() => vi.advanceTimersByTime(3_600));
     expect(playback).toHaveAttribute("data-phase", "matches");
+  });
+
+  it("keeps the workflow story advancing when reduced motion is enabled", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("IntersectionObserver", VisibleIntersectionObserver);
+    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({
+      matches: true,
+      media: "(prefers-reduced-motion: reduce)",
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+
+    render(<PlaybackHarness segment="build" />);
+    const playback = screen.getByTestId("playback");
+    expect(playback).toHaveAttribute("data-phase", "property-details");
+
+    act(() => vi.advanceTimersByTime(3_400));
+    expect(playback).toHaveAttribute("data-phase", "financial-details");
   });
 
   it("provides one reusable dashboard frame and navigation system", () => {

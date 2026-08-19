@@ -24,9 +24,8 @@ export function useAgentWorkflowPlayback(
   useEffect(() => {
     const stage = stageRef.current;
     const lastIndex = segmentPhases.length - 1;
-    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-    if (!stage || reducedMotion || !("IntersectionObserver" in window)) {
+    if (!stage || !("IntersectionObserver" in window)) {
       setPhaseIndex(lastIndex);
       return;
     }
