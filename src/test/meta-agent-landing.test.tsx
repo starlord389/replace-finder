@@ -88,7 +88,7 @@ describe("Meta agent replacement-property landing page", () => {
     expect(screen.queryByText("For Investors")).not.toBeInTheDocument();
     expect(screen.queryByText("Talk to sales")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /keep the full replacement story connected/i }),
+      screen.getByRole("heading", { name: /create more deal flow from the clients you already know/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Stop searching listing by listing." }),
@@ -97,7 +97,7 @@ describe("Meta agent replacement-property landing page", () => {
       screen.getByText("ExchangeUp automatically surfaces the strongest replacement opportunities using your client’s property and investment goals, helping you close the sale, stay involved in the replacement purchase, and generate more business from every client completing a 1031 exchange."),
     ).toBeInTheDocument();
     const workflowHeading = screen.getByRole("heading", { name: "Stop searching listing by listing." });
-    const platformStoryHeading = screen.getByRole("heading", { name: /keep the full replacement story connected/i });
+    const platformStoryHeading = screen.getByRole("heading", { name: /create more deal flow from the clients you already know/i });
     const controlHeading = screen.getByRole("heading", { name: "Stay at the center of every client opportunity." });
     const trustedBrokerages = screen.getByText("Trusted by agents from these brokerages");
     expect(

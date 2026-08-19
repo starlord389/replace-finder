@@ -143,8 +143,11 @@ export function AgentPlatformStorySection() {
         <div className="agent-platform-story__statement" data-agent-reveal>
           <p className="agent-eyebrow">Built around the exchange</p>
           <h2 id="agent-platform-story-title">
-            <strong>Keep the full replacement story connected.</strong>{" "}
-            <span>Client objectives, property financials, eligible opportunities, and every next step stay in one working view.</span>
+            <strong>Create more deal flow from the clients you already know.</strong>{" "}
+            <span>
+              Show clients what their equity could do in a better-performing property. A compelling match can start an exchange
+              conversation, create a new listing, and keep you involved in the replacement purchase.
+            </span>
           </h2>
         </div>
 
