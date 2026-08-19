@@ -139,7 +139,7 @@ export function AgentWorkflowReviewDemo() {
       liveClassName="workflow-discover-live workflow-discover-shared workflow-review-live workflow-review-shared"
       ariaLabel="Animated matched-property review and financial comparison preview"
       workspace={`${ILLUSTRATIVE_CLIENT.name} · Matches`}
-      privacy="Private agent workspace"
+      privacy="Agent workspace"
       eyebrow="Review the matches"
       heading="Understand the property, financial improvement, and match reasoning"
       status={playback.phase.label}

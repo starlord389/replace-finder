@@ -9474,7 +9474,7 @@ body:has([data-meta-agent-landing]) {
   }
 }
 
-/* Step 1 product story: build a private search from property facts and optional goals. */
+/* Step 1 product story: build a search from property facts and optional goals. */
 [data-meta-agent-landing] .workflow-canvas__live.is-draft {
   border-color: #d8dee5;
   background: #f7f9fb;

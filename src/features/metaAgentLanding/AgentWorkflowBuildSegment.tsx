@@ -80,7 +80,7 @@ export function AgentWorkflowBuildScenes({ phase }: { phase: AgentWorkflowPhaseI
             ))}
           </div>
         </div>
-        <div className="workflow-build-live__action"><LockKeyhole /> Saved privately while in draft <button type="button" tabIndex={-1}>Continue to financials <ArrowRight /></button></div>
+        <div className="workflow-build-live__action"><LockKeyhole /> Saved as a draft until published <button type="button" tabIndex={-1}>Continue to financials <ArrowRight /></button></div>
       </section>
 
       <section className="agent-live-scene agent-live-scene--analysis workflow-build-live__scene workflow-build-live__scene--position" aria-hidden={phase !== "financial-details"}>
@@ -150,11 +150,11 @@ export function AgentWorkflowBuildDemo() {
       liveClassName="workflow-build-live"
       ariaLabel="Animated client listing creation and publishing workflow"
       workspace={`${ILLUSTRATIVE_CLIENT.name} · New listing`}
-      privacy="Private agent workspace"
+      privacy="Agent workspace"
       eyebrow="Create a listing"
       heading="Add the property, exchange criteria, and publish"
       status={playback.phase.label}
-      disclosure="Illustrative client and property data · private agent workflow"
+      disclosure="Illustrative client and property data · agent workflow"
     >
       <AgentWorkflowBuildScenes phase={playback.phase.id} />
     </AgentWorkflowFrame>

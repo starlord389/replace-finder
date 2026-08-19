@@ -135,7 +135,7 @@ export function AgentWorkflowDiscoverDemo() {
       liveClassName="workflow-build-live workflow-discover-live workflow-discover-shared"
       ariaLabel="Animated automatic replacement-property discovery preview"
       workspace={`${ILLUSTRATIVE_CLIENT.name} · Matches`}
-      privacy="Private agent workspace"
+      privacy="Agent workspace"
       eyebrow="Automatic matching"
       heading="Calculate the exchange position and surface matches"
       status={playback.phase.label}

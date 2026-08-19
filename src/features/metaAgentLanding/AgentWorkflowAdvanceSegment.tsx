@@ -95,7 +95,7 @@ export function AgentWorkflowAdvanceScenes({
           </div>
           <div className="agent-live-contact__note">
             <ShieldCheck />
-            <span><small>No approval step</small><strong>Verified agents can begin the conversation immediately. Your client’s details stay private.</strong></span>
+            <span><small>No approval step</small><strong>Verified agents can begin the conversation immediately. Client contact details are not shared automatically.</strong></span>
           </div>
         </section>
 
@@ -107,7 +107,7 @@ export function AgentWorkflowAdvanceScenes({
               <i><CircleCheck /> Agents connected</i>
             </div>
             <div className="agent-live-thread__body">
-              <div className="agent-live-thread__notice"><ShieldCheck /> Verified agent-to-agent conversation · client information stays private</div>
+              <div className="agent-live-thread__notice"><ShieldCheck /> Verified agent-to-agent conversation · client contact information is protected</div>
               {visualPhase === "sent" && (
                 <div className="agent-live-thread__message"><span>You</span><p>{ILLUSTRATIVE_OPENING_MESSAGE}</p><small>Just now · Delivered</small></div>
               )}

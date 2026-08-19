@@ -4,7 +4,6 @@ import {
   Building2,
   Check,
   CheckCircle2,
-  EyeOff,
   LockKeyhole,
   MapPin,
   Radar,
@@ -54,13 +53,13 @@ const WORKFLOW_STEPS = [
 const CONTROL_POINTS = [
   {
     number: "01",
-    title: "Private from the start",
-    detail: "Build and review the search in your agent workspace.",
+    title: "Manage the search",
+    detail: "Create the search, review the matches, and decide what you present to your client.",
   },
   {
     number: "02",
-    title: "Share on your terms",
-    detail: "Invite the client into their workspace when it supports your process.",
+    title: "Bring your client in when ready",
+    detail: "Invite the client into their workspace when it supports the way you work together.",
   },
   {
     number: "03",
@@ -77,7 +76,7 @@ const FAQS = [
   {
     question: "What do I need to start a search?",
     answer:
-      "Start with a client name. For the relinquished property, you’ll need the city, state, asset type, estimated value or asking price, monthly gross rent, monthly operating expenses, and current loan balance. Replacement preferences are optional.",
+      "Start with a client name. For the current property, you’ll need the city, state, asset type, estimated value or asking price, monthly gross rent, monthly operating expenses, and current loan balance. Replacement preferences are optional.",
   },
   {
     question: "Do I need to enter my client’s contact information?",
@@ -150,7 +149,7 @@ export function AgentPlatformStorySection() {
         </div>
 
         <div className="agent-platform-story__proof" data-agent-reveal>
-          <article><span>01</span><div><strong>Start with facts, not a blank search.</strong><p>The relinquished property and its financial position establish the search context.</p></div></article>
+          <article><span>01</span><div><strong>Start with facts, not a blank search.</strong><p>The client’s current property and its financial position establish the search context.</p></div></article>
           <article><span>02</span><div><strong>Make every match explainable.</strong><p>See the property, modeled financial change, and reasons an opportunity fits.</p></div></article>
           <article><span>03</span><div><strong>Keep momentum after discovery.</strong><p>Share with the client, coordinate with the other agent, and carry the opportunity forward.</p></div></article>
         </div>
@@ -258,7 +257,7 @@ function WorkflowCanvas({ stage }: { stage: number }) {
       <div className="workflow-canvas__chrome">
         <span className="workflow-canvas__mark"><Building2 aria-hidden="true" /></span>
         <div>
-          <small>Private client search</small>
+          <small>Client replacement search</small>
           <strong>Riverside exchange</strong>
         </div>
         <span className="workflow-canvas__live"><i /> Active</span>
@@ -275,7 +274,7 @@ function WorkflowCanvas({ stage }: { stage: number }) {
         {/* Temporary: Step 4 reuses the Step 3 results visual until the dedicated visual pass. */}
         {stage >= 2 ? <ResultsState /> : null}
       </div>
-      <div className="workflow-canvas__footer"><LockKeyhole aria-hidden="true" /> Private to your workspace <span>Illustrative product view</span></div>
+      <div className="workflow-canvas__footer"><LockKeyhole aria-hidden="true" /> Managed from your agent workspace <span>Illustrative product view</span></div>
     </div>
   );
 }
@@ -304,8 +303,8 @@ export function AgentControlSection() {
       <div className="agent-landing-shell agent-control__layout">
         <div className="agent-control__copy" data-agent-reveal>
           <p className="agent-eyebrow agent-eyebrow--light">Your client. Your process.</p>
-          <h2 id="agent-control-title">A private search you stay in control of.</h2>
-          <p>Build the search first, bring the client in when it makes sense, and keep the exchange moving without giving up control of the relationship.</p>
+          <h2 id="agent-control-title">Stay at the center of every client opportunity.</h2>
+          <p>Manage the search, review matches with your client, and communicate directly with the listing agent when your client wants to move forward.</p>
           <ol className="agent-control__principles">
             {CONTROL_POINTS.map((point) => (
               <li key={point.number}><span>{point.number}</span><div><strong>{point.title}</strong><p>{point.detail}</p></div></li>
@@ -313,11 +312,11 @@ export function AgentControlSection() {
           </ol>
         </div>
 
-        <div className="agent-access-map" aria-label="Private agent workspace access model" data-agent-reveal>
-          <div className="agent-access-map__topbar"><span><LockKeyhole aria-hidden="true" /> Search access</span><strong>Agent controlled</strong></div>
+        <div className="agent-access-map" aria-label="Agent-managed client workflow" data-agent-reveal>
+          <div className="agent-access-map__topbar"><span><LockKeyhole aria-hidden="true" /> Search coordination</span><strong>Agent managed</strong></div>
           <div className="agent-access-map__boundary">
-            <div className="agent-access-map__boundary-label"><EyeOff aria-hidden="true" /> Private workspace boundary</div>
-            <div className="agent-access-map__primary"><span><UserRound aria-hidden="true" /></span><div><small>Search owner</small><strong>You · Representing agent</strong></div><i>Full control</i></div>
+            <div className="agent-access-map__boundary-label"><CheckCircle2 aria-hidden="true" /> Agent-managed workflow</div>
+            <div className="agent-access-map__primary"><span><UserRound aria-hidden="true" /></span><div><small>Search manager</small><strong>You · Representing agent</strong></div><i>Leads process</i></div>
             <div className="agent-access-map__route" aria-hidden="true"><span /><i /><span /></div>
             <div className="agent-access-map__nodes">
               <div><span><Share2 aria-hidden="true" /></span><small>Client workspace</small><strong>You choose when to invite</strong></div>
@@ -352,7 +351,7 @@ export function AgentFaqSection() {
         <div className="agent-faq__intro" data-agent-reveal>
           <p className="agent-eyebrow">Before you begin</p>
           <h2 id="faq-title">Straight answers, before you start.</h2>
-          <p>Everything needed to understand how a private client search starts and what happens next.</p>
+          <p>Everything needed to understand how an ExchangeUp client search starts and what happens next.</p>
         </div>
         <Accordion type="single" collapsible className="agent-faq__accordion" data-agent-reveal>
           {FAQS.map((faq, index) => (

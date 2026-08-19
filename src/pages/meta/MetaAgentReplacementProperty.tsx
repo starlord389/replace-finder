@@ -26,7 +26,7 @@ import "@/features/metaAgentLanding/agentLanding.css";
 
 const PAGE_TITLE = "Find Replacement Properties for 1031 Clients | ExchangeUp";
 const PAGE_DESCRIPTION =
-  "Create a private search using the property your client is selling, then review potential replacement properties based on its financials and your client’s preferences.";
+  "Create a replacement-property search using your client’s current property, then review matches based on its financials and your client’s investment criteria.";
 
 const BROKERAGE_LOGOS = [
   { name: "Compass", src: "/logos/compass.svg", className: "is-wide" },
@@ -315,7 +315,7 @@ export default function MetaAgentReplacementProperty() {
           <div className="agent-landing-shell agent-final-cta__inner">
             <p className="agent-eyebrow agent-eyebrow--light">Your next search starts here</p>
             <h2 id="final-cta-title">Put your client’s next property in motion.</h2>
-            <p className="agent-final-cta__lead">Create the private search, define what fits, and keep the market working in the background.</p>
+            <p className="agent-final-cta__lead">Create the search, define what fits, and keep ExchangeUp monitoring the network for new opportunities.</p>
             <div className="agent-final-cta__action">
               <AgentLandingCta
                 destination={signupDestination}
