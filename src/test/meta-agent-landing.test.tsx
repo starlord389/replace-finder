@@ -65,6 +65,7 @@ describe("Meta agent replacement-property landing page", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("For Real Estate Agents")).toBeInTheDocument();
+    expect(document.querySelector(".agent-hero .agent-eyebrow svg")).not.toBeInTheDocument();
     expect(
       screen.getByText(
         "Create a private search using the property your client is selling. Add their replacement criteria, review potential matches, and keep the search active as new opportunities enter the network.",

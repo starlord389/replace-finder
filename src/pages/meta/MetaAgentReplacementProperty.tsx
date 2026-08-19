@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ArrowDownRight, ChevronRight } from "lucide-react";
+import { ArrowDownRight } from "lucide-react";
 import { ExchangeLogoLockup } from "@/components/brand/ExchangeLogo";
 import { useHead } from "@/hooks/useHead";
 import { trackEvent } from "@/lib/telemetry";
@@ -272,7 +272,6 @@ export default function MetaAgentReplacementProperty() {
             <div className="agent-hero__copy">
               <p className="agent-eyebrow">
                 <span>For Real Estate Agents</span>
-                <ChevronRight aria-hidden="true" />
               </p>
               <h1 id="agent-hero-title">The biggest obstacle to a 1031 Exchange is finding a replacement property. We’ve solved that.</h1>
               <p className="agent-hero__lead">
