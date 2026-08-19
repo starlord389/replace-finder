@@ -144,10 +144,7 @@ export function AgentPlatformStorySection() {
           <p className="agent-eyebrow">Built around the exchange</p>
           <h2 id="agent-platform-story-title">
             <strong>Create more deal flow from the clients you already know.</strong>{" "}
-            <span>
-              Show clients what their equity could do in a better-performing property. A compelling match can start an exchange
-              conversation, create a new listing, and keep you involved in the replacement purchase.
-            </span>
+            <span>Turn better-performing property matches into exchange conversations and new transactions.</span>
           </h2>
         </div>
 
