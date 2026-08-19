@@ -26,7 +26,7 @@ import "@/features/metaAgentLanding/agentLanding.css";
 
 const PAGE_TITLE = "Find Replacement Properties for 1031 Clients | ExchangeUp";
 const PAGE_DESCRIPTION =
-  "Create a private client search, set replacement-property requirements, and review potential 1031 exchange matches in ExchangeUp.";
+  "Create a private search using the property your client is selling, then review potential replacement properties based on its financials and your client’s preferences.";
 
 const BROKERAGE_LOGOS = [
   { name: "Compass", src: "/logos/compass.svg", className: "is-wide" },
@@ -192,7 +192,7 @@ export default function MetaAgentReplacementProperty() {
     };
   }, []);
 
-  const trackCta = (ctaLocation: "header" | "hero" | "final") => {
+  const trackCta = (ctaLocation: "announcement" | "header" | "hero" | "final") => {
     trackEvent("agent_landing_cta_clicked", {
       route: location.pathname,
       ctaLocation,
@@ -212,12 +212,16 @@ export default function MetaAgentReplacementProperty() {
       </a>
 
       <header className={`agent-header${darkHeader ? " is-dark" : ""}`}>
-        <a className="agent-header__announcement" href="#how-it-works">
+        <Link
+          className="agent-header__announcement"
+          to={signupDestination}
+          onClick={() => trackCta("announcement")}
+        >
           <span className="agent-header__announcement-text">
-            See how ExchangeUp turns one property into a focused replacement search
+            Sign Up for Free — No Credit Card Required
           </span>
           <span className="agent-header__announcement-arrow" aria-hidden="true">→</span>
-        </a>
+        </Link>
         <div className="agent-header__nav-row">
           <div className="agent-landing-shell agent-header__inner">
             <a href="#main-content" aria-label="1031ExchangeUP™" className="agent-header__brand">
@@ -238,7 +242,7 @@ export default function MetaAgentReplacementProperty() {
                 location="header"
                 onClick={trackCta}
                 className="agent-header__cta"
-                label="Start for free"
+                label={AGENT_LANDING_CTA}
               />
             </div>
           </div>
@@ -267,22 +271,22 @@ export default function MetaAgentReplacementProperty() {
           <div className="agent-landing-shell agent-hero__grid">
             <div className="agent-hero__copy">
               <p className="agent-eyebrow">
-                <span>Built for 1031 exchange agents</span>
+                <span>For Real Estate Agents</span>
                 <ChevronRight aria-hidden="true" />
               </p>
-              <h1 id="agent-hero-title">Find your client’s next property.</h1>
+              <h1 id="agent-hero-title">The biggest obstacle to a 1031 Exchange is finding a replacement property. We’ve solved that.</h1>
               <p className="agent-hero__lead">
-                Create a private search, define what the replacement property needs to do, and review potential matches in one workspace.
+                Create a private search using the property your client is selling. Add their replacement criteria, review potential matches, and keep the search active as new opportunities enter the network.
               </p>
               <div className="agent-hero__action">
                 <AgentLandingCta
                   destination={signupDestination}
                   location="hero"
                   onClick={trackCta}
-                  label="Start a free search"
+                  label={AGENT_LANDING_CTA}
                 />
                 <a className="agent-hero__secondary" href="#how-it-works">
-                  See how it works
+                  See How ExchangeUp Works
                   <ArrowDownRight aria-hidden="true" />
                 </a>
               </div>

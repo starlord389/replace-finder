@@ -61,10 +61,29 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Find your client’s next property.",
+        name: "The biggest obstacle to a 1031 Exchange is finding a replacement property. We’ve solved that.",
       }),
     ).toBeInTheDocument();
+    expect(screen.getByText("For Real Estate Agents")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Create a private search using the property your client is selling. Add their replacement criteria, review potential matches, and keep the search active as new opportunities enter the network.",
+      ),
+    ).toBeInTheDocument();
+    const announcement = screen.getByRole("link", {
+      name: "Sign Up for Free — No Credit Card Required",
+    });
+    expect(announcement).toHaveAttribute(
+      "href",
+      buildAgentSignupDestination(campaignSearch),
+    );
+    expect(screen.getByRole("link", { name: "See How ExchangeUp Works" })).toHaveAttribute(
+      "href",
+      "#how-it-works",
+    );
     expect(screen.getAllByRole("link", { name: AGENT_LANDING_CTA })).toHaveLength(3);
+    expect(document.querySelector('[data-cta-location="header"]')).toHaveTextContent(AGENT_LANDING_CTA);
+    expect(document.querySelector('[data-cta-location="hero"]')).toHaveTextContent(AGENT_LANDING_CTA);
     expect(screen.queryByText("For Investors")).not.toBeInTheDocument();
     expect(screen.queryByText("Talk to sales")).not.toBeInTheDocument();
     expect(
@@ -116,6 +135,10 @@ describe("Meta agent replacement-property landing page", () => {
       "content",
       "noindex, nofollow",
     );
+    expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
+      "content",
+      "Create a private search using the property your client is selling, then review potential replacement properties based on its financials and your client’s preferences.",
+    );
 
     const viewEvents = vi
       .mocked(trackEvent)
@@ -150,6 +173,20 @@ describe("Meta agent replacement-property landing page", () => {
       "agent_landing_cta_clicked",
       expect.objectContaining({
         ctaLocation: "hero",
+        creativeAngle: "private-search",
+        attribution: expect.objectContaining({ fbclid: "fb-123" }),
+      }),
+    );
+
+    fireEvent.click(screen.getByRole("link", {
+      name: "Sign Up for Free — No Credit Card Required",
+    }));
+
+    expect(vi.mocked(trackEvent)).toHaveBeenCalledWith(
+      "agent_landing_cta_clicked",
+      expect.objectContaining({
+        ctaLocation: "announcement",
+        ctaLabel: AGENT_LANDING_CTA,
         creativeAngle: "private-search",
         attribution: expect.objectContaining({ fbclid: "fb-123" }),
       }),

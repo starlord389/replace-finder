@@ -173,17 +173,6 @@ body:has([data-meta-agent-landing]) {
   }
 }
 
-@media (max-width: 430px) {
-  [data-meta-agent-landing] .agent-header__cta span {
-    font-size: 0;
-  }
-
-  [data-meta-agent-landing] .agent-header__cta span::after {
-    font-size: 12px;
-    content: "Start free";
-  }
-}
-
 /* Hero */
 [data-meta-agent-landing] .agent-hero {
   position: relative;
@@ -5488,7 +5477,16 @@ body:has([data-meta-agent-landing]) {
   }
 
   [data-meta-agent-landing] .agent-header__brand svg {
-    max-width: 155px;
+    max-width: clamp(108px, 33vw, 142px);
+  }
+
+  [data-meta-agent-landing] .agent-header__cta,
+  [data-meta-agent-landing] .agent-header .agent-header__cta {
+    max-width: clamp(160px, 48vw, 200px);
+    padding-inline: clamp(7px, 2vw, 12px);
+    font-size: clamp(9px, 2.5vw, 11px);
+    line-height: 1.15;
+    white-space: normal;
   }
 
   [data-meta-agent-landing] .agent-hero {
