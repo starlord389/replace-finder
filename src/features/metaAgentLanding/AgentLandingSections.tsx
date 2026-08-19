@@ -83,6 +83,38 @@ const FAQS = [
   },
 ] as const;
 
+export function AgentPlatformStorySection() {
+  return (
+    <section className="agent-platform-story" aria-labelledby="agent-platform-story-title">
+      <div className="agent-landing-shell agent-platform-story__frame">
+        <div className="agent-platform-story__rail" data-agent-reveal>
+          <p>One search, one connected record</p>
+          <ol aria-label="Information connected in an ExchangeUp search">
+            <li><Building2 aria-hidden="true" /><span><small>Property</small><strong>Financial position</strong></span></li>
+            <li><SlidersHorizontal aria-hidden="true" /><span><small>Criteria</small><strong>Client priorities</strong></span></li>
+            <li><Search aria-hidden="true" /><span><small>Matches</small><strong>Qualified opportunities</strong></span></li>
+            <li><Share2 aria-hidden="true" /><span><small>Next steps</small><strong>Agent coordination</strong></span></li>
+          </ol>
+        </div>
+
+        <div className="agent-platform-story__statement" data-agent-reveal>
+          <p className="agent-eyebrow">Built around the exchange</p>
+          <h2 id="agent-platform-story-title">
+            <strong>Keep the full replacement story connected.</strong>{" "}
+            <span>Client objectives, property financials, eligible opportunities, and every next step stay in one working view.</span>
+          </h2>
+        </div>
+
+        <div className="agent-platform-story__proof" data-agent-reveal>
+          <article><span>01</span><div><strong>Start with facts, not a blank search.</strong><p>The relinquished property and its financial position establish the search context.</p></div></article>
+          <article><span>02</span><div><strong>Make every match explainable.</strong><p>See the property, modeled financial change, and reasons an opportunity fits.</p></div></article>
+          <article><span>03</span><div><strong>Keep momentum after discovery.</strong><p>Share with the client, coordinate with the other agent, and carry the opportunity forward.</p></div></article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function AgentWorkflowSection() {
   const [activeStep, setActiveStep] = useState(0);
   const panelRefs = useRef<Array<HTMLElement | null>>([]);
@@ -272,6 +304,20 @@ export function AgentControlSection() {
           </div>
           <div className="agent-access-map__footer"><Check aria-hidden="true" /> No client contact information is required to begin.</div>
         </div>
+      </div>
+
+      <div className="agent-landing-shell agent-control__connected" data-agent-reveal>
+        <div className="agent-control__connected-heading">
+          <small>What stays connected</small>
+          <strong>Context carries forward as the exchange moves.</strong>
+        </div>
+        <ol>
+          <li><span>01</span><div><small>Property</small><strong>Financials + equity</strong></div></li>
+          <li><span>02</span><div><small>Search</small><strong>Client criteria</strong></div></li>
+          <li><span>03</span><div><small>Opportunity</small><strong>Match rationale</strong></div></li>
+          <li><span>04</span><div><small>Coordination</small><strong>Agent conversation</strong></div></li>
+          <li><span>05</span><div><small>Progress</small><strong>Pipeline stage</strong></div></li>
+        </ol>
       </div>
     </section>
   );

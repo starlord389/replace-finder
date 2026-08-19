@@ -62,6 +62,11 @@ describe("Meta agent replacement-property landing page", () => {
     expect(screen.getAllByRole("link", { name: AGENT_LANDING_CTA })).toHaveLength(3);
     expect(screen.queryByText("For Investors")).not.toBeInTheDocument();
     expect(screen.queryByText("Talk to sales")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /keep the full replacement story connected/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Match rationale")).toBeInTheDocument();
+    expect(screen.getByText("Pipeline stage")).toBeInTheDocument();
     expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
       "content",
       "noindex, nofollow",

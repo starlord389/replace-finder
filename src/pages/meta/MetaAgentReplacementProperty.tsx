@@ -13,6 +13,7 @@ import { AgentSearchPreview } from "@/features/metaAgentLanding/AgentSearchPrevi
 import {
   AgentControlSection,
   AgentFaqSection,
+  AgentPlatformStorySection,
   AgentWorkflowSection,
 } from "@/features/metaAgentLanding/AgentLandingSections";
 import {
@@ -272,6 +273,7 @@ export default function MetaAgentReplacementProperty() {
           </div>
         </section>
 
+        <AgentPlatformStorySection />
         <AgentWorkflowSection />
         <AgentControlSection />
         <AgentFaqSection />
