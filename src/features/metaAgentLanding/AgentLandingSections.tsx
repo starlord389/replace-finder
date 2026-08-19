@@ -6,13 +6,10 @@ import {
   CheckCircle2,
   EyeOff,
   LockKeyhole,
-  Mail,
   MapPin,
   Radar,
   Search,
-  Send,
   Share2,
-  ShieldCheck,
   UserRound,
 } from "lucide-react";
 import {
@@ -21,7 +18,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { CURRENT_PROPERTY, ILLUSTRATIVE_MATCHES } from "@/features/metaAgentLanding/agentWorkflowData";
+import { CURRENT_PROPERTY } from "@/features/metaAgentLanding/agentWorkflowData";
+import { AgentWorkflowAdvanceDemo } from "@/features/metaAgentLanding/AgentWorkflowAdvanceSegment";
 import { AgentWorkflowBuildDemo } from "@/features/metaAgentLanding/AgentWorkflowBuildSegment";
 import { AgentWorkflowDiscoverDemo } from "@/features/metaAgentLanding/AgentWorkflowDiscoverSegment";
 import { AgentWorkflowReviewDemo } from "@/features/metaAgentLanding/AgentWorkflowReviewSegment";
@@ -253,7 +251,7 @@ function WorkflowCanvas({ stage }: { stage: number }) {
   if (stage === 0) return <AgentWorkflowBuildDemo />;
   if (stage === 1) return <AgentWorkflowDiscoverDemo />;
   if (stage === 2) return <AgentWorkflowReviewDemo />;
-  if (stage === 3) return <AdvanceOpportunityState />;
+  if (stage === 3) return <AgentWorkflowAdvanceDemo />;
 
   return (
     <div className="workflow-canvas" data-stage={stage}>
@@ -278,129 +276,6 @@ function WorkflowCanvas({ stage }: { stage: number }) {
         {stage >= 2 ? <ResultsState /> : null}
       </div>
       <div className="workflow-canvas__footer"><LockKeyhole aria-hidden="true" /> Private to your workspace <span>Illustrative product view</span></div>
-    </div>
-  );
-}
-
-type AdvancePhase = "match" | "opening" | "conversation" | "typing" | "sent";
-
-const ADVANCE_PHASE_LABELS: Record<AdvancePhase, string> = {
-  match: "Match review complete",
-  opening: "Contacting the listing agent",
-  conversation: "Agent conversation opened",
-  typing: "Writing the first message",
-  sent: "Message delivered",
-};
-
-const ADVANCE_MESSAGE = "Hi Jordan, my client is interested in 184 River Avenue. Could you send the OM and latest T-12?";
-
-function AdvanceOpportunityState() {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [phase, setPhase] = useState<AdvancePhase>("match");
-  const [cycle, setCycle] = useState(0);
-  const selectedMatch = ILLUSTRATIVE_MATCHES[0];
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage || !("IntersectionObserver" in window)) {
-      setPhase("sent");
-      return;
-    }
-
-    let active = false;
-    let timers: number[] = [];
-    const clearTimers = () => {
-      timers.forEach((timer) => window.clearTimeout(timer));
-      timers = [];
-    };
-    const runCycle = () => {
-      if (!active) return;
-      clearTimers();
-      setCycle((value) => value + 1);
-      setPhase("match");
-      timers.push(window.setTimeout(() => active && setPhase("opening"), 3_600));
-      timers.push(window.setTimeout(() => active && setPhase("conversation"), 5_100));
-      timers.push(window.setTimeout(() => active && setPhase("typing"), 6_700));
-      timers.push(window.setTimeout(() => active && setPhase("sent"), 10_900));
-      timers.push(window.setTimeout(() => active && runCycle(), 16_500));
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const shouldRun = entry.intersectionRatio >= 0.2;
-        if (shouldRun && !active) {
-          active = true;
-          runCycle();
-          return;
-        }
-        if (!shouldRun && active) {
-          active = false;
-          clearTimers();
-        }
-      },
-      { threshold: [0, 0.14, 0.2, 0.28, 0.55] },
-    );
-
-    observer.observe(stage);
-    return () => {
-      active = false;
-      clearTimers();
-      observer.disconnect();
-    };
-  }, []);
-
-  const showingConversation = phase === "conversation" || phase === "typing" || phase === "sent";
-
-  return (
-    <div ref={stageRef} className="agent-console-stage workflow-advance-stage">
-      <figure className="agent-console" data-advance-phase={phase} aria-label="Animated listing-agent conversation workflow">
-        <figcaption className="agent-console__topbar">
-          <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
-          <span className="agent-console__workspace">Elaine Thomas · 184 River Avenue</span>
-          <span className="agent-console__privacy">Verified agents only</span>
-        </figcaption>
-
-        <div key={cycle} className="agent-live-demo workflow-advance-live" data-live-phase={phase}>
-          <div className="agent-live-demo__camera">
-            <section className="agent-live-demo__workspace">
-              <div className="agent-live-demo__workspace-heading"><div><small>Advance the opportunity</small><strong>Move from a reviewed match into an agent conversation</strong></div><span><i /> {ADVANCE_PHASE_LABELS[phase]}</span></div>
-
-              <div className="agent-live-demo__canvas">
-                <section className="agent-live-scene workflow-advance-live__scene workflow-advance-live__scene--match" aria-hidden={showingConversation}>
-                  <div className="workflow-advance-live__nav" aria-hidden="true"><span>Dashboard</span><span>Pipeline</span><span className="is-active">Matches</span><span>Client Requests</span></div>
-                  <div className="workflow-advance-live__breadcrumb"><ArrowRight /> Elaine Thomas <i /> Matched properties <i /> {selectedMatch.address}</div>
-                  <article className="workflow-advance-live__decision">
-                    <img src={selectedMatch.image} alt={`${selectedMatch.address} selected match`} />
-                    <div className="workflow-advance-live__decision-property"><small>Reviewed match</small><h3>{selectedMatch.address}</h3><p><MapPin /> {selectedMatch.market}</p><span><CheckCircle2 /> Worth presenting</span></div>
-                    <div className="workflow-advance-live__decision-agent"><span>JL</span><div><small>Listing agent</small><strong>Jordan Lee</strong><p>Northeast Commercial Realty</p></div></div>
-                    <button type="button" tabIndex={-1}><Mail /> Contact listing agent <ArrowRight /></button>
-                  </article>
-                  <div className="workflow-advance-live__immediate"><ShieldCheck /><span><small>No approval step</small><strong>Verified agents can begin the conversation immediately.</strong></span></div>
-                </section>
-
-                <section className="agent-live-scene workflow-advance-live__scene workflow-advance-live__scene--conversation" aria-hidden={!showingConversation}>
-                  <div className="workflow-advance-live__nav" aria-hidden="true"><span>Dashboard</span><span className="is-active">Pipeline</span><span>Matches</span><span>Client Requests</span></div>
-                  <div className="workflow-advance-live__thread">
-                    <header><span>JL</span><div><small>Conversation with listing agent</small><strong>Jordan Lee</strong><p>{selectedMatch.address} · {selectedMatch.market}</p></div><em><i /> Agents connected</em></header>
-                    <div className="workflow-advance-live__thread-body">
-                      <div className="workflow-advance-live__privacy"><ShieldCheck /> Verified agent-to-agent conversation · client details stay private</div>
-                      {phase === "sent" && <div className="workflow-advance-live__message"><span>You</span><p>{ADVANCE_MESSAGE}</p><small>Just now · Delivered</small></div>}
-                    </div>
-                    <div className={`workflow-advance-live__composer${phase === "typing" ? " is-typing" : ""}${phase === "sent" ? " is-sent" : ""}`}>
-                      <span>{phase === "typing" ? ADVANCE_MESSAGE : "Write a message…"}</span>
-                      <button type="button" tabIndex={-1} aria-label="Send illustrative message"><Send /></button>
-                    </div>
-                    {phase === "sent" && <div className="workflow-advance-live__complete"><CheckCircle2 /><span><small>Conversation started</small><strong>The opportunity moved to In Conversation in the pipeline.</strong></span></div>}
-                  </div>
-                </section>
-              </div>
-            </section>
-          </div>
-        </div>
-
-        <p className="sr-only" aria-live="polite">{ADVANCE_PHASE_LABELS[phase]}</p>
-        <div className="agent-console__disclosure">Illustrative property and conversation data · verified agent workflow</div>
-      </figure>
     </div>
   );
 }

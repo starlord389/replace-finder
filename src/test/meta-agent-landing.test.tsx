@@ -153,7 +153,7 @@ describe("Meta agent replacement-property landing page", () => {
     expect(buildSearchPanel.queryByText("Relinquished property")).not.toBeInTheDocument();
     const advancePanel = within(workflowPanels[3] as HTMLElement);
     expect(advancePanel.getByLabelText("Animated listing-agent conversation workflow")).toBeInTheDocument();
-    expect(advancePanel.getByText("Contact listing agent")).toBeInTheDocument();
+    expect(advancePanel.getByText("Start agent conversation")).toBeInTheDocument();
     expect(advancePanel.getByText("Conversation with listing agent")).toBeInTheDocument();
     document.querySelectorAll(".workflow-canvas__progress").forEach((progress) => {
       expect(progress.children).toHaveLength(4);
@@ -385,25 +385,28 @@ describe("Meta agent replacement-property landing page", () => {
       );
 
       const preview = screen.getByLabelText("Animated listing-agent conversation workflow");
-      expect(preview).toHaveAttribute("data-advance-phase", "match");
-      expect(preview.querySelector(".workflow-advance-live__scene--match")).toHaveAttribute("aria-hidden", "false");
-
-      act(() => vi.advanceTimersByTime(3_600));
-      expect(preview).toHaveAttribute("data-advance-phase", "opening");
-      expect(preview.querySelector(".workflow-advance-live__scene--match")).toHaveAttribute("aria-hidden", "false");
-
-      act(() => vi.advanceTimersByTime(1_500));
-      expect(preview).toHaveAttribute("data-advance-phase", "conversation");
-      expect(preview.querySelector(".workflow-advance-live__scene--conversation")).toHaveAttribute("aria-hidden", "false");
-
-      act(() => vi.advanceTimersByTime(1_600));
-      expect(preview).toHaveAttribute("data-advance-phase", "typing");
-      expect(preview.querySelector(".workflow-advance-live__composer")).toHaveTextContent(/my client is interested/i);
+      expect(preview).toHaveAttribute("data-workflow-phase", "match-rationale");
+      expect(preview.querySelector(".workflow-review-shared__scene--detail")).toHaveAttribute("aria-hidden", "false");
 
       act(() => vi.advanceTimersByTime(4_200));
-      expect(preview).toHaveAttribute("data-advance-phase", "sent");
+      expect(preview).toHaveAttribute("data-workflow-phase", "contact-tab");
+      expect(preview.querySelector(".agent-live-review__panel--contact")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(1_800));
+      expect(preview).toHaveAttribute("data-workflow-phase", "listing-agent");
+
+      act(() => vi.advanceTimersByTime(3_000));
+      expect(preview).toHaveAttribute("data-workflow-phase", "conversation-open");
+      expect(preview.querySelector(".agent-live-review__panel--conversation")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(1_800));
+      expect(preview).toHaveAttribute("data-workflow-phase", "message-typing");
+      expect(preview.querySelector(".agent-live-thread__composer")).toHaveTextContent(/my client is interested/i);
+
+      act(() => vi.advanceTimersByTime(4_200));
+      expect(preview).toHaveAttribute("data-workflow-phase", "message-sent");
       expect(preview).toHaveTextContent("Just now · Delivered");
-      expect(preview).toHaveTextContent("The opportunity moved to In Conversation in the pipeline.");
+      expect(preview).toHaveTextContent("Conversation started. The opportunity moved to In Conversation in the pipeline.");
     } finally {
       cleanup();
       vi.unstubAllGlobals();
@@ -465,27 +468,19 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       liveWorkflowView.getByText("Active client workspace"),
     ).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("Property being sold")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("Current property")).toBeInTheDocument();
     expect(liveWorkflowView.getByText("42 days remaining")).toBeInTheDocument();
     expect(liveWorkflowView.getByRole("img", { name: "214 Shrewsbury Street property" })).toHaveAttribute(
       "src",
       "/mf-4.jpg",
     );
-    expect(liveWorkflowView.getByText("Modeled at 7.0% · 25-year amortization")).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("214 Shrewsbury Street vs. 184 River Avenue")).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("Cash flow / ROE")).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("$2.80M · 70.0%")).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("$127K · 10.5%")).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("+4.0 pp")).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("Exchange IQ™ rationale")).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("Location fit")).toBeInTheDocument();
     expect(liveWorkflowView.getByRole("tab", { name: "Property" })).toBeInTheDocument();
     expect(liveWorkflowView.getByRole("tab", { name: "Financials" })).toBeInTheDocument();
     expect(liveWorkflowView.getByRole("tab", { name: "Why it fits" })).toBeInTheDocument();
     expect(liveWorkflowView.getByRole("tab", { name: "Contact agent" })).toBeInTheDocument();
-    expect(liveWorkflowView.getByRole("heading", { name: "Reach the agent for this property" })).toBeInTheDocument();
     expect(liveWorkflowView.getAllByText("Jordan Lee")).toHaveLength(2);
-    expect(liveWorkflowView.getByRole("button", { name: /contact listing agent/i })).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("Just now · Delivered")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("Conversation started. The opportunity moved to In Conversation in the pipeline.")).toBeInTheDocument();
     expect(liveWorkflowView.queryByText("Give the client a clear next step")).not.toBeInTheDocument();
     expect(liveWorkflowView.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
   });
@@ -539,15 +534,16 @@ describe("Meta agent replacement-property landing page", () => {
     );
 
     const liveWorkflow = within(screen.getByLabelText("Illustrative live replacement-property matching workflow"));
-    fireEvent.click(liveWorkflow.getByRole("button", { name: /contact listing agent/i }));
+    fireEvent.click(liveWorkflow.getByRole("tab", { name: "Contact agent" }));
+    fireEvent.click(liveWorkflow.getByRole("button", { name: /start agent conversation/i }));
 
     expect(liveWorkflow.getByText("Conversation with listing agent")).toBeInTheDocument();
-    expect(liveWorkflow.getByText(/my client is reviewing 184 River Avenue/i)).toBeInTheDocument();
+    expect(liveWorkflow.getByText("Write a message…")).toBeInTheDocument();
 
     fireEvent.click(liveWorkflow.getByRole("button", { name: "Send message to Jordan Lee" }));
 
     expect(liveWorkflow.getByText("Just now · Delivered")).toBeInTheDocument();
-    expect(liveWorkflow.getByText("Message sent. The agent conversation is now in your pipeline.")).toBeInTheDocument();
+    expect(liveWorkflow.getByText("Conversation started. The opportunity moved to In Conversation in the pipeline.")).toBeInTheDocument();
   });
 
   it("derives every displayed exchange figure from the matching model", () => {

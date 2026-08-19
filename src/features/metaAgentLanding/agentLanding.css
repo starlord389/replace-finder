@@ -7818,6 +7818,8 @@ body:has([data-meta-agent-landing]) {
 [data-meta-agent-landing] .agent-live-demo[data-live-phase="conversation"] .agent-live-scene--review,
 [data-meta-agent-landing] .agent-live-demo[data-live-phase="sent"] .agent-live-scene--review,
 [data-meta-agent-landing] .agent-live-demo[data-live-phase="conversation"] .agent-live-review__panel--conversation,
+[data-meta-agent-landing] .agent-live-demo[data-live-phase="typing"] .agent-live-scene--review,
+[data-meta-agent-landing] .agent-live-demo[data-live-phase="typing"] .agent-live-review__panel--conversation,
 [data-meta-agent-landing] .agent-live-demo[data-live-phase="sent"] .agent-live-review__panel--conversation {
   opacity: 1;
   transform: translate3d(0, 0, 0);
@@ -10882,7 +10884,9 @@ body:has([data-meta-agent-landing]) {
 [data-meta-agent-landing] .agent-live-demo[data-workflow-stage="build"] .agent-live-demo__inbox,
 [data-meta-agent-landing] .agent-live-demo[data-workflow-stage="build"] .agent-live-demo__request-line,
 [data-meta-agent-landing] .agent-live-demo[data-workflow-stage="discover"] .agent-live-demo__inbox,
-[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="discover"] .agent-live-demo__request-line {
+[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="discover"] .agent-live-demo__request-line,
+[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="advance"] .agent-live-demo__inbox,
+[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="advance"] .agent-live-demo__request-line {
   display: none;
 }
 
@@ -12912,6 +12916,104 @@ body:has([data-meta-agent-landing]) {
   [data-meta-agent-landing] .workflow-discover-shared[data-workflow-phase="opening-match"] .workflow-discover-shared__match-grid > article.is-opening {
     opacity: 1;
     transform: none;
+    animation: none;
+  }
+}
+
+/* Canonical listing-agent handoff shared by the hero and Step 4. */
+[data-meta-agent-landing] .workflow-advance-shared__scene {
+  width: min(100%, 760px);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared__toolbar {
+  margin-top: 7px;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared__panels {
+  min-height: 255px;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared .agent-live-review__panel--contact,
+[data-meta-agent-landing] .workflow-advance-shared .agent-live-review__panel--conversation {
+  overflow: hidden;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared[data-workflow-phase="contact-tab"] .agent-live-review__tabs button[aria-selected="true"] {
+  animation: workflow-advance-tab-select 460ms 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared[data-live-phase="contact"] .agent-live-contact__primary {
+  animation: none;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared[data-workflow-phase="listing-agent"] .agent-live-contact__primary {
+  animation: agent-live-contact-press 2.75s 140ms ease both;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared[data-live-phase="conversation"] .agent-live-thread__composer > span,
+[data-meta-agent-landing] .workflow-advance-shared[data-live-phase="conversation"] .agent-live-thread__composer button {
+  animation: none;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared[data-live-phase="typing"] .agent-live-thread__composer > span {
+  animation: agent-live-compose-message 3.7s 180ms cubic-bezier(0.18, 0.72, 0.24, 1) both;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared[data-live-phase="typing"] .agent-live-thread__composer button {
+  animation: agent-live-send-press 4.05s ease both;
+}
+
+[data-meta-agent-landing] .workflow-advance-shared[data-live-phase="typing"] .agent-live-thread__composer button,
+[data-meta-agent-landing] .workflow-advance-shared[data-live-phase="sent"] .agent-live-thread__composer button {
+  background: var(--agent-green-500);
+  color: #fff;
+}
+
+@keyframes workflow-advance-tab-select {
+  0% { opacity: 0.55; transform: translateY(2px); }
+  55% { transform: translateY(0) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 520px) {
+  [data-meta-agent-landing] .workflow-advance-shared__toolbar {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  [data-meta-agent-landing] .workflow-advance-shared__toolbar .agent-live-review__tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  [data-meta-agent-landing] .workflow-advance-shared__toolbar .agent-live-review__tabs button {
+    min-width: 0;
+    flex: 1;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  [data-meta-agent-landing] .workflow-advance-shared__panels {
+    min-height: 360px;
+  }
+
+  [data-meta-agent-landing] .workflow-advance-shared .agent-live-contact__card {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  [data-meta-agent-landing] .workflow-advance-shared .agent-live-thread__body {
+    min-height: 190px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-meta-agent-landing] .workflow-advance-shared[data-workflow-phase="contact-tab"] .agent-live-review__tabs button[aria-selected="true"],
+  [data-meta-agent-landing] .workflow-advance-shared[data-workflow-phase="listing-agent"] .agent-live-contact__primary,
+  [data-meta-agent-landing] .workflow-advance-shared[data-live-phase="typing"] .agent-live-thread__composer > span,
+  [data-meta-agent-landing] .workflow-advance-shared[data-live-phase="typing"] .agent-live-thread__composer button {
     animation: none;
   }
 }
