@@ -68,7 +68,7 @@ describe("Meta agent replacement-property landing page", () => {
     expect(document.querySelector(".agent-hero .agent-eyebrow svg")).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.",
+        "The biggest obstacle to a 1031 Exchange is finding a replacement property. We’ve solved that. 1031 ExchangeUp™ creates more opportunities and deal flow by connecting property owners, agents, and investment properties across one intelligent network.",
       ),
     ).toBeInTheDocument();
     const announcement = screen.getByRole("link", {
