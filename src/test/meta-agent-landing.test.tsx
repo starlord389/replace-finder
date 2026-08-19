@@ -82,9 +82,13 @@ describe("Meta agent replacement-property landing page", () => {
       "href",
       "#how-it-works",
     );
-    expect(screen.getAllByRole("link", { name: AGENT_LANDING_CTA })).toHaveLength(3);
+    expect(screen.getAllByRole("link", { name: AGENT_LANDING_CTA })).toHaveLength(4);
     expect(document.querySelector('[data-cta-location="header"]')).toHaveTextContent(AGENT_LANDING_CTA);
     expect(document.querySelector('[data-cta-location="hero"]')).toHaveTextContent(AGENT_LANDING_CTA);
+    expect(document.querySelector('[data-cta-location="story"]')).toHaveAttribute(
+      "href",
+      buildAgentSignupDestination(campaignSearch),
+    );
     expect(screen.queryByText("For Investors")).not.toBeInTheDocument();
     expect(screen.queryByText("Talk to sales")).not.toBeInTheDocument();
     expect(
@@ -428,6 +432,19 @@ describe("Meta agent replacement-property landing page", () => {
       expect.objectContaining({
         ctaLocation: "hero",
         creativeAngle: "private-search",
+        attribution: expect.objectContaining({ fbclid: "fb-123" }),
+      }),
+    );
+
+    const storyCta = document.querySelector<HTMLAnchorElement>('[data-cta-location="story"]');
+    expect(storyCta).not.toBeNull();
+    fireEvent.click(storyCta!);
+
+    expect(vi.mocked(trackEvent)).toHaveBeenCalledWith(
+      "agent_landing_cta_clicked",
+      expect.objectContaining({
+        ctaLocation: "story",
+        ctaLabel: AGENT_LANDING_CTA,
         attribution: expect.objectContaining({ fbclid: "fb-123" }),
       }),
     );

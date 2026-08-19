@@ -192,7 +192,7 @@ export default function MetaAgentReplacementProperty() {
     };
   }, []);
 
-  const trackCta = (ctaLocation: "announcement" | "header" | "hero" | "final") => {
+  const trackCta = (ctaLocation: "announcement" | "header" | "hero" | "story" | "final") => {
     trackEvent("agent_landing_cta_clicked", {
       route: location.pathname,
       ctaLocation,
@@ -300,7 +300,10 @@ export default function MetaAgentReplacementProperty() {
         <BrokerageLogoGrid />
         <AgentPlatformBrokerageSection />
         <AgentWorkflowSection />
-        <AgentPlatformStorySection />
+        <AgentPlatformStorySection
+          ctaDestination={signupDestination}
+          onCtaClick={trackCta}
+        />
         <AgentControlSection />
         <AgentFaqSection />
 

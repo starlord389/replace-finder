@@ -6263,48 +6263,23 @@ body:has([data-meta-agent-landing]) {
   color: #8a9098;
 }
 
-[data-meta-agent-landing] .agent-platform-story__proof {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+[data-meta-agent-landing] .agent-platform-story__action {
+  display: flex;
+  min-height: 138px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 30px 56px;
   border-top: 1px solid var(--agent-page-line);
 }
 
-[data-meta-agent-landing] .agent-platform-story__proof article {
-  display: grid;
-  grid-template-columns: 30px 1fr;
-  gap: 18px;
-  min-height: 210px;
-  padding: 38px 34px 42px;
-  border-right: 1px solid var(--agent-page-line);
-}
-
-[data-meta-agent-landing] .agent-platform-story__proof article:last-child {
-  border-right: 0;
-}
-
-[data-meta-agent-landing] .agent-platform-story__proof article > span {
-  color: var(--agent-green-600);
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-}
-
-[data-meta-agent-landing] .agent-platform-story__proof strong {
-  display: block;
-  max-width: 270px;
+[data-meta-agent-landing] .agent-platform-story__action > p {
+  margin: 0;
   color: #17233a;
-  font-size: 17px;
-  font-weight: 650;
+  font-size: clamp(18px, 1.55vw, 24px);
+  font-weight: 630;
   letter-spacing: -0.025em;
-  line-height: 1.25;
-}
-
-[data-meta-agent-landing] .agent-platform-story__proof p {
-  max-width: 300px;
-  margin: 14px 0 0;
-  color: #747b84;
-  font-size: 13px;
-  line-height: 1.62;
+  line-height: 1.3;
 }
 
 /* The dark section now explains both control and connected context. */
@@ -6463,18 +6438,11 @@ body:has([data-meta-agent-landing]) {
     font-size: clamp(42px, 8.8vw, 62px);
   }
 
-  [data-meta-agent-landing] .agent-platform-story__proof {
-    grid-template-columns: 1fr;
-  }
-
-  [data-meta-agent-landing] .agent-platform-story__proof article {
+  [data-meta-agent-landing] .agent-platform-story__action {
     min-height: 0;
-    border-right: 0;
-    border-bottom: 1px solid var(--agent-page-line);
-  }
-
-  [data-meta-agent-landing] .agent-platform-story__proof article:last-child {
-    border-bottom: 0;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 32px;
   }
 
   [data-meta-agent-landing] .agent-control__connected {
@@ -6540,9 +6508,12 @@ body:has([data-meta-agent-landing]) {
     line-height: 1.04;
   }
 
-  [data-meta-agent-landing] .agent-platform-story__proof article {
-    grid-template-columns: 26px 1fr;
-    padding: 32px 22px 36px;
+  [data-meta-agent-landing] .agent-platform-story__action {
+    padding: 28px 22px;
+  }
+
+  [data-meta-agent-landing] .agent-platform-story__action .agent-primary-cta {
+    width: 100%;
   }
 
   [data-meta-agent-landing] .agent-control__connected-heading strong {

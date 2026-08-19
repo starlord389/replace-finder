@@ -18,6 +18,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { CURRENT_PROPERTY } from "@/features/metaAgentLanding/agentWorkflowData";
+import { AgentLandingCta } from "@/features/metaAgentLanding/AgentLandingCta";
 import { AgentWorkflowAdvanceDemo } from "@/features/metaAgentLanding/AgentWorkflowAdvanceSegment";
 import { AgentWorkflowBuildDemo } from "@/features/metaAgentLanding/AgentWorkflowBuildSegment";
 import { AgentWorkflowDiscoverDemo } from "@/features/metaAgentLanding/AgentWorkflowDiscoverSegment";
@@ -136,7 +137,15 @@ export function AgentPlatformBrokerageSection() {
   );
 }
 
-export function AgentPlatformStorySection() {
+type AgentPlatformStorySectionProps = {
+  ctaDestination: string;
+  onCtaClick: (location: "story") => void;
+};
+
+export function AgentPlatformStorySection({
+  ctaDestination,
+  onCtaClick,
+}: AgentPlatformStorySectionProps) {
   return (
     <section className="agent-platform-story" aria-labelledby="agent-platform-story-title">
       <div className="agent-landing-shell agent-platform-story__frame">
@@ -148,10 +157,13 @@ export function AgentPlatformStorySection() {
           </h2>
         </div>
 
-        <div className="agent-platform-story__proof" data-agent-reveal>
-          <article><span>01</span><div><strong>Start with facts, not a blank search.</strong><p>The client’s current property and its financial position establish the search context.</p></div></article>
-          <article><span>02</span><div><strong>Make every match explainable.</strong><p>See the property, modeled financial change, and reasons an opportunity fits.</p></div></article>
-          <article><span>03</span><div><strong>Keep momentum after discovery.</strong><p>Share with the client, coordinate with the other agent, and carry the opportunity forward.</p></div></article>
+        <div className="agent-platform-story__action" data-agent-reveal>
+          <p>Start with one client and their current property.</p>
+          <AgentLandingCta
+            destination={ctaDestination}
+            location="story"
+            onClick={onCtaClick}
+          />
         </div>
       </div>
     </section>
