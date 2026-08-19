@@ -10880,7 +10880,9 @@ body:has([data-meta-agent-landing]) {
 }
 
 [data-meta-agent-landing] .agent-live-demo[data-workflow-stage="build"] .agent-live-demo__inbox,
-[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="build"] .agent-live-demo__request-line {
+[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="build"] .agent-live-demo__request-line,
+[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="discover"] .agent-live-demo__inbox,
+[data-meta-agent-landing] .agent-live-demo[data-workflow-stage="discover"] .agent-live-demo__request-line {
   display: none;
 }
 
@@ -12342,7 +12344,419 @@ body:has([data-meta-agent-landing]) {
     scrollbar-width: none;
   }
 
-  [data-meta-agent-landing] .agent-workflow-master__nav::-webkit-scrollbar {
+[data-meta-agent-landing] .agent-workflow-master__nav::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Canonical automatic-discovery segment shared by the hero and Step 2. */
+[data-meta-agent-landing] .workflow-discover-shared__scene {
+  width: min(100%, 760px);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__engine-body {
+  margin-top: 8px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__engine-body .agent-live-analysis__progress {
+  margin-top: 10px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__engine-body .agent-live-analysis__steps {
+  gap: 5px;
+  margin-top: 10px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__engine-body .agent-live-analysis__step {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__engine-body .agent-live-analysis__heading p {
+  margin: 3px 0 0;
+  color: #748078;
+  font-size: 7px;
+  line-height: 1.35;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__screening {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: 12px;
+  margin-top: 9px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__screening-summary {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #d7e4d9;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #f7fbf7, #eef7ef);
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__screening-summary > span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 9px;
+  background: #dff0e1;
+  color: #34803d;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__screening-summary svg {
+  width: 15px;
+  height: 15px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__screening-summary small,
+[data-meta-agent-landing] .workflow-discover-shared__matches-heading small,
+[data-meta-agent-landing] .workflow-discover-shared__automatic small {
+  display: block;
+  color: #5c8c62;
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__screening-summary strong {
+  display: block;
+  margin-top: 4px;
+  color: #1f354d;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__screening-summary p {
+  margin: 7px 0 0;
+  color: #748078;
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__screening-steps {
+  display: grid;
+  gap: 5px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__screening-steps .agent-live-analysis__step {
+  min-height: 41px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__matches-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 13px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__matches-heading h3 {
+  margin: 3px 0 0;
+  color: #172b45;
+  font-family: var(--agent-display-font);
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__matches-heading > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #edf6ee;
+  color: #347d3c;
+  font-size: 7px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__matches-heading svg {
+  width: 11px;
+  height: 11px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 9px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__filters > span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid #e0e5e8;
+  border-radius: 7px;
+  background: #f9fafb;
+  color: #7b857f;
+  font-size: 6px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__filters strong {
+  overflow: hidden;
+  color: #253b53;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 10px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-grid > article {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 43% minmax(0, 57%);
+  overflow: hidden;
+  border: 1px solid #d9e0e4;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(20, 43, 66, 0.055);
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-grid > article > button {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-grid > article:has(> button):hover {
+  border-color: #8fbe95;
+  box-shadow: 0 12px 25px rgba(45, 113, 53, 0.12);
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-media {
+  position: relative;
+  min-height: 112px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-media::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(14, 31, 49, 0.04), rgba(14, 31, 49, 0.38));
+  content: "";
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-media > span {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  left: 7px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #2d5e35;
+  font-size: 5px;
+  font-weight: 850;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-media > i {
+  position: absolute;
+  z-index: 2;
+  right: 7px;
+  bottom: 7px;
+  display: grid;
+  width: 35px;
+  height: 35px;
+  place-content: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #347d3c;
+  font-style: normal;
+  text-align: center;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-media > i strong,
+[data-meta-agent-landing] .workflow-discover-shared__match-media > i small {
+  display: block;
+  line-height: 1;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-media > i strong {
+  font-size: 10px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-media > i small {
+  margin-top: 2px;
+  font-size: 4px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body {
+  min-width: 0;
+  padding: 11px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body > small {
+  color: #718078;
+  font-size: 5px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body > strong {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #1c334d;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body > p {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin: 4px 0 8px;
+  color: #7c8780;
+  font-size: 6px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body > p svg {
+  width: 8px;
+  height: 8px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body dl {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body dt {
+  color: #8a938e;
+  font-size: 5px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body dd {
+  margin: 0;
+  color: #2a4057;
+  font-size: 6px;
+  font-weight: 800;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__match-body dl > div:last-child dd {
+  color: #31813b;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__automatic {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid #cee2d1;
+  border-radius: 8px;
+  background: #f2f8f3;
+  color: #347d3c;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__automatic > svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__automatic > span {
+  min-width: 0;
+  flex: 1;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared__automatic strong {
+  display: block;
+  margin-top: 2px;
+  color: #34533a;
+  font-size: 7px;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared[data-live-phase="results"] .workflow-discover-shared__match-grid > article {
+  animation: agent-live-result-in 480ms 150ms cubic-bezier(0.2, 0.85, 0.2, 1) both;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared[data-live-phase="results"] .workflow-discover-shared__match-grid > article:nth-child(2) {
+  animation-delay: 310ms;
+}
+
+[data-meta-agent-landing] .workflow-discover-shared[data-live-phase="results"] .workflow-discover-shared__automatic {
+  animation: agent-live-result-in 480ms 470ms cubic-bezier(0.2, 0.85, 0.2, 1) both;
+}
+
+@media (max-width: 820px) {
+  [data-meta-agent-landing] .workflow-discover-shared__screening {
+    grid-template-columns: 1fr;
+  }
+
+  [data-meta-agent-landing] .workflow-discover-shared__screening-summary {
+    padding: 12px;
+  }
+
+  [data-meta-agent-landing] .workflow-discover-shared__match-grid {
+    grid-template-columns: 1fr;
+  }
+
+  [data-meta-agent-landing] .workflow-discover-shared__match-grid > article {
+    grid-template-columns: 38% minmax(0, 62%);
+  }
+
+  [data-meta-agent-landing] .workflow-discover-shared__match-media {
+    min-height: 104px;
+  }
+}
+
+@media (max-width: 430px) {
+  [data-meta-agent-landing] .workflow-discover-shared__filters {
+    grid-template-columns: 1fr;
+  }
+
+  [data-meta-agent-landing] .workflow-discover-shared__filters > span:nth-child(3) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-meta-agent-landing] .workflow-discover-shared__match-grid > article,
+  [data-meta-agent-landing] .workflow-discover-shared__automatic {
+    opacity: 1;
+    transform: none;
+    animation: none;
   }
 }

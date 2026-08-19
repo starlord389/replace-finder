@@ -9,7 +9,6 @@ import {
   Radar,
   Send,
   ShieldCheck,
-  Sparkles,
   TrendingUp,
   UserRound,
 } from "lucide-react";
@@ -21,6 +20,7 @@ import {
 import {
   AgentWorkflowBuildScenes,
 } from "@/features/metaAgentLanding/AgentWorkflowBuildSegment";
+import { AgentWorkflowDiscoverScenes } from "@/features/metaAgentLanding/AgentWorkflowDiscoverSegment";
 import {
   getAgentWorkflowBuildVisualPhase,
   type AgentWorkflowPhaseId,
@@ -75,6 +75,7 @@ export function AgentSearchPreview() {
   const workflowPhase = playback.phase.id;
   const livePhase = heroVisualPhase(workflowPhase);
   const isBuildPhase = playback.phase.stage === "build";
+  const isDiscoverPhase = playback.phase.stage === "discover";
   const [selectedMatchIndex, setSelectedMatchIndex] = useState(0);
   const selectedMatch = ILLUSTRATIVE_MATCHES[selectedMatchIndex];
 
@@ -101,13 +102,13 @@ export function AgentSearchPreview() {
       <figure aria-labelledby="agent-search-preview-caption" className="agent-console" data-workflow-phase={workflowPhase}>
         <figcaption id="agent-search-preview-caption" className="agent-console__topbar">
           <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
-          <span className="agent-console__workspace">{isBuildPhase ? `${ILLUSTRATIVE_CLIENT.name} · New listing` : "Riverside exchange"}</span>
+          <span className="agent-console__workspace">{isBuildPhase ? `${ILLUSTRATIVE_CLIENT.name} · New listing` : isDiscoverPhase ? `${ILLUSTRATIVE_CLIENT.name} · Matches` : "Riverside exchange"}</span>
           <span className="agent-console__privacy">Private agent workspace</span>
         </figcaption>
 
         <div
           key={playback.cycle}
-          className={`agent-live-demo agent-workflow-master${isBuildPhase ? " workflow-build-live" : ""}`}
+          className={`agent-live-demo agent-workflow-master${isBuildPhase ? " workflow-build-live" : ""}${isDiscoverPhase ? " workflow-build-live workflow-discover-live workflow-discover-shared" : ""}`}
           data-live-phase={livePhase}
           data-workflow-phase={workflowPhase}
           data-workflow-stage={playback.phase.stage}
@@ -154,10 +155,10 @@ export function AgentSearchPreview() {
             <section className="agent-live-demo__workspace">
             <div className="agent-live-demo__workspace-heading">
               <div>
-                <small>{isBuildPhase ? "Create a listing" : "Replacement search"}</small>
-                <strong>{isBuildPhase ? "Add the property, exchange criteria, and publish" : "Riverside exchange"}</strong>
+                <small>{isBuildPhase ? "Create a listing" : isDiscoverPhase ? "Automatic matching" : "Replacement search"}</small>
+                <strong>{isBuildPhase ? "Add the property, exchange criteria, and publish" : isDiscoverPhase ? "Calculate the exchange position and surface matches" : "Riverside exchange"}</strong>
               </div>
-              <span><i /> {isBuildPhase ? playback.phase.label : isReviewing ? (livePhase === "sent" ? "Agent contacted" : "Reviewing match") : "Search always on"}</span>
+              <span><i /> {isBuildPhase || isDiscoverPhase ? playback.phase.label : isReviewing ? (livePhase === "sent" ? "Agent contacted" : "Reviewing match") : "Search always on"}</span>
             </div>
 
             <div className="agent-live-demo__request-line">
@@ -167,39 +168,16 @@ export function AgentSearchPreview() {
             </div>
 
             <div className="agent-live-demo__canvas">
-              <AgentWorkflowBuildScenes phase={workflowPhase} />
-
-              <section className="agent-live-scene agent-live-scene--analysis">
-                <div className="agent-live-analysis__heading"><span><Sparkles /></span><div><small>ExchangeUp matching engine</small><h3>Calculating buying power and financial fit</h3></div><i /></div>
-                <div className="agent-live-analysis__progress"><span /></div>
-                <div className="agent-live-analysis__steps">
-                  <AnalysisStep index="01" label="Sale value − current loan" value={`${CURRENT_PROPERTY.value} − ${CURRENT_PROPERTY.loan} = ${CURRENT_PROPERTY.equity} equity`} />
-                  <AnalysisStep index="02" label="Buying power at 75% max LTV" value={`${CURRENT_PROPERTY.equity} ÷ 25% = ${CURRENT_PROPERTY.buyingRange}`} />
-                  <AnalysisStep index="03" label="Current return baseline" value={`${CURRENT_PROPERTY.cashFlow} cash flow ÷ ${CURRENT_PROPERTY.equity} equity = ${CURRENT_PROPERTY.roe} ROE`} />
-                  <AnalysisStep index="04" label="Replacement requirements" value="Trade up · improve ROE · New England income" />
-                </div>
-              </section>
-
-              <section className="agent-live-scene agent-live-scene--results">
-                <div className="agent-live-results__heading">
-                  <div><small>Ranked for Elaine's 1031 exchange</small><h3>2 replacements worth presenting</h3></div>
-                  <span><CircleCheck /> Financially qualified</span>
-                </div>
-                <div className="agent-live-results__filters"><span>Buying range <b>{CURRENT_PROPERTY.buyingRange}</b></span><span>Best cash-flow lift <b>+$49K/yr</b></span><span><Radar /> Search stays live</span></div>
-                <div className="agent-live-results__list">
-                  {ILLUSTRATIVE_MATCHES.map((match, index) => (
-                    <LiveMatchCard
-                      key={match.address}
-                      match={match}
-                      index={index}
-                      onSelect={() => {
-                        setSelectedMatchIndex(index);
-                        setManualPhase("property");
-                      }}
-                    />
-                  ))}
-                </div>
-              </section>
+              {isBuildPhase && <AgentWorkflowBuildScenes phase={workflowPhase} />}
+              {isDiscoverPhase && (
+                <AgentWorkflowDiscoverScenes
+                  phase={workflowPhase}
+                  onSelectMatch={(index) => {
+                    setSelectedMatchIndex(index);
+                    setManualPhase("property");
+                  }}
+                />
+              )}
 
               <section className="agent-live-scene agent-live-scene--review" aria-live="polite">
                 <div className="agent-live-review__toolbar">
@@ -309,47 +287,6 @@ export function AgentSearchPreview() {
         <div className="agent-console__disclosure">Illustrative property data · real property photography · no real client information</div>
       </figure>
     </div>
-  );
-}
-
-function AnalysisStep({ index, label, value }: { index: string; label: string; value: string }) {
-  return (
-    <div className="agent-live-analysis__step">
-      <span>{index}</span><div><strong>{label}</strong><small>{value}</small></div><i><Check /></i>
-    </div>
-  );
-}
-
-function LiveMatchCard({
-  match,
-  index,
-  onSelect,
-}: {
-  match: (typeof ILLUSTRATIVE_MATCHES)[number];
-  index: number;
-  onSelect: () => void;
-}) {
-  return (
-    <article className="agent-live-match-card">
-      <button type="button" className="agent-live-match-card__action" onClick={onSelect} aria-label={`Review ${match.address} comparison`} />
-      <div className="agent-live-match-card__media">
-        <img src={match.image} alt={`${match.address} exterior`} />
-        <span className="agent-live-match-card__rank">#{index + 1} {index === 0 ? "Best match" : "Strong match"}</span>
-        <div className="agent-live-match-card__score"><strong>{match.score}</strong><small>match</small></div>
-      </div>
-      <div className="agent-live-match-card__body">
-        <div className="agent-live-match-card__property">
-          <small>{match.type}</small>
-          <strong>{match.address}</strong>
-          <p><MapPin /> {match.market}</p>
-        </div>
-        <div className="agent-live-match-card__financials">
-          <span><small>Asking</small><strong>{match.price}</strong></span>
-          <span><small>Cap rate</small><strong>{match.capRate}</strong></span>
-          <span><small>Cash-flow lift</small><strong>{match.cashFlowChange}</strong></span>
-        </div>
-      </div>
-    </article>
   );
 }
 

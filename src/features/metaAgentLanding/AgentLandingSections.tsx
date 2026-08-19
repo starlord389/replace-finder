@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
-  Bell,
   Building2,
   Check,
   CheckCircle2,
@@ -24,6 +23,7 @@ import {
 } from "@/components/ui/accordion";
 import { CURRENT_PROPERTY, ILLUSTRATIVE_MATCHES } from "@/features/metaAgentLanding/agentWorkflowData";
 import { AgentWorkflowBuildDemo } from "@/features/metaAgentLanding/AgentWorkflowBuildSegment";
+import { AgentWorkflowDiscoverDemo } from "@/features/metaAgentLanding/AgentWorkflowDiscoverSegment";
 
 const WORKFLOW_STEPS = [
   {
@@ -250,7 +250,7 @@ export function AgentWorkflowSection() {
 
 function WorkflowCanvas({ stage }: { stage: number }) {
   if (stage === 0) return <AgentWorkflowBuildDemo />;
-  if (stage === 1) return <DiscoverOpportunitiesState />;
+  if (stage === 1) return <AgentWorkflowDiscoverDemo />;
   if (stage === 2) return <ReviewMatchesState />;
   if (stage === 3) return <AdvanceOpportunityState />;
 
@@ -277,120 +277,6 @@ function WorkflowCanvas({ stage }: { stage: number }) {
         {stage >= 2 ? <ResultsState /> : null}
       </div>
       <div className="workflow-canvas__footer"><LockKeyhole aria-hidden="true" /> Private to your workspace <span>Illustrative product view</span></div>
-    </div>
-  );
-}
-
-type DiscoverPhase = "notification" | "opening" | "matches";
-
-const DISCOVERY_PHASE_LABELS: Record<DiscoverPhase, string> = {
-  notification: "New match notification",
-  opening: "Opening Elaine’s matches",
-  matches: "All client matches",
-};
-
-function DiscoverOpportunitiesState() {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [phase, setPhase] = useState<DiscoverPhase>("notification");
-  const [cycle, setCycle] = useState(0);
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage || !("IntersectionObserver" in window)) {
-      setPhase("matches");
-      return;
-    }
-
-    let active = false;
-    let timers: number[] = [];
-    const clearTimers = () => {
-      timers.forEach((timer) => window.clearTimeout(timer));
-      timers = [];
-    };
-    const runCycle = () => {
-      if (!active) return;
-      clearTimers();
-      setCycle((value) => value + 1);
-      setPhase("notification");
-      timers.push(window.setTimeout(() => active && setPhase("opening"), 4_200));
-      timers.push(window.setTimeout(() => active && setPhase("matches"), 6_800));
-      timers.push(window.setTimeout(() => active && runCycle(), 13_000));
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const shouldRun = entry.intersectionRatio >= 0.2;
-        if (shouldRun && !active) {
-          active = true;
-          runCycle();
-          return;
-        }
-        if (!shouldRun && active) {
-          active = false;
-          clearTimers();
-        }
-      },
-      { threshold: [0, 0.14, 0.2, 0.28, 0.55] },
-    );
-
-    observer.observe(stage);
-    return () => {
-      active = false;
-      clearTimers();
-      observer.disconnect();
-    };
-  }, []);
-
-  return (
-    <div ref={stageRef} className="agent-console-stage workflow-discover-stage">
-      <figure
-        className="agent-console"
-        data-discovery-phase={phase}
-        aria-label="Animated automatic replacement-property discovery preview"
-      >
-        <figcaption className="agent-console__topbar">
-          <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
-          <span className="agent-console__workspace">Elaine Thomas · Client workspace</span>
-          <span className="agent-console__privacy">Private agent workspace</span>
-        </figcaption>
-
-        <div key={cycle} className="agent-live-demo workflow-discover-live" data-live-phase={phase}>
-          <div className="agent-live-demo__camera">
-            <section className="agent-live-demo__workspace">
-              <div className="agent-live-demo__workspace-heading"><div><small>Automatic discovery</small><strong>Matches appear without a listing-by-listing search</strong></div><span><i /> {DISCOVERY_PHASE_LABELS[phase]}</span></div>
-
-              <div className="agent-live-demo__canvas">
-                <section className="agent-live-scene workflow-discover-simple__scene workflow-discover-simple__scene--notification" aria-hidden={phase === "matches"}>
-                  <div className="workflow-discover-simple__nav" aria-hidden="true"><span>Dashboard</span><span>Clients</span><span>Listings</span><span className={phase === "opening" ? "is-opening" : ""}>Matches <i>2</i></span></div>
-                  <div className="workflow-discover-simple__client"><span>ET</span><div><small>Active client search</small><strong>Elaine Thomas</strong></div><em><i /> Monitoring automatically</em></div>
-                  <article className="workflow-discover-simple__notification">
-                    <span><Bell /></span>
-                    <div><small>New match notification</small><h3>A new match was found for Elaine</h3><p>ExchangeUp automatically matched a new property to her active search.</p><em><CheckCircle2 /> No manual listing search required</em></div>
-                    <button type="button" tabIndex={-1}>View Elaine’s matches <ArrowRight /></button>
-                  </article>
-                </section>
-
-                <section className="agent-live-scene workflow-discover-simple__scene workflow-discover-simple__scene--matches" aria-hidden={phase !== "matches"}>
-                  <div className="workflow-discover-simple__nav" aria-hidden="true"><span>Dashboard</span><span>Clients</span><span>Listings</span><span className="is-active">Matches <i>2</i></span></div>
-                  <div className="workflow-discover-simple__matches-heading"><div><small>Elaine Thomas · Active search</small><h3>All matches for this client</h3></div><span><Radar /> Search remains active</span></div>
-                  <div className="workflow-discover-simple__match-grid">
-                    {ILLUSTRATIVE_MATCHES.map((match) => (
-                      <article key={match.address}>
-                        <img src={match.image} alt={`${match.address} match`} />
-                        <div><small>{match.type} · {match.market}</small><strong>{match.address}</strong><span>{match.price} asking</span></div>
-                      </article>
-                    ))}
-                  </div>
-                  <div className="workflow-discover-simple__automatic"><Bell /><span><small>Automatic matching is still on</small><strong>New qualifying properties will continue appearing in this client’s Matches tab.</strong></span><i /></div>
-                </section>
-              </div>
-            </section>
-          </div>
-        </div>
-
-        <p className="sr-only" aria-live="polite">{DISCOVERY_PHASE_LABELS[phase]}</p>
-        <div className="agent-console__disclosure">Illustrative property data · private automatic discovery workflow</div>
-      </figure>
     </div>
   );
 }

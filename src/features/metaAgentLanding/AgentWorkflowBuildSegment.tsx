@@ -122,14 +122,20 @@ export function AgentWorkflowBuildScenes({ phase }: { phase: AgentWorkflowPhaseI
         <div className="workflow-build-live__ready-action"><span><i /><span><small>Draft complete</small><strong>The listing is ready to enter the ExchangeUp network.</strong></span></span><button type="button" tabIndex={-1}>Publish listing <ArrowRight /></button></div>
       </section>
 
-      <section className="agent-live-scene workflow-build-live__scene workflow-build-live__scene--published" aria-hidden={phase !== "listing-published"}>
-        <div className="workflow-build-live__published-check"><CheckCircle2 /></div>
-        <small>Listing published</small>
-        <h3>{CURRENT_PROPERTY.address} is now active</h3>
-        <p>The listing is visible to eligible matches, and ExchangeUp can begin finding replacement opportunities for {ILLUSTRATIVE_CLIENT.name.split(" ")[0]}.</p>
-        <div className="workflow-build-live__published-card"><img src={CURRENT_PROPERTY.image} alt={`Published listing at ${CURRENT_PROPERTY.address}`} /><span><small>Active listing</small><strong>{CURRENT_PROPERTY.address}</strong><em>Matching is now active</em></span><i /></div>
-      </section>
+      <AgentWorkflowPublishedScene active={phase === "listing-published"} />
     </>
+  );
+}
+
+export function AgentWorkflowPublishedScene({ active }: { active: boolean }) {
+  return (
+    <section className="agent-live-scene workflow-build-live__scene workflow-build-live__scene--published" aria-hidden={!active}>
+      <div className="workflow-build-live__published-check"><CheckCircle2 /></div>
+      <small>Listing published</small>
+      <h3>{CURRENT_PROPERTY.address} is now active</h3>
+      <p>The listing is visible to eligible matches, and ExchangeUp can begin finding replacement opportunities for {ILLUSTRATIVE_CLIENT.name.split(" ")[0]}.</p>
+      <div className="workflow-build-live__published-card"><img src={CURRENT_PROPERTY.image} alt={`Published listing at ${CURRENT_PROPERTY.address}`} /><span><small>Active listing</small><strong>{CURRENT_PROPERTY.address}</strong><em>Matching is now active</em></span><i /></div>
+    </section>
   );
 }
 

@@ -286,19 +286,23 @@ describe("Meta agent replacement-property landing page", () => {
       const preview = screen.getByLabelText(
         "Animated automatic replacement-property discovery preview",
       );
-      expect(preview).toHaveTextContent("A new match was found for Elaine");
-      expect(preview).toHaveTextContent("All matches for this client");
-      expect(preview).not.toHaveTextContent(/financial comparison|match score|return on equity/i);
-      expect(preview).toHaveAttribute("data-discovery-phase", "notification");
-      expect(preview.querySelector(".workflow-discover-simple__scene--notification")).toHaveAttribute("aria-hidden", "false");
+      expect(preview).not.toHaveTextContent(/new match notification|a new match was found/i);
+      expect(preview).toHaveTextContent("Matched properties");
+      expect(preview).toHaveAttribute("data-workflow-phase", "listing-published");
+      expect(preview.querySelector(".workflow-build-live__scene--published")).toHaveAttribute("aria-hidden", "false");
 
-      act(() => vi.advanceTimersByTime(4_200));
-      expect(preview).toHaveAttribute("data-discovery-phase", "opening");
-      expect(preview.querySelector(".workflow-discover-simple__scene--notification")).toHaveAttribute("aria-hidden", "false");
+      act(() => vi.advanceTimersByTime(2_200));
+      expect(preview).toHaveAttribute("data-workflow-phase", "calculating-position");
+      expect(preview).toHaveTextContent("Calculating the exchange position");
+      expect(preview.querySelector(".workflow-discover-shared__scene--engine")).toHaveAttribute("aria-hidden", "false");
 
-      act(() => vi.advanceTimersByTime(2_600));
-      expect(preview).toHaveAttribute("data-discovery-phase", "matches");
-      expect(preview.querySelector(".workflow-discover-simple__scene--matches")).toHaveAttribute("aria-hidden", "false");
+      act(() => vi.advanceTimersByTime(3_600));
+      expect(preview).toHaveAttribute("data-workflow-phase", "evaluating-network");
+      expect(preview).toHaveTextContent("Evaluating eligible properties across the network");
+
+      act(() => vi.advanceTimersByTime(3_600));
+      expect(preview).toHaveAttribute("data-workflow-phase", "matches");
+      expect(preview.querySelector(".workflow-discover-shared__scene--matches")).toHaveAttribute("aria-hidden", "false");
     } finally {
       cleanup();
       vi.unstubAllGlobals();
@@ -450,15 +454,8 @@ describe("Meta agent replacement-property landing page", () => {
     expect(liveWorkflow).toBeInTheDocument();
     expect(document.querySelectorAll(".agent-rollout-window")).toHaveLength(0);
     expect(document.querySelector(".agent-live-demo__camera")).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("Create the listing for your client’s current property")).toBeInTheDocument();
-    expect(liveWorkflowView.getByText("Publish listing")).toBeInTheDocument();
     expect(liveWorkflowView.queryByRole("button", { name: /find qualified replacements/i })).not.toBeInTheDocument();
-    expect(liveWorkflowView.getByText("ExchangeUp matching engine")).toBeInTheDocument();
-    expect(liveWorkflowView.getByRole("heading", { name: "2 replacements worth presenting" })).toBeInTheDocument();
-    expect(liveWorkflowView.getAllByText("Up to $4.80M")).not.toHaveLength(0);
-    expect(liveWorkflowView.getByText("+$49K/yr")).toBeInTheDocument();
     expect(liveWorkflowView.getAllByText("184 River Avenue")).not.toHaveLength(0);
-    expect(liveWorkflowView.getAllByText("675 Harvey Road")).not.toHaveLength(0);
     expect(liveWorkflowView.queryByText("Blackstone Mill Lofts")).not.toBeInTheDocument();
     expect(liveWorkflowView.queryByText("Merrimack Commerce Park")).not.toBeInTheDocument();
     expect(
@@ -470,15 +467,6 @@ describe("Meta agent replacement-property landing page", () => {
       "src",
       "/mf-4.jpg",
     );
-    expect(liveWorkflowView.getByRole("img", { name: "184 River Avenue exterior" })).toHaveAttribute(
-      "src",
-      "/mf-1.jpg",
-    );
-    expect(liveWorkflowView.getByRole("img", { name: "675 Harvey Road exterior" })).toHaveAttribute(
-      "src",
-      "/landing-prop-industrial.jpg",
-    );
-    expect(liveWorkflowView.getByRole("button", { name: "Review 184 River Avenue comparison" })).toBeInTheDocument();
     expect(liveWorkflowView.getByText("Modeled at 7.0% · 25-year amortization")).toBeInTheDocument();
     expect(liveWorkflowView.getByText("214 Shrewsbury Street vs. 184 River Avenue")).toBeInTheDocument();
     expect(liveWorkflowView.getByText("Cash flow / ROE")).toBeInTheDocument();
@@ -499,21 +487,43 @@ describe("Meta agent replacement-property landing page", () => {
   });
 
   it("opens the selected match comparison from either photographic listing card", () => {
-    render(
-      <MemoryRouter initialEntries={["/meta/agents/replacement-property"]}>
-        <MetaAgentReplacementProperty />
-      </MemoryRouter>,
-    );
+    vi.useFakeTimers();
+    const VisibleIntersectionObserver = class {
+      constructor(private readonly callback: IntersectionObserverCallback) {}
+      observe(target: Element) {
+        this.callback(
+          [{ isIntersecting: true, intersectionRatio: 0.55, target } as IntersectionObserverEntry],
+          this as unknown as IntersectionObserver,
+        );
+      }
+      disconnect() {}
+      unobserve() {}
+      takeRecords() { return []; }
+    };
+    vi.stubGlobal("IntersectionObserver", VisibleIntersectionObserver);
 
-    fireEvent.click(screen.getByRole("button", { name: "Review 675 Harvey Road comparison" }));
+    try {
+      render(
+        <MemoryRouter initialEntries={["/meta/agents/replacement-property"]}>
+          <MetaAgentReplacementProperty />
+        </MemoryRouter>,
+      );
 
-    expect(screen.getByRole("heading", { name: "675 Harvey Road" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "675 Harvey Road property" })).toHaveAttribute(
-      "src",
-      "/landing-prop-industrial.jpg",
-    );
-    expect(screen.getByText("+$210K / yr")).toBeInTheDocument();
-    expect(screen.getAllByText("$3.20M · 72.7%")).not.toHaveLength(0);
+      act(() => vi.advanceTimersByTime(23_600));
+      fireEvent.click(screen.getByRole("button", { name: "Review 675 Harvey Road comparison" }));
+
+      expect(screen.getByRole("heading", { name: "675 Harvey Road" })).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "675 Harvey Road property" })).toHaveAttribute(
+        "src",
+        "/landing-prop-industrial.jpg",
+      );
+      expect(screen.getByText("+$210K / yr")).toBeInTheDocument();
+      expect(screen.getAllByText("$3.20M · 72.7%")).not.toHaveLength(0);
+    } finally {
+      cleanup();
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
   });
 
   it("finishes the demonstration by opening an agent conversation and sending a message", () => {
