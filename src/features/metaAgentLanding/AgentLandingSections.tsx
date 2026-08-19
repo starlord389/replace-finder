@@ -256,14 +256,14 @@ function WorkflowCanvas({ stage }: { stage: number }) {
 function ExchangeState() {
   return (
     <div className="workflow-property">
-      <div className="workflow-property__heading"><span><Building2 aria-hidden="true" /></span><div><small>Relinquished property</small><h4>Riverside Apartments</h4><p><MapPin aria-hidden="true" /> Worcester, Massachusetts</p></div></div>
+      <div className="workflow-property__heading"><span><Building2 aria-hidden="true" /></span><div><small>Relinquished property</small><h4>214 Shrewsbury Street</h4><p><MapPin aria-hidden="true" /> Worcester, Massachusetts</p></div></div>
       <dl>
         <div><dt>Estimated value</dt><dd>$2,400,000</dd></div>
-        <div><dt>Current loan</dt><dd>$1,100,000</dd></div>
-        <div className="is-highlighted"><dt>Estimated equity</dt><dd>$1,300,000</dd></div>
+        <div><dt>Current loan</dt><dd>$1,200,000</dd></div>
+        <div className="is-highlighted"><dt>Estimated equity</dt><dd>$1,200,000</dd></div>
         <div><dt>Asset type</dt><dd>Multifamily</dd></div>
       </dl>
-      <div className="workflow-property__equity"><span><i /></span><div><small>Equity position</small><strong>54% of estimated value</strong></div></div>
+      <div className="workflow-property__equity"><span><i /></span><div><small>Equity position</small><strong>50% of estimated value</strong></div></div>
     </div>
   );
 }
@@ -287,8 +287,8 @@ function ResultsState() {
     <div className="workflow-results">
       <div className="workflow-state-heading"><span><Search aria-hidden="true" /></span><div><small>Potential matches</small><h4>Two opportunities to review</h4></div></div>
       <div className="workflow-results__list">
-        <article><div><small>92 match</small><strong>Blackstone Mill Lofts</strong><span><MapPin aria-hidden="true" /> Providence, RI</span></div><dl><div><dt>Asking</dt><dd>$3.8M</dd></div><div><dt>Cap</dt><dd>6.9%</dd></div></dl></article>
-        <article><div><small>87 match</small><strong>Merrimack Commerce Park</strong><span><MapPin aria-hidden="true" /> Manchester, NH</span></div><dl><div><dt>Asking</dt><dd>$4.2M</dd></div><div><dt>Cap</dt><dd>7.2%</dd></div></dl></article>
+        <article><div><small>90 match</small><strong>184 River Avenue</strong><span><MapPin aria-hidden="true" /> Providence, RI</span></div><dl><div><dt>Asking</dt><dd>$4.0M</dd></div><div><dt>Cap</dt><dd>9.1%</dd></div></dl></article>
+        <article><div><small>80 match</small><strong>675 Harvey Road</strong><span><MapPin aria-hidden="true" /> Manchester, NH</span></div><dl><div><dt>Asking</dt><dd>$4.4M</dd></div><div><dt>Cap</dt><dd>8.9%</dd></div></dl></article>
       </div>
       <div className="workflow-results__monitor"><Radar aria-hidden="true" /><div><small>Monitoring remains on</small><strong>New eligible opportunities can enter this search</strong></div><i /></div>
     </div>

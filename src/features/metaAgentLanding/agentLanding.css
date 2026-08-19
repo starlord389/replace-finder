@@ -7813,3 +7813,294 @@ body:has([data-meta-agent-landing]) {
     grid-template-columns: 1fr;
   }
 }
+
+/* Complete the live story through a real agent-to-agent conversation. */
+[data-meta-agent-landing] .agent-live-demo[data-live-phase="conversation"] .agent-live-scene--review,
+[data-meta-agent-landing] .agent-live-demo[data-live-phase="sent"] .agent-live-scene--review,
+[data-meta-agent-landing] .agent-live-demo[data-live-phase="conversation"] .agent-live-review__panel--conversation,
+[data-meta-agent-landing] .agent-live-demo[data-live-phase="sent"] .agent-live-review__panel--conversation {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  pointer-events: auto;
+}
+
+[data-meta-agent-landing] .agent-live-contact__actions .agent-live-contact__primary {
+  width: 100%;
+  border-color: var(--agent-green-500);
+  background: var(--agent-green-500);
+  color: #fff;
+}
+
+[data-meta-agent-landing] .agent-live-contact__primary svg:last-child {
+  margin-left: auto;
+}
+
+[data-meta-agent-landing] .agent-live-demo[data-live-phase="contact"] .agent-live-contact__primary {
+  animation: agent-live-contact-press 3.25s ease both;
+}
+
+[data-meta-agent-landing] .agent-live-review__panel--conversation {
+  display: grid;
+}
+
+[data-meta-agent-landing] .agent-live-thread {
+  display: grid;
+  grid-template-rows: auto minmax(78px, 1fr) auto auto;
+  overflow: hidden;
+  min-height: 254px;
+  border: 1px solid #dce3e9;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(15, 39, 71, 0.055);
+}
+
+[data-meta-agent-landing] .agent-live-thread__header {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 11px;
+  border-bottom: 1px solid #e5e9ed;
+  background: #fbfcfd;
+}
+
+[data-meta-agent-landing] .agent-live-thread__header > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e4edf5;
+  color: #315f86;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+[data-meta-agent-landing] .agent-live-thread__header > div {
+  display: grid;
+  min-width: 0;
+}
+
+[data-meta-agent-landing] .agent-live-thread__header small {
+  color: #7d8a95;
+  font-size: 6px;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+[data-meta-agent-landing] .agent-live-thread__header strong {
+  margin-top: 1px;
+  color: #243a54;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+[data-meta-agent-landing] .agent-live-thread__header p {
+  overflow: hidden;
+  margin: 1px 0 0;
+  color: #71808c;
+  font-size: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-meta-agent-landing] .agent-live-thread__header > i {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: #edf6ee;
+  color: #3d7045;
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+[data-meta-agent-landing] .agent-live-thread__header > i svg {
+  width: 8px;
+  height: 8px;
+}
+
+[data-meta-agent-landing] .agent-live-thread__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px 11px;
+  background: linear-gradient(180deg, #f7f9fa, #f4f7f6);
+}
+
+[data-meta-agent-landing] .agent-live-thread__notice {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  border: 1px solid #dce6de;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  color: #63766a;
+  font-size: 6px;
+}
+
+[data-meta-agent-landing] .agent-live-thread__notice svg {
+  width: 8px;
+  height: 8px;
+  color: var(--agent-green-600);
+}
+
+[data-meta-agent-landing] .agent-live-thread__message {
+  display: grid;
+  max-width: 72%;
+  align-self: flex-end;
+  padding: 7px 9px;
+  border-radius: 10px 10px 3px 10px;
+  background: var(--agent-green-500);
+  box-shadow: 0 5px 12px rgba(59, 139, 67, 0.16);
+  color: #fff;
+  animation: agent-live-message-sent 440ms cubic-bezier(0.2, 0.85, 0.2, 1) both;
+}
+
+[data-meta-agent-landing] .agent-live-thread__message > span,
+[data-meta-agent-landing] .agent-live-thread__message > small {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 5px;
+  font-weight: 600;
+}
+
+[data-meta-agent-landing] .agent-live-thread__message p {
+  margin: 3px 0;
+  font-size: 7px;
+  line-height: 1.42;
+}
+
+[data-meta-agent-landing] .agent-live-thread__message > small {
+  text-align: right;
+}
+
+[data-meta-agent-landing] .agent-live-thread__composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 27px;
+  gap: 7px;
+  align-items: end;
+  margin: 7px 9px;
+  padding: 6px 6px 6px 9px;
+  border: 1px solid #d8dfe4;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(15, 39, 71, 0.035);
+}
+
+[data-meta-agent-landing] .agent-live-thread__composer > span {
+  display: block;
+  overflow: hidden;
+  min-height: 25px;
+  color: #44586b;
+  font-size: 7px;
+  line-height: 1.35;
+}
+
+[data-meta-agent-landing] .agent-live-demo[data-live-phase="conversation"] .agent-live-thread__composer > span {
+  animation: agent-live-compose-message 3.65s cubic-bezier(0.18, 0.72, 0.24, 1) both;
+}
+
+[data-meta-agent-landing] .agent-live-thread__composer button {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: var(--agent-green-500);
+  color: #fff;
+}
+
+[data-meta-agent-landing] .agent-live-thread__composer button svg {
+  width: 11px;
+  height: 11px;
+}
+
+[data-meta-agent-landing] .agent-live-demo[data-live-phase="conversation"] .agent-live-thread__composer button {
+  animation: agent-live-send-press 4.65s ease both;
+}
+
+[data-meta-agent-landing] .agent-live-thread__composer[data-message-state="sent"] > span {
+  color: #97a1aa;
+}
+
+[data-meta-agent-landing] .agent-live-thread__complete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-top: 1px solid #dbe8dd;
+  background: #edf7ef;
+  color: #3e6845;
+  font-size: 6px;
+  font-weight: 600;
+  animation: agent-live-result-in 420ms 180ms cubic-bezier(0.2, 0.85, 0.2, 1) both;
+}
+
+[data-meta-agent-landing] .agent-live-thread__complete svg {
+  width: 10px;
+  height: 10px;
+}
+
+[data-meta-agent-landing] .agent-live-comparison__row {
+  min-height: 27px;
+}
+
+@keyframes agent-live-contact-press {
+  0%, 72% { transform: translateY(0) scale(1); box-shadow: 0 0 0 0 rgba(59, 139, 67, 0); }
+  82% { transform: translateY(1px) scale(0.985); box-shadow: 0 0 0 5px rgba(59, 139, 67, 0.12); }
+  92%, 100% { transform: translateY(0) scale(1); box-shadow: 0 0 0 9px rgba(59, 139, 67, 0); }
+}
+
+@keyframes agent-live-compose-message {
+  0% { clip-path: inset(0 100% 0 0); opacity: 0.2; }
+  8% { opacity: 1; }
+  100% { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+
+@keyframes agent-live-send-press {
+  0%, 78% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 139, 67, 0); }
+  86% { transform: scale(0.88); box-shadow: 0 0 0 5px rgba(59, 139, 67, 0.13); }
+  94%, 100% { transform: scale(1); box-shadow: 0 0 0 8px rgba(59, 139, 67, 0); }
+}
+
+@keyframes agent-live-message-sent {
+  from { opacity: 0; transform: translate3d(10px, 8px, 0) scale(0.96); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@media (max-width: 520px) {
+  [data-meta-agent-landing] .agent-live-thread__header {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  [data-meta-agent-landing] .agent-live-thread__header > span {
+    width: 30px;
+    height: 30px;
+  }
+
+  [data-meta-agent-landing] .agent-live-thread__header > i {
+    display: none;
+  }
+
+  [data-meta-agent-landing] .agent-live-thread__message {
+    max-width: 88%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-meta-agent-landing] .agent-live-demo[data-live-phase="contact"] .agent-live-contact__primary,
+  [data-meta-agent-landing] .agent-live-demo[data-live-phase="conversation"] .agent-live-thread__composer > span,
+  [data-meta-agent-landing] .agent-live-demo[data-live-phase="conversation"] .agent-live-thread__composer button,
+  [data-meta-agent-landing] .agent-live-thread__message,
+  [data-meta-agent-landing] .agent-live-thread__complete {
+    animation: none;
+  }
+}

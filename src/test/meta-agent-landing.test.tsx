@@ -5,6 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MetaAgentReplacementProperty from "@/pages/meta/MetaAgentReplacementProperty";
 import Signup from "@/pages/auth/Signup";
 import {
+  CURRENT_PROPERTY,
+  ILLUSTRATIVE_DEAL_ASSUMPTIONS,
+  ILLUSTRATIVE_MATCHES,
+} from "@/features/metaAgentLanding/AgentSearchPreview";
+import {
   buildAgentSignupDestination,
   readAgentLandingAttribution,
 } from "@/features/metaAgentLanding/landingAttribution";
@@ -65,7 +70,7 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       screen.getByRole("heading", { name: /keep the full replacement story connected/i }),
     ).toBeInTheDocument();
-    expect(screen.getAllByText("Match rationale")).toHaveLength(2);
+    expect(screen.getAllByText("Match rationale")).toHaveLength(1);
     expect(screen.getByText("Pipeline stage")).toBeInTheDocument();
     expect(
       screen.getByRole("region", { name: "Real estate brokerage network" }),
@@ -146,38 +151,43 @@ describe("Meta agent replacement-property landing page", () => {
     expect(screen.getByRole("button", { name: /find qualified replacements/i })).toBeInTheDocument();
     expect(screen.getByText("ExchangeUp matching engine")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "2 replacements worth presenting" })).toBeInTheDocument();
-    expect(screen.getAllByText("Up to $4.8M")).not.toHaveLength(0);
-    expect(screen.getByText("+$33K/yr")).toBeInTheDocument();
-    expect(screen.getAllByText("Blackstone Mill Lofts")).not.toHaveLength(0);
-    expect(screen.getAllByText("Merrimack Commerce Park")).not.toHaveLength(0);
+    expect(screen.getAllByText("Up to $4.80M")).not.toHaveLength(0);
+    expect(screen.getByText("+$49K/yr")).toBeInTheDocument();
+    expect(screen.getAllByText("184 River Avenue")).not.toHaveLength(0);
+    expect(screen.getAllByText("675 Harvey Road")).not.toHaveLength(0);
+    expect(screen.queryByText("Blackstone Mill Lofts")).not.toBeInTheDocument();
+    expect(screen.queryByText("Merrimack Commerce Park")).not.toBeInTheDocument();
     expect(screen.getByText("Active client workspace")).toBeInTheDocument();
     expect(screen.getByText("Property being sold")).toBeInTheDocument();
     expect(screen.getByText("42 days remaining")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Riverside Apartments property" })).toHaveAttribute(
+    expect(screen.getByRole("img", { name: "214 Shrewsbury Street property" })).toHaveAttribute(
       "src",
       "/mf-4.jpg",
     );
-    expect(screen.getByRole("img", { name: "Blackstone Mill Lofts exterior" })).toHaveAttribute(
+    expect(screen.getByRole("img", { name: "184 River Avenue exterior" })).toHaveAttribute(
       "src",
       "/mf-1.jpg",
     );
-    expect(screen.getByRole("img", { name: "Merrimack Commerce Park exterior" })).toHaveAttribute(
+    expect(screen.getByRole("img", { name: "675 Harvey Road exterior" })).toHaveAttribute(
       "src",
       "/landing-prop-industrial.jpg",
     );
-    expect(screen.getByRole("button", { name: "Review Blackstone Mill Lofts comparison" })).toBeInTheDocument();
-    expect(screen.getByText("Financial comparison")).toBeInTheDocument();
-    expect(screen.getByText("Current property vs. replacement")).toBeInTheDocument();
-    expect(screen.getByText("Return on equity")).toBeInTheDocument();
-    expect(screen.getAllByText("Match rationale")).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Review 184 River Avenue comparison" })).toBeInTheDocument();
+    expect(screen.getByText("Modeled at 7.0% · 25-year amortization")).toBeInTheDocument();
+    expect(screen.getByText("214 Shrewsbury Street vs. 184 River Avenue")).toBeInTheDocument();
+    expect(screen.getByText("Cash flow / ROE")).toBeInTheDocument();
+    expect(screen.getByText("$2.80M · 70.0%")).toBeInTheDocument();
+    expect(screen.getByText("$127K · 10.5%")).toBeInTheDocument();
+    expect(screen.getByText("+4.0 pp")).toBeInTheDocument();
+    expect(screen.getAllByText("Match rationale")).toHaveLength(1);
     expect(screen.getByText("Location fit")).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Property" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Financials" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Why it fits" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Contact agent" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Reach the agent for this property" })).toBeInTheDocument();
-    expect(screen.getByText("Jordan Lee")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /message listing agent/i })).toBeInTheDocument();
+    expect(screen.getAllByText("Jordan Lee")).toHaveLength(2);
+    expect(screen.getByRole("button", { name: /contact listing agent/i })).toBeInTheDocument();
     expect(screen.queryByText("Give the client a clear next step")).not.toBeInTheDocument();
     expect(screen.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
   });
@@ -189,15 +199,53 @@ describe("Meta agent replacement-property landing page", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Review Merrimack Commerce Park comparison" }));
+    fireEvent.click(screen.getByRole("button", { name: "Review 675 Harvey Road comparison" }));
 
-    expect(screen.getByRole("heading", { name: "Merrimack Commerce Park" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Merrimack Commerce Park property" })).toHaveAttribute(
+    expect(screen.getByRole("heading", { name: "675 Harvey Road" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "675 Harvey Road property" })).toHaveAttribute(
       "src",
       "/landing-prop-industrial.jpg",
     );
-    expect(screen.getByText("+$122K / yr")).toBeInTheDocument();
-    expect(screen.getAllByText("69.0% LTV")).not.toHaveLength(0);
+    expect(screen.getByText("+$210K / yr")).toBeInTheDocument();
+    expect(screen.getAllByText("$3.20M · 72.7%")).not.toHaveLength(0);
+  });
+
+  it("finishes the demonstration by opening an agent conversation and sending a message", () => {
+    render(
+      <MemoryRouter initialEntries={["/meta/agents/replacement-property"]}>
+        <MetaAgentReplacementProperty />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /contact listing agent/i }));
+
+    expect(screen.getByText("Conversation with listing agent")).toBeInTheDocument();
+    expect(screen.getByText(/my client is reviewing 184 River Avenue/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Send message to Jordan Lee" }));
+
+    expect(screen.getByText("Just now · Delivered")).toBeInTheDocument();
+    expect(screen.getByText("Message sent. The agent conversation is now in your pipeline.")).toBeInTheDocument();
+  });
+
+  it("derives every displayed exchange figure from the matching model", () => {
+    const bestMatch = ILLUSTRATIVE_MATCHES[0];
+
+    expect(CURRENT_PROPERTY.raw.equity).toBe(1_200_000);
+    expect(CURRENT_PROPERTY.raw.purchasingCapacity).toBe(4_800_000);
+    expect(CURRENT_PROPERTY.raw.cashFlow).toBe(78_000);
+    expect(CURRENT_PROPERTY.raw.roe).toBeCloseTo(0.065, 6);
+
+    expect(bestMatch.raw.replacementLoan).toBe(2_800_000);
+    expect(bestMatch.raw.ltv).toBeCloseTo(0.7, 6);
+    expect(bestMatch.raw.debtService).toBeCloseTo(237_477.81, 2);
+    expect(bestMatch.raw.cashFlow).toBeCloseTo(126_522.19, 2);
+    expect(bestMatch.raw.roe).toBeCloseTo(0.105435, 5);
+    expect(bestMatch.raw.roeImprovement).toBeCloseTo(4.0435, 3);
+    expect(bestMatch.raw.cashBoot).toBe(0);
+    expect(bestMatch.raw.mortgageBoot).toBe(0);
+    expect(bestMatch.raw.score).toBe(90);
+    expect(bestMatch.raw.ltv).toBeLessThanOrEqual(ILLUSTRATIVE_DEAL_ASSUMPTIONS.maximumLtv);
   });
 
   it("uses only the expected attribution values in telemetry", () => {
