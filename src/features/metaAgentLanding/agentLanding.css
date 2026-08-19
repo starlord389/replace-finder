@@ -140,7 +140,7 @@ body:has([data-meta-agent-landing]) {
 }
 
 [data-meta-agent-landing] #how-it-works,
-[data-meta-agent-landing] #agent-control,
+[data-meta-agent-landing] #roe-calculator,
 [data-meta-agent-landing] #faq {
   scroll-margin-top: 104px;
 }
@@ -4740,7 +4740,7 @@ body:has([data-meta-agent-landing]) {
 }
 
 [data-meta-agent-landing] #how-it-works,
-[data-meta-agent-landing] #agent-control,
+[data-meta-agent-landing] #roe-calculator,
 [data-meta-agent-landing] #faq {
   scroll-margin-top: 115px;
 }
@@ -5338,7 +5338,7 @@ body:has([data-meta-agent-landing]) {
   }
 
   [data-meta-agent-landing] #how-it-works,
-  [data-meta-agent-landing] #agent-control,
+  [data-meta-agent-landing] #roe-calculator,
   [data-meta-agent-landing] #faq {
     scroll-margin-top: 96px;
   }
@@ -6282,98 +6282,408 @@ body:has([data-meta-agent-landing]) {
   line-height: 1.3;
 }
 
-/* The dark section now explains both control and connected context. */
-[data-meta-agent-landing] .agent-control {
-  padding-bottom: 118px;
-}
-
-[data-meta-agent-landing] .agent-control__connected {
+/* Interactive ROE calculator: user-driven value, not another product demo. */
+[data-meta-agent-landing] .agent-roe {
   position: relative;
-  z-index: 2;
-  margin-top: 120px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(18, 19, 22, 0.82);
-}
-
-[data-meta-agent-landing] .agent-control__connected-heading {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.72fr) minmax(0, 2.28fr);
-  min-height: 124px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-[data-meta-agent-landing] .agent-control__connected-heading small {
-  display: flex;
-  align-items: center;
-  padding: 28px 34px;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
-  color: #78c67e;
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-[data-meta-agent-landing] .agent-control__connected-heading strong {
-  display: flex;
-  max-width: 760px;
-  align-items: center;
-  padding: 28px 38px;
-  color: #f1f3f2;
-  font-size: clamp(24px, 2.5vw, 34px);
-  font-weight: 560;
-  letter-spacing: -0.04em;
-  line-height: 1.13;
-}
-
-[data-meta-agent-landing] .agent-control__connected ol {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-[data-meta-agent-landing] .agent-control__connected li {
-  min-width: 0;
-  min-height: 132px;
-  padding: 26px 24px 30px;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-[data-meta-agent-landing] .agent-control__connected li:last-child {
-  border-right: 0;
-}
-
-[data-meta-agent-landing] .agent-control__connected li > span {
-  color: #68706c;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-[data-meta-agent-landing] .agent-control__connected li div {
-  display: grid;
-  gap: 7px;
-  margin-top: 22px;
-}
-
-[data-meta-agent-landing] .agent-control__connected li small {
-  color: #858d88;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-[data-meta-agent-landing] .agent-control__connected li strong {
+  z-index: 3;
+  isolation: isolate;
   overflow: hidden;
-  color: #dfe4e1;
-  font-size: 13px;
+  padding: 150px 0;
+  background: #101412;
+  color: #fff;
+}
+
+[data-meta-agent-landing] .agent-roe__field {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.74;
+}
+
+[data-meta-agent-landing] .agent-roe__field path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.065);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+[data-meta-agent-landing] .agent-roe__field path.active {
+  stroke: rgba(83, 177, 92, 0.3);
+  stroke-dasharray: 7 10;
+}
+
+[data-meta-agent-landing] .agent-roe__layout {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.77fr) minmax(580px, 1.23fr);
+  align-items: center;
+  gap: clamp(64px, 7vw, 116px);
+}
+
+[data-meta-agent-landing] .agent-roe__copy {
+  position: relative;
+  z-index: 1;
+}
+
+[data-meta-agent-landing] .agent-roe__copy h2 {
+  max-width: 590px;
+  margin: 26px 0 0;
+  color: #fff;
+  font-size: clamp(52px, 4.9vw, 72px);
+  font-weight: 560;
+  letter-spacing: -0.055em;
+  line-height: 1.01;
+}
+
+[data-meta-agent-landing] .agent-roe__copy > p {
+  max-width: 550px;
+  margin: 28px 0 0;
+  color: #aeb8b1;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+[data-meta-agent-landing] .agent-roe__formula {
+  display: grid;
+  max-width: 550px;
+  grid-template-columns: 48px 1fr;
+  gap: 17px;
+  margin-top: 44px;
+  padding: 24px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+[data-meta-agent-landing] .agent-roe__formula > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(105, 195, 113, 0.28);
+  border-radius: 12px;
+  background: rgba(67, 160, 71, 0.11);
+  color: #79c980;
+}
+
+[data-meta-agent-landing] .agent-roe__formula svg {
+  width: 19px;
+  height: 19px;
+}
+
+[data-meta-agent-landing] .agent-roe__formula div {
+  display: grid;
+  gap: 5px;
+}
+
+[data-meta-agent-landing] .agent-roe__formula small {
+  color: #77c77e;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+[data-meta-agent-landing] .agent-roe__formula strong {
+  color: #fff;
+  font-size: 16px;
   font-weight: 620;
   letter-spacing: -0.02em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+[data-meta-agent-landing] .agent-roe__formula p {
+  max-width: 420px;
+  margin: 2px 0 0;
+  color: #8f9a93;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+[data-meta-agent-landing] .agent-roe-card {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border: 1px solid rgba(219, 231, 221, 0.42);
+  border-radius: 18px;
+  background: #f9faf8;
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.34), 0 1px 0 rgba(255, 255, 255, 0.75) inset;
+  color: #152039;
+}
+
+[data-meta-agent-landing] .agent-roe-card__topbar {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 28px;
+  border-bottom: 1px solid #dfe5df;
+  background: #fff;
+}
+
+[data-meta-agent-landing] .agent-roe-card__topbar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+[data-meta-agent-landing] .agent-roe-card__topbar svg {
+  width: 17px;
+  height: 17px;
+  color: #38953e;
+}
+
+[data-meta-agent-landing] .agent-roe-card__topbar > small {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #6f7972;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+[data-meta-agent-landing] .agent-roe-card__topbar i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #43a047;
+  box-shadow: 0 0 0 4px rgba(67, 160, 71, 0.12);
+}
+
+[data-meta-agent-landing] .agent-roe-card__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px 18px;
+  padding: 28px;
+}
+
+[data-meta-agent-landing] .agent-roe-card__field:last-child {
+  grid-column: 1 / -1;
+}
+
+[data-meta-agent-landing] .agent-roe-card__field > label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: #344039;
+  font-size: 11px;
+  font-weight: 720;
+}
+
+[data-meta-agent-landing] .agent-roe-card__field > label small {
+  color: #89928c;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+[data-meta-agent-landing] .agent-roe-card__input-wrap {
+  position: relative;
+}
+
+[data-meta-agent-landing] .agent-roe-card__input-wrap > span {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  color: #78827b;
+  font-size: 14px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+[data-meta-agent-landing] .agent-roe-card__input-wrap input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px 0 30px;
+  border: 1px solid #d7ddd8;
+  border-radius: 10px;
+  outline: 0;
+  background: #fff;
+  color: #152039;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+[data-meta-agent-landing] .agent-roe-card__input-wrap input:focus-visible {
+  border-color: #43a047;
+  box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.14);
+}
+
+[data-meta-agent-landing] .agent-roe-card__help {
+  display: block;
+  margin-top: 6px;
+  color: #89928c;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+[data-meta-agent-landing] .agent-roe-card__results {
+  padding: 26px 28px 28px;
+  border-top: 1px solid #d9e3da;
+  background: linear-gradient(145deg, #edf6ee 0%, #f7faf6 78%);
+}
+
+[data-meta-agent-landing] .agent-roe-card__primary-result {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+[data-meta-agent-landing] .agent-roe-card__primary-result > span {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 13px;
+  background: #43a047;
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(67, 160, 71, 0.22);
+}
+
+[data-meta-agent-landing] .agent-roe-card__primary-result svg {
+  width: 20px;
+  height: 20px;
+}
+
+[data-meta-agent-landing] .agent-roe-card__primary-result div {
+  display: grid;
+}
+
+[data-meta-agent-landing] .agent-roe-card__primary-result small {
+  color: #657168;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+[data-meta-agent-landing] .agent-roe-card__primary-result strong {
+  margin-top: 2px;
+  color: #23752a;
+  font-size: clamp(38px, 4vw, 54px);
+  font-weight: 610;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+[data-meta-agent-landing] .agent-roe-card__primary-result p {
+  margin: 7px 0 0;
+  color: #748078;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+[data-meta-agent-landing] .agent-roe-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 24px 0 0;
+  border: 1px solid #d9e4da;
+  border-radius: 12px;
+  background: #d9e4da;
+}
+
+[data-meta-agent-landing] .agent-roe-card__metrics > div {
+  min-width: 0;
+  padding: 15px 14px 17px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+[data-meta-agent-landing] .agent-roe-card__metrics dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #758078;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.045em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+[data-meta-agent-landing] .agent-roe-card__metrics dt svg {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  color: #43a047;
+}
+
+[data-meta-agent-landing] .agent-roe-card__metrics dd {
+  overflow-wrap: anywhere;
+  margin: 9px 0 0;
+  color: #152039;
+  font-size: clamp(15px, 1.45vw, 19px);
+  font-weight: 720;
+  letter-spacing: -0.035em;
+}
+
+[data-meta-agent-landing] .agent-roe-card__insight {
+  margin: 16px 0 0;
+  padding: 13px 15px;
+  border: 1px solid rgba(67, 160, 71, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #3c7040;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+[data-meta-agent-landing] .agent-roe-card__empty {
+  display: grid;
+  min-height: 168px;
+  grid-template-columns: 44px 1fr;
+  align-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+[data-meta-agent-landing] .agent-roe-card__empty > svg {
+  width: 38px;
+  height: 38px;
+  padding: 9px;
+  border-radius: 11px;
+  background: rgba(146, 97, 45, 0.1);
+  color: #93672f;
+}
+
+[data-meta-agent-landing] .agent-roe-card__empty strong {
+  color: #493b2c;
+  font-size: 16px;
+}
+
+[data-meta-agent-landing] .agent-roe-card__empty p {
+  max-width: 420px;
+  margin: 6px 0 0;
+  color: #776c60;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+[data-meta-agent-landing] .agent-roe-card__action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+[data-meta-agent-landing] .agent-roe-card__action > p {
+  max-width: 230px;
+  margin: 0;
+  color: #879087;
+  font-size: 9px;
+  line-height: 1.45;
+  text-align: right;
 }
 
 @media (max-width: 1040px) {
@@ -6389,16 +6699,14 @@ body:has([data-meta-agent-landing]) {
     font-size: 11px;
   }
 
-  [data-meta-agent-landing] .agent-control__connected ol {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  [data-meta-agent-landing] .agent-roe__layout {
+    grid-template-columns: 1fr;
+    gap: 64px;
   }
 
-  [data-meta-agent-landing] .agent-control__connected li:nth-child(3) {
-    border-right: 0;
-  }
-
-  [data-meta-agent-landing] .agent-control__connected li:nth-child(n + 4) {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  [data-meta-agent-landing] .agent-roe__copy,
+  [data-meta-agent-landing] .agent-roe-card {
+    width: min(820px, 100%);
   }
 }
 
@@ -6445,35 +6753,16 @@ body:has([data-meta-agent-landing]) {
     padding: 32px;
   }
 
-  [data-meta-agent-landing] .agent-control__connected {
-    width: 100%;
-    margin-top: 84px;
+  [data-meta-agent-landing] .agent-roe {
+    padding: 112px 0;
   }
 
-  [data-meta-agent-landing] .agent-control__connected-heading {
+  [data-meta-agent-landing] .agent-roe__copy h2 {
+    font-size: clamp(44px, 9vw, 62px);
+  }
+
+  [data-meta-agent-landing] .agent-roe-card__metrics {
     grid-template-columns: 1fr;
-  }
-
-  [data-meta-agent-landing] .agent-control__connected-heading small {
-    min-height: 68px;
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  }
-
-  [data-meta-agent-landing] .agent-control__connected ol {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  [data-meta-agent-landing] .agent-control__connected li:nth-child(3) {
-    border-right: 1px solid rgba(255, 255, 255, 0.12);
-  }
-
-  [data-meta-agent-landing] .agent-control__connected li:nth-child(even) {
-    border-right: 0;
-  }
-
-  [data-meta-agent-landing] .agent-control__connected li:nth-child(n + 3) {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -6516,29 +6805,70 @@ body:has([data-meta-agent-landing]) {
     width: 100%;
   }
 
-  [data-meta-agent-landing] .agent-control__connected-heading strong {
-    padding: 26px 22px;
-    font-size: 25px;
+  [data-meta-agent-landing] .agent-roe {
+    padding: 90px 0;
   }
 
-  [data-meta-agent-landing] .agent-control__connected-heading small {
-    padding-inline: 22px;
+  [data-meta-agent-landing] .agent-roe__copy h2 {
+    font-size: 42px;
   }
 
-  [data-meta-agent-landing] .agent-control__connected ol {
+  [data-meta-agent-landing] .agent-roe__copy > p {
+    margin-top: 20px;
+    font-size: 15px;
+  }
+
+  [data-meta-agent-landing] .agent-roe__formula {
+    margin-top: 32px;
+  }
+
+  [data-meta-agent-landing] .agent-roe-card {
+    border-radius: 14px;
+  }
+
+  [data-meta-agent-landing] .agent-roe-card__topbar {
+    padding: 0 18px;
+  }
+
+  [data-meta-agent-landing] .agent-roe-card__fields {
     grid-template-columns: 1fr;
+    padding: 22px 18px;
   }
 
-  [data-meta-agent-landing] .agent-control__connected li,
-  [data-meta-agent-landing] .agent-control__connected li:nth-child(3),
-  [data-meta-agent-landing] .agent-control__connected li:nth-child(even) {
-    min-height: 104px;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    border-right: 0;
+  [data-meta-agent-landing] .agent-roe-card__field:last-child {
+    grid-column: auto;
   }
 
-  [data-meta-agent-landing] .agent-control__connected li:first-child {
-    border-top: 0;
+  [data-meta-agent-landing] .agent-roe-card__results {
+    padding: 22px 18px;
+  }
+
+  [data-meta-agent-landing] .agent-roe-card__primary-result {
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+  }
+
+  [data-meta-agent-landing] .agent-roe-card__primary-result > span {
+    width: 40px;
+    height: 40px;
+  }
+
+  [data-meta-agent-landing] .agent-roe-card__primary-result strong {
+    font-size: 42px;
+  }
+
+  [data-meta-agent-landing] .agent-roe-card__action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  [data-meta-agent-landing] .agent-roe-card__action .agent-primary-cta {
+    width: 100%;
+  }
+
+  [data-meta-agent-landing] .agent-roe-card__action > p {
+    max-width: none;
+    text-align: left;
   }
 }
 

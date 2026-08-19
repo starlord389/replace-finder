@@ -82,13 +82,18 @@ describe("Meta agent replacement-property landing page", () => {
       "href",
       "#how-it-works",
     );
-    expect(screen.getAllByRole("link", { name: AGENT_LANDING_CTA })).toHaveLength(4);
+    expect(screen.getAllByRole("link", { name: AGENT_LANDING_CTA })).toHaveLength(5);
     expect(document.querySelector('[data-cta-location="header"]')).toHaveTextContent(AGENT_LANDING_CTA);
     expect(document.querySelector('[data-cta-location="hero"]')).toHaveTextContent(AGENT_LANDING_CTA);
     expect(document.querySelector('[data-cta-location="story"]')).toHaveAttribute(
       "href",
       buildAgentSignupDestination(campaignSearch),
     );
+    expect(document.querySelector('[data-cta-location="calculator"]')).toHaveAttribute(
+      "href",
+      buildAgentSignupDestination(campaignSearch),
+    );
+    expect(screen.getByRole("link", { name: "ROE calculator" })).toHaveAttribute("href", "#roe-calculator");
     expect(screen.queryByText("For Investors")).not.toBeInTheDocument();
     expect(screen.queryByText("Talk to sales")).not.toBeInTheDocument();
     expect(
@@ -102,7 +107,7 @@ describe("Meta agent replacement-property landing page", () => {
     ).toBeInTheDocument();
     const workflowHeading = screen.getByRole("heading", { name: "Stop searching listing by listing." });
     const platformStoryHeading = screen.getByRole("heading", { name: /create more deal flow from the clients you already know/i });
-    const controlHeading = screen.getByRole("heading", { name: "Stay at the center of every client opportunity." });
+    const calculatorHeading = screen.getByRole("heading", { name: "Show clients what their equity is actually earning." });
     const trustedBrokerages = screen.getByText("Trusted by agents from these brokerages");
     expect(
       trustedBrokerages.compareDocumentPosition(workflowHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
@@ -111,8 +116,10 @@ describe("Meta agent replacement-property landing page", () => {
       workflowHeading.compareDocumentPosition(platformStoryHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(
-      platformStoryHeading.compareDocumentPosition(controlHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+      platformStoryHeading.compareDocumentPosition(calculatorHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    expect(screen.queryByText("Stay at the center of every client opportunity.")).not.toBeInTheDocument();
+    expect(screen.queryByText("What stays connected")).not.toBeInTheDocument();
     expect(screen.getAllByText("Turn your client’s current property and priorities into a search for something better.")).toHaveLength(2);
     expect(screen.getAllByText("Find the opportunity that starts the conversation.")).toHaveLength(2);
     expect(screen.getAllByText("Know what’s worth putting in front of your client.")).toHaveLength(2);
@@ -162,8 +169,8 @@ describe("Meta agent replacement-property landing page", () => {
     document.querySelectorAll(".workflow-canvas__progress").forEach((progress) => {
       expect(progress.children).toHaveLength(4);
     });
-    expect(screen.getAllByText("Match rationale")).toHaveLength(1);
-    expect(screen.getByText("Pipeline stage")).toBeInTheDocument();
+    expect(screen.getByText("Current return on equity")).toBeInTheDocument();
+    expect(screen.getByText("Capacity at 75% max LTV")).toBeInTheDocument();
     expect(
       screen.getByRole("region", { name: "Real estate brokerage network" }),
     ).toBeInTheDocument();
@@ -444,6 +451,19 @@ describe("Meta agent replacement-property landing page", () => {
       "agent_landing_cta_clicked",
       expect.objectContaining({
         ctaLocation: "story",
+        ctaLabel: AGENT_LANDING_CTA,
+        attribution: expect.objectContaining({ fbclid: "fb-123" }),
+      }),
+    );
+
+    const calculatorCta = document.querySelector<HTMLAnchorElement>('[data-cta-location="calculator"]');
+    expect(calculatorCta).not.toBeNull();
+    fireEvent.click(calculatorCta!);
+
+    expect(vi.mocked(trackEvent)).toHaveBeenCalledWith(
+      "agent_landing_cta_clicked",
+      expect.objectContaining({
+        ctaLocation: "calculator",
         ctaLabel: AGENT_LANDING_CTA,
         attribution: expect.objectContaining({ fbclid: "fb-123" }),
       }),

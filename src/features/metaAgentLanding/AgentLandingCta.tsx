@@ -6,7 +6,7 @@ export const AGENT_LANDING_CTA = "Find My Client’s Replacement Property";
 
 type AgentLandingCtaProps = {
   destination: string;
-  location: "header" | "hero" | "story" | "final";
+  location: "header" | "hero" | "story" | "calculator" | "final";
   onClick: (location: AgentLandingCtaProps["location"]) => void;
   compact?: boolean;
   className?: string;

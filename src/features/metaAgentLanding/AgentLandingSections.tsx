@@ -3,13 +3,10 @@ import {
   ArrowRight,
   Building2,
   Check,
-  CheckCircle2,
   LockKeyhole,
   MapPin,
   Radar,
   Search,
-  Share2,
-  UserRound,
 } from "lucide-react";
 import {
   Accordion,
@@ -48,24 +45,6 @@ const WORKFLOW_STEPS = [
     label: "Advance the Opportunity",
     title: "Turn the right match into action.",
     description: "Present the opportunity to your client and explain why it may be worth considering. If your client wants to move forward, connect directly with the listing agent, coordinate the next steps, and guide the exchange toward closing. If the property is not the right fit, you can keep the search active so ExchangeUp can continue finding new opportunities for your client.",
-  },
-] as const;
-
-const CONTROL_POINTS = [
-  {
-    number: "01",
-    title: "Manage the search",
-    detail: "Create the search, review the matches, and decide what you present to your client.",
-  },
-  {
-    number: "02",
-    title: "Bring your client in when ready",
-    detail: "Invite the client into their workspace when it supports the way you work together.",
-  },
-  {
-    number: "03",
-    title: "Keep the search working",
-    detail: "Leave the exchange active when there is no immediate match.",
   },
 ] as const;
 
@@ -301,58 +280,6 @@ function ResultsState() {
       </div>
       <div className="workflow-results__monitor"><Radar aria-hidden="true" /><div><small>Monitoring remains on</small><strong>New eligible opportunities can enter this search</strong></div><i /></div>
     </div>
-  );
-}
-
-export function AgentControlSection() {
-  return (
-    <section id="agent-control" aria-labelledby="agent-control-title" className="agent-control">
-      <svg className="agent-control__field" viewBox="0 0 1600 980" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 180 H324 V0 M324 180 H602 V422 H870 V132 H1180 V338 H1600" />
-        <path d="M0 760 H248 V540 H548 V910 H864 V632 H1180 V980 M1400 0 V186 H1600" />
-        <path className="active" d="M-80 820 C220 820 260 668 520 668 S788 790 1010 492 1296 300 1680 300" />
-      </svg>
-      <div className="agent-landing-shell agent-control__layout">
-        <div className="agent-control__copy" data-agent-reveal>
-          <p className="agent-eyebrow agent-eyebrow--light">Your client. Your process.</p>
-          <h2 id="agent-control-title">Stay at the center of every client opportunity.</h2>
-          <p>Manage the search, review matches with your client, and communicate directly with the listing agent when your client wants to move forward.</p>
-          <ol className="agent-control__principles">
-            {CONTROL_POINTS.map((point) => (
-              <li key={point.number}><span>{point.number}</span><div><strong>{point.title}</strong><p>{point.detail}</p></div></li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="agent-access-map" aria-label="Agent-managed client workflow" data-agent-reveal>
-          <div className="agent-access-map__topbar"><span><LockKeyhole aria-hidden="true" /> Search coordination</span><strong>Agent managed</strong></div>
-          <div className="agent-access-map__boundary">
-            <div className="agent-access-map__boundary-label"><CheckCircle2 aria-hidden="true" /> Agent-managed workflow</div>
-            <div className="agent-access-map__primary"><span><UserRound aria-hidden="true" /></span><div><small>Search manager</small><strong>You · Representing agent</strong></div><i>Leads process</i></div>
-            <div className="agent-access-map__route" aria-hidden="true"><span /><i /><span /></div>
-            <div className="agent-access-map__nodes">
-              <div><span><Share2 aria-hidden="true" /></span><small>Client workspace</small><strong>You choose when to invite</strong></div>
-              <div className="is-active"><span><Radar aria-hidden="true" /></span><small>Market monitoring</small><strong>Active in the background</strong></div>
-            </div>
-          </div>
-          <div className="agent-access-map__footer"><Check aria-hidden="true" /> No client contact information is required to begin.</div>
-        </div>
-      </div>
-
-      <div className="agent-landing-shell agent-control__connected" data-agent-reveal>
-        <div className="agent-control__connected-heading">
-          <small>What stays connected</small>
-          <strong>Context carries forward as the exchange moves.</strong>
-        </div>
-        <ol>
-          <li><span>01</span><div><small>Property</small><strong>Financials + equity</strong></div></li>
-          <li><span>02</span><div><small>Search</small><strong>Client criteria</strong></div></li>
-          <li><span>03</span><div><small>Opportunity</small><strong>Match rationale</strong></div></li>
-          <li><span>04</span><div><small>Coordination</small><strong>Agent conversation</strong></div></li>
-          <li><span>05</span><div><small>Progress</small><strong>Pipeline stage</strong></div></li>
-        </ol>
-      </div>
-    </section>
   );
 }
 

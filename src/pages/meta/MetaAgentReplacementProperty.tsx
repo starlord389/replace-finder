@@ -10,8 +10,8 @@ import {
   AGENT_LANDING_CTA,
 } from "@/features/metaAgentLanding/AgentLandingCta";
 import { AgentSearchPreview } from "@/features/metaAgentLanding/AgentSearchPreview";
+import { AgentRoeCalculatorSection } from "@/features/metaAgentLanding/AgentRoeCalculatorSection";
 import {
-  AgentControlSection,
   AgentFaqSection,
   AgentPlatformBrokerageSection,
   AgentPlatformStorySection,
@@ -88,7 +88,7 @@ export default function MetaAgentReplacementProperty() {
   useEffect(() => {
     if (!("IntersectionObserver" in window)) return;
 
-    const darkSection = document.getElementById("agent-control");
+    const darkSection = document.getElementById("roe-calculator");
     if (!darkSection) return;
     const observer = new IntersectionObserver(
       ([entry]) => setDarkHeader(entry.isIntersecting),
@@ -121,7 +121,6 @@ export default function MetaAgentReplacementProperty() {
     const root = document.querySelector<HTMLElement>("[data-meta-agent-landing]");
     const hero = document.querySelector<HTMLElement>(".agent-hero");
     const panels = Array.from(document.querySelectorAll<HTMLElement>(".agent-workflow__panel"));
-    const control = document.querySelector<HTMLElement>(".agent-control");
     const finalCta = document.querySelector<HTMLElement>(".agent-final-cta");
     if (!root || !hero) return;
 
@@ -158,16 +157,6 @@ export default function MetaAgentReplacementProperty() {
         panel.style.setProperty("--panel-glow-opacity", String(progress * 0.9));
       });
 
-      if (control) {
-        const rect = control.getBoundingClientRect();
-        const progress = clamp((viewportHeight * 0.88 - rect.top) / (viewportHeight * 0.72));
-        control.style.setProperty("--control-motion-opacity", String(0.25 + progress * 0.75));
-        control.style.setProperty("--control-motion-shift", `${(1 - progress) * 62}px`);
-        control.style.setProperty("--control-orbit-scale", String(0.36 + progress * 0.64));
-        control.style.setProperty("--control-map-scale", String(0.92 + progress * 0.08));
-        control.style.setProperty("--control-orbit-offset", String(620 - progress * 620));
-      }
-
       if (finalCta) {
         const rect = finalCta.getBoundingClientRect();
         const progress = clamp((viewportHeight * 0.9 - rect.top) / (viewportHeight * 0.72));
@@ -192,7 +181,7 @@ export default function MetaAgentReplacementProperty() {
     };
   }, []);
 
-  const trackCta = (ctaLocation: "announcement" | "header" | "hero" | "story" | "final") => {
+  const trackCta = (ctaLocation: "announcement" | "header" | "hero" | "story" | "calculator" | "final") => {
     trackEvent("agent_landing_cta_clicked", {
       route: location.pathname,
       ctaLocation,
@@ -230,7 +219,7 @@ export default function MetaAgentReplacementProperty() {
 
             <nav className="agent-header__nav" aria-label="Landing page">
               <a href="#how-it-works">How it works</a>
-              <a href="#agent-control">Your control</a>
+              <a href="#roe-calculator">ROE calculator</a>
               <a href="#faq">FAQ</a>
             </nav>
 
@@ -304,7 +293,10 @@ export default function MetaAgentReplacementProperty() {
           ctaDestination={signupDestination}
           onCtaClick={trackCta}
         />
-        <AgentControlSection />
+        <AgentRoeCalculatorSection
+          ctaDestination={signupDestination}
+          onCtaClick={trackCta}
+        />
         <AgentFaqSection />
 
         <section aria-labelledby="final-cta-title" className="agent-final-cta">
