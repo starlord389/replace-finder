@@ -294,8 +294,8 @@ export default function MetaAgentReplacementProperty() {
         </section>
 
         <BrokerageLogoGrid />
-        <AgentPlatformStorySection />
         <AgentWorkflowSection />
+        <AgentPlatformStorySection />
         <AgentControlSection />
         <AgentFaqSection />
 
