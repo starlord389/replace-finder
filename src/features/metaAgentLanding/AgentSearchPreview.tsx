@@ -7,7 +7,6 @@ import {
   CircleCheck,
   Gauge,
   MapPin,
-  MousePointer2,
   Radar,
   Search,
   Sparkles,
@@ -90,8 +89,8 @@ export function AgentSearchPreview() {
       setLivePhase("request");
       timers.push(window.setTimeout(() => active && setLivePhase("analyzing"), 2600));
       timers.push(window.setTimeout(() => active && setLivePhase("results"), 6600));
-      timers.push(window.setTimeout(() => active && setLivePhase("detail"), 11000));
-      timers.push(window.setTimeout(runCycle, 18200));
+      timers.push(window.setTimeout(() => active && setLivePhase("detail"), 10100));
+      timers.push(window.setTimeout(runCycle, 16900));
     };
 
     const observer = new IntersectionObserver(
@@ -266,7 +265,6 @@ export function AgentSearchPreview() {
             </section>
           </div>
 
-          <span className="agent-live-cursor" aria-hidden="true"><MousePointer2 /><i /></span>
         </div>
 
         <div className="agent-console__disclosure">Illustrative property data · real property photography · no real client information</div>
