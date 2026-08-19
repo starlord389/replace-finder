@@ -106,9 +106,9 @@ const ADDITIONAL_BROKERAGE_LOGOS = [
   },
 ] as const;
 
-export function AgentPlatformStorySection() {
+export function AgentPlatformBrokerageSection() {
   return (
-    <section className="agent-platform-story" aria-labelledby="agent-platform-story-title">
+    <section className="agent-platform-story" aria-label="Trusted real estate brokerages">
       <div className="agent-landing-shell agent-platform-story__frame">
         <div className="agent-platform-story__rail agent-platform-story__rail--brokerages" data-agent-reveal>
           <p>Trusted by agents from these brokerages</p>
@@ -120,7 +120,15 @@ export function AgentPlatformStorySection() {
             ))}
           </ol>
         </div>
+      </div>
+    </section>
+  );
+}
 
+export function AgentPlatformStorySection() {
+  return (
+    <section className="agent-platform-story" aria-labelledby="agent-platform-story-title">
+      <div className="agent-landing-shell agent-platform-story__frame">
         <div className="agent-platform-story__statement" data-agent-reveal>
           <p className="agent-eyebrow">Built around the exchange</p>
           <h2 id="agent-platform-story-title">

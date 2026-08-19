@@ -13,6 +13,7 @@ import { AgentSearchPreview } from "@/features/metaAgentLanding/AgentSearchPrevi
 import {
   AgentControlSection,
   AgentFaqSection,
+  AgentPlatformBrokerageSection,
   AgentPlatformStorySection,
   AgentWorkflowSection,
 } from "@/features/metaAgentLanding/AgentLandingSections";
@@ -294,6 +295,7 @@ export default function MetaAgentReplacementProperty() {
         </section>
 
         <BrokerageLogoGrid />
+        <AgentPlatformBrokerageSection />
         <AgentWorkflowSection />
         <AgentPlatformStorySection />
         <AgentControlSection />

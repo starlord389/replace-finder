@@ -75,8 +75,16 @@ describe("Meta agent replacement-property landing page", () => {
     ).toBeInTheDocument();
     const workflowHeading = screen.getByRole("heading", { name: "Build the search once. Keep it working." });
     const platformStoryHeading = screen.getByRole("heading", { name: /keep the full replacement story connected/i });
+    const controlHeading = screen.getByRole("heading", { name: "A private search you stay in control of." });
+    const trustedBrokerages = screen.getByText("Trusted by agents from these brokerages");
+    expect(
+      trustedBrokerages.compareDocumentPosition(workflowHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(
       workflowHeading.compareDocumentPosition(platformStoryHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      platformStoryHeading.compareDocumentPosition(controlHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(screen.getAllByText("Start with the property. Buying power follows.")).toHaveLength(2);
     expect(screen.getAllByText("Use standard matching—or refine what matters.")).toHaveLength(2);
