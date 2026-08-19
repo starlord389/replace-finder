@@ -208,6 +208,22 @@ describe("Meta agent replacement-property landing page", () => {
     ).toBeInTheDocument();
     expect(document.querySelectorAll(".agent-faq__accordion [data-radix-collection-item]")).toHaveLength(8);
     expect(
+      screen.getByRole("heading", {
+        name: "Your next 1031 opportunity may already be in your client list.",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("One client is all it takes")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Add a client’s current property and let ExchangeUp uncover a stronger investment worth talking about.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Start your first search")).toBeInTheDocument();
+    expect(document.querySelector('[data-cta-location="final"]')).toHaveAttribute(
+      "href",
+      buildAgentSignupDestination(campaignSearch),
+    );
+    expect(
       screen.getByRole("list", { name: "Additional real estate brokerages" }),
     ).not.toHaveTextContent("Financial position");
     expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(

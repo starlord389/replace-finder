@@ -308,17 +308,23 @@ export default function MetaAgentReplacementProperty() {
             <circle className="exchange-node exchange-node--active" cx="962" cy="320" r="12" />
           </svg>
           <div className="agent-landing-shell agent-final-cta__inner">
-            <p className="agent-eyebrow agent-eyebrow--light">Your next search starts here</p>
-            <h2 id="final-cta-title">Put your client’s next property in motion.</h2>
-            <p className="agent-final-cta__lead">Create the search, define what fits, and keep ExchangeUp monitoring the network for new opportunities.</p>
+            <div className="agent-final-cta__copy">
+              <p className="agent-eyebrow agent-eyebrow--light">One client is all it takes</p>
+              <h2 id="final-cta-title">Your next 1031 opportunity may already be in your client list.</h2>
+              <p className="agent-final-cta__lead">Add a client’s current property and let ExchangeUp uncover a stronger investment worth talking about.</p>
+            </div>
             <div className="agent-final-cta__action">
+              <div className="agent-final-cta__action-copy">
+                <small>Start your first search</small>
+                <strong>Add the property they own today. Replacement criteria are optional.</strong>
+              </div>
               <AgentLandingCta
                 destination={signupDestination}
                 location="final"
                 onClick={trackCta}
                 className="focus-visible:ring-white"
               />
-              <p className="agent-final-cta__microcopy">Free to use. No credit card required.</p>
+              <p className="agent-final-cta__microcopy">Free for agents. No credit card required.</p>
             </div>
           </div>
         </section>
