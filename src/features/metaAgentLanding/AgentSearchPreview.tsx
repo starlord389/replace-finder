@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -7,13 +7,25 @@ import {
   Mail,
   MapPin,
   Radar,
-  Search,
   Send,
   ShieldCheck,
   Sparkles,
   TrendingUp,
   UserRound,
 } from "lucide-react";
+import {
+  CURRENT_PROPERTY,
+  ILLUSTRATIVE_CLIENT,
+  ILLUSTRATIVE_MATCHES,
+} from "@/features/metaAgentLanding/agentWorkflowData";
+import {
+  AgentWorkflowBuildScenes,
+} from "@/features/metaAgentLanding/AgentWorkflowBuildSegment";
+import {
+  getAgentWorkflowBuildVisualPhase,
+  type AgentWorkflowPhaseId,
+} from "@/features/metaAgentLanding/agentWorkflowStory";
+import { useAgentWorkflowPlayback } from "@/features/metaAgentLanding/useAgentWorkflowPlayback";
 
 type LivePhase =
   | "request"
@@ -24,213 +36,81 @@ type LivePhase =
   | "match"
   | "contact"
   | "conversation"
-  | "sent";
+  | "sent"
+  | "published";
 
-export const ILLUSTRATIVE_DEAL_ASSUMPTIONS = {
-  maximumLtv: 0.75,
-  mortgageRate: 0.07,
-  amortizationYears: 25,
-  roeImprovementForFullScore: 5,
-} as const;
+const BUILD_PHASES: readonly AgentWorkflowPhaseId[] = [
+  "property-details",
+  "financial-details",
+  "replacement-criteria",
+  "listing-review",
+  "listing-published",
+];
 
-export function amortizedAnnualPayment(principal: number, annualRate: number, years: number) {
-  if (principal <= 0 || years <= 0) return 0;
-  const monthlyRate = annualRate / 12;
-  const payments = years * 12;
-  if (monthlyRate === 0) return principal / years;
-  return (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -payments)) * 12;
-}
-
-const moneyMillions = (value: number) => `$${(value / 1_000_000).toFixed(2)}M`;
-const moneyThousands = (value: number) => `$${Math.round(value / 1_000)}K`;
-const signedMoneyThousands = (value: number) => `${value >= 0 ? "+" : "-"}$${Math.round(Math.abs(value) / 1_000)}K / yr`;
-const percentage = (value: number) => `${(value * 100).toFixed(1)}%`;
-const signedPercentagePoints = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(1)} pp`;
-
-const CURRENT_PROPERTY_VALUES = {
-  value: 2_400_000,
-  loan: 1_200_000,
-  noi: 180_000,
-  annualDebtService: 102_000,
-} as const;
-
-const currentEquity = CURRENT_PROPERTY_VALUES.value - CURRENT_PROPERTY_VALUES.loan;
-const currentCashFlow = CURRENT_PROPERTY_VALUES.noi - CURRENT_PROPERTY_VALUES.annualDebtService;
-const currentRoe = currentCashFlow / currentEquity;
-const purchasingCapacity = currentEquity / (1 - ILLUSTRATIVE_DEAL_ASSUMPTIONS.maximumLtv);
-
-export const CURRENT_PROPERTY = {
-  address: "214 Shrewsbury Street",
-  market: "Worcester, MA",
-  raw: { ...CURRENT_PROPERTY_VALUES, equity: currentEquity, cashFlow: currentCashFlow, roe: currentRoe, purchasingCapacity },
-  value: moneyMillions(CURRENT_PROPERTY_VALUES.value),
-  loan: moneyMillions(CURRENT_PROPERTY_VALUES.loan),
-  equity: moneyMillions(currentEquity),
-  ltv: percentage(CURRENT_PROPERTY_VALUES.loan / CURRENT_PROPERTY_VALUES.value),
-  noi: moneyThousands(CURRENT_PROPERTY_VALUES.noi),
-  debtService: moneyThousands(CURRENT_PROPERTY_VALUES.annualDebtService),
-  cashFlow: moneyThousands(currentCashFlow),
-  roe: percentage(currentRoe),
-  buyingRange: moneyMillions(purchasingCapacity),
-} as const;
-
-type MatchSeed = {
-  address: string;
-  type: string;
-  market: string;
-  image: string;
-  price: number;
-  noi: number;
-  qualityAdjustment: number;
+const MANUAL_PHASES: Record<Exclude<LivePhase, "request" | "published">, AgentWorkflowPhaseId> = {
+  analyzing: "calculating-position",
+  results: "matches",
+  property: "property-overview",
+  financials: "financial-comparison",
+  match: "match-rationale",
+  contact: "listing-agent",
+  conversation: "conversation-open",
+  sent: "message-sent",
 };
 
-export function buildIllustrativeMatch(seed: MatchSeed) {
-  const replacementLoan = seed.price - currentEquity;
-  const ltv = replacementLoan / seed.price;
-  const debtService = amortizedAnnualPayment(
-    replacementLoan,
-    ILLUSTRATIVE_DEAL_ASSUMPTIONS.mortgageRate,
-    ILLUSTRATIVE_DEAL_ASSUMPTIONS.amortizationYears,
-  );
-  const cashFlow = seed.noi - debtService;
-  const roe = cashFlow / currentEquity;
-  const roeImprovement = (roe - currentRoe) * 100;
-  const roeComponent = Math.min(100, Math.max(0, roeImprovement / ILLUSTRATIVE_DEAL_ASSUMPTIONS.roeImprovementForFullScore * 100));
-  const score = Math.round(Math.min(100, roeComponent * 0.7 + 100 * 0.3 + seed.qualityAdjustment));
-  const cashBoot = Math.max(0, currentEquity - seed.price);
-  const mortgageBoot = Math.max(0, CURRENT_PROPERTY_VALUES.loan - replacementLoan);
-
-  return {
-    ...seed,
-    raw: { replacementLoan, ltv, debtService, cashFlow, roe, roeImprovement, cashBoot, mortgageBoot, score },
-    price: moneyMillions(seed.price),
-    capRate: percentage(seed.noi / seed.price),
-    noi: moneyThousands(seed.noi),
-    equity: moneyMillions(currentEquity),
-    loan: moneyMillions(replacementLoan),
-    debtService: moneyThousands(debtService),
-    cashFlow: moneyThousands(cashFlow),
-    roe: percentage(roe),
-    roeImprovement: signedPercentagePoints(roeImprovement),
-    ltv: percentage(ltv),
-    valueIncrease: `+$${((seed.price - CURRENT_PROPERTY_VALUES.value) / 1_000_000).toFixed(2)}M`,
-    noiChange: signedMoneyThousands(seed.noi - CURRENT_PROPERTY_VALUES.noi),
-    cashFlowChange: signedMoneyThousands(cashFlow - currentCashFlow),
-    estimatedBoot: moneyThousands(cashBoot + mortgageBoot),
-    score,
-  };
+function heroVisualPhase(phase: AgentWorkflowPhaseId): LivePhase {
+  if (BUILD_PHASES.includes(phase)) return getAgentWorkflowBuildVisualPhase(phase);
+  if (phase === "calculating-position" || phase === "evaluating-network") return "analyzing";
+  if (phase === "matches" || phase === "opening-match") return "results";
+  if (phase === "property-overview") return "property";
+  if (phase === "financial-comparison") return "financials";
+  if (phase === "match-rationale") return "match";
+  if (phase === "contact-tab" || phase === "listing-agent") return "contact";
+  if (phase === "conversation-open" || phase === "message-typing") return "conversation";
+  return "sent";
 }
 
-export const ILLUSTRATIVE_MATCHES = [
-  buildIllustrativeMatch({
-    address: "184 River Avenue",
-    type: "Multifamily",
-    market: "Providence, RI",
-    image: "/mf-1.jpg",
-    price: 4_000_000,
-    noi: 364_000,
-    qualityAdjustment: 3,
-  }),
-  buildIllustrativeMatch({
-    address: "675 Harvey Road",
-    type: "Industrial",
-    market: "Manchester, NH",
-    image: "/landing-prop-industrial.jpg",
-    price: 4_400_000,
-    noi: 390_000,
-    qualityAdjustment: 3,
-  }),
-] as const;
-
 export function AgentSearchPreview() {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const manualOverrideRef = useRef(false);
-  const [livePhase, setLivePhase] = useState<LivePhase>("request");
-  const [cycle, setCycle] = useState(0);
+  const playback = useAgentWorkflowPlayback("full");
+  const workflowPhase = playback.phase.id;
+  const livePhase = heroVisualPhase(workflowPhase);
+  const isBuildPhase = playback.phase.stage === "build";
   const [selectedMatchIndex, setSelectedMatchIndex] = useState(0);
   const selectedMatch = ILLUSTRATIVE_MATCHES[selectedMatchIndex];
 
   useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage || !("IntersectionObserver" in window)) {
-      setLivePhase("analyzing");
-      return;
-    }
-
-    let active = false;
-    let timers: number[] = [];
-
-    const clearTimers = () => {
-      timers.forEach((timer) => window.clearTimeout(timer));
-      timers = [];
-    };
-
-    const runCycle = () => {
-      if (!active) return;
-      clearTimers();
-      manualOverrideRef.current = false;
-      setCycle((value) => value + 1);
-      setSelectedMatchIndex(0);
-      setLivePhase("request");
-      const advance = (phase: LivePhase) => active && !manualOverrideRef.current && setLivePhase(phase);
-      timers.push(window.setTimeout(() => advance("analyzing"), 350));
-      timers.push(window.setTimeout(() => advance("results"), 3900));
-      timers.push(window.setTimeout(() => advance("property"), 8200));
-      timers.push(window.setTimeout(() => advance("financials"), 12100));
-      timers.push(window.setTimeout(() => advance("match"), 16900));
-      timers.push(window.setTimeout(() => advance("contact"), 21700));
-      timers.push(window.setTimeout(() => advance("conversation"), 25000));
-      timers.push(window.setTimeout(() => advance("sent"), 29800));
-      timers.push(window.setTimeout(() => {
-        if (active && !manualOverrideRef.current) runCycle();
-      }, 35600));
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const shouldRun = entry.intersectionRatio >= 0.2;
-        if (shouldRun && !active) {
-          active = true;
-          runCycle();
-          return;
-        }
-        if (!shouldRun && active) {
-          active = false;
-          manualOverrideRef.current = false;
-          clearTimers();
-        }
-      },
-      { threshold: [0, 0.14, 0.2, 0.28, 0.55] },
-    );
-
-    observer.observe(stage);
-    return () => {
-      active = false;
-      clearTimers();
-      observer.disconnect();
-    };
-  }, []);
+    setSelectedMatchIndex(0);
+  }, [playback.cycle]);
 
   const isReviewing = ["property", "financials", "match", "contact", "conversation", "sent"].includes(livePhase);
   const hasResults = !["request", "analyzing"].includes(livePhase);
   const setManualPhase = (phase: LivePhase) => {
-    manualOverrideRef.current = true;
-    setLivePhase(phase);
+    if (phase === "request") {
+      playback.goToPhase("property-details");
+      return;
+    }
+    if (phase === "published") {
+      playback.goToPhase("listing-published");
+      return;
+    }
+    playback.goToPhase(MANUAL_PHASES[phase]);
   };
 
   return (
-    <div ref={stageRef} className="agent-console-stage">
-      <figure aria-labelledby="agent-search-preview-caption" className="agent-console">
+    <div ref={playback.stageRef} className="agent-console-stage">
+      <figure aria-labelledby="agent-search-preview-caption" className="agent-console" data-workflow-phase={workflowPhase}>
         <figcaption id="agent-search-preview-caption" className="agent-console__topbar">
           <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
-          <span className="agent-console__workspace">Riverside exchange</span>
+          <span className="agent-console__workspace">{isBuildPhase ? `${ILLUSTRATIVE_CLIENT.name} · New listing` : "Riverside exchange"}</span>
           <span className="agent-console__privacy">Private agent workspace</span>
         </figcaption>
 
         <div
-          key={cycle}
-          className="agent-live-demo"
+          key={playback.cycle}
+          className={`agent-live-demo agent-workflow-master${isBuildPhase ? " workflow-build-live" : ""}`}
           data-live-phase={livePhase}
+          data-workflow-phase={workflowPhase}
+          data-workflow-stage={playback.phase.stage}
           aria-label="Illustrative live replacement-property matching workflow"
         >
           <div className="agent-live-demo__camera">
@@ -264,7 +144,7 @@ export function AgentSearchPreview() {
                 <li><Check /> New England income property</li>
               </ul>
               <div className="agent-live-search-brief__status">
-                {livePhase === "request" && <><i /> Search brief ready</>}
+                {(livePhase === "request" || livePhase === "published") && <><i /> Search brief ready</>}
                 {livePhase === "analyzing" && <><Radar /> Ranking replacements</>}
                 {hasResults && <><CircleCheck /> 2 options ready</>}
               </div>
@@ -273,8 +153,11 @@ export function AgentSearchPreview() {
 
             <section className="agent-live-demo__workspace">
             <div className="agent-live-demo__workspace-heading">
-              <div><small>Replacement search</small><strong>Riverside exchange</strong></div>
-              <span><i /> {isReviewing ? (livePhase === "sent" ? "Agent contacted" : "Reviewing match") : "Search always on"}</span>
+              <div>
+                <small>{isBuildPhase ? "Create a listing" : "Replacement search"}</small>
+                <strong>{isBuildPhase ? "Add the property, exchange criteria, and publish" : "Riverside exchange"}</strong>
+              </div>
+              <span><i /> {isBuildPhase ? playback.phase.label : isReviewing ? (livePhase === "sent" ? "Agent contacted" : "Reviewing match") : "Search always on"}</span>
             </div>
 
             <div className="agent-live-demo__request-line">
@@ -284,13 +167,7 @@ export function AgentSearchPreview() {
             </div>
 
             <div className="agent-live-demo__canvas">
-              <section className="agent-live-scene agent-live-scene--request">
-                <span className="agent-live-scene__icon"><Search /></span>
-                <small>Property + goals connected</small>
-                <h3>Turn one listing into a focused 1031 search</h3>
-                <p>ExchangeUp uses the property, equity, buying range, and return goal to find qualified replacements.</p>
-                <button type="button" className="agent-live-scene__start" onClick={() => setLivePhase("analyzing")}><Sparkles /> Find qualified replacements <ArrowRight /></button>
-              </section>
+              <AgentWorkflowBuildScenes phase={workflowPhase} />
 
               <section className="agent-live-scene agent-live-scene--analysis">
                 <div className="agent-live-analysis__heading"><span><Sparkles /></span><div><small>ExchangeUp matching engine</small><h3>Calculating buying power and financial fit</h3></div><i /></div>

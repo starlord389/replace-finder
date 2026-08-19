@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MetaAgentReplacementProperty from "@/pages/meta/MetaAgentReplacementProperty";
@@ -8,7 +8,7 @@ import {
   CURRENT_PROPERTY,
   ILLUSTRATIVE_DEAL_ASSUMPTIONS,
   ILLUSTRATIVE_MATCHES,
-} from "@/features/metaAgentLanding/AgentSearchPreview";
+} from "@/features/metaAgentLanding/agentWorkflowData";
 import {
   buildAgentSignupDestination,
   readAgentLandingAttribution,
@@ -91,9 +91,12 @@ describe("Meta agent replacement-property landing page", () => {
       screen.getByRole("heading", { name: /keep the full replacement story connected/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Build the search once. Keep it working." }),
+      screen.getByRole("heading", { name: "Stop searching listing by listing." }),
     ).toBeInTheDocument();
-    const workflowHeading = screen.getByRole("heading", { name: "Build the search once. Keep it working." });
+    expect(
+      screen.getByText("ExchangeUp automatically surfaces the strongest replacement opportunities using your client’s property and investment goals, helping you close the sale, stay involved in the replacement purchase, and generate more business from every client completing a 1031 exchange."),
+    ).toBeInTheDocument();
+    const workflowHeading = screen.getByRole("heading", { name: "Stop searching listing by listing." });
     const platformStoryHeading = screen.getByRole("heading", { name: /keep the full replacement story connected/i });
     const controlHeading = screen.getByRole("heading", { name: "A private search you stay in control of." });
     const trustedBrokerages = screen.getByText("Trusted by agents from these brokerages");
@@ -106,10 +109,55 @@ describe("Meta agent replacement-property landing page", () => {
     expect(
       platformStoryHeading.compareDocumentPosition(controlHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    expect(screen.getAllByText("Start with the property. Buying power follows.")).toHaveLength(2);
-    expect(screen.getAllByText("Use standard matching—or refine what matters.")).toHaveLength(2);
-    expect(screen.getAllByText("Know why it fits before you present it.")).toHaveLength(2);
-    expect(screen.getByText("No replacement criteria are required.", { exact: false })).toBeInTheDocument();
+    expect(screen.getAllByText("Turn your client’s current property and priorities into a search for something better.")).toHaveLength(2);
+    expect(screen.getAllByText("Find the opportunity that starts the conversation.")).toHaveLength(2);
+    expect(screen.getAllByText("Know what’s worth putting in front of your client.")).toHaveLength(2);
+    expect(screen.getAllByText("Turn the right match into action.")).toHaveLength(2);
+    expect(screen.getByText("The current property establishes the client’s estimated equity and purchasing position. Optional criteria, such as location, property type, financing, and projected return, help ExchangeUp focus on opportunities that could make an exchange more compelling.")).toBeInTheDocument();
+    expect(screen.getByText("Rather than waiting to learn whether your client wants to sell, ExchangeUp continuously monitors the network for properties that may improve their investment position, so you can uncover potential exchanges worth reviewing and create a new reason to start the conversation.")).toBeInTheDocument();
+    expect(screen.getByText("See the matched properties, review the financial comparison with your client’s current property, and understand why they fit the search. ExchangeUp only creates matches for properties with a higher projected return on equity, giving you a clear financial case to present to your client.")).toBeInTheDocument();
+    expect(screen.getByText("Present the opportunity to your client and explain why it may be worth considering. If your client wants to move forward, connect directly with the listing agent, coordinate the next steps, and guide the exchange toward closing. If the property is not the right fit, you can keep the search active so ExchangeUp can continue finding new opportunities for your client.")).toBeInTheDocument();
+    const workflowNav = screen.getByRole("list", { name: "How the ExchangeUp search works" });
+    const workflowButtons = within(workflowNav).getAllByRole("button");
+    expect(workflowButtons).toHaveLength(4);
+    expect(workflowButtons.map((button) => button.querySelector("small")?.textContent)).toEqual([
+      "Build the Search",
+      "Discover Opportunities Automatically",
+      "Review the Matches",
+      "Advance the Opportunity",
+    ]);
+    workflowButtons.forEach((button) => {
+      fireEvent.focus(button);
+      expect(button).toHaveAttribute("aria-pressed", "true");
+    });
+    const workflowPanels = document.querySelectorAll(".agent-workflow__panel");
+    expect(workflowPanels).toHaveLength(4);
+    const buildSearchPanel = within(workflowPanels[0] as HTMLElement);
+    const buildSearchPreview = buildSearchPanel.getByLabelText(
+      "Animated client listing creation and publishing workflow",
+    );
+    expect(["property-details", "financial-details", "replacement-criteria", "listing-review", "listing-published"]).toContain(
+      buildSearchPreview.getAttribute("data-workflow-phase"),
+    );
+    const buildSearchScenes = buildSearchPreview.querySelectorAll(".workflow-build-live__scene");
+    expect(buildSearchScenes).toHaveLength(5);
+    expect(
+      Array.from(buildSearchScenes).filter(
+        (scene) => scene.getAttribute("aria-hidden") === "false",
+      ),
+    ).toHaveLength(1);
+    expect(buildSearchPanel.getByText("Create the listing for your client’s current property")).toBeInTheDocument();
+    expect(buildSearchPanel.getAllByText("$2,400,000")).not.toHaveLength(0);
+    expect(buildSearchPanel.getByText("Publish listing")).toBeInTheDocument();
+    expect(buildSearchPanel.getByText("214 Shrewsbury Street is now active")).toBeInTheDocument();
+    expect(buildSearchPanel.queryByText("Relinquished property")).not.toBeInTheDocument();
+    const advancePanel = within(workflowPanels[3] as HTMLElement);
+    expect(advancePanel.getByLabelText("Animated listing-agent conversation workflow")).toBeInTheDocument();
+    expect(advancePanel.getByText("Contact listing agent")).toBeInTheDocument();
+    expect(advancePanel.getByText("Conversation with listing agent")).toBeInTheDocument();
+    document.querySelectorAll(".workflow-canvas__progress").forEach((progress) => {
+      expect(progress.children).toHaveLength(4);
+    });
     expect(screen.getAllByText("Match rationale")).toHaveLength(1);
     expect(screen.getByText("Pipeline stage")).toBeInTheDocument();
     expect(
@@ -161,6 +209,200 @@ describe("Meta agent replacement-property landing page", () => {
     expect(document.querySelector('meta[name="robots"]')).not.toBeInTheDocument();
   });
 
+  it("starts the Step 1 dashboard sequence in view and advances through listing publication", () => {
+    vi.useFakeTimers();
+    const VisibleIntersectionObserver = class {
+      constructor(private readonly callback: IntersectionObserverCallback) {}
+      observe(target: Element) {
+        this.callback(
+          [{ isIntersecting: true, intersectionRatio: 0.55, target } as IntersectionObserverEntry],
+          this as unknown as IntersectionObserver,
+        );
+      }
+      disconnect() {}
+      unobserve() {}
+      takeRecords() { return []; }
+    };
+    vi.stubGlobal("IntersectionObserver", VisibleIntersectionObserver);
+
+    try {
+      render(
+        <MemoryRouter initialEntries={["/meta/agents/replacement-property#how-it-works"]}>
+          <MetaAgentReplacementProperty />
+        </MemoryRouter>,
+      );
+
+      const preview = screen.getByLabelText(
+        "Animated client listing creation and publishing workflow",
+      );
+      expect(preview).toHaveAttribute("data-workflow-phase", "property-details");
+      expect(preview.querySelector(".workflow-build-live__scene--property")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(3_500));
+      expect(preview).toHaveAttribute("data-workflow-phase", "financial-details");
+      expect(preview.querySelector(".agent-live-scene--analysis")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(3_700));
+      expect(preview).toHaveAttribute("data-workflow-phase", "replacement-criteria");
+      expect(preview.querySelector(".workflow-build-live__scene--goals")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(3_800));
+      expect(preview).toHaveAttribute("data-workflow-phase", "listing-review");
+      expect(preview.querySelector(".workflow-build-live__scene--ready")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(3_600));
+      expect(preview).toHaveAttribute("data-workflow-phase", "listing-published");
+      expect(preview.querySelector(".workflow-build-live__scene--published")).toHaveAttribute("aria-hidden", "false");
+    } finally {
+      cleanup();
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
+  it("runs the Step 2 automatic-discovery sequence only after the dashboard enters view", () => {
+    vi.useFakeTimers();
+    const VisibleIntersectionObserver = class {
+      constructor(private readonly callback: IntersectionObserverCallback) {}
+      observe(target: Element) {
+        this.callback(
+          [{ isIntersecting: true, intersectionRatio: 0.55, target } as IntersectionObserverEntry],
+          this as unknown as IntersectionObserver,
+        );
+      }
+      disconnect() {}
+      unobserve() {}
+      takeRecords() { return []; }
+    };
+    vi.stubGlobal("IntersectionObserver", VisibleIntersectionObserver);
+
+    try {
+      render(
+        <MemoryRouter initialEntries={["/meta/agents/replacement-property#how-it-works"]}>
+          <MetaAgentReplacementProperty />
+        </MemoryRouter>,
+      );
+
+      const preview = screen.getByLabelText(
+        "Animated automatic replacement-property discovery preview",
+      );
+      expect(preview).toHaveTextContent("A new match was found for Elaine");
+      expect(preview).toHaveTextContent("All matches for this client");
+      expect(preview).not.toHaveTextContent(/financial comparison|match score|return on equity/i);
+      expect(preview).toHaveAttribute("data-discovery-phase", "notification");
+      expect(preview.querySelector(".workflow-discover-simple__scene--notification")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(4_200));
+      expect(preview).toHaveAttribute("data-discovery-phase", "opening");
+      expect(preview.querySelector(".workflow-discover-simple__scene--notification")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(2_600));
+      expect(preview).toHaveAttribute("data-discovery-phase", "matches");
+      expect(preview.querySelector(".workflow-discover-simple__scene--matches")).toHaveAttribute("aria-hidden", "false");
+    } finally {
+      cleanup();
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
+  it("runs the Step 3 matched-property review sequence only after the dashboard enters view", () => {
+    vi.useFakeTimers();
+    const VisibleIntersectionObserver = class {
+      constructor(private readonly callback: IntersectionObserverCallback) {}
+      observe(target: Element) {
+        this.callback(
+          [{ isIntersecting: true, intersectionRatio: 0.55, target } as IntersectionObserverEntry],
+          this as unknown as IntersectionObserver,
+        );
+      }
+      disconnect() {}
+      unobserve() {}
+      takeRecords() { return []; }
+    };
+    vi.stubGlobal("IntersectionObserver", VisibleIntersectionObserver);
+
+    try {
+      render(
+        <MemoryRouter initialEntries={["/meta/agents/replacement-property#how-it-works"]}>
+          <MetaAgentReplacementProperty />
+        </MemoryRouter>,
+      );
+
+      const preview = screen.getByLabelText(
+        "Animated matched-property review and financial comparison preview",
+      );
+      expect(preview).toHaveAttribute("data-review-phase", "results");
+      expect(preview.querySelector(".workflow-review-live__scene--matches")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(4_200));
+      expect(preview).toHaveAttribute("data-review-phase", "property");
+      expect(preview.querySelector(".agent-live-review__panel--property")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(4_300));
+      expect(preview).toHaveAttribute("data-review-phase", "financials");
+      expect(preview.querySelector(".agent-live-review__panel--financials")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(4_700));
+      expect(preview).toHaveAttribute("data-review-phase", "match");
+      expect(preview.querySelector(".agent-live-review__panel--match")).toHaveAttribute("aria-hidden", "false");
+    } finally {
+      cleanup();
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
+  it("runs the Step 4 contact-and-conversation sequence only after the dashboard enters view", () => {
+    vi.useFakeTimers();
+    const VisibleIntersectionObserver = class {
+      constructor(private readonly callback: IntersectionObserverCallback) {}
+      observe(target: Element) {
+        this.callback(
+          [{ isIntersecting: true, intersectionRatio: 0.55, target } as IntersectionObserverEntry],
+          this as unknown as IntersectionObserver,
+        );
+      }
+      disconnect() {}
+      unobserve() {}
+      takeRecords() { return []; }
+    };
+    vi.stubGlobal("IntersectionObserver", VisibleIntersectionObserver);
+
+    try {
+      render(
+        <MemoryRouter initialEntries={["/meta/agents/replacement-property#how-it-works"]}>
+          <MetaAgentReplacementProperty />
+        </MemoryRouter>,
+      );
+
+      const preview = screen.getByLabelText("Animated listing-agent conversation workflow");
+      expect(preview).toHaveAttribute("data-advance-phase", "match");
+      expect(preview.querySelector(".workflow-advance-live__scene--match")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(3_600));
+      expect(preview).toHaveAttribute("data-advance-phase", "opening");
+      expect(preview.querySelector(".workflow-advance-live__scene--match")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(1_500));
+      expect(preview).toHaveAttribute("data-advance-phase", "conversation");
+      expect(preview.querySelector(".workflow-advance-live__scene--conversation")).toHaveAttribute("aria-hidden", "false");
+
+      act(() => vi.advanceTimersByTime(1_600));
+      expect(preview).toHaveAttribute("data-advance-phase", "typing");
+      expect(preview.querySelector(".workflow-advance-live__composer")).toHaveTextContent(/my client is interested/i);
+
+      act(() => vi.advanceTimersByTime(4_200));
+      expect(preview).toHaveAttribute("data-advance-phase", "sent");
+      expect(preview).toHaveTextContent("Just now · Delivered");
+      expect(preview).toHaveTextContent("The opportunity moved to In Conversation in the pipeline.");
+    } finally {
+      cleanup();
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
   it("tracks CTA location without losing campaign values", () => {
     render(
       <MemoryRouter initialEntries={[`/meta/agents/replacement-property${campaignSearch}`]}>
@@ -201,53 +443,59 @@ describe("Meta agent replacement-property landing page", () => {
       </MemoryRouter>,
     );
 
-    expect(
-      screen.getByLabelText("Illustrative live replacement-property matching workflow"),
-    ).toBeInTheDocument();
+    const liveWorkflow = screen.getByLabelText(
+      "Illustrative live replacement-property matching workflow",
+    );
+    const liveWorkflowView = within(liveWorkflow);
+    expect(liveWorkflow).toBeInTheDocument();
     expect(document.querySelectorAll(".agent-rollout-window")).toHaveLength(0);
     expect(document.querySelector(".agent-live-demo__camera")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /find qualified replacements/i })).toBeInTheDocument();
-    expect(screen.getByText("ExchangeUp matching engine")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "2 replacements worth presenting" })).toBeInTheDocument();
-    expect(screen.getAllByText("Up to $4.80M")).not.toHaveLength(0);
-    expect(screen.getByText("+$49K/yr")).toBeInTheDocument();
-    expect(screen.getAllByText("184 River Avenue")).not.toHaveLength(0);
-    expect(screen.getAllByText("675 Harvey Road")).not.toHaveLength(0);
-    expect(screen.queryByText("Blackstone Mill Lofts")).not.toBeInTheDocument();
-    expect(screen.queryByText("Merrimack Commerce Park")).not.toBeInTheDocument();
-    expect(screen.getByText("Active client workspace")).toBeInTheDocument();
-    expect(screen.getByText("Property being sold")).toBeInTheDocument();
-    expect(screen.getByText("42 days remaining")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "214 Shrewsbury Street property" })).toHaveAttribute(
+    expect(liveWorkflowView.getByText("Create the listing for your client’s current property")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("Publish listing")).toBeInTheDocument();
+    expect(liveWorkflowView.queryByRole("button", { name: /find qualified replacements/i })).not.toBeInTheDocument();
+    expect(liveWorkflowView.getByText("ExchangeUp matching engine")).toBeInTheDocument();
+    expect(liveWorkflowView.getByRole("heading", { name: "2 replacements worth presenting" })).toBeInTheDocument();
+    expect(liveWorkflowView.getAllByText("Up to $4.80M")).not.toHaveLength(0);
+    expect(liveWorkflowView.getByText("+$49K/yr")).toBeInTheDocument();
+    expect(liveWorkflowView.getAllByText("184 River Avenue")).not.toHaveLength(0);
+    expect(liveWorkflowView.getAllByText("675 Harvey Road")).not.toHaveLength(0);
+    expect(liveWorkflowView.queryByText("Blackstone Mill Lofts")).not.toBeInTheDocument();
+    expect(liveWorkflowView.queryByText("Merrimack Commerce Park")).not.toBeInTheDocument();
+    expect(
+      liveWorkflowView.getByText("Active client workspace"),
+    ).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("Property being sold")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("42 days remaining")).toBeInTheDocument();
+    expect(liveWorkflowView.getByRole("img", { name: "214 Shrewsbury Street property" })).toHaveAttribute(
       "src",
       "/mf-4.jpg",
     );
-    expect(screen.getByRole("img", { name: "184 River Avenue exterior" })).toHaveAttribute(
+    expect(liveWorkflowView.getByRole("img", { name: "184 River Avenue exterior" })).toHaveAttribute(
       "src",
       "/mf-1.jpg",
     );
-    expect(screen.getByRole("img", { name: "675 Harvey Road exterior" })).toHaveAttribute(
+    expect(liveWorkflowView.getByRole("img", { name: "675 Harvey Road exterior" })).toHaveAttribute(
       "src",
       "/landing-prop-industrial.jpg",
     );
-    expect(screen.getByRole("button", { name: "Review 184 River Avenue comparison" })).toBeInTheDocument();
-    expect(screen.getByText("Modeled at 7.0% · 25-year amortization")).toBeInTheDocument();
-    expect(screen.getByText("214 Shrewsbury Street vs. 184 River Avenue")).toBeInTheDocument();
-    expect(screen.getByText("Cash flow / ROE")).toBeInTheDocument();
-    expect(screen.getByText("$2.80M · 70.0%")).toBeInTheDocument();
-    expect(screen.getByText("$127K · 10.5%")).toBeInTheDocument();
-    expect(screen.getByText("+4.0 pp")).toBeInTheDocument();
-    expect(screen.getAllByText("Match rationale")).toHaveLength(1);
-    expect(screen.getByText("Location fit")).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Property" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Financials" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Why it fits" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Contact agent" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Reach the agent for this property" })).toBeInTheDocument();
-    expect(screen.getAllByText("Jordan Lee")).toHaveLength(2);
-    expect(screen.getByRole("button", { name: /contact listing agent/i })).toBeInTheDocument();
-    expect(screen.queryByText("Give the client a clear next step")).not.toBeInTheDocument();
-    expect(screen.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
+    expect(liveWorkflowView.getByRole("button", { name: "Review 184 River Avenue comparison" })).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("Modeled at 7.0% · 25-year amortization")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("214 Shrewsbury Street vs. 184 River Avenue")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("Cash flow / ROE")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("$2.80M · 70.0%")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("$127K · 10.5%")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("+4.0 pp")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("Exchange IQ™ rationale")).toBeInTheDocument();
+    expect(liveWorkflowView.getByText("Location fit")).toBeInTheDocument();
+    expect(liveWorkflowView.getByRole("tab", { name: "Property" })).toBeInTheDocument();
+    expect(liveWorkflowView.getByRole("tab", { name: "Financials" })).toBeInTheDocument();
+    expect(liveWorkflowView.getByRole("tab", { name: "Why it fits" })).toBeInTheDocument();
+    expect(liveWorkflowView.getByRole("tab", { name: "Contact agent" })).toBeInTheDocument();
+    expect(liveWorkflowView.getByRole("heading", { name: "Reach the agent for this property" })).toBeInTheDocument();
+    expect(liveWorkflowView.getAllByText("Jordan Lee")).toHaveLength(2);
+    expect(liveWorkflowView.getByRole("button", { name: /contact listing agent/i })).toBeInTheDocument();
+    expect(liveWorkflowView.queryByText("Give the client a clear next step")).not.toBeInTheDocument();
+    expect(liveWorkflowView.queryByText(/ask exchangeup/i)).not.toBeInTheDocument();
   });
 
   it("opens the selected match comparison from either photographic listing card", () => {
@@ -275,15 +523,16 @@ describe("Meta agent replacement-property landing page", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /contact listing agent/i }));
+    const liveWorkflow = within(screen.getByLabelText("Illustrative live replacement-property matching workflow"));
+    fireEvent.click(liveWorkflow.getByRole("button", { name: /contact listing agent/i }));
 
-    expect(screen.getByText("Conversation with listing agent")).toBeInTheDocument();
-    expect(screen.getByText(/my client is reviewing 184 River Avenue/i)).toBeInTheDocument();
+    expect(liveWorkflow.getByText("Conversation with listing agent")).toBeInTheDocument();
+    expect(liveWorkflow.getByText(/my client is reviewing 184 River Avenue/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Send message to Jordan Lee" }));
+    fireEvent.click(liveWorkflow.getByRole("button", { name: "Send message to Jordan Lee" }));
 
-    expect(screen.getByText("Just now · Delivered")).toBeInTheDocument();
-    expect(screen.getByText("Message sent. The agent conversation is now in your pipeline.")).toBeInTheDocument();
+    expect(liveWorkflow.getByText("Just now · Delivered")).toBeInTheDocument();
+    expect(liveWorkflow.getByText("Message sent. The agent conversation is now in your pipeline.")).toBeInTheDocument();
   });
 
   it("derives every displayed exchange figure from the matching model", () => {
