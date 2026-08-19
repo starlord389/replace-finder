@@ -6403,11 +6403,12 @@ body:has([data-meta-agent-landing]) {
   position: relative;
   z-index: 1;
   overflow: hidden;
-  border: 1px solid rgba(219, 231, 221, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 18px;
-  background: #f9faf8;
-  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.34), 0 1px 0 rgba(255, 255, 255, 0.75) inset;
-  color: #152039;
+  background: #151a17;
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.48), 0 1px 0 rgba(255, 255, 255, 0.035) inset;
+  color: #f2f5f3;
+  color-scheme: dark;
 }
 
 [data-meta-agent-landing] .agent-roe-card__topbar {
@@ -6417,8 +6418,8 @@ body:has([data-meta-agent-landing]) {
   justify-content: space-between;
   gap: 20px;
   padding: 0 28px;
-  border-bottom: 1px solid #dfe5df;
-  background: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+  background: #191f1b;
 }
 
 [data-meta-agent-landing] .agent-roe-card__topbar > span {
@@ -6439,7 +6440,7 @@ body:has([data-meta-agent-landing]) {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #6f7972;
+  color: #8e9991;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.045em;
@@ -6459,6 +6460,7 @@ body:has([data-meta-agent-landing]) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px 18px;
   padding: 28px;
+  background: #151a17;
 }
 
 [data-meta-agent-landing] .agent-roe-card__field:last-child {
@@ -6471,13 +6473,13 @@ body:has([data-meta-agent-landing]) {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
-  color: #344039;
+  color: #dce3de;
   font-size: 11px;
   font-weight: 720;
 }
 
 [data-meta-agent-landing] .agent-roe-card__field > label small {
-  color: #89928c;
+  color: #7e8b82;
   font-size: 9px;
   font-weight: 650;
 }
@@ -6490,7 +6492,7 @@ body:has([data-meta-agent-landing]) {
   position: absolute;
   top: 50%;
   left: 14px;
-  color: #78827b;
+  color: #7f8c83;
   font-size: 14px;
   transform: translateY(-50%);
   pointer-events: none;
@@ -6500,11 +6502,11 @@ body:has([data-meta-agent-landing]) {
   width: 100%;
   height: 48px;
   padding: 0 14px 0 30px;
-  border: 1px solid #d7ddd8;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
   outline: 0;
-  background: #fff;
-  color: #152039;
+  background: #0f1311;
+  color: #f4f7f5;
   font: inherit;
   font-size: 15px;
   font-weight: 650;
@@ -6520,15 +6522,15 @@ body:has([data-meta-agent-landing]) {
 [data-meta-agent-landing] .agent-roe-card__help {
   display: block;
   margin-top: 6px;
-  color: #89928c;
+  color: #7f8b83;
   font-size: 9px;
   line-height: 1.4;
 }
 
 [data-meta-agent-landing] .agent-roe-card__results {
   padding: 26px 28px 28px;
-  border-top: 1px solid #d9e3da;
-  background: linear-gradient(145deg, #edf6ee 0%, #f7faf6 78%);
+  border-top: 1px solid rgba(120, 201, 128, 0.17);
+  background: linear-gradient(145deg, #101a13 0%, #151c17 78%);
 }
 
 [data-meta-agent-landing] .agent-roe-card__primary-result {
@@ -6559,7 +6561,7 @@ body:has([data-meta-agent-landing]) {
 }
 
 [data-meta-agent-landing] .agent-roe-card__primary-result small {
-  color: #657168;
+  color: #8c9990;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.075em;
@@ -6568,7 +6570,7 @@ body:has([data-meta-agent-landing]) {
 
 [data-meta-agent-landing] .agent-roe-card__primary-result strong {
   margin-top: 2px;
-  color: #23752a;
+  color: #79cd80;
   font-size: clamp(38px, 4vw, 54px);
   font-weight: 610;
   letter-spacing: -0.055em;
@@ -6577,7 +6579,7 @@ body:has([data-meta-agent-landing]) {
 
 [data-meta-agent-landing] .agent-roe-card__primary-result p {
   margin: 7px 0 0;
-  color: #748078;
+  color: #849087;
   font-size: 10px;
   line-height: 1.4;
 }
@@ -6588,22 +6590,22 @@ body:has([data-meta-agent-landing]) {
   gap: 1px;
   overflow: hidden;
   margin: 24px 0 0;
-  border: 1px solid #d9e4da;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  background: #d9e4da;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 [data-meta-agent-landing] .agent-roe-card__metrics > div {
   min-width: 0;
   padding: 15px 14px 17px;
-  background: rgba(255, 255, 255, 0.82);
+  background: #18201a;
 }
 
 [data-meta-agent-landing] .agent-roe-card__metrics dt {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #758078;
+  color: #89958d;
   font-size: 8px;
   font-weight: 750;
   letter-spacing: 0.045em;
@@ -6621,7 +6623,7 @@ body:has([data-meta-agent-landing]) {
 [data-meta-agent-landing] .agent-roe-card__metrics dd {
   overflow-wrap: anywhere;
   margin: 9px 0 0;
-  color: #152039;
+  color: #f1f4f2;
   font-size: clamp(15px, 1.45vw, 19px);
   font-weight: 720;
   letter-spacing: -0.035em;
@@ -6630,10 +6632,10 @@ body:has([data-meta-agent-landing]) {
 [data-meta-agent-landing] .agent-roe-card__insight {
   margin: 16px 0 0;
   padding: 13px 15px;
-  border: 1px solid rgba(67, 160, 71, 0.24);
+  border: 1px solid rgba(105, 197, 113, 0.25);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.6);
-  color: #3c7040;
+  background: rgba(67, 160, 71, 0.08);
+  color: #a5d8a9;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -6652,19 +6654,19 @@ body:has([data-meta-agent-landing]) {
   height: 38px;
   padding: 9px;
   border-radius: 11px;
-  background: rgba(146, 97, 45, 0.1);
-  color: #93672f;
+  background: rgba(203, 155, 91, 0.12);
+  color: #d1a466;
 }
 
 [data-meta-agent-landing] .agent-roe-card__empty strong {
-  color: #493b2c;
+  color: #f0dfc8;
   font-size: 16px;
 }
 
 [data-meta-agent-landing] .agent-roe-card__empty p {
   max-width: 420px;
   margin: 6px 0 0;
-  color: #776c60;
+  color: #a99b8c;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -6680,7 +6682,7 @@ body:has([data-meta-agent-landing]) {
 [data-meta-agent-landing] .agent-roe-card__action > p {
   max-width: 230px;
   margin: 0;
-  color: #879087;
+  color: #78847c;
   font-size: 9px;
   line-height: 1.45;
   text-align: right;
