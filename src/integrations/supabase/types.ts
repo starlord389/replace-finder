@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_account_states: {
+        Row: {
+          account_status: string
+          created_at: string
+          previous_verification_status: string | null
+          reactivated_at: string | null
+          reactivated_by: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_status?: string
+          created_at?: string
+          previous_verification_status?: string | null
+          reactivated_at?: string | null
+          reactivated_by?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_status?: string
+          created_at?: string
+          previous_verification_status?: string | null
+          reactivated_at?: string | null
+          reactivated_by?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -44,45 +83,6 @@ export type Database = {
           id?: string
           metadata?: Json
           summary?: string | null
-        }
-        Relationships: []
-      }
-      admin_account_states: {
-        Row: {
-          account_status: string
-          created_at: string
-          previous_verification_status: string | null
-          reactivated_at: string | null
-          reactivated_by: string | null
-          suspension_reason: string | null
-          suspended_at: string | null
-          suspended_by: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          account_status?: string
-          created_at?: string
-          previous_verification_status?: string | null
-          reactivated_at?: string | null
-          reactivated_by?: string | null
-          suspension_reason?: string | null
-          suspended_at?: string | null
-          suspended_by?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          account_status?: string
-          created_at?: string
-          previous_verification_status?: string | null
-          reactivated_at?: string | null
-          reactivated_by?: string | null
-          suspension_reason?: string | null
-          suspended_at?: string | null
-          suspended_by?: string | null
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -1658,106 +1658,6 @@ export type Database = {
           },
         ]
       }
-      match_workflow_events: {
-        Row: {
-          actor_id: string | null
-          created_at: string
-          from_stage: string | null
-          id: string
-          match_id: string
-          note: string | null
-          source: string
-          to_stage: string
-        }
-        Insert: {
-          actor_id?: string | null
-          created_at?: string
-          from_stage?: string | null
-          id?: string
-          match_id: string
-          note?: string | null
-          source: string
-          to_stage: string
-        }
-        Update: {
-          actor_id?: string | null
-          created_at?: string
-          from_stage?: string | null
-          id?: string
-          match_id?: string
-          note?: string | null
-          source?: string
-          to_stage?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "match_workflow_events_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: false
-            referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      match_workflow_states: {
-        Row: {
-          archived_at: string | null
-          client_interested_at: string | null
-          closed_at: string | null
-          conversation_started_at: string | null
-          created_at: string
-          current_stage: string
-          match_id: string
-          offer_sent_at: string | null
-          sent_to_client_at: string | null
-          stage_note: string | null
-          stage_source: string
-          under_contract_at: string | null
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          archived_at?: string | null
-          client_interested_at?: string | null
-          closed_at?: string | null
-          conversation_started_at?: string | null
-          created_at?: string
-          current_stage?: string
-          match_id: string
-          offer_sent_at?: string | null
-          sent_to_client_at?: string | null
-          stage_note?: string | null
-          stage_source?: string
-          under_contract_at?: string | null
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          archived_at?: string | null
-          client_interested_at?: string | null
-          closed_at?: string | null
-          conversation_started_at?: string | null
-          created_at?: string
-          current_stage?: string
-          match_id?: string
-          offer_sent_at?: string | null
-          sent_to_client_at?: string | null
-          stage_note?: string | null
-          stage_source?: string
-          under_contract_at?: string | null
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "match_workflow_states_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: true
-            referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       messages: {
         Row: {
           connection_id: string
@@ -2888,17 +2788,6 @@ export type Database = {
         Args: { p_token: string }
         Returns: string
       }
-      apply_match_workflow_stage: {
-        Args: {
-          p_actor_id?: string
-          p_allow_backward?: boolean
-          p_match_id: string
-          p_note?: string
-          p_source: string
-          p_stage: string
-        }
-        Returns: string
-      }
       admin_assign_representation: {
         Args: { p_agent_id: string; p_representation_id: string }
         Returns: undefined
@@ -2914,6 +2803,15 @@ export type Database = {
           template_name: string
         }[]
       }
+      admin_get_account_summary: {
+        Args: never
+        Returns: {
+          agent_accounts: number
+          investor_accounts: number
+          new_accounts_7d: number
+          total_accounts: number
+        }[]
+      }
       admin_get_user_overview: {
         Args: { p_user_id: string }
         Returns: {
@@ -2922,15 +2820,6 @@ export type Database = {
           counts: Json
           profile: Json
           roles: Database["public"]["Enums"]["app_role"][]
-        }[]
-      }
-      admin_get_account_summary: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          agent_accounts: number
-          investor_accounts: number
-          new_accounts_7d: number
-          total_accounts: number
         }[]
       }
       admin_list_user_resources: {
@@ -3050,10 +2939,6 @@ export type Database = {
         Args: { p_representation_id: string }
         Returns: undefined
       }
-      can_access_match_workflow: {
-        Args: { p_match_id: string }
-        Returns: boolean
-      }
       claim_admin_dispatch: {
         Args: {
           p_fingerprint: string
@@ -3098,6 +2983,7 @@ export type Database = {
         Returns: boolean
       }
       email_queue_dispatch: { Args: never; Returns: undefined }
+      enforce_active_account_request: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -3181,11 +3067,11 @@ export type Database = {
           representation_id: string
         }[]
       }
+      is_account_active: { Args: { p_user_id: string }; Returns: boolean }
       is_exchange_agent: {
         Args: { _exchange_id: string; _user_id: string }
         Returns: boolean
       }
-      is_account_active: { Args: { p_user_id: string }; Returns: boolean }
       is_verified_agent: { Args: { p_user_id: string }; Returns: boolean }
       log_admin_action: {
         Args: {
@@ -3342,15 +3228,6 @@ export type Database = {
       }
       recommend_match_to_client: {
         Args: { p_match_id: string; p_note?: string }
-        Returns: string
-      }
-      record_match_workflow_stage: {
-        Args: {
-          p_match_id: string
-          p_note?: string
-          p_source?: string
-          p_stage: string
-        }
         Returns: string
       }
       request_agent_contact: {
