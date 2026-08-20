@@ -75,13 +75,13 @@ export function AgentWorkflowAdvanceScenes({
       <div className="agent-live-review__panels workflow-advance-shared__panels">
         <section className="agent-live-review__panel agent-live-review__panel--contact" aria-hidden={!isContact}>
           <div className="agent-live-contact__heading">
-            <div><small>Verified listing agent</small><h3>Reach the agent for this property</h3></div>
+            <div><small>Listing agent</small><h3>Reach the agent for this property</h3></div>
             <span><i /> Available</span>
           </div>
           <div className="agent-live-contact__card">
             <div className="agent-live-contact__identity">
               <span>{ILLUSTRATIVE_LISTING_AGENT.initials}</span>
-              <div><strong>{ILLUSTRATIVE_LISTING_AGENT.name}</strong><p>{ILLUSTRATIVE_LISTING_AGENT.brokerage}</p><small>Verified listing agent</small></div>
+              <div><strong>{ILLUSTRATIVE_LISTING_AGENT.name}</strong><p>{ILLUSTRATIVE_LISTING_AGENT.brokerage}</p><small>Listing agent</small></div>
             </div>
             <div className="agent-live-contact__property">
               <img src={selectedMatch.image} alt="" />
@@ -95,7 +95,7 @@ export function AgentWorkflowAdvanceScenes({
           </div>
           <div className="agent-live-contact__note">
             <ShieldCheck />
-            <span><small>No approval step</small><strong>Verified agents can begin the conversation immediately. Client contact details are not shared automatically.</strong></span>
+            <span><small>No approval step</small><strong>Agents can begin the conversation immediately. Client contact details are not shared automatically.</strong></span>
           </div>
         </section>
 
@@ -107,7 +107,7 @@ export function AgentWorkflowAdvanceScenes({
               <i><CircleCheck /> Agents connected</i>
             </div>
             <div className="agent-live-thread__body">
-              <div className="agent-live-thread__notice"><ShieldCheck /> Verified agent-to-agent conversation · client contact information is protected</div>
+              <div className="agent-live-thread__notice"><ShieldCheck /> Agent-to-agent conversation · client contact information is protected</div>
               {visualPhase === "sent" && (
                 <div className="agent-live-thread__message"><span>You</span><p>{ILLUSTRATIVE_OPENING_MESSAGE}</p><small>Just now · Delivered</small></div>
               )}
@@ -139,11 +139,11 @@ export function AgentWorkflowAdvanceDemo() {
       liveClassName="workflow-discover-live workflow-discover-shared workflow-review-live workflow-review-shared workflow-advance-live workflow-advance-shared"
       ariaLabel="Animated listing-agent conversation workflow"
       workspace={`${ILLUSTRATIVE_CLIENT.name} · 184 River Avenue`}
-      privacy="Verified agents only"
+      privacy="Agents only"
       eyebrow="Advance the opportunity"
       heading="Move from a reviewed match into an agent conversation"
       status={playback.phase.label}
-      disclosure="Illustrative property and conversation data · verified agent workflow"
+      disclosure="Illustrative property and conversation data · agent workflow"
     >
       <AgentWorkflowAdvanceScenes
         phase={playback.phase.id}

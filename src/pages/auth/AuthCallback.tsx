@@ -85,7 +85,7 @@ export default function AuthCallback() {
         supabase.from("user_roles").select("role").eq("user_id", user.id),
         supabase
           .from("profiles")
-          .select("launchpad_completed_at, verification_status")
+          .select("launchpad_completed_at")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -112,10 +112,7 @@ export default function AuthCallback() {
 
       const target =
         primary === "agent"
-          ? getAgentPostLoginRoute(
-              profileRes.data?.launchpad_completed_at,
-              profileRes.data?.verification_status,
-            )
+          ? getAgentPostLoginRoute(profileRes.data?.launchpad_completed_at)
           : getDefaultRouteForRole(primary);
 
       log("redirect", {
@@ -185,7 +182,7 @@ export default function AuthCallback() {
             We hit a snag
           </h1>
           <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-            Your account is verified, but we couldn't finish setting up your
+            Your email is confirmed, but we couldn't finish setting up your
             dashboard. This is usually temporary.
           </p>
           {errorMessage && (

@@ -97,7 +97,7 @@ export function AgentCommsCard({ rel, audience = "agent" }: Props) {
                 : "Connect to start messaging"}
             </p>
             <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-              Verified agents can message directly; no approval from the other agent is required.
+              Agents can message directly; no approval from the other agent is required.
             </p>
           </div>
         </div>

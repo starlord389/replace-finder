@@ -28,6 +28,5 @@ describe("route policy helpers", () => {
   it("routes agents to launchpad until onboarding is completed", () => {
     expect(getAgentPostLoginRoute(null)).toBe(ROUTES.agentLaunchpad);
     expect(getAgentPostLoginRoute("2026-04-10T00:00:00.000Z")).toBe(ROUTES.agentHome);
-    expect(getAgentPostLoginRoute(null, "suspended")).toBe(ROUTES.agentHome);
   });
 });

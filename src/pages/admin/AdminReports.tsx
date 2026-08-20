@@ -305,7 +305,6 @@ function buildExportDefinitions(data: AdminReportData, range: AdminReportRange):
     profile.company,
     profile.brokerage_name,
     (rolesByUser.get(profile.id) ?? []).join("; "),
-    profile.verification_status,
     profile.created_at,
   ]);
 
@@ -370,9 +369,9 @@ function buildExportDefinitions(data: AdminReportData, range: AdminReportRange):
     {
       key: "users",
       title: "Users & roles",
-      description: "Account identity, contact details, company, assigned roles, and verification status.",
+      description: "Account identity, contact details, company, assigned roles, and signup date.",
       filename: `1031-exchange-up-users-${stamp}.csv`,
-      headers: ["User ID", "Name", "Email", "Phone", "Company", "Brokerage", "Roles", "Verification Status", "Joined At"],
+      headers: ["User ID", "Name", "Email", "Phone", "Company", "Brokerage", "Roles", "Joined At"],
       rows: userRows,
     },
     {

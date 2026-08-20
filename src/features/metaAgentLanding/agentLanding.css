@@ -12062,7 +12062,7 @@ body:has([data-meta-agent-landing]) {
   }
 }
 
-/* Step 4: carry a reviewed match directly into a verified agent-to-agent
+/* Step 4: carry a reviewed match directly into an agent-to-agent
    conversation, send the opening message, and reflect the pipeline update. */
 [data-meta-agent-landing] .workflow-advance-stage {
   width: 100%;

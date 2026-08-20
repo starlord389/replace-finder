@@ -293,7 +293,7 @@ Deno.serve(async (req) => {
       p_note: "E2E offer sent",
     });
     await assertWorkflowStage(db, matchId, "offer_sent");
-    pass(checks, "Verified agent can record an offer and Pipeline shares the state");
+    pass(checks, "Active agent can record an offer and Pipeline shares the state");
     await mustRpc(primaryAgent, "record_match_workflow_stage", {
       p_match_id: matchId,
       p_stage: "under_contract",
@@ -334,7 +334,7 @@ Deno.serve(async (req) => {
       }),
       checks,
     );
-    pass(checks, "Only the two verified agents can use the counterparty conversation");
+    pass(checks, "Only the two agents can use the counterparty conversation");
 
     const threadId = await insertThroughClient(investor, "client_agent_threads", {
       representation_id: primaryInviteRow.representation_id,
@@ -486,7 +486,7 @@ async function signedInClient(supabaseUrl: string, anonKey: string, email: strin
 
 async function assertVerifiedAgent(db: any, userId: string) {
   const { data, error } = await db.rpc("is_verified_agent", { p_user_id: userId });
-  must(!error && data === true, error?.message ?? "Expected a verified agent");
+  must(!error && data === true, error?.message ?? "Expected an active agent");
 }
 
 async function assertRepresentation(db: any, representationId: string, status: string, agentId: string) {

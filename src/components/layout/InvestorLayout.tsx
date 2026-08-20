@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import InvestorTopNav from "./InvestorTopNav";
 
 export default function InvestorLayout() {
-  const { user, loading, profileRole, hasRole, agentVerificationStatus, signOut } = useAuth();
+  const { user, loading, profileRole, hasRole, isAccountSuspended, signOut } = useAuth();
   const { isDemo, setMode } = useWorkspaceMode();
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function InvestorLayout() {
   if (!user) return <Navigate to="/login" replace />;
   if (!hasRole("investor")) return <Navigate to={getUnauthorizedRedirectPath(profileRole)} replace />;
 
-  if (agentVerificationStatus === "suspended" && !hasRole("admin")) {
+  if (isAccountSuspended && !hasRole("admin")) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">

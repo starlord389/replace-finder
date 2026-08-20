@@ -58,7 +58,7 @@ interface ExchangeOption {
 type AgentProfile = Pick<
   Tables<"profiles">,
   "id" | "full_name" | "email" | "phone" | "brokerage_name" | "brokerage_address" | "license_state" | "license_number" |
-  "verification_status" | "profile_photo_url" | "profile_headline" | "bio" | "years_experience" | "completed_1031_exchanges" |
+  "profile_photo_url" | "profile_headline" | "bio" | "years_experience" | "completed_1031_exchanges" |
   "career_transaction_volume" | "specializations" | "service_areas"
 >;
 type PropertySummary = Pick<
@@ -141,7 +141,7 @@ export default function InvestorRepresentation() {
   useEffect(() => {
     const agentIds = [...new Set(representations.map((representation) => representation.agent_id).filter(Boolean))] as string[];
     if (!agentIds.length) return setProfiles({});
-    supabase.from("profiles").select("id, full_name, email, phone, brokerage_name, brokerage_address, license_state, license_number, verification_status, profile_photo_url, profile_headline, bio, years_experience, completed_1031_exchanges, career_transaction_volume, specializations, service_areas").in("id", agentIds)
+    supabase.from("profiles").select("id, full_name, email, phone, brokerage_name, brokerage_address, license_state, license_number, profile_photo_url, profile_headline, bio, years_experience, completed_1031_exchanges, career_transaction_volume, specializations, service_areas").in("id", agentIds)
       .then(({ data }) => setProfiles(Object.fromEntries((data ?? []).map((profile) => [profile.id, profile]))));
   }, [representations]);
 
@@ -385,7 +385,7 @@ export default function InvestorRepresentation() {
                     </div>
                     <h2 className="mt-2 text-lg font-semibold">A matched party wants to discuss {listingName}</h2>
                     <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                      A verified agent is ready to speak with the other side. Assign an agent to this exchange and the platform will open their private agent-to-agent conversation automatically.
+                      An agent can speak with the other side. Assign an agent to this exchange and the platform will open their agent-to-agent conversation automatically.
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">Your contact information remains private, and you can continue following progress here.</p>
                   </div>
@@ -442,7 +442,6 @@ export default function InvestorRepresentation() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-semibold">{activeAgentName}</h2>
                     <Badge className="bg-emerald-600 hover:bg-emerald-600">{active.is_default ? "Default agent" : "Active agent"}</Badge>
-                    {activeAgentProfile?.verification_status === "verified" && <Badge variant="outline" className="border-emerald-200 bg-background/70 text-emerald-800"><ShieldCheck className="mr-1 h-3.5 w-3.5" />Verified</Badge>}
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{activeAgentProfile?.brokerage_name || active.agent_email}{activeAgentProfile?.license_state ? " · Licensed in " + activeAgentProfile.license_state : ""}</p>
                   <p className="mt-2 text-sm text-foreground/80">{activeAgentName} is your primary contact and can communicate with other agents for assigned exchanges.</p>
@@ -693,7 +692,7 @@ export default function InvestorRepresentation() {
           </CardContent></Card>
         </TabsContent>
         <TabsContent value="referral">
-          <Card><CardHeader><CardTitle>Request an agent referral</CardTitle><CardDescription>Our team will review the exchange and introduce a verified agent. You approve the relationship before access begins.</CardDescription></CardHeader><CardContent>
+          <Card><CardHeader><CardTitle>Request an agent referral</CardTitle><CardDescription>Our team will review the exchange and introduce an agent. You approve the relationship before access begins.</CardDescription></CardHeader><CardContent>
             <form className="space-y-4" onSubmit={requestReferral}>
               <div className="space-y-2"><Label htmlFor="ref-exchange">Exchange</Label><select id="ref-exchange" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={referralForm.exchangeId} onChange={(event) => setReferralForm((form) => ({ ...form, exchangeId: event.target.value }))}><option value="">General representation request</option>{exchanges.map((exchange) => <option key={exchange.id} value={exchange.id}>{exchange.label}</option>)}</select></div>
               <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="ref-location">Property state or market</Label><Input id="ref-location" value={referralForm.location} onChange={(event) => setReferralForm((form) => ({ ...form, location: event.target.value }))} /></div><div className="space-y-2"><Label htmlFor="ref-type">Property type</Label><Input id="ref-type" value={referralForm.propertyType} onChange={(event) => setReferralForm((form) => ({ ...form, propertyType: event.target.value }))} /></div></div>

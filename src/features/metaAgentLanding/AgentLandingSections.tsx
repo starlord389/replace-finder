@@ -72,7 +72,7 @@ const FAQS = [
   {
     question: "Who communicates with the listing agent?",
     answer:
-      "Only verified agents communicate across the transaction. When your client wants to move forward, you can start a direct conversation with the verified listing agent. If a matched property does not yet have representation, its owner must connect with an agent before that conversation can begin.",
+      "Only agents communicate across the transaction. When your client wants to move forward, you can start a direct conversation with the listing agent. If a matched property does not yet have representation, its owner must connect with an agent before that conversation can begin.",
   },
   {
     question: "How does ExchangeUp decide what qualifies as a match?",

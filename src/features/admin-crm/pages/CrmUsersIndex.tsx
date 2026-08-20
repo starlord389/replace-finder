@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { AlertCircle, ArrowRight, BriefcaseBusiness, ChevronLeft, ChevronRight, Home, RefreshCw, Search, Users } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, ChevronLeft, ChevronRight, Home, RefreshCw, Search, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,11 +44,10 @@ export default function CrmUsersIndex() {
   return (
     <div className="space-y-6">
       <CrmPageHeader eyebrow="People & accounts" title="Users" description="A contacts-style directory for every registered account. Open a user to enter their complete ExchangeUp workspace." actions={<Button variant="outline" size="sm" onClick={() => directory.refetch()} disabled={directory.isFetching}><RefreshCw className={`mr-2 h-4 w-4 ${directory.isFetching ? "animate-spin" : ""}`} />Refresh</Button>} />
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3">
         <MetricTile label="All users" value={summary?.totalAccounts ?? "—"} icon={Users} detail="Every registered account" tone="blue" />
         <MetricTile label="Agents" value={summary?.agentAccounts ?? "—"} icon={BriefcaseBusiness} detail="Agent workspaces" />
         <MetricTile label="Property owners" value={summary?.investorAccounts ?? "—"} icon={Home} detail="Investor and owner workspaces" tone="green" />
-        <MetricTile label="Needs review" value={summary?.needsReview ?? "—"} icon={AlertCircle} detail="Access or agent verification" tone={(summary?.needsReview ?? 0) ? "amber" : "slate"} />
       </div>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,.03)]">

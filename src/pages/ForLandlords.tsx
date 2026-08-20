@@ -908,7 +908,7 @@ function StepMock({ step }: { step: string }) {
           <span className="fl-mk-av">DR</span>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "-0.01em" }}>Dana Reyes</div>
-            <span className="fl-mk-vbadge"><BadgeCheck />Verified · works your market</span>
+            <span className="fl-mk-vbadge"><BadgeCheck />Works your market</span>
           </div>
         </div>
         <div style={{ marginTop: 9, fontSize: 9, color: "#8794a6" }}>Closes 1031s daily · Greater Boston</div>

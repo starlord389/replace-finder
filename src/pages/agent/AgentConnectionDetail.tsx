@@ -32,8 +32,8 @@ function scoreColor(score: number) {
 }
 
 const MILESTONES = [
-  { key: "initiated_at", label: "Conversation started", editable: false, description: "A verified agent opened the agent-to-agent conversation." },
-  { key: "accepted_at", label: "Messaging opened", editable: false, description: "Both verified agents can communicate in the shared thread." },
+  { key: "initiated_at", label: "Conversation started", editable: false, description: "An agent opened the agent-to-agent conversation." },
+  { key: "accepted_at", label: "Messaging opened", editable: false, description: "Both agents can communicate in the shared thread." },
   { key: "under_contract_at", label: "Under Contract", editable: true, description: "Purchase agreement signed." },
   { key: "inspection_complete_at", label: "Inspection Complete", editable: true, description: "Property inspection finished and reviewed." },
   { key: "financing_approved_at", label: "Financing Approved", editable: true, description: "Buyer's financing has cleared." },

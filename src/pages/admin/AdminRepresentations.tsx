@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { CheckCircle2, Handshake, Loader2, ShieldAlert, TestTube2, UserRoundCheck, XCircle } from "lucide-react";
+import { CheckCircle2, Handshake, Loader2, TestTube2, UserRoundCheck, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -19,7 +19,7 @@ interface E2eCheck {
 
 type AdminProfile = Pick<
   Tables<"profiles">,
-  "id" | "full_name" | "email" | "brokerage_name" | "license_state" | "verification_status"
+  "id" | "full_name" | "email" | "brokerage_name" | "license_state"
 >;
 
 interface E2eReport {
@@ -54,11 +54,11 @@ export default function AdminRepresentations() {
     ]);
     const representationRows = (reps ?? []) as unknown as Representation[];
     const userIds = [...new Set([...representationRows.flatMap((rep) => [rep.investor_id, rep.agent_id]), ...(roles ?? []).map((role) => role.user_id)].filter(Boolean))] as string[];
-    const { data: profileRows } = userIds.length ? await supabase.from("profiles").select("id, full_name, email, brokerage_name, license_state, verification_status").in("id", userIds) : { data: [] as AdminProfile[] };
+    const { data: profileRows } = userIds.length ? await supabase.from("profiles").select("id, full_name, email, brokerage_name, license_state").in("id", userIds) : { data: [] as AdminProfile[] };
     const profileMap = Object.fromEntries((profileRows ?? []).map((profile) => [profile.id, profile]));
     setProfiles(profileMap);
     setRepresentations(representationRows);
-    setAgents((roles ?? []).map((role) => profileMap[role.user_id]).filter((profile) => profile?.verification_status === "verified"));
+    setAgents((roles ?? []).map((role) => profileMap[role.user_id]).filter(Boolean));
     setLoading(false);
   }
 
@@ -73,7 +73,7 @@ export default function AdminRepresentations() {
 
   async function assign(rep: Representation) {
     const agentId = selectedAgents[rep.id];
-    if (!agentId) return toast.error("Choose a verified agent.");
+    if (!agentId) return toast.error("Choose an agent.");
     setBusy(rep.id);
     const { error } = await supabase.rpc("admin_assign_representation", {
       p_representation_id: rep.id,
@@ -117,7 +117,7 @@ export default function AdminRepresentations() {
           const agent = profiles[rep.agent_id ?? ""];
           const context = rep.request_context ?? {};
           const contextSummary = [context.location, context.property_type, context.timing].filter(Boolean).join(" · ");
-          return <Card key={rep.id}><CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between"><div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{investor?.full_name || rep.investor_email}</p><Badge variant={rep.status === "active" ? "default" : rep.status === "awaiting_agent" ? "destructive" : "secondary"}>{representationStatusLabel[rep.status]}</Badge>{rep.is_demo && <Badge variant="outline">Demo</Badge>}</div><p className="mt-1 text-sm text-muted-foreground">{agent ? `Agent: ${agent.full_name || agent.email}` : "No agent assigned"} · {rep.source.replace(/_/g, " ")}</p>{contextSummary && <p className="mt-2 text-sm">{contextSummary}</p>}{context.notes && <p className="mt-1 max-w-2xl text-xs text-muted-foreground">{context.notes}</p>}<p className="mt-1 text-xs text-muted-foreground">Created {formatDistanceToNow(new Date(rep.created_at), { addSuffix: true })}</p></div>{rep.status === "awaiting_agent" && <div className="flex min-w-[320px] gap-2"><select className="h-9 flex-1 rounded-md border bg-background px-3 text-sm" value={selectedAgents[rep.id] ?? ""} onChange={(event) => setSelectedAgents((current) => ({ ...current, [rep.id]: event.target.value }))}><option value="">Select verified agent…</option>{agents.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.full_name || candidate.email}{candidate.license_state ? ` · ${candidate.license_state}` : ""}</option>)}</select><Button size="sm" onClick={() => assign(rep)} disabled={busy === rep.id}><UserRoundCheck className="mr-1.5 h-4 w-4" />Assign</Button></div>}{rep.status === "pending_verification" && <div className="flex items-center gap-2 text-sm text-amber-700"><ShieldAlert className="h-4 w-4" />Agent verification required</div>}</CardContent></Card>;
+          return <Card key={rep.id}><CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between"><div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{investor?.full_name || rep.investor_email}</p><Badge variant={rep.status === "active" ? "default" : rep.status === "awaiting_agent" ? "destructive" : "secondary"}>{representationStatusLabel[rep.status]}</Badge>{rep.is_demo && <Badge variant="outline">Demo</Badge>}</div><p className="mt-1 text-sm text-muted-foreground">{agent ? `Agent: ${agent.full_name || agent.email}` : "No agent assigned"} · {rep.source.replace(/_/g, " ")}</p>{contextSummary && <p className="mt-2 text-sm">{contextSummary}</p>}{context.notes && <p className="mt-1 max-w-2xl text-xs text-muted-foreground">{context.notes}</p>}<p className="mt-1 text-xs text-muted-foreground">Created {formatDistanceToNow(new Date(rep.created_at), { addSuffix: true })}</p></div>{rep.status === "awaiting_agent" && <div className="flex min-w-[320px] gap-2"><select className="h-9 flex-1 rounded-md border bg-background px-3 text-sm" value={selectedAgents[rep.id] ?? ""} onChange={(event) => setSelectedAgents((current) => ({ ...current, [rep.id]: event.target.value }))}><option value="">Select agent…</option>{agents.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.full_name || candidate.email}{candidate.license_state ? ` · ${candidate.license_state}` : ""}</option>)}</select><Button size="sm" onClick={() => assign(rep)} disabled={busy === rep.id}><UserRoundCheck className="mr-1.5 h-4 w-4" />Assign</Button></div>}</CardContent></Card>;
         })}
       </div>
     </div>

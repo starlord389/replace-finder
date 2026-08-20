@@ -438,7 +438,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   if (inboundMatchError) throw new Error(`inbound demo match insert failed: ${inboundMatchError.message}`);
 
   // Connections at varied lifecycle stages. Agent-to-agent conversations open
-  // immediately once either verified agent starts them; no acceptance queue.
+  // immediately once either agent starts them; no acceptance queue.
   // (a) Other agent started the conversation, no messages yet.
   await mustInsert(db, "exchange_connections", { match_id: matchId("marcus_rodriguez", "brockton_mixed_use"), buyer_agent_id: ownerId, seller_agent_id: cpAgent["Elena Vasquez"], buyer_exchange_id: exFor("marcus_rodriguez"), seller_exchange_id: null, status: "accepted", initiated_by: "seller_agent", accepted_at: dFrom(-1) + "T10:00:00Z", facilitation_fee_status: "pending", facilitation_fee_agreed: false });
   // (b) You started the conversation, no messages yet.

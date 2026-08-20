@@ -89,7 +89,7 @@ export function AgentSearchPreview() {
         <figcaption id="agent-search-preview-caption" className="agent-console__topbar">
           <span className="agent-console__browser-dots" aria-hidden="true"><i /><i /><i /></span>
           <span className="agent-console__workspace">{workspace}</span>
-          <span className="agent-console__privacy">{isAdvancePhase ? "Verified agents only" : "Agent workspace"}</span>
+          <span className="agent-console__privacy">{isAdvancePhase ? "Agents only" : "Agent workspace"}</span>
         </figcaption>
 
         <div

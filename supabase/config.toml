@@ -1,4 +1,11 @@
 project_id = "mosuewptjslfrcibjtwc"
+
+# Local and fresh environments must match production: email/password users do
+# not receive a session until they confirm the email address used at signup.
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+
 [functions.process-email-queue]
 verify_jwt = true
 

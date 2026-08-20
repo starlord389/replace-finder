@@ -12,7 +12,7 @@ export const AGENT_FAQS: FaqCategory[] = [
     category: "Account & Setup",
     items: [
       { q: "How do I add a client?", a: "Go to My Clients → Add Client. Fill in their contact info and any notes about their exchange goals. Clients you add are private to you - other agents can't see them." },
-      { q: "How does agent verification work?", a: "Agents self-certify at signup by providing their license or MLS information. Your workspace becomes active immediately - there's no manual review queue." },
+      { q: "How do agents join?", a: "Create an agent account, provide your professional information, and confirm your email. Your workspace opens automatically with no manual approval queue." },
       { q: "How do I update my brokerage info?", a: "Settings → Profile. Changes to your name and brokerage appear on your public agent card the next time another agent views one of your matches." },
       { q: "Can I invite team members?", a: "Each agent has their own workspace. Multi-seat brokerage accounts are on the roadmap - submit a ticket if you'd like early access." },
     ],
@@ -42,7 +42,7 @@ export const AGENT_FAQS: FaqCategory[] = [
     items: [
       { q: "How do I start a connection with another agent?", a: "Open a match you're interested in and click Initiate Connection. The other agent gets a notification and can accept or decline." },
       { q: "What information is shared at each stage?", a: "Pending: your name, brokerage, and the exchange/property in question. Accepted: full property details, financials, and a private message thread. Client identity is never shared without explicit opt-in." },
-      { q: "How do messages work?", a: "When a verified representing agent starts a conversation, messaging opens immediately for both agents. No additional approval is required." },
+      { q: "How do messages work?", a: "When a representing agent starts a conversation, messaging opens immediately for both agents. No additional approval is required." },
       { q: "Where can I find new messages?", a: "Unread agent conversations appear in the dashboard Action center and Unread messages card, and the full thread stays attached to its match." },
     ],
   },

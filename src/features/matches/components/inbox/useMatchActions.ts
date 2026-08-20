@@ -44,7 +44,7 @@ export function useMatchActions(
 
   /**
    * Opens a direct line to the counterparty agent. Creates the connection
-   * row on first use. Both sides are already verified agents with authority
+   * row on first use. Both sides are active agents with authority
    * over their respective exchanges, so no second approval is required.
    */
   async function startConversation() {

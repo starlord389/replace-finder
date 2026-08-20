@@ -1,4 +1,4 @@
-import { BadgeCheck, BriefcaseBusiness, Building2, MapPin } from "lucide-react";
+import { BriefcaseBusiness, Building2, MapPin } from "lucide-react";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { Badge } from "@/components/ui/badge";
 
@@ -14,7 +14,6 @@ export interface TrustProfileData {
   brokerage_address?: string | null;
   license_state?: string | null;
   license_number?: string | null;
-  verification_status?: string | null;
   years_experience?: number | null;
   completed_1031_exchanges?: number | null;
   career_transaction_volume?: number | null;
@@ -63,11 +62,6 @@ export function TrustProfileCard({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold text-foreground">{name}</h3>
             <Badge variant="secondary">{roleLabel}</Badge>
-            {profile?.verification_status === "verified" ? (
-              <Badge variant="outline" className="border-emerald-200 text-emerald-700">
-                <BadgeCheck className="mr-1 h-3 w-3" />Verified agent
-              </Badge>
-            ) : null}
           </div>
           {profile?.profile_headline ? <p className="mt-1 text-sm font-medium text-foreground/80">{profile.profile_headline}</p> : null}
           {profile?.brokerage_name || profile?.company ? (
@@ -88,7 +82,7 @@ export function TrustProfileCard({
       {stats.length ? (
         <div className="mt-4">
           <div className="flex flex-wrap gap-2">{stats.map((stat) => <Badge key={stat} variant="outline">{stat}</Badge>)}</div>
-          <p className="mt-1.5 text-[11px] text-muted-foreground">Professional statistics are self-reported unless explicitly marked verified.</p>
+          <p className="mt-1.5 text-[11px] text-muted-foreground">Professional statistics are self-reported.</p>
         </div>
       ) : null}
 

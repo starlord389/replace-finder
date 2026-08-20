@@ -4,13 +4,14 @@ import { describe, expect, it } from "vitest";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 const migration = read("supabase/migrations/20260820120000_admin_user_360.sql");
+const automaticAdmission = read("supabase/migrations/20260820213000_automatic_agent_admission.sql");
 const accountControls = read("src/features/admin-crm/components/CrmAccountControls.tsx");
 
 describe("admin account-control security contract", () => {
   it("routes browser mutations through guarded RPCs", () => {
     expect(accountControls).toContain('rpc("admin_set_user_role"');
-    expect(accountControls).toContain('rpc("admin_set_agent_verification_status"');
     expect(accountControls).toContain('rpc("admin_set_user_account_status"');
+    expect(accountControls).not.toContain("admin_set_agent_verification_status");
     expect(accountControls).not.toMatch(/from\("user_roles"\)\.(?:insert|delete|update)/);
     expect(accountControls).not.toMatch(/from\("profiles"\)\.update\(\{\s*verification_status/);
   });
@@ -30,9 +31,16 @@ describe("admin account-control security contract", () => {
     expect(migration).toContain("you cannot remove your own administrator role");
     expect(migration).toContain("the final administrator role cannot be removed");
     expect(migration).toContain("roles cannot be changed for a deleted account");
-    expect(migration).toContain("verification cannot be changed for a deleted account");
     expect(migration).toContain("INSERT INTO public.admin_audit_log");
     expect(migration).toContain("REVOKE INSERT, DELETE ON public.user_roles FROM authenticated");
+  });
+
+  it("removes manual agent approval while preserving active-agent security", () => {
+    expect(automaticAdmission).toContain("CREATE OR REPLACE FUNCTION public.is_active_agent");
+    expect(automaticAdmission).toContain("u.email_confirmed_at IS NOT NULL");
+    expect(automaticAdmission).toContain("SELECT public.is_active_agent(p_user_id)");
+    expect(automaticAdmission).toContain("DROP FUNCTION IF EXISTS public.admin_set_agent_verification_status");
+    expect(automaticAdmission).toContain("agent access is automatic after email confirmation");
   });
 
   it("requires an audited reason and database-enforces suspension", () => {

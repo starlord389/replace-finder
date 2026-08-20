@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import Signup from "@/pages/auth/Signup";
 
 describe("account signup", () => {
-  it("shows only the essential self-certification fields", () => {
+  it("shows only the essential agent account fields", () => {
     render(
       <MemoryRouter>
         <Signup />

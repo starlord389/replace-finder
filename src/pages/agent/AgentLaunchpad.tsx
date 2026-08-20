@@ -378,7 +378,7 @@ function ClientRequestsExplainer({ onOpenRequests }: { onOpenRequests: () => voi
       <div>
         <p className="text-sm font-semibold text-foreground">How new property owners can become your clients</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Property owners and investors can use the platform directly, but only verified agents communicate with the agent representing the other side of a deal.
+          Property owners and investors can use the platform directly, but only agents communicate with the agent representing the other side of a deal.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">

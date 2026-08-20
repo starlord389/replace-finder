@@ -167,7 +167,7 @@ export function NextStepsTab({
         )}
       </div>
 
-      {/* Listed by - contact details are revealed when the verified-agent conversation starts. */}
+      {/* Listed by - contact details are revealed when the agent conversation starts. */}
       <div className="rounded-2xl border bg-card p-5">
         <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Listed by</h3>
         <div className="mt-2.5 flex items-center gap-3">
@@ -176,7 +176,7 @@ export function NextStepsTab({
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-foreground">{brokerage}</p>
-            <p className="truncate text-[11px] text-muted-foreground">Verified listing agent</p>
+            <p className="truncate text-[11px] text-muted-foreground">Listing agent</p>
           </div>
         </div>
         <div className="mt-3 flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
@@ -184,7 +184,7 @@ export function NextStepsTab({
           <span>
             {audience === "investor"
               ? "Your representing agent handles all contact with the agent on the other side. You can continue reviewing and managing the opportunity here."
-              : "Contact details stay private until a verified agent starts the conversation. Messaging opens immediately and stays in-app."}
+              : "Contact details stay private until an agent starts the conversation. Messaging opens immediately and stays in-app."}
           </span>
         </div>
       </div>

@@ -284,7 +284,7 @@ export default function AgentSettings() {
             <CardHeader>
               <CardTitle className="text-base">Profile photo</CardTitle>
               <CardDescription>
-                Recommended. Your photo appears to represented clients and verified agents when a relationship or deal gives them profile access.
+                Recommended. Your photo appears to represented clients and agents when a relationship or deal gives them profile access.
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -22,7 +22,7 @@ describe("unrepresented investor listing interest", () => {
     expect(matchingCore).not.toContain("candidateProperty?.owner_type === \"investor\"");
   });
 
-  it("persists interest and resolves it when a verified agent is assigned", () => {
+  it("persists interest and resolves it when an active agent is assigned", () => {
     expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.agent_connection_intents");
     expect(migration).toContain("public.queue_agent_connection_intent");
     expect(migration).toContain("public.resolve_agent_connection_intent");

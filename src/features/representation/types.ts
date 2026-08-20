@@ -110,7 +110,7 @@ export interface AgentConnectionIntent {
 
 export const representationStatusLabel: Record<RepresentationStatus, string> = {
   pending_signup: "Waiting for signup",
-  pending_verification: "Waiting for agent verification",
+  pending_verification: "Waiting for agent email confirmation",
   awaiting_agent: "Finding an agent",
   awaiting_acceptance: "Waiting for agent",
   awaiting_investor_confirmation: "Your confirmation needed",

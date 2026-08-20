@@ -248,8 +248,6 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
           mls_number: form.professionalId.trim(),
           license_state: form.licenseState,
           brokerage_name: form.brokerageName.trim(),
-          verification_path: "self_certification",
-          self_certified_at: new Date().toISOString(),
           sms_consent: form.smsConsent,
           sms_consent_disclosure_version: SMS_DISCLOSURE_VERSION,
         },
@@ -315,7 +313,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
       <div className="rounded-xl border border-[#e8edf3] bg-white/70 p-4">
         <p className="text-sm font-medium text-foreground">Fast setup for active agents</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          We only ask for the details needed to create your workspace, confirm your role, and get you into the platform quickly.
+          We only ask for the details needed to create your workspace and get you into the platform quickly after you confirm your email.
         </p>
       </div>
 
@@ -356,7 +354,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
 
       {/* Section 2: Professional Info */}
       <div className="space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Professional Verification</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Professional Information</h2>
         <div className="space-y-2">
           <Label htmlFor="professionalId">License or MLS Number *</Label>
           <Input
@@ -410,7 +408,7 @@ function AgentSignupForm({ onBack }: { onBack: () => void }) {
               I certify that my real estate license is active and the details above are accurate.
             </Label>
             <p className="text-xs text-muted-foreground">
-              Suspended accounts are reserved for compliance issues, not routine signup review.
+              Your agent workspace opens automatically after you confirm your email. There is no approval queue.
             </p>
             {fieldError("attested")}
           </div>
@@ -714,7 +712,7 @@ function PostSignupVerify({ email, onBack }: { email: string; onBack: () => void
         return c - 1;
       });
     }, 1000);
-    toast({ title: "Verification email sent", description: `We resent the confirmation link to ${email}.` });
+    toast({ title: "Confirmation email sent", description: `We resent the confirmation link to ${email}.` });
   };
 
   return (
@@ -755,7 +753,7 @@ function PostSignupVerify({ email, onBack }: { email: string; onBack: () => void
               ? "Resending…"
               : cooldown > 0
                 ? `Resend in ${cooldown}s`
-                : "Resend verification email"}
+                : "Resend confirmation email"}
           </Button>
           <Button
             variant="outline"

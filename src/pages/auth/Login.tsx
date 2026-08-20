@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getAgentPostLoginRoute, getDefaultRouteForRole } from "@/app/routes/routeManifest";
 import { trackEvent } from "@/lib/telemetry";
-import { isEmailConfirmationError } from "@/lib/agentVerification";
+import { isEmailConfirmationError } from "@/lib/accountAccess";
 import { useHead } from "@/hooks/useHead";
 
 export default function Login() {
@@ -62,7 +62,7 @@ export default function Login() {
         return c - 1;
       });
     }, 1000);
-    toast({ title: "Verification email sent", description: `We resent the confirmation link to ${email}.` });
+    toast({ title: "Confirmation email sent", description: `We resent the confirmation link to ${email}.` });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -93,7 +93,7 @@ export default function Login() {
           supabase.from("user_roles").select("role").eq("user_id", data.user.id),
           supabase
             .from("profiles")
-            .select("launchpad_completed_at, verification_status")
+            .select("launchpad_completed_at")
             .eq("id", data.user.id)
             .maybeSingle(),
         ]);
@@ -106,7 +106,7 @@ export default function Login() {
               ? "investor"
               : roles[0];
         target = primary === "agent"
-          ? getAgentPostLoginRoute(profile?.launchpad_completed_at, profile?.verification_status)
+          ? getAgentPostLoginRoute(profile?.launchpad_completed_at)
           : getDefaultRouteForRole(primary);
       } catch (err) {
         console.error("[Login] post-login routing query failed", err);
@@ -176,7 +176,7 @@ export default function Login() {
               {needsConfirmation && (
                 <div className="mt-4 rounded-xl border border-[#e8edf3] bg-[#43a047]/15 p-4 text-left">
                   <p className="text-sm font-medium text-foreground">
-                    Your email isn't verified yet
+                    Your email isn't confirmed yet
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Click the link in the confirmation email we sent to{" "}
@@ -193,7 +193,7 @@ export default function Login() {
                       ? "Resending…"
                       : cooldown > 0
                         ? `Resend in ${cooldown}s`
-                        : "Resend verification email"}
+                        : "Resend confirmation email"}
                   </Button>
                 </div>
               )}

@@ -262,7 +262,7 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
     const title = representation.status === "awaiting_agent"
       ? "Property owner is waiting for an agent"
       : representation.status === "pending_verification"
-        ? "Representation is waiting on agent verification"
+        ? "Representation is waiting on the agent to confirm their email"
         : "Representation is waiting on owner confirmation";
     items.push({
       id: `representation-${representation.id}`,

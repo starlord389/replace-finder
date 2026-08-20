@@ -27,8 +27,6 @@ export function getDefaultRouteForRole(role: string | null | undefined): string 
 
 export function getAgentPostLoginRoute(
   launchpadCompletedAt: string | null | undefined,
-  verificationStatus?: string | null,
 ) {
-  if (verificationStatus === "suspended") return ROUTES.agentHome;
   return launchpadCompletedAt ? ROUTES.agentHome : ROUTES.agentLaunchpad;
 }

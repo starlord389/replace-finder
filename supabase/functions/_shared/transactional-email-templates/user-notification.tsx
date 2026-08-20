@@ -84,7 +84,7 @@ export const template = {
   previewData: {
     firstName: 'Alex',
     headline: 'An agent requested to connect',
-    bodyText: 'A verified agent wants to work with you on your exchange.',
+    bodyText: 'An agent wants to work with you on your exchange.',
     detail: 'Review the request and choose whether to connect.',
     ctaUrl: 'https://1031exchangeup.com/investor/connections',
     ctaLabel: 'Review request',

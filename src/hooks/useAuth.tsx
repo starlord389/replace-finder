@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Enums } from "@/integrations/supabase/types";
-import { hasOperationalAgentAccess } from "@/lib/agentVerification";
+import { isAccountSuspended } from "@/lib/accountAccess";
 
 type AppRole = Enums<"app_role">;
 
@@ -19,9 +19,8 @@ interface AuthContextType {
   profileRole: AppRole | null;
   profileName: string | null;
   isAgent: boolean;
-  isVerifiedAgent: boolean;
-  isSuspendedAgent: boolean;
-  agentVerificationStatus: string | null;
+  isAccountSuspended: boolean;
+  accountAccessStatus: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -35,9 +34,8 @@ const AuthContext = createContext<AuthContextType>({
   profileRole: null,
   profileName: null,
   isAgent: false,
-  isVerifiedAgent: false,
-  isSuspendedAgent: false,
-  agentVerificationStatus: null,
+  isAccountSuspended: false,
+  accountAccessStatus: null,
 });
 
 /** Admin wins, then agent, then investor, then any legacy role. */
@@ -55,7 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [rolesLoading, setRolesLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
-  const [agentVerificationStatus, setAgentVerificationStatus] = useState<string | null>(null);
+  // The profile field is a legacy suspension mirror. Agent admission no longer
+  // depends on it; confirmed users with the agent role are admitted automatically.
+  const [accountAccessStatus, setAccountAccessStatus] = useState<string | null>(null);
 
   // The user id we've already requested role/profile data for (claimed synchronously at
   // the decision site). Used to skip redundant re-fetches on non-identity auth events
@@ -71,8 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // A user counts as an agent if they hold the agent role at all - even if they
   // also hold admin - so agent-view features keep working for dual-role accounts.
   const isAgent = roles.includes("agent" as AppRole);
-  const isSuspendedAgent = isAgent && agentVerificationStatus === "suspended";
-  const isVerifiedAgent = isAgent && hasOperationalAgentAccess(agentVerificationStatus);
+  const accountSuspended = isAccountSuspended(accountAccessStatus);
 
   const fetchUserData = async (userId: string) => {
     // Only show the spinner for a fresh identity. If data for this uid is already loaded
@@ -96,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // fields when the query succeeded (a missing row legitimately resolves to null).
       if (!profileResult.error) {
         setProfileName(profileResult.data?.full_name ?? null);
-        setAgentVerificationStatus(profileResult.data?.verification_status ?? null);
+        setAccountAccessStatus(profileResult.data?.verification_status ?? null);
       } else {
         console.error("[useAuth] profile fetch failed", profileResult.error);
       }
@@ -109,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!hasLoadedData) {
         setRoles([]);
         setProfileName(null);
-        setAgentVerificationStatus(null);
+        setAccountAccessStatus(null);
         if (claimedUserIdRef.current === userId) claimedUserIdRef.current = null;
       }
     } finally {
@@ -149,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           loadedUserIdRef.current = null;
           setRoles([]);
           setProfileName(null);
-          setAgentVerificationStatus(null);
+          setAccountAccessStatus(null);
           setRolesLoading(false);
         }
       }
@@ -180,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       session, user, roles, loading, signOut, hasRole,
-      role, profileRole: role, profileName, isAgent, isVerifiedAgent, isSuspendedAgent, agentVerificationStatus,
+      role, profileRole: role, profileName, isAgent, isAccountSuspended: accountSuspended, accountAccessStatus,
     }}>
       {children}
     </AuthContext.Provider>

@@ -42,7 +42,7 @@ import type {
 import { DemoDataControls } from "@/features/workspace/components/DemoDataControls";
 import { ListingPreviewDialog } from "@/features/workspace/components/ListingPreviewDialog";
 import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
-import { getAgentVerificationUiState } from "@/lib/agentVerification";
+import { getSuspendedAccountUi } from "@/lib/accountAccess";
 import { cn } from "@/lib/utils";
 
 const OPEN_MATCH_STAGES = new Set([
@@ -518,9 +518,7 @@ export default function AgentDashboard() {
   const {
     user,
     profileName,
-    isVerifiedAgent,
-    agentVerificationStatus,
-    isSuspendedAgent,
+    isAccountSuspended,
   } = useAuth();
   const { data: attention, isLoading: attentionLoading } = useAgentAttentionQuery(user?.id);
   const { data: clientCount = 0, isLoading: clientsLoading } = useAgentClientsCount(user?.id);
@@ -532,8 +530,8 @@ export default function AgentDashboard() {
   const { data: invitations = [], isLoading: invitationsLoading } = useRepresentationInvites();
   const [previewListing, setPreviewListing] = useState<AgentListing | null>(null);
 
-  const verificationUi = getAgentVerificationUiState(agentVerificationStatus);
-  const launchpadIncomplete = !isSuspendedAgent && !launchpadProgress?.profile.launchpad_completed_at;
+  const suspendedUi = getSuspendedAccountUi();
+  const launchpadIncomplete = !isAccountSuspended && !launchpadProgress?.profile.launchpad_completed_at;
 
   const isLoading = attentionLoading
     || clientsLoading
@@ -612,7 +610,7 @@ export default function AgentDashboard() {
           <p className="mt-1 text-sm text-muted-foreground">
             Here is what needs attention across your clients, matches, and active deals.
           </p>
-          {!isVerifiedAgent ? (
+          {isAccountSuspended ? (
             <div className="mt-2 inline-flex items-center gap-1.5 text-sm text-red-600">
               <AlertTriangle className="h-3.5 w-3.5" /> Suspended
             </div>
@@ -640,9 +638,9 @@ export default function AgentDashboard() {
         </div>
       </div>
 
-      {isSuspendedAgent ? (
+      {isAccountSuspended ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {verificationUi.description}
+          {suspendedUi.description}
         </div>
       ) : null}
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, BadgeCheck, Ban, Loader2, ShieldCheck, ShieldOff } from "lucide-react";
+import { AlertTriangle, Ban, Loader2, ShieldCheck, ShieldOff } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,13 +33,6 @@ export default function CrmAccountControls({ data, onChanged }: { data: CrmUserW
     if (error) return toast({ title: "Role change failed", description: error.message, variant: "destructive" });
     await finish(`${role === "investor" ? "Property owner" : role} role ${enabled ? "granted" : "revoked"}.`);
   }
-  async function verify(status: "pending" | "verified") {
-    setBusy("verification");
-    const { error } = await supabase.rpc("admin_set_agent_verification_status", { p_user_id: id, p_status: status, p_reason: "Changed from the CRM user workspace" });
-    setBusy("");
-    if (error) return toast({ title: "Verification update failed", description: error.message, variant: "destructive" });
-    await finish(status === "verified" ? "Agent verified." : "Agent returned to pending review.");
-  }
   async function access(status: "active" | "suspended") {
     setBusy("access");
     const { error } = await supabase.rpc("admin_set_user_account_status", { p_user_id: id, p_status: status, p_reason: status === "suspended" ? reason.trim() : "Reactivated from the CRM user workspace" });
@@ -63,10 +56,6 @@ export default function CrmAccountControls({ data, onChanged }: { data: CrmUserW
           </Button>;
         })}</div>
       </div>
-
-      {data.roles.includes("agent") && data.profileExists && accountStatus === "active" && (
-        <div className="border-t border-slate-200 pt-5"><h3 className="text-sm font-semibold text-slate-950">Agent verification</h3><p className="mt-1 text-xs text-slate-500">Current state: {data.profile.verification_status.replace(/_/g, " ")}</p><Button className="mt-3" variant="outline" disabled={Boolean(busy)} onClick={() => { void verify(data.profile.verification_status === "verified" ? "pending" : "verified"); }}>{busy === "verification" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BadgeCheck className="mr-2 h-4 w-4" />}{data.profile.verification_status === "verified" ? "Return to pending" : "Verify agent"}</Button></div>
-      )}
 
       <div className="border-t border-slate-200 pt-5"><h3 className="text-sm font-semibold text-slate-950">Account access</h3><p className="mt-1 text-xs leading-5 text-slate-500">Suspension blocks application and database access. Authentication-provider bans are managed separately.</p>
         {accountStatus === "suspended" ? <Button className="mt-3" variant="outline" disabled={Boolean(busy) || Boolean(data.authAccount?.banned_until)} onClick={() => { void access("active"); }}>{busy === "access" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4 text-emerald-600" />}Reactivate account</Button>
