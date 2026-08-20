@@ -6,6 +6,14 @@ const migration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20260811143000_immediate_agent_conversations.sql"),
   "utf8",
 );
+const automaticAdmission = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20260820213000_automatic_agent_admission.sql"),
+  "utf8",
+);
+const retiredVerification = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20260820221500_remove_legacy_verified_agent_wording.sql"),
+  "utf8",
+);
 const matchActions = readFileSync(
   resolve(process.cwd(), "src/features/matches/components/inbox/useMatchActions.ts"),
   "utf8",
@@ -15,9 +23,10 @@ const connectionDetail = readFileSync(
   "utf8",
 );
 
-describe("immediate verified-agent conversations", () => {
-  it("keeps the existing verified-agent and assignment gates", () => {
-    expect(migration).toContain("IF NOT public.is_verified_agent(v_uid)");
+describe("immediate agent conversations", () => {
+  it("keeps active-agent and assignment gates", () => {
+    expect(automaticAdmission).toContain("CREATE OR REPLACE FUNCTION public.is_active_agent");
+    expect(retiredVerification).toContain("'public.is_verified_agent', 'public.is_active_agent'");
     expect(migration).toContain("public.exchange_agent_assignments");
     expect(migration).toContain("You are not the assigned agent for either side of this match");
     expect(migration).toContain("The same agent cannot automatically represent both sides");
@@ -27,8 +36,7 @@ describe("immediate verified-agent conversations", () => {
     expect(migration).toContain("v_my_side, 'accepted', now()");
     expect(migration).toContain("v_connection_status IN ('pending', 'declined', 'cancelled')");
     expect(migration).toContain("WHERE status = 'pending'");
-    expect(migration).toContain("AND public.is_verified_agent(buyer_agent_id)");
-    expect(migration).toContain("AND public.is_verified_agent(seller_agent_id)");
+    expect(retiredVerification).toContain("DROP FUNCTION public.is_verified_agent(uuid)");
   });
 
   it("opens the conversation immediately in the frontend", () => {

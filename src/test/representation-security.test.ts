@@ -27,6 +27,7 @@ describe("agent-mediated representation security", () => {
 
   it("requires active agents for external messages and connections", () => {
     expect(automaticAdmission).toContain("SELECT public.is_active_agent(p_user_id)");
+    expect(currentWording).toContain("DROP FUNCTION public.is_verified_agent(uuid)");
     expect(currentWording).toContain("Active agents can send connection messages");
     expect(migration).toContain("REVOKE INSERT ON public.exchange_connections FROM authenticated");
   });

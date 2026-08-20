@@ -60,9 +60,9 @@ Deno.serve(async (req) => {
     const counterpartyAgent = await signedInClient(supabaseUrl, anonKey, identities.counterpartyAgent.email, password);
 
     pass(checks, "Five isolated authenticated accounts created");
-    await assertVerifiedAgent(db, identities.primaryAgent.id);
-    await assertVerifiedAgent(db, identities.alternateAgent.id);
-    await assertVerifiedAgent(db, identities.counterpartyAgent.id);
+    await assertActiveAgent(db, identities.primaryAgent.id);
+    await assertActiveAgent(db, identities.alternateAgent.id);
+    await assertActiveAgent(db, identities.counterpartyAgent.id);
     pass(checks, "Agent identities are independently verified");
 
     const ownerPropertyId = await insertOne(db, "pledged_properties", {
@@ -484,8 +484,8 @@ async function signedInClient(supabaseUrl: string, anonKey: string, email: strin
   return client;
 }
 
-async function assertVerifiedAgent(db: any, userId: string) {
-  const { data, error } = await db.rpc("is_verified_agent", { p_user_id: userId });
+async function assertActiveAgent(db: any, userId: string) {
+  const { data, error } = await db.rpc("is_active_agent", { p_user_id: userId });
   must(!error && data === true, error?.message ?? "Expected an active agent");
 }
 

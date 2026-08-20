@@ -19,6 +19,8 @@ describe("representation multi-account diagnostic contract", () => {
     expect(diagnostic).toContain("signInWithPassword");
     expect(diagnostic).toContain('"investor"');
     expect(diagnostic).toContain('"agent"');
+    expect(diagnostic).toContain('rpc("is_active_agent"');
+    expect(diagnostic).not.toContain('rpc("is_verified_agent"');
   });
 
   it("covers invitation, agent-only contact, private collaboration, and reassignment", () => {

@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 const migration = read("supabase/migrations/20260820120000_admin_user_360.sql");
 const automaticAdmission = read("supabase/migrations/20260820213000_automatic_agent_admission.sql");
+const retiredVerification = read("supabase/migrations/20260820221500_remove_legacy_verified_agent_wording.sql");
 const accountControls = read("src/features/admin-crm/components/CrmAccountControls.tsx");
 
 describe("admin account-control security contract", () => {
@@ -41,6 +42,8 @@ describe("admin account-control security contract", () => {
     expect(automaticAdmission).toContain("SELECT public.is_active_agent(p_user_id)");
     expect(automaticAdmission).toContain("DROP FUNCTION IF EXISTS public.admin_set_agent_verification_status");
     expect(automaticAdmission).toContain("agent access is automatic after email confirmation");
+    expect(retiredVerification).toContain("DROP FUNCTION public.is_verified_agent(uuid)");
+    expect(retiredVerification).not.toContain("DROP FUNCTION public.is_verified_agent(uuid) CASCADE");
   });
 
   it("requires an audited reason and database-enforces suspension", () => {

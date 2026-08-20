@@ -14,6 +14,10 @@ const investorPage = readFileSync(
   resolve(process.cwd(), "src/pages/investor/InvestorRepresentation.tsx"),
   "utf8",
 );
+const retiredVerification = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20260820221500_remove_legacy_verified_agent_wording.sql"),
+  "utf8",
+);
 
 describe("unrepresented investor listing interest", () => {
   it("keeps the anti-self-match rule scoped to the same beneficial owner", () => {
@@ -35,7 +39,8 @@ describe("unrepresented investor listing interest", () => {
   it("does not grant investors direct write access or agent conversation access", () => {
     expect(migration).toContain("REVOKE INSERT, UPDATE, DELETE ON public.agent_connection_intents FROM authenticated");
     expect(migration).toContain("GRANT SELECT ON public.agent_connection_intents TO authenticated");
-    expect(migration).toContain("IF NOT public.is_verified_agent(v_uid)");
+    expect(retiredVerification).toContain("'public.is_verified_agent', 'public.is_active_agent'");
+    expect(retiredVerification).toContain("DROP FUNCTION public.is_verified_agent(uuid)");
   });
 
   it("gives the owner clear assignment and referral actions", () => {
