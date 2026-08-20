@@ -1658,6 +1658,106 @@ export type Database = {
           },
         ]
       }
+      match_workflow_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_stage: string | null
+          id: string
+          match_id: string
+          note: string | null
+          source: string
+          to_stage: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          from_stage?: string | null
+          id?: string
+          match_id: string
+          note?: string | null
+          source: string
+          to_stage: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          from_stage?: string | null
+          id?: string
+          match_id?: string
+          note?: string | null
+          source?: string
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_workflow_events_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_workflow_states: {
+        Row: {
+          archived_at: string | null
+          client_interested_at: string | null
+          closed_at: string | null
+          conversation_started_at: string | null
+          created_at: string
+          current_stage: string
+          match_id: string
+          offer_sent_at: string | null
+          sent_to_client_at: string | null
+          stage_note: string | null
+          stage_source: string
+          under_contract_at: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          client_interested_at?: string | null
+          closed_at?: string | null
+          conversation_started_at?: string | null
+          created_at?: string
+          current_stage?: string
+          match_id: string
+          offer_sent_at?: string | null
+          sent_to_client_at?: string | null
+          stage_note?: string | null
+          stage_source?: string
+          under_contract_at?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          client_interested_at?: string | null
+          closed_at?: string | null
+          conversation_started_at?: string | null
+          created_at?: string
+          current_stage?: string
+          match_id?: string
+          offer_sent_at?: string | null
+          sent_to_client_at?: string | null
+          stage_note?: string | null
+          stage_source?: string
+          under_contract_at?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_workflow_states_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           connection_id: string
@@ -2788,6 +2888,17 @@ export type Database = {
         Args: { p_token: string }
         Returns: string
       }
+      apply_match_workflow_stage: {
+        Args: {
+          p_actor_id?: string
+          p_allow_backward?: boolean
+          p_match_id: string
+          p_note?: string
+          p_source: string
+          p_stage: string
+        }
+        Returns: string
+      }
       admin_assign_representation: {
         Args: { p_agent_id: string; p_representation_id: string }
         Returns: undefined
@@ -2938,6 +3049,10 @@ export type Database = {
       cancel_representation_invite: {
         Args: { p_representation_id: string }
         Returns: undefined
+      }
+      can_access_match_workflow: {
+        Args: { p_match_id: string }
+        Returns: boolean
       }
       claim_admin_dispatch: {
         Args: {
@@ -3228,6 +3343,15 @@ export type Database = {
       }
       recommend_match_to_client: {
         Args: { p_match_id: string; p_note?: string }
+        Returns: string
+      }
+      record_match_workflow_stage: {
+        Args: {
+          p_match_id: string
+          p_note?: string
+          p_source?: string
+          p_stage: string
+        }
         Returns: string
       }
       request_agent_contact: {
