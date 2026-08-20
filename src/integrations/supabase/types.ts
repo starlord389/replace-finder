@@ -3009,10 +3009,6 @@ export type Database = {
           years_experience: number
         }[]
       }
-      admin_set_agent_verification_status: {
-        Args: { p_reason?: string; p_status: string; p_user_id: string }
-        Returns: string
-      }
       admin_set_user_account_status: {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: {
@@ -3183,6 +3179,7 @@ export type Database = {
         }[]
       }
       is_account_active: { Args: { p_user_id: string }; Returns: boolean }
+      is_active_agent: { Args: { p_user_id: string }; Returns: boolean }
       is_exchange_agent: {
         Args: { _exchange_id: string; _user_id: string }
         Returns: boolean
