@@ -4,15 +4,15 @@ import { describe, expect, it } from "vitest";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 const migration = read("supabase/migrations/20260820120000_admin_user_360.sql");
-const directory = read("src/pages/admin/AdminUsers.tsx");
+const accountControls = read("src/features/admin-crm/components/CrmAccountControls.tsx");
 
 describe("admin account-control security contract", () => {
   it("routes browser mutations through guarded RPCs", () => {
-    expect(directory).toContain('rpc("admin_set_user_role"');
-    expect(directory).toContain('rpc("admin_set_agent_verification_status"');
-    expect(directory).toContain('rpc("admin_set_user_account_status"');
-    expect(directory).not.toMatch(/from\("user_roles"\)\.(?:insert|delete|update)/);
-    expect(directory).not.toMatch(/from\("profiles"\)\.update\(\{\s*verification_status/);
+    expect(accountControls).toContain('rpc("admin_set_user_role"');
+    expect(accountControls).toContain('rpc("admin_set_agent_verification_status"');
+    expect(accountControls).toContain('rpc("admin_set_user_account_status"');
+    expect(accountControls).not.toMatch(/from\("user_roles"\)\.(?:insert|delete|update)/);
+    expect(accountControls).not.toMatch(/from\("profiles"\)\.update\(\{\s*verification_status/);
   });
 
   it("never downloads representation invitation bearer tokens into admin pages", () => {
@@ -49,7 +49,7 @@ describe("admin account-control security contract", () => {
     expect(migration).toContain("suspension changes must use admin_set_user_account_status");
     expect(migration).toContain("CREATE TRIGGER trg_profiles_guard_verification");
     expect(migration).toContain("v_has_profile := FOUND");
-    expect(directory).not.toContain("No workspace access");
+    expect(accountControls).not.toContain("No workspace access");
   });
 
   it("does not mutate Supabase-managed auth records from SQL", () => {

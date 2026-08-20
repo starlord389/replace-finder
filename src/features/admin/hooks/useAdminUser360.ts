@@ -573,7 +573,7 @@ export async function loadAdminUser360(userId: string): Promise<AdminUser360> {
     ...listingInquiries.map((inquiry) => inquiry.property_id),
     ...contactRequests.map((request) => request.property_id),
     ...connectionIntents.map((intent) => intent.property_id),
-  ])];
+  ])].filter((id): id is string => typeof id === "string" && UUID_PATTERN.test(id));
   const contextPropertyResult = await maybeIn(
     contextPropertyIds,
     () => supabase.from("pledged_properties").select("*").in("id", contextPropertyIds),

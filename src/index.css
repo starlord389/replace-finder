@@ -158,3 +158,20 @@
 .delay-400 { animation-delay: 0.4s; }
 .delay-500 { animation-delay: 0.5s; }
 .delay-600 { animation-delay: 0.6s; }
+
+/* The admin CRM has two persistent side rails at laptop widths. Keep nested
+   workspace modules readable until the main content area is genuinely wide. */
+@media (min-width: 1024px) and (max-width: 1535px) {
+  .crm-workspace-content [class*="lg:grid-cols"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+.crm-tabs-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.crm-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}

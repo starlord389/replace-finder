@@ -8,7 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ROUTES } from "@/app/routes/routeManifest";
 
 import PublicLayout from "@/components/layout/PublicLayout";
-import AdminLayout from "@/components/layout/AdminLayout";
+import AdminCrmShell from "@/features/admin-crm/layout/AdminCrmShell";
 import AgentLayout from "@/components/layout/AgentLayout";
 import InvestorLayout from "@/components/layout/InvestorLayout";
 import RequireGuest from "@/components/layout/RequireGuest";
@@ -25,10 +25,10 @@ const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
 const PrivacyPolicy = lazy(() => import("@/pages/legal/PrivacyPolicy"));
 const Terms = lazy(() => import("@/pages/legal/Terms"));
 const AuthCallback = lazy(() => import("@/pages/auth/AuthCallback"));
-const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const CrmDashboard = lazy(() => import("@/features/admin-crm/pages/CrmDashboard"));
 const SupportTickets = lazy(() => import("@/pages/admin/SupportTickets"));
-const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
-const AdminUserDetail = lazy(() => import("@/pages/admin/AdminUserDetail"));
+const CrmUsersIndex = lazy(() => import("@/features/admin-crm/pages/CrmUsersIndex"));
+const CrmUserWorkspace = lazy(() => import("@/features/admin-crm/pages/CrmUserWorkspace"));
 const AdminDeals = lazy(() => import("@/pages/admin/AdminDeals"));
 const AdminExchangeDetail = lazy(() => import("@/pages/admin/AdminExchangeDetail"));
 const AdminConnectionDetail = lazy(() => import("@/pages/admin/AdminConnectionDetail"));
@@ -192,10 +192,10 @@ const App = () => (
             </Route>
 
             {/* Admin (admin role required) */}
-            <Route element={<AdminLayout />}>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
+            <Route element={<AdminCrmShell />}>
+              <Route path="/admin" element={<CrmDashboard />} />
+              <Route path="/admin/users" element={<CrmUsersIndex />} />
+              <Route path="/admin/users/:userId" element={<CrmUserWorkspace />} />
               <Route path="/admin/deals" element={<AdminDeals />} />
               <Route path="/admin/deals/exchanges/:id" element={<AdminExchangeDetail />} />
               <Route path="/admin/deals/connections/:id" element={<AdminConnectionDetail />} />
