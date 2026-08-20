@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clock3,
   Handshake,
+  MessagesSquare,
   Inbox,
   LifeBuoy,
   RefreshCw,
@@ -112,6 +113,9 @@ export default function AdminDashboard() {
     { label: "Investors / Owners", value: data.kpis.investors, icon: UserRound, color: "bg-emerald-50 text-emerald-700" },
     { label: "New Leads", value: data.kpis.newLeads, icon: Inbox, color: "bg-rose-50 text-rose-700" },
     { label: "Open Tickets", value: data.kpis.openTickets, icon: LifeBuoy, color: "bg-purple-50 text-purple-700" },
+    { label: "Active Representations", value: data.kpis.activeRepresentations, icon: Handshake, color: "bg-cyan-50 text-cyan-700" },
+    { label: "Open Client Requests", value: data.kpis.openContactRequests, icon: MessagesSquare, color: "bg-orange-50 text-orange-700" },
+    { label: "Waiting for an Agent", value: data.kpis.awaitingRepresentation, icon: UserRound, color: "bg-fuchsia-50 text-fuchsia-700" },
   ];
 
   const criticalCount = data.attentionItems.filter((item) => item.priority === "critical").length;
@@ -169,11 +173,14 @@ export default function AdminDashboard() {
             <Button asChild size="sm" variant="outline" className="border-slate-700 bg-slate-900 text-white hover:bg-slate-800 hover:text-white">
               <Link to="/admin/support"><LifeBuoy className="mr-1.5 h-3.5 w-3.5" />Open support</Link>
             </Button>
+            <Button asChild size="sm" variant="outline" className="border-slate-700 bg-slate-900 text-white hover:bg-slate-800 hover:text-white">
+              <Link to="/admin/representations"><Handshake className="mr-1.5 h-3.5 w-3.5" />Representation queue</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-9">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12">
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="shadow-none">
             <CardContent className="p-3.5">
@@ -405,8 +412,8 @@ function CommandCenterSkeleton() {
         <Skeleton className="h-4 w-80" />
       </div>
       <Skeleton className="h-40 w-full" />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-9">
-        {Array.from({ length: 9 }).map((_, index) => <Skeleton key={index} className="h-24" />)}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12">
+        {Array.from({ length: 12 }).map((_, index) => <Skeleton key={index} className="h-24" />)}
       </div>
       <div className="grid gap-6 lg:grid-cols-[1.45fr_0.55fr]">
         <Skeleton className="h-[420px]" />

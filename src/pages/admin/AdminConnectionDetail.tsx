@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 import { exchangeOwnerTypeLabel } from "@/features/admin/lib/accountTypes";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, RefreshCw } from "lucide-react";
 
 const CONNECTION_STATUSES = ["pending", "accepted", "in_progress", "declined", "cancelled", "completed"];
 
@@ -37,22 +38,35 @@ function pretty(s: string) {
 export default function AdminConnectionDetail() {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [conn, setConn] = useState<Tables<"exchange_connections"> | null>(null);
   const [match, setMatch] = useState<Tables<"matches"> | null>(null);
   const [messages, setMessages] = useState<Tables<"messages">[]>([]);
   const [names, setNames] = useState<Map<string, string>>(new Map());
   const [ownerTypes, setOwnerTypes] = useState<Map<string, string>>(new Map());
   const [saving, setSaving] = useState(false);
+  const loadRequestRef = useRef(0);
 
   useEffect(() => {
     if (id) load(id);
+    return () => { loadRequestRef.current += 1; };
   }, [id]);
 
   async function load(connId: string) {
+    const requestId = ++loadRequestRef.current;
     setLoading(true);
+    setLoadError(null);
+    setConn(null);
     const { data: c, error } = await supabase.from("exchange_connections").select("*").eq("id", connId).maybeSingle();
-    if (error || !c) {
-      toast({ title: "Couldn't load this connection.", variant: "destructive" });
+    if (requestId !== loadRequestRef.current) return;
+    if (error) {
+      setLoadError(error.message || "The connection record could not be loaded.");
+      toast({ title: "Couldn't load this connection.", description: error.message, variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+    if (!c) {
+      setLoadError("This connection does not exist or is no longer available.");
       setLoading(false);
       return;
     }
@@ -64,6 +78,7 @@ export default function AdminConnectionDetail() {
       supabase.from("profiles").select("id, full_name, email").in("id", [c.buyer_agent_id, c.seller_agent_id]),
       supabase.from("exchanges").select("id, owner_type").in("id", exchangeIds),
     ]);
+    if (requestId !== loadRequestRef.current) return;
     setMatch(mt.data ?? null);
     setMessages(msgs.data ?? []);
     setNames(new Map((profs.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"])));
@@ -103,7 +118,7 @@ export default function AdminConnectionDetail() {
     return (
       <div>
         <BackLink />
-        <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">Connection not found.</CardContent></Card>
+        <Card><CardContent className="p-8 text-center"><p className="text-sm font-medium">{loadError ?? "Connection not found."}</p><p className="mt-1 text-xs text-muted-foreground">No other connection record is being shown in its place.</p>{id && <Button variant="outline" size="sm" className="mt-4" onClick={() => load(id)}><RefreshCw className="mr-2 h-4 w-4" />Retry</Button>}</CardContent></Card>
       </div>
     );
   }
@@ -127,7 +142,7 @@ export default function AdminConnectionDetail() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Connection</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Buyer: {name(conn.buyer_agent_id)} ({participantType(conn.buyer_exchange_id)}) · Seller: {name(conn.seller_agent_id)} ({participantType(conn.seller_exchange_id)})
+            Buyer: <ParticipantLink id={conn.buyer_agent_id} name={name(conn.buyer_agent_id)} /> ({participantType(conn.buyer_exchange_id)}) · Seller: <ParticipantLink id={conn.seller_agent_id} name={name(conn.seller_agent_id)} /> ({participantType(conn.seller_exchange_id)})
           </p>
         </div>
         <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium capitalize ${statusColor[conn.status] || "bg-muted text-muted-foreground"}`}>
@@ -201,7 +216,7 @@ export default function AdminConnectionDetail() {
               {messages.map((m) => (
                 <li key={m.id} className="rounded-md border px-3 py-2">
                   <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">{name(m.sender_id)}</span>
+                    <ParticipantLink id={m.sender_id} name={name(m.sender_id)} />
                     <span>{fmtDateTime(m.created_at)}</span>
                   </div>
                   <p className="whitespace-pre-wrap text-sm">{m.content}</p>
@@ -213,6 +228,10 @@ export default function AdminConnectionDetail() {
       </Card>
     </div>
   );
+}
+
+function ParticipantLink({ id, name }: { id: string; name: string }) {
+  return <Link to={`/admin/users/${id}`} className="font-medium text-foreground hover:text-primary hover:underline">{name}</Link>;
 }
 
 function BackLink() {

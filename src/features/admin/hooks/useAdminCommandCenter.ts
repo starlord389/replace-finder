@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Database, Tables } from "@/integrations/supabase/types";
 import {
   adminRoleSummary,
   exchangeManagedForLabel,
@@ -22,13 +22,27 @@ type Contact = Tables<"contact_submissions">;
 type Referral = Tables<"referrals">;
 type EventRegistration = Tables<"event_registrations">;
 type TimelineEvent = Tables<"exchange_timeline">;
+type Representation = Tables<"agent_representations">;
+type RepresentationInvite = Pick<
+  Tables<"representation_invites">,
+  "id" | "delivery_status" | "status" | "email" | "delivery_error_code" | "updated_at" | "representation_id"
+>;
+type ExchangeAssignment = Tables<"exchange_agent_assignments">;
+type AgentContactRequest = Tables<"agent_contact_requests">;
+type AgentConnectionIntent = Tables<"agent_connection_intents">;
+type AdminAccountSummaryRow = Database["public"]["Functions"]["admin_get_account_summary"]["Returns"][number];
+type CountedAdminQueryResult = {
+  data: readonly unknown[] | null;
+  error: { message: string } | null;
+  count: number | null;
+};
 
 export type AdminAttentionPriority = "critical" | "high" | "medium";
 
 export interface AdminAttentionItem {
   id: string;
   priority: AdminAttentionPriority;
-  category: "deadline" | "support" | "lead" | "demo" | "connection" | "account";
+  category: "deadline" | "support" | "lead" | "demo" | "connection" | "account" | "representation";
   title: string;
   detail: string;
   timestamp: string;
@@ -57,6 +71,11 @@ export interface CommandCenterSource {
   referrals: Referral[];
   eventRegistrations: EventRegistration[];
   timeline: TimelineEvent[];
+  representations: Representation[];
+  representationInvites: RepresentationInvite[];
+  assignments: ExchangeAssignment[];
+  contactRequests: AgentContactRequest[];
+  connectionIntents: AgentConnectionIntent[];
 }
 
 const ACTIVE_EXCHANGE_STATUSES = new Set(["active", "in_identification", "in_closing"]);
@@ -65,6 +84,39 @@ const PRIORITY_ORDER: Record<AdminAttentionPriority, number> = {
   high: 1,
   medium: 2,
 };
+
+export interface AdminAccountSummary {
+  totalAccounts: number;
+  agentAccounts: number;
+  investorAccounts: number;
+  newAccounts7d: number;
+}
+
+export function mapAdminAccountSummary(row: AdminAccountSummaryRow): AdminAccountSummary {
+  return {
+    totalAccounts: Number(row.total_accounts ?? 0),
+    agentAccounts: Number(row.agent_accounts ?? 0),
+    investorAccounts: Number(row.investor_accounts ?? 0),
+    newAccounts7d: Number(row.new_accounts_7d ?? 0),
+  };
+}
+
+export function assertAdminCommandCenterRowsComplete(
+  label: string,
+  loadedCount: number,
+  totalCount: number | null,
+) {
+  if (totalCount == null) {
+    throw new Error(
+      `Command Center could not verify the ${label} row count. Partial operational totals will not be shown.`,
+    );
+  }
+  if (loadedCount !== totalCount) {
+    throw new Error(
+      `Command Center loaded ${loadedCount} of ${totalCount} ${label} records. Partial operational totals will not be shown.`,
+    );
+  }
+}
 
 function clean(value: string | null | undefined, fallback = "Unknown") {
   const trimmed = value?.trim();
@@ -105,6 +157,7 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
   const clientsById = new Map(source.clients.map((client) => [client.id, client.client_name]));
   const profilesById = new Map(source.profiles.map((profile) => [profile.id, clean(profile.full_name, profile.email ?? undefined)]));
   const exchangesById = new Map(source.exchanges.map((exchange) => [exchange.id, exchange]));
+  const representationsById = new Map(source.representations.map((representation) => [representation.id, representation]));
   const items: AdminAttentionItem[] = [];
 
   for (const exchange of source.exchanges) {
@@ -204,6 +257,71 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
     });
   }
 
+  for (const representation of source.representations) {
+    if (!["awaiting_agent", "pending_verification", "awaiting_investor_confirmation"].includes(representation.status)) continue;
+    const title = representation.status === "awaiting_agent"
+      ? "Property owner is waiting for an agent"
+      : representation.status === "pending_verification"
+        ? "Representation is waiting on agent verification"
+        : "Representation is waiting on owner confirmation";
+    items.push({
+      id: `representation-${representation.id}`,
+      priority: ageInDays(representation.updated_at) >= 2 ? "high" : "medium",
+      category: "representation",
+      title,
+      detail: `${representation.investor_email} · ${representation.agent_email || "No agent assigned"}`,
+      timestamp: representation.updated_at,
+      href: representation.investor_id
+        ? `/admin/users/${representation.investor_id}?tab=relationships`
+        : `/admin/representations?q=${encodeURIComponent(representation.investor_email)}`,
+    });
+  }
+
+  for (const request of source.contactRequests) {
+    if (!["requested", "awaiting_counterparty_agent"].includes(request.status)) continue;
+    const exchange = exchangesById.get(request.exchange_id);
+    const owner = clean(profilesById.get(request.investor_id), "Property owner");
+    items.push({
+      id: `contact-request-${request.id}`,
+      priority: ageInDays(request.updated_at) >= 2 ? "high" : "medium",
+      category: "representation",
+      title: request.status === "requested" ? "Client request needs an agent response" : "Contact request is waiting on the other side",
+      detail: `${owner} · ${exchange ? exchangeOwnerTypeLabel(exchange.owner_type) : "Exchange"}`,
+      timestamp: request.updated_at,
+      href: `/admin/users/${request.investor_id}?tab=relationships`,
+    });
+  }
+
+  for (const intent of source.connectionIntents) {
+    if (!["awaiting_representation", "conflict"].includes(intent.status)) continue;
+    const owner = clean(profilesById.get(intent.waiting_owner_id), "Property owner");
+    items.push({
+      id: `connection-intent-${intent.id}`,
+      priority: intent.status === "conflict" || ageInDays(intent.updated_at) >= 2 ? "high" : "medium",
+      category: "representation",
+      title: intent.status === "conflict" ? "Agent connection conflict needs review" : "Listing interest is waiting on representation",
+      detail: `${owner} · ${intent.waiting_on_side === "seller" ? "listing side" : "buyer side"}`,
+      timestamp: intent.updated_at,
+      href: `/admin/users/${intent.waiting_owner_id}?tab=relationships`,
+    });
+  }
+
+  for (const invite of source.representationInvites) {
+    if (invite.delivery_status !== "failed" || invite.status !== "pending") continue;
+    const representation = representationsById.get(invite.representation_id);
+    items.push({
+      id: `representation-invite-${invite.id}`,
+      priority: "high",
+      category: "representation",
+      title: "Representation invitation failed to deliver",
+      detail: `${invite.email} · ${invite.delivery_error_code || "delivery error"}`,
+      timestamp: invite.updated_at,
+      href: representation?.investor_id
+        ? `/admin/users/${representation.investor_id}?tab=relationships`
+        : `/admin/representations?q=${encodeURIComponent(invite.email)}`,
+    });
+  }
+
   for (const profile of source.profiles) {
     if (profile.verification_status !== "suspended") continue;
     items.push({
@@ -213,7 +331,7 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
       title: `${clean(profile.full_name, profile.email ?? undefined)} is suspended`,
       detail: "Review whether this account should remain restricted.",
       timestamp: profile.updated_at,
-      href: `/admin/users?q=${encodeURIComponent(profile.email ?? profile.full_name ?? "")}`,
+      href: `/admin/users/${profile.id}`,
     });
   }
 
@@ -242,7 +360,7 @@ export function buildAdminSearchItems(source: CommandCenterSource): AdminSearchI
       subtitle: [adminRoleSummary(rolesByUser.get(profile.id) ?? []), profile.email, profile.brokerage_name]
         .filter(Boolean)
         .join(" · "),
-      href: `/admin/users?q=${encodeURIComponent(profile.email ?? profile.full_name ?? "")}`,
+      href: `/admin/users/${profile.id}`,
     });
   }
 
@@ -265,7 +383,7 @@ export function buildAdminSearchItems(source: CommandCenterSource): AdminSearchI
       type: "Property",
       title: propertyLabel(property),
       subtitle: `${fullLocation(property)} · ${exchangeOwnerTypeLabel(exchange?.owner_type)} · ${clean(profilesById.get(property.agent_id), "Account owner")}`,
-      href: `/admin/deals?q=${encodeURIComponent(propertyLabel(property))}`,
+      href: `/admin/deals?tab=properties&property=${property.id}&q=${encodeURIComponent(propertyLabel(property))}`,
     });
   }
 
@@ -337,7 +455,17 @@ export function buildAdminSearchItems(source: CommandCenterSource): AdminSearchI
 }
 
 export function formatAdminRelativeTime(iso: string) {
-  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  const deltaMs = Date.now() - new Date(iso).getTime();
+  if (deltaMs < 0) {
+    const futureMinutes = Math.ceil(Math.abs(deltaMs) / 60000);
+    if (futureMinutes < 60) return `in ${futureMinutes}m`;
+    const futureHours = Math.ceil(futureMinutes / 60);
+    if (futureHours < 24) return `in ${futureHours}h`;
+    const futureDays = Math.ceil(futureHours / 24);
+    if (futureDays < 7) return `in ${futureDays}d`;
+    return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  const minutes = Math.floor(deltaMs / 60000);
   if (minutes < 1) return "Just now";
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
@@ -353,14 +481,27 @@ export function useAdminCommandCenter() {
     staleTime: 30_000,
     refetchInterval: 60_000,
     queryFn: async () => {
-      const exchangeResult = await supabase
-        .from("exchanges")
-        .select("*")
-        .eq("is_demo", false)
-        .order("created_at", { ascending: false });
+      const [exchangeResult, accountSummaryResult] = await Promise.all([
+        supabase
+          .from("exchanges")
+          .select("*", { count: "exact" })
+          .eq("is_demo", false)
+          .order("created_at", { ascending: false }),
+        supabase.rpc("admin_get_account_summary").maybeSingle(),
+      ]);
       if (exchangeResult.error) throw exchangeResult.error;
+      if (accountSummaryResult.error) throw accountSummaryResult.error;
+      assertAdminCommandCenterRowsComplete(
+        "live exchange",
+        exchangeResult.data?.length ?? 0,
+        exchangeResult.count,
+      );
+      if (!accountSummaryResult.data) {
+        throw new Error("Command Center account totals are unavailable. Partial account KPIs will not be shown.");
+      }
 
       const exchanges = exchangeResult.data ?? [];
+      const accountSummary = mapAdminAccountSummary(accountSummaryResult.data);
       const liveExchangeIds = exchanges.map((exchange) => exchange.id);
       const scopeIds = liveExchangeIds.length
         ? liveExchangeIds
@@ -379,49 +520,77 @@ export function useAdminCommandCenter() {
         referralsResult,
         eventsResult,
         timelineResult,
+        representationsResult,
+        representationInvitesResult,
+        assignmentsResult,
+        contactRequestsResult,
+        connectionIntentsResult,
       ] = await Promise.all([
-        supabase.from("pledged_properties").select("*").eq("is_demo", false).order("created_at", { ascending: false }),
-        supabase.from("matches").select("*").in("buyer_exchange_id", scopeIds).order("created_at", { ascending: false }),
-        supabase.from("exchange_connections").select("*").in("buyer_exchange_id", scopeIds).order("created_at", { ascending: false }),
-        supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-        supabase.from("user_roles").select("*"),
-        supabase.from("agent_clients").select("*").order("created_at", { ascending: false }),
-        supabase.from("support_tickets").select("*").order("created_at", { ascending: false }),
-        supabase.from("demo_requests").select("*").order("created_at", { ascending: false }),
-        supabase.from("contact_submissions").select("*").order("created_at", { ascending: false }),
-        supabase.from("referrals").select("*").order("created_at", { ascending: false }),
-        supabase.from("event_registrations").select("*").order("created_at", { ascending: false }),
+        supabase.from("pledged_properties").select("*", { count: "exact" }).eq("is_demo", false).order("created_at", { ascending: false }),
+        supabase.from("matches").select("*", { count: "exact" }).order("created_at", { ascending: false }),
+        supabase.from("exchange_connections").select("*", { count: "exact" }).order("created_at", { ascending: false }),
+        supabase.from("profiles").select("*", { count: "exact" }).order("created_at", { ascending: false }),
+        supabase.from("user_roles").select("*", { count: "exact" }),
+        supabase.from("agent_clients").select("*", { count: "exact" }).order("created_at", { ascending: false }),
+        supabase.from("support_tickets").select("*", { count: "exact" }).order("created_at", { ascending: false }),
+        supabase.from("demo_requests").select("*", { count: "exact" }).order("created_at", { ascending: false }),
+        supabase.from("contact_submissions").select("*", { count: "exact" }).order("created_at", { ascending: false }),
+        supabase.from("referrals").select("*", { count: "exact" }).order("created_at", { ascending: false }),
+        supabase.from("event_registrations").select("*", { count: "exact" }).order("created_at", { ascending: false }),
         supabase.from("exchange_timeline").select("*").in("exchange_id", scopeIds).order("created_at", { ascending: false }).limit(30),
+        supabase.from("agent_representations").select("*", { count: "exact" }).eq("is_demo", false).order("created_at", { ascending: false }),
+        supabase
+          .from("representation_invites")
+          .select("id, delivery_status, status, email, delivery_error_code, updated_at, representation_id", { count: "exact" })
+          .order("updated_at", { ascending: false }),
+        supabase.from("exchange_agent_assignments").select("*", { count: "exact" }).in("exchange_id", scopeIds).order("created_at", { ascending: false }),
+        supabase.from("agent_contact_requests").select("*", { count: "exact" }).in("exchange_id", scopeIds).order("created_at", { ascending: false }),
+        supabase.from("agent_connection_intents").select("*", { count: "exact" }).eq("is_demo", false).order("created_at", { ascending: false }),
       ]);
 
-      const results = [
-        propertiesResult,
-        matchesResult,
-        connectionsResult,
-        profilesResult,
-        rolesResult,
-        clientsResult,
-        ticketsResult,
-        demosResult,
-        contactsResult,
-        referralsResult,
-        eventsResult,
-        timelineResult,
+      const countedResults: Array<[string, CountedAdminQueryResult]> = [
+        ["live property", propertiesResult],
+        ["match", matchesResult],
+        ["connection", connectionsResult],
+        ["profile", profilesResult],
+        ["role", rolesResult],
+        ["client", clientsResult],
+        ["support ticket", ticketsResult],
+        ["demo request", demosResult],
+        ["contact submission", contactsResult],
+        ["referral", referralsResult],
+        ["event registration", eventsResult],
+        ["live representation", representationsResult],
+        ["representation invitation", representationInvitesResult],
+        ["exchange assignment", assignmentsResult],
+        ["agent contact request", contactRequestsResult],
+        ["live connection intent", connectionIntentsResult],
       ];
-      const failed = results.find((result) => result.error);
-      if (failed?.error) throw failed.error;
+      for (const [label, result] of countedResults) {
+        if (result.error) throw result.error;
+        assertAdminCommandCenterRowsComplete(label, result.data?.length ?? 0, result.count);
+      }
+      if (timelineResult.error) throw timelineResult.error;
 
       const profiles = (profilesResult.data ?? []).filter(
         (profile) => !profile.email?.toLowerCase().endsWith("@replacefinder.test"),
       );
       const profileIds = new Set(profiles.map((profile) => profile.id));
+      const livePropertyIds = new Set((propertiesResult.data ?? []).map((property) => property.id));
+      const liveExchangeIdSet = new Set(liveExchangeIds);
+      const liveRepresentations = representationsResult.data ?? [];
+      const liveRepresentationIds = new Set(liveRepresentations.map((representation) => representation.id));
       const source: CommandCenterSource = {
         profiles,
         roles: (rolesResult.data ?? []).filter((role) => profileIds.has(role.user_id)),
         exchanges,
         properties: propertiesResult.data ?? [],
-        matches: matchesResult.data ?? [],
-        connections: connectionsResult.data ?? [],
+        matches: (matchesResult.data ?? []).filter(
+          (match) => liveExchangeIdSet.has(match.buyer_exchange_id) || livePropertyIds.has(match.seller_property_id),
+        ),
+        connections: (connectionsResult.data ?? []).filter(
+          (connection) => liveExchangeIdSet.has(connection.buyer_exchange_id) || Boolean(connection.seller_exchange_id && liveExchangeIdSet.has(connection.seller_exchange_id)),
+        ),
         clients: clientsResult.data ?? [],
         tickets: ticketsResult.data ?? [],
         demos: demosResult.data ?? [],
@@ -429,6 +598,11 @@ export function useAdminCommandCenter() {
         referrals: referralsResult.data ?? [],
         eventRegistrations: eventsResult.data ?? [],
         timeline: timelineResult.data ?? [],
+        representations: liveRepresentations,
+        representationInvites: (representationInvitesResult.data ?? []).filter((invite) => liveRepresentationIds.has(invite.representation_id)),
+        assignments: assignmentsResult.data ?? [],
+        contactRequests: contactRequestsResult.data ?? [],
+        connectionIntents: connectionIntentsResult.data ?? [],
       };
 
       const now = Date.now();
@@ -440,7 +614,11 @@ export function useAdminCommandCenter() {
         return counts;
       }, {});
       const upcomingDemos = source.demos
-        .filter((demo) => demo.scheduled_at && new Date(demo.scheduled_at).getTime() >= now)
+        .filter((demo) =>
+          demo.scheduled_at &&
+          !["unqualified", "closed"].includes(demo.status) &&
+          new Date(demo.scheduled_at).getTime() >= now
+        )
         .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
         .slice(0, 5);
 
@@ -458,11 +636,13 @@ export function useAdminCommandCenter() {
         kpis: {
           activeExchanges: activeExchanges.length,
           activeMatches: source.matches.filter((match) => match.status === "active").length,
-          openConnections: source.connections.filter((connection) => ["pending", "accepted"].includes(connection.status)).length,
+          openConnections: source.connections.filter((connection) =>
+            ["pending", "accepted", "in_progress"].includes(connection.status)
+          ).length,
           properties: source.properties.length,
-          users: source.profiles.length,
-          agents: new Set(source.roles.filter((role) => role.role === "agent").map((role) => role.user_id)).size,
-          investors: new Set(source.roles.filter((role) => role.role === "investor").map((role) => role.user_id)).size,
+          users: accountSummary.totalAccounts,
+          agents: accountSummary.agentAccounts,
+          investors: accountSummary.investorAccounts,
           agentManagedExchanges: activeExchanges.filter((exchange) => !isInvestorOwned(exchange.owner_type)).length,
           investorManagedExchanges: activeExchanges.filter((exchange) => isInvestorOwned(exchange.owner_type)).length,
           newLeads:
@@ -470,9 +650,12 @@ export function useAdminCommandCenter() {
             source.referrals.filter((referral) => referral.status === "pending").length +
             source.demos.filter((demo) => demo.status === "new").length,
           openTickets: source.tickets.filter((ticket) => ["open", "in_progress"].includes(ticket.status)).length,
+          activeRepresentations: source.representations.filter((representation) => representation.status === "active").length,
+          openContactRequests: source.contactRequests.filter((request) => ["requested", "awaiting_counterparty_agent"].includes(request.status)).length,
+          awaitingRepresentation: source.connectionIntents.filter((intent) => intent.status === "awaiting_representation").length,
         },
         growth: {
-          users: source.profiles.filter((profile) => new Date(profile.created_at).getTime() >= weekAgo).length,
+          users: accountSummary.newAccounts7d,
           exchanges: source.exchanges.filter((exchange) => new Date(exchange.created_at).getTime() >= weekAgo).length,
           demos: source.demos.filter((demo) => new Date(demo.created_at).getTime() >= weekAgo).length,
           events: source.eventRegistrations.filter((registration) => new Date(registration.created_at).getTime() >= weekAgo).length,

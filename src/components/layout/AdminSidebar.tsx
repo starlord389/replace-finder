@@ -17,19 +17,25 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
-const operationsItems = [
+const overviewItems = [
   { title: "Command Center", url: "/admin", icon: LayoutDashboard, end: true },
   { title: "Deal Oversight", url: "/admin/deals", icon: Briefcase },
 ];
 
-const managementItems = [
-  { title: "Users & Account Roles", url: "/admin/users", icon: Users },
+const peopleItems = [
+  { title: "Users & Accounts", url: "/admin/users", icon: Users },
   { title: "Representations", url: "/admin/representations", icon: Handshake },
-  { title: "Demos", url: "/admin/demos", icon: CalendarClock },
+];
+
+const operationsItems = [
+  { title: "Demo Requests", url: "/admin/demos", icon: CalendarClock },
   { title: "Growth & Intake", url: "/admin/intake", icon: Inbox },
   { title: "Support", url: "/admin/support", icon: HelpCircle },
   { title: "Help Feedback", url: "/admin/feedback", icon: ThumbsUp },
   { title: "Reports & Exports", url: "/admin/reports", icon: ChartNoAxesCombined },
+];
+
+const platformItems = [
   { title: "System & Audit", url: "/admin/system", icon: ServerCog },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
@@ -61,10 +67,10 @@ export default function AdminSidebar() {
           </div>
 
           <SidebarGroup>
-            <SidebarGroupLabel>Operations</SidebarGroupLabel>
+            <SidebarGroupLabel>Overview</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {operationsItems.map((item) => (
+                {overviewItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink
@@ -84,10 +90,54 @@ export default function AdminSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel>Management</SidebarGroupLabel>
+            <SidebarGroupLabel>People &amp; Accounts</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {managementItems.map((item) => (
+                {peopleItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        activeClassName="bg-primary/10 text-primary"
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Operations</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {operationsItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        activeClassName="bg-primary/10 text-primary"
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Platform</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {platformItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink

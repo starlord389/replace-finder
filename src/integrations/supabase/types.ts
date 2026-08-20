@@ -47,6 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_account_states: {
+        Row: {
+          account_status: string
+          created_at: string
+          previous_verification_status: string | null
+          reactivated_at: string | null
+          reactivated_by: string | null
+          suspension_reason: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_status?: string
+          created_at?: string
+          previous_verification_status?: string | null
+          reactivated_at?: string | null
+          reactivated_by?: string | null
+          suspension_reason?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_status?: string
+          created_at?: string
+          previous_verification_status?: string | null
+          reactivated_at?: string | null
+          reactivated_by?: string | null
+          suspension_reason?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_messages: {
         Row: {
           created_at: string
@@ -1619,6 +1658,106 @@ export type Database = {
           },
         ]
       }
+      match_workflow_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_stage: string | null
+          id: string
+          match_id: string
+          note: string | null
+          source: string
+          to_stage: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          from_stage?: string | null
+          id?: string
+          match_id: string
+          note?: string | null
+          source: string
+          to_stage: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          from_stage?: string | null
+          id?: string
+          match_id?: string
+          note?: string | null
+          source?: string
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_workflow_events_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_workflow_states: {
+        Row: {
+          archived_at: string | null
+          client_interested_at: string | null
+          closed_at: string | null
+          conversation_started_at: string | null
+          created_at: string
+          current_stage: string
+          match_id: string
+          offer_sent_at: string | null
+          sent_to_client_at: string | null
+          stage_note: string | null
+          stage_source: string
+          under_contract_at: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          client_interested_at?: string | null
+          closed_at?: string | null
+          conversation_started_at?: string | null
+          created_at?: string
+          current_stage?: string
+          match_id: string
+          offer_sent_at?: string | null
+          sent_to_client_at?: string | null
+          stage_note?: string | null
+          stage_source?: string
+          under_contract_at?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          client_interested_at?: string | null
+          closed_at?: string | null
+          conversation_started_at?: string | null
+          created_at?: string
+          current_stage?: string
+          match_id?: string
+          offer_sent_at?: string | null
+          sent_to_client_at?: string | null
+          stage_note?: string | null
+          stage_source?: string
+          under_contract_at?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_workflow_states_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           connection_id: string
@@ -2749,6 +2888,17 @@ export type Database = {
         Args: { p_token: string }
         Returns: string
       }
+      apply_match_workflow_stage: {
+        Args: {
+          p_actor_id?: string
+          p_allow_backward?: boolean
+          p_match_id: string
+          p_note?: string
+          p_source: string
+          p_stage: string
+        }
+        Returns: string
+      }
       admin_assign_representation: {
         Args: { p_agent_id: string; p_representation_id: string }
         Returns: undefined
@@ -2764,6 +2914,133 @@ export type Database = {
           template_name: string
         }[]
       }
+      admin_get_user_overview: {
+        Args: { p_user_id: string }
+        Returns: {
+          account_state: Json
+          auth_account: Json
+          counts: Json
+          profile: Json
+          roles: Database["public"]["Enums"]["app_role"][]
+        }[]
+      }
+      admin_get_account_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          agent_accounts: number
+          investor_accounts: number
+          new_accounts_7d: number
+          total_accounts: number
+        }[]
+      }
+      admin_list_user_resources: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_resource_type?: string
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          is_demo: boolean
+          parent_id: string
+          relationship_type: string
+          resource_id: string
+          resource_type: string
+          status: string
+          total_count: number
+          updated_at: string
+        }[]
+      }
+      admin_list_users: {
+        Args: {
+          p_account_status?: string
+          p_data_scope?: string
+          p_limit?: number
+          p_offset?: number
+          p_role?: Database["public"]["Enums"]["app_role"]
+          p_search?: string
+          p_sort?: string
+          p_verification_status?: string
+        }
+        Returns: {
+          account_status: string
+          agent_managed_exchange_count: number
+          auth_created_at: string
+          auth_deleted_at: string
+          banned_until: string
+          brokerage_name: string
+          buyer_side_match_count: number
+          client_count: number
+          company: string
+          demo_client_count: number
+          demo_exchange_count: number
+          demo_match_count: number
+          demo_property_count: number
+          direct_property_count: number
+          email: string
+          email_confirmed_at: string
+          exchange_count: number
+          filtered_agent_count: number
+          filtered_attention_count: number
+          filtered_investor_count: number
+          full_name: string
+          has_demo_data: boolean
+          has_live_data: boolean
+          investor_owned_exchange_count: number
+          is_test_account: boolean
+          last_sign_in_at: string
+          license_number: string
+          license_state: string
+          linked_client_count: number
+          linked_client_exchange_count: number
+          live_client_count: number
+          live_exchange_count: number
+          live_match_count: number
+          live_property_count: number
+          managed_client_count: number
+          match_count: number
+          mls_number: string
+          phone: string
+          phone_confirmed_at: string
+          platform_agent_count: number
+          platform_attention_count: number
+          platform_investor_count: number
+          platform_total_count: number
+          profile_created_at: string
+          profile_photo_url: string
+          profile_updated_at: string
+          property_count: number
+          represented_exchange_count: number
+          roles: Database["public"]["Enums"]["app_role"][]
+          seller_side_match_count: number
+          total_count: number
+          user_id: string
+          verification_status: string
+          years_experience: number
+        }[]
+      }
+      admin_set_agent_verification_status: {
+        Args: { p_reason?: string; p_status: string; p_user_id: string }
+        Returns: string
+      }
+      admin_set_user_account_status: {
+        Args: { p_reason?: string; p_status: string; p_user_id: string }
+        Returns: {
+          account_status: string
+          changed: boolean
+          verification_status: string
+        }[]
+      }
+      admin_set_user_role: {
+        Args: {
+          p_enabled: boolean
+          p_reason?: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
       admin_system_health: { Args: never; Returns: Json }
       assign_agent_to_exchange: {
         Args: { p_exchange_id: string; p_representation_id: string }
@@ -2772,6 +3049,10 @@ export type Database = {
       cancel_representation_invite: {
         Args: { p_representation_id: string }
         Returns: undefined
+      }
+      can_access_match_workflow: {
+        Args: { p_match_id: string }
+        Returns: boolean
       }
       claim_admin_dispatch: {
         Args: {
@@ -2904,6 +3185,7 @@ export type Database = {
         Args: { _exchange_id: string; _user_id: string }
         Returns: boolean
       }
+      is_account_active: { Args: { p_user_id: string }; Returns: boolean }
       is_verified_agent: { Args: { p_user_id: string }; Returns: boolean }
       log_admin_action: {
         Args: {
@@ -3060,6 +3342,15 @@ export type Database = {
       }
       recommend_match_to_client: {
         Args: { p_match_id: string; p_note?: string }
+        Returns: string
+      }
+      record_match_workflow_stage: {
+        Args: {
+          p_match_id: string
+          p_note?: string
+          p_source?: string
+          p_stage: string
+        }
         Returns: string
       }
       request_agent_contact: {

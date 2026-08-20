@@ -42,6 +42,10 @@ Deno.serve(async (req) => {
     if (authError || !user) return response({ error: "Unauthorized" }, 401);
 
     const db = createClient(supabaseUrl, serviceRoleKey);
+    const { data: isActive, error: accountError } = await db.rpc("is_account_active", { p_user_id: user.id });
+    if (accountError || isActive !== true) {
+      return response({ error: "Account access is suspended or unavailable" }, 403);
+    }
     const payload = (await req.json()) as UpdatePayload;
     if (!payload.exchangeId) return response({ error: "exchangeId is required" }, 400);
 

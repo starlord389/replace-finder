@@ -32,6 +32,10 @@ Deno.serve(async (req) => {
     const userId = user.id;
 
     const db = createClient(supabaseUrl, serviceRoleKey);
+    const { data: isActive, error: accountError } = await db.rpc("is_account_active", { p_user_id: userId });
+    if (accountError || isActive !== true) {
+      return jsonResponse({ error: "Account access is suspended or unavailable" }, 403);
+    }
 
     const { exchange_id, property_id, explain, dry_run } = await req.json();
     if (!exchange_id || !property_id) {

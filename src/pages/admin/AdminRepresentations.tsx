@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { CheckCircle2, Handshake, Loader2, ShieldAlert, TestTube2, UserRoundCheck, XCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -35,11 +36,12 @@ interface E2eReport {
 }
 
 export default function AdminRepresentations() {
+  const [searchParams] = useSearchParams();
   const [representations, setRepresentations] = useState<Representation[]>([]);
   const [agents, setAgents] = useState<AdminProfile[]>([]);
   const [profiles, setProfiles] = useState<Record<string, AdminProfile>>({});
   const [selectedAgents, setSelectedAgents] = useState<Record<string, string>>({});
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [e2eReport, setE2eReport] = useState<E2eReport | null>(null);
@@ -61,6 +63,7 @@ export default function AdminRepresentations() {
   }
 
   useEffect(() => { load(); }, []);
+  useEffect(() => { setSearch(searchParams.get("q") ?? ""); }, [searchParams]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();

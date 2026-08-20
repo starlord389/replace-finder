@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Bell, ArrowLeftRight, ArrowRight, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Bell, ArrowLeftRight, ArrowRight, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -14,15 +14,23 @@ export default function AdminHeader() {
   const { user, hasRole } = useAuth();
   const canSwitchToAgent = hasRole("agent");
   const canSwitchToInvestor = hasRole("investor");
-  const { data, isLoading } = useAdminCommandCenter();
+  const { data, isLoading, isError, error, refetch, isFetching } = useAdminCommandCenter();
   const attention = data?.attentionItems ?? [];
   const attentionCount = attention.length;
+  const errorMessage = error instanceof Error ? error.message : "Live Command Center data could not be loaded.";
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[#e8edf3] bg-white/80 px-4 backdrop-blur-md">
       <div className="flex min-w-0 items-center gap-3">
         <SidebarTrigger className="h-8 w-8" />
-        <AdminGlobalSearch items={data?.searchItems ?? []} isLoading={isLoading} />
+        <AdminGlobalSearch
+          items={data?.searchItems ?? []}
+          isLoading={isLoading}
+          isError={isError}
+          errorMessage={errorMessage}
+          isRetrying={isFetching}
+          onRetry={() => { void refetch(); }}
+        />
       </div>
 
       <div className="flex items-center gap-3">
@@ -49,11 +57,17 @@ export default function AdminHeader() {
               variant="ghost"
               size="icon"
               className="relative h-8 w-8"
-              aria-label={`${attentionCount} item${attentionCount === 1 ? "" : "s"} need attention`}
+              aria-label={isError
+                ? "Admin attention data unavailable"
+                : `${attentionCount} item${attentionCount === 1 ? "" : "s"} need attention`}
               data-testid="admin-attention-trigger"
             >
               <Bell className="h-4 w-4" />
-              {attentionCount > 0 && (
+              {isError ? (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-bold text-white">
+                  !
+                </span>
+              ) : attentionCount > 0 && (
                 <span className="absolute -right-1 -top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-bold text-white">
                   {attentionCount > 99 ? "99+" : attentionCount}
                 </span>
@@ -77,6 +91,27 @@ export default function AdminHeader() {
             </div>
             {isLoading ? (
               <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading…</p>
+            ) : isError ? (
+              <div className="px-4 py-6" role="alert">
+                <div className="flex items-start gap-3 text-red-900">
+                  <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold">Live attention data is unavailable</p>
+                    <p className="mt-1 text-xs leading-relaxed text-red-700">{errorMessage}</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-3 h-8 border-red-200 text-xs text-red-800 hover:bg-red-50"
+                      onClick={() => { void refetch(); }}
+                      disabled={isFetching}
+                    >
+                      {isFetching ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-1.5 h-3.5 w-3.5" />}
+                      Retry
+                    </Button>
+                  </div>
+                </div>
+              </div>
             ) : attention.length === 0 ? (
               <div className="flex flex-col items-center px-4 py-8 text-center">
                 <CheckCircle2 className="mb-2 h-7 w-7 text-green-600" />

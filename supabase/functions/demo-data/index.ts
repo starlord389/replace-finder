@@ -135,6 +135,10 @@ Deno.serve(async (req) => {
     if (authErr || !user) return json({ error: "Unauthorized" }, 401);
 
     const db = createClient(supabaseUrl, serviceRoleKey);
+    const { data: isActive, error: accountError } = await db.rpc("is_account_active", { p_user_id: user.id });
+    if (accountError || isActive !== true) {
+      return json({ error: "Account access is suspended or unavailable" }, 403);
+    }
     const { data: roleRow } = await db.from("user_roles").select("user_id").eq("user_id", user.id).eq("role", "admin").maybeSingle();
     if (!roleRow) return json({ error: "Admin role required" }, 403);
 

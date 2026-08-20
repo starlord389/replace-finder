@@ -1,9 +1,16 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  assertAdminCommandCenterRowsComplete,
   buildAdminAttentionItems,
   buildAdminSearchItems,
+  formatAdminRelativeTime,
+  mapAdminAccountSummary,
   type CommandCenterSource,
 } from "@/features/admin/hooks/useAdminCommandCenter";
+
+const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 function row<T extends keyof CommandCenterSource>(value: unknown) {
   return value as CommandCenterSource[T][number];
@@ -24,6 +31,11 @@ function baseSource(): CommandCenterSource {
     referrals: [],
     eventRegistrations: [],
     timeline: [],
+    representations: [],
+    representationInvites: [],
+    assignments: [],
+    contactRequests: [],
+    connectionIntents: [],
   };
 }
 
@@ -32,6 +44,58 @@ afterEach(() => {
 });
 
 describe("admin command center", () => {
+  it("maps the auth-backed account summary into command-center KPIs", () => {
+    expect(mapAdminAccountSummary({
+      total_accounts: 42,
+      agent_accounts: 12,
+      investor_accounts: 27,
+      new_accounts_7d: 5,
+    })).toEqual({
+      totalAccounts: 42,
+      agentAccounts: 12,
+      investorAccounts: 27,
+      newAccounts7d: 5,
+    });
+
+    const source = read("src/features/admin/hooks/useAdminCommandCenter.ts");
+    expect(source).toContain('supabase.rpc("admin_get_account_summary")');
+    expect(source).toContain("users: accountSummary.totalAccounts");
+    expect(source).toContain("users: accountSummary.newAccounts7d");
+  });
+
+  it("rejects capped or unverifiable table reads instead of showing partial totals", () => {
+    expect(() => assertAdminCommandCenterRowsComplete("profile", 10, 10)).not.toThrow();
+    expect(() => assertAdminCommandCenterRowsComplete("profile", 1_000, 1_001))
+      .toThrow("loaded 1000 of 1001 profile records");
+    expect(() => assertAdminCommandCenterRowsComplete("profile", 10, null))
+      .toThrow("could not verify the profile row count");
+
+    const source = read("src/features/admin/hooks/useAdminCommandCenter.ts");
+    expect(source).toContain('.select("*", { count: "exact" })');
+    expect(source).toContain(
+      "assertAdminCommandCenterRowsComplete(label, result.data?.length ?? 0, result.count)",
+    );
+  });
+
+  it("keeps auth-only accounts discoverable and exposes command-center retry states", () => {
+    const search = read("src/features/admin/components/AdminGlobalSearch.tsx");
+    const header = read("src/components/layout/AdminHeader.tsx");
+
+    expect(search).toContain("Search all Users &amp; Accounts");
+    expect(search).toContain("including auth-only accounts");
+    expect(search).toContain("`/admin/users?q=${encodeURIComponent(query.trim())}`");
+    expect(search).toContain("Retry live search");
+    expect(header).toContain("Live attention data is unavailable");
+    expect(header).toContain("Admin attention data unavailable");
+  });
+
+  it("describes future deadlines as upcoming instead of just now", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-20T12:00:00Z"));
+    expect(formatAdminRelativeTime("2026-08-20T14:00:00Z")).toBe("in 2h");
+    expect(formatAdminRelativeTime("2026-08-22T12:00:00Z")).toBe("in 2d");
+  });
+
   it("prioritizes imminent exchange deadlines and unresolved support", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-24T12:00:00Z"));
@@ -109,7 +173,7 @@ describe("admin command center", () => {
         expect.objectContaining({
           type: "User",
           title: "Jamie Broker",
-          href: "/admin/users?q=jamie%40example.com",
+          href: "/admin/users/user-1",
         }),
         expect.objectContaining({
           type: "Exchange",
@@ -161,6 +225,50 @@ describe("admin command center", () => {
         type: "Exchange",
         title: "Taylor Owner exchange",
         subtitle: expect.stringContaining("Investor / Property Owner"),
+      }),
+    ]));
+  });
+
+  it("surfaces current representation handoffs that need an administrator", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-20T12:00:00Z"));
+    const source = baseSource();
+    source.profiles = [
+      row<"profiles">({ id: "owner-1", full_name: "Taylor Owner", email: "taylor@example.com" }),
+    ];
+    source.representations = [
+      row<"representations">({
+        id: "rep-1",
+        investor_id: "owner-1",
+        investor_email: "taylor@example.com",
+        agent_email: "",
+        status: "awaiting_agent",
+        updated_at: "2026-08-17T12:00:00Z",
+      }),
+    ];
+    source.connectionIntents = [
+      row<"connectionIntents">({
+        id: "intent-1",
+        waiting_owner_id: "owner-1",
+        waiting_on_side: "seller",
+        status: "awaiting_representation",
+        updated_at: "2026-08-20T11:00:00Z",
+      }),
+    ];
+
+    const items = buildAdminAttentionItems(source);
+
+    expect(items).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: "representation-rep-1",
+        category: "representation",
+        priority: "high",
+        href: "/admin/users/owner-1?tab=relationships",
+      }),
+      expect.objectContaining({
+        id: "connection-intent-intent-1",
+        title: "Listing interest is waiting on representation",
+        href: "/admin/users/owner-1?tab=relationships",
       }),
     ]));
   });

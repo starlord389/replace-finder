@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { resolveListingName } from "@/lib/listingDisplay";
-import { Loader2, Search, Database } from "lucide-react";
+import { AlertTriangle, Database, Loader2, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   exchangeManagedForLabel,
@@ -19,10 +19,44 @@ type Exchange = Tables<"exchanges">;
 type Property = Tables<"pledged_properties">;
 type Match = Tables<"matches">;
 type Connection = Tables<"exchange_connections">;
+type DatasetKey = "exchanges" | "properties" | "matches" | "connections" | "profiles" | "clients";
+type DatasetStatus = "loading" | "loaded" | "partial" | "failed";
+type DatasetStatuses = Record<DatasetKey, DatasetStatus>;
+type DatasetErrors = Partial<Record<DatasetKey, string>>;
 type StagingDatasetManifest = {
   buyer?: { exchange_id?: string };
   seller?: { exchange_id?: string };
 };
+
+const DATASET_LABELS: Record<DatasetKey, string> = {
+  exchanges: "Exchanges",
+  properties: "Properties",
+  matches: "Matches",
+  connections: "Connections",
+  profiles: "User profiles",
+  clients: "Client records",
+};
+
+const INITIAL_DATASET_STATUSES: DatasetStatuses = {
+  exchanges: "loading",
+  properties: "loading",
+  matches: "loading",
+  connections: "loading",
+  profiles: "loading",
+  clients: "loading",
+};
+
+const EMPTY_SCOPE_ID = "00000000-0000-0000-0000-000000000000";
+
+function adminDealsCountLabel(status: DatasetStatus, filtered: number, total: number) {
+  if (status === "failed") return "Unavailable";
+  if (status === "loading") return "Loading";
+  return `${status === "partial" ? "Partial · " : ""}${filtered}/${total}`;
+}
+
+function adminDealsHasTotalFailure(statuses: DatasetStatuses) {
+  return (["exchanges", "properties", "matches", "connections"] as DatasetKey[]).every((key) => statuses[key] === "failed");
+}
 
 function fmtDate(d: string | null) {
   return d ? new Date(d).toLocaleDateString() : "-";
@@ -61,8 +95,11 @@ function StatusPill({ value }: { value: string }) {
 
 export default function AdminDeals() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestSequence = useRef(0);
   const [loading, setLoading] = useState(true);
+  const [datasetStatuses, setDatasetStatuses] = useState<DatasetStatuses>(INITIAL_DATASET_STATUSES);
+  const [datasetErrors, setDatasetErrors] = useState<DatasetErrors>({});
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -71,41 +108,85 @@ export default function AdminDeals() {
   const [clientName, setClientName] = useState<Map<string, string>>(new Map());
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      // Live data only. exchanges/pledged_properties carry is_demo; matches and
-      // exchange_connections don't, so scope them to live exchange ids.
-      const ex = await supabase
-        .from("exchanges")
-        .select("*")
-        .eq("is_demo", false)
-        .order("created_at", { ascending: false });
-      const liveExchanges = ex.data ?? [];
-      const liveExchangeIds = liveExchanges.map((e) => e.id);
-      // Non-empty sentinel so the .in() filters match nothing (not everything)
-      // when there are no live exchanges yet.
-      const scopeIds = liveExchangeIds.length
-        ? liveExchangeIds
-        : ["00000000-0000-0000-0000-000000000000"];
+  const loadDeals = useCallback(async () => {
+    const requestId = ++requestSequence.current;
+    setLoading(true);
+    setDatasetStatuses(INITIAL_DATASET_STATUSES);
+    setDatasetErrors({});
+    // Clear the previous snapshot immediately. A failed refresh must never leave
+    // stale rows on screen under newly calculated, authoritative-looking counts.
+    setExchanges([]);
+    setProperties([]);
+    setMatches([]);
+    setConnections([]);
+    setAgentName(new Map());
+    setClientName(new Map());
 
-      const [pr, mt, cn, profiles, clients] = await Promise.all([
-        supabase.from("pledged_properties").select("*").eq("is_demo", false).order("created_at", { ascending: false }),
-        supabase.from("matches").select("*").in("buyer_exchange_id", scopeIds).order("created_at", { ascending: false }),
-        supabase.from("exchange_connections").select("*").in("buyer_exchange_id", scopeIds).order("created_at", { ascending: false }),
-        supabase.from("profiles").select("id, full_name, email"),
-        supabase.from("agent_clients").select("id, client_name"),
-      ]);
-      if (ex.error) toast({ title: "Failed to load deals.", description: ex.error.message, variant: "destructive" });
-      setExchanges(liveExchanges);
-      setProperties(pr.data ?? []);
-      setMatches(mt.data ?? []);
-      setConnections(cn.data ?? []);
-      setAgentName(new Map((profiles.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"])));
-      setClientName(new Map((clients.data ?? []).map((c) => [c.id, c.client_name])));
-      setLoading(false);
-    })();
+    const [exchangeResult, propertyResult] = await Promise.all([
+      supabase.from("exchanges").select("*").eq("is_demo", false).order("created_at", { ascending: false }),
+      supabase.from("pledged_properties").select("*").eq("is_demo", false).order("created_at", { ascending: false }),
+    ]);
+    if (requestId !== requestSequence.current) return;
+
+    const liveExchanges = exchangeResult.error ? [] : exchangeResult.data ?? [];
+    const liveProperties = propertyResult.error ? [] : propertyResult.data ?? [];
+    const exchangeScopeIds = liveExchanges.length ? liveExchanges.map((exchange) => exchange.id) : [EMPTY_SCOPE_ID];
+    const propertyScopeIds = liveProperties.length ? liveProperties.map((property) => property.id) : [EMPTY_SCOPE_ID];
+    const matchScope: string[] = [];
+    if (!exchangeResult.error) matchScope.push(`buyer_exchange_id.in.(${exchangeScopeIds.join(",")})`);
+    if (!propertyResult.error) matchScope.push(`seller_property_id.in.(${propertyScopeIds.join(",")})`);
+
+    const unavailable = (message: string) => Promise.resolve({ data: null, error: { message } });
+    const [matchResult, connectionResult, profileResult, clientResult] = await Promise.all([
+      matchScope.length
+        ? supabase.from("matches").select("*").or(matchScope.join(",")).order("created_at", { ascending: false })
+        : unavailable("Matches were not queried because both exchange and property scopes failed to load."),
+      !exchangeResult.error
+        ? supabase.from("exchange_connections").select("*").or(`buyer_exchange_id.in.(${exchangeScopeIds.join(",")}),seller_exchange_id.in.(${exchangeScopeIds.join(",")})`).order("created_at", { ascending: false })
+        : unavailable("Connections were not queried because the live exchange scope failed to load."),
+      supabase.from("profiles").select("id, full_name, email"),
+      supabase.from("agent_clients").select("id, client_name"),
+    ]);
+    if (requestId !== requestSequence.current) return;
+
+    const statuses: DatasetStatuses = {
+      exchanges: exchangeResult.error ? "failed" : "loaded",
+      properties: propertyResult.error ? "failed" : "loaded",
+      matches: matchResult.error ? "failed" : exchangeResult.error || propertyResult.error ? "partial" : "loaded",
+      connections: connectionResult.error ? "failed" : "loaded",
+      profiles: profileResult.error ? "failed" : "loaded",
+      clients: clientResult.error ? "failed" : "loaded",
+    };
+    const errors: DatasetErrors = {};
+    if (exchangeResult.error) errors.exchanges = exchangeResult.error.message;
+    if (propertyResult.error) errors.properties = propertyResult.error.message;
+    if (matchResult.error) errors.matches = matchResult.error.message;
+    else if (statuses.matches === "partial") {
+      errors.matches = exchangeResult.error
+        ? "Buyer-side matches are unavailable because exchanges failed to load; listing-side results may still be shown."
+        : "Listing-side matches are unavailable because properties failed to load; buyer-side results may still be shown.";
+    }
+    if (connectionResult.error) errors.connections = connectionResult.error.message;
+    if (profileResult.error) errors.profiles = profileResult.error.message;
+    if (clientResult.error) errors.clients = clientResult.error.message;
+
+    setExchanges(liveExchanges);
+    setProperties(liveProperties);
+    setMatches(matchResult.error ? [] : (matchResult.data ?? []) as Match[]);
+    setConnections(connectionResult.error ? [] : (connectionResult.data ?? []) as Connection[]);
+    setAgentName(new Map(profileResult.error ? [] : (profileResult.data ?? []).map((profile) => [profile.id, profile.full_name || profile.email || "Unknown"])));
+    setClientName(new Map(clientResult.error ? [] : (clientResult.data ?? []).map((client) => [client.id, client.client_name])));
+    setDatasetStatuses(statuses);
+    setDatasetErrors(errors);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    void loadDeals();
+    return () => {
+      requestSequence.current += 1;
+    };
+  }, [loadDeals]);
 
   useEffect(() => {
     setSearch(searchParams.get("q") ?? "");
@@ -121,16 +202,30 @@ export default function AdminDeals() {
   );
 
   const term = search.trim().toLowerCase();
+  const selectedPropertyId = searchParams.get("property");
+  const requestedTab = searchParams.get("tab");
+  const activeTab = ["exchanges", "properties", "matches", "connections"].includes(requestedTab ?? "")
+    ? requestedTab!
+    : "exchanges";
+
+  function changeTab(tab: string) {
+    const next = new URLSearchParams(searchParams);
+    if (tab === "exchanges") next.delete("tab");
+    else next.set("tab", tab);
+    if (tab !== "properties") next.delete("property");
+    setSearchParams(next, { replace: true });
+  }
   const fExchanges = useMemo(
     () => exchanges.filter((e) => !term || agent(e.agent_id).toLowerCase().includes(term) || exchangeManagedForLabel(e.owner_type, clientName.get(e.client_id)).toLowerCase().includes(term) || exchangeOwnerTypeLabel(e.owner_type).toLowerCase().includes(term) || e.status.toLowerCase().includes(term)),
     [exchanges, term, agent, clientName],
   );
   const fProperties = useMemo(
     () => properties.filter((p) => {
+      if (selectedPropertyId && p.id !== selectedPropertyId) return false;
       const ownerType = exchangeById.get(p.exchange_id ?? "")?.owner_type;
-      return !term || (p.property_name ?? "").toLowerCase().includes(term) || (p.address ?? "").toLowerCase().includes(term) || (p.city ?? "").toLowerCase().includes(term) || (p.state ?? "").toLowerCase().includes(term) || agent(p.agent_id).toLowerCase().includes(term) || exchangeOwnerTypeLabel(ownerType).toLowerCase().includes(term);
+      return !term || resolveListingName(p, true).toLowerCase().includes(term) || (p.property_name ?? "").toLowerCase().includes(term) || (p.address ?? "").toLowerCase().includes(term) || (p.city ?? "").toLowerCase().includes(term) || (p.state ?? "").toLowerCase().includes(term) || (p.zip ?? "").toLowerCase().includes(term) || (p.asset_type ?? "").toLowerCase().includes(term) || agent(p.agent_id).toLowerCase().includes(term) || exchangeOwnerTypeLabel(ownerType).toLowerCase().includes(term);
     }),
-    [properties, term, agent, exchangeById],
+    [properties, selectedPropertyId, term, agent, exchangeById],
   );
   const fConnections = useMemo(
     () => connections.filter((c) => !term || agent(c.buyer_agent_id).toLowerCase().includes(term) || agent(c.seller_agent_id).toLowerCase().includes(term) || exchangeOwnerTypeLabel(exchangeById.get(c.buyer_exchange_id)?.owner_type).toLowerCase().includes(term) || exchangeOwnerTypeLabel(c.seller_exchange_id ? exchangeById.get(c.seller_exchange_id)?.owner_type : null).toLowerCase().includes(term) || c.status.toLowerCase().includes(term)),
@@ -149,6 +244,9 @@ export default function AdminDeals() {
     );
   }
 
+  const loadIssues = (Object.entries(datasetErrors) as Array<[DatasetKey, string]>);
+  const totalFailure = adminDealsHasTotalFailure(datasetStatuses);
+
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -161,23 +259,27 @@ export default function AdminDeals() {
         <ReseedStagingButton />
       </div>
 
+      {loadIssues.length > 0 && (
+        <LoadHealthNotice issues={loadIssues} totalFailure={totalFailure} onRetry={loadDeals} />
+      )}
 
-      <div className="mb-4 relative max-w-md">
+      {!totalFailure && <>
+      <div className="relative mb-4 max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by account owner, client, property, account type, or status…" className="pl-9" aria-label="Search deals" />
+        <Input value={search} onChange={(e) => { setSearch(e.target.value); if (selectedPropertyId) { const next = new URLSearchParams(searchParams); next.delete("property"); setSearchParams(next, { replace: true }); } }} placeholder="Search by account owner, client, property, account type, or status…" className="pl-9" aria-label="Search deals" />
       </div>
 
-      <Tabs defaultValue="exchanges">
+      <Tabs value={activeTab} onValueChange={changeTab}>
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-          <TabsTrigger value="exchanges">Exchanges ({fExchanges.length}/{exchanges.length})</TabsTrigger>
-          <TabsTrigger value="properties">Properties ({fProperties.length}/{properties.length})</TabsTrigger>
-          <TabsTrigger value="matches">Matches ({fMatches.length}/{matches.length})</TabsTrigger>
-          <TabsTrigger value="connections">Connections ({fConnections.length}/{connections.length})</TabsTrigger>
+          <TabsTrigger value="exchanges">Exchanges ({adminDealsCountLabel(datasetStatuses.exchanges, fExchanges.length, exchanges.length)})</TabsTrigger>
+          <TabsTrigger value="properties">Properties ({adminDealsCountLabel(datasetStatuses.properties, fProperties.length, properties.length)})</TabsTrigger>
+          <TabsTrigger value="matches">Matches ({adminDealsCountLabel(datasetStatuses.matches, fMatches.length, matches.length)})</TabsTrigger>
+          <TabsTrigger value="connections">Connections ({adminDealsCountLabel(datasetStatuses.connections, fConnections.length, connections.length)})</TabsTrigger>
         </TabsList>
 
         {/* Exchanges */}
         <TabsContent value="exchanges" className="mt-4">
-          <TableCard empty={fExchanges.length === 0} emptyLabel="No exchanges found.">
+          <TableCard empty={fExchanges.length === 0} emptyLabel="No exchanges found." status={datasetStatuses.exchanges} error={datasetErrors.exchanges} onRetry={loadDeals}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -207,7 +309,7 @@ export default function AdminDeals() {
 
         {/* Properties */}
         <TabsContent value="properties" className="mt-4">
-          <TableCard empty={fProperties.length === 0} emptyLabel="No properties found.">
+          <TableCard empty={fProperties.length === 0} emptyLabel="No properties found." status={datasetStatuses.properties} error={datasetErrors.properties} onRetry={loadDeals}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -242,7 +344,7 @@ export default function AdminDeals() {
 
         {/* Matches */}
         <TabsContent value="matches" className="mt-4">
-          <TableCard empty={fMatches.length === 0} emptyLabel="No matches found.">
+          <TableCard empty={fMatches.length === 0} emptyLabel="No matches found." status={datasetStatuses.matches} error={datasetErrors.matches} onRetry={loadDeals}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -281,7 +383,7 @@ export default function AdminDeals() {
 
         {/* Connections */}
         <TabsContent value="connections" className="mt-4">
-          <TableCard empty={fConnections.length === 0} emptyLabel="No connections found.">
+          <TableCard empty={fConnections.length === 0} emptyLabel="No connections found." status={datasetStatuses.connections} error={datasetErrors.connections} onRetry={loadDeals}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -318,6 +420,7 @@ export default function AdminDeals() {
           </TableCard>
         </TabsContent>
       </Tabs>
+      </>}
     </div>
   );
 }
@@ -353,9 +456,76 @@ function ReseedStagingButton() {
 }
 
 
-function TableCard({ empty, emptyLabel, children }: { empty: boolean; emptyLabel: string; children: React.ReactNode }) {
+function LoadHealthNotice({
+  issues,
+  totalFailure,
+  onRetry,
+}: {
+  issues: Array<[DatasetKey, string]>;
+  totalFailure: boolean;
+  onRetry: () => Promise<void>;
+}) {
+  return (
+    <Card className={`mb-4 ${totalFailure ? "border-red-300 bg-red-50" : "border-amber-300 bg-amber-50"}`} role="alert">
+      <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 gap-3">
+          <AlertTriangle className={`mt-0.5 h-5 w-5 shrink-0 ${totalFailure ? "text-red-700" : "text-amber-700"}`} />
+          <div>
+            <p className={`font-semibold ${totalFailure ? "text-red-950" : "text-amber-950"}`}>
+              {totalFailure ? "Deal oversight could not be loaded" : "Deal oversight is showing partial data"}
+            </p>
+            <p className={`mt-1 text-sm ${totalFailure ? "text-red-800" : "text-amber-800"}`}>
+              {totalFailure
+                ? "The primary deal datasets are unavailable, so no empty totals are being presented as authoritative."
+                : "Available records are shown below, but counts and names may be incomplete until every dataset loads successfully."}
+            </p>
+            <ul className={`mt-2 space-y-1 text-xs ${totalFailure ? "text-red-800" : "text-amber-800"}`}>
+              {issues.map(([dataset, message]) => <li key={dataset}><span className="font-semibold">{DATASET_LABELS[dataset]}:</span> {message}</li>)}
+            </ul>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => void onRetry()} className="shrink-0 bg-background">
+          <RefreshCw className="mr-2 h-4 w-4" /> Retry loading
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function TableCard({
+  empty,
+  emptyLabel,
+  status,
+  error,
+  onRetry,
+  children,
+}: {
+  empty: boolean;
+  emptyLabel: string;
+  status: DatasetStatus;
+  error?: string;
+  onRetry: () => Promise<void>;
+  children: React.ReactNode;
+}) {
+  if (status === "failed") {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <p className="font-medium text-foreground">This dataset is unavailable.</p>
+          <p className="mt-1 text-sm text-muted-foreground">{error || "The request failed before this data could be loaded."}</p>
+          <Button variant="outline" size="sm" onClick={() => void onRetry()} className="mt-4"><RefreshCw className="mr-2 h-4 w-4" />Retry</Button>
+        </CardContent>
+      </Card>
+    );
+  }
   if (empty) {
-    return <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">{emptyLabel}</CardContent></Card>;
+    return (
+      <Card>
+        <CardContent className="p-8 text-center text-sm text-muted-foreground">
+          {status === "partial" ? "No records were returned from the portion that loaded. Results remain incomplete." : emptyLabel}
+        </CardContent>
+      </Card>
+    );
   }
   return <Card><div className="overflow-x-auto">{children}</div></Card>;
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeftRight,
+  AlertTriangle,
   Building2,
   CalendarClock,
   CircleUserRound,
@@ -9,6 +10,8 @@ import {
   HelpCircle,
   Inbox,
   LayoutDashboard,
+  Loader2,
+  RefreshCw,
   Search,
   TicketCheck,
   Users,
@@ -18,7 +21,6 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   CommandDialog,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -30,13 +32,17 @@ import type { AdminSearchItem } from "@/features/admin/hooks/useAdminCommandCent
 interface AdminGlobalSearchProps {
   items: AdminSearchItem[];
   isLoading: boolean;
+  isError: boolean;
+  errorMessage?: string;
+  isRetrying: boolean;
+  onRetry: () => void;
 }
 
 const destinations = [
   { title: "Command Center", href: "/admin", icon: LayoutDashboard },
   { title: "Deal Oversight", href: "/admin/deals", icon: ArrowLeftRight },
-  { title: "Users & Account Roles", href: "/admin/users", icon: Users },
-  { title: "Demos", href: "/admin/demos", icon: CalendarClock },
+  { title: "Users & Accounts", href: "/admin/users", icon: Users },
+  { title: "Demo Requests", href: "/admin/demos", icon: CalendarClock },
   { title: "Growth & Intake", href: "/admin/intake", icon: Inbox },
   { title: "Support", href: "/admin/support", icon: HelpCircle },
   { title: "Reports & Exports", href: "/admin/reports", icon: ChartNoAxesCombined },
@@ -54,7 +60,14 @@ const typeIcons: Record<AdminSearchItem["type"], React.ElementType> = {
   Event: CalendarClock,
 };
 
-export default function AdminGlobalSearch({ items, isLoading }: AdminGlobalSearchProps) {
+export default function AdminGlobalSearch({
+  items,
+  isLoading,
+  isError,
+  errorMessage,
+  isRetrying,
+  onRetry,
+}: AdminGlobalSearchProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
@@ -86,12 +99,38 @@ export default function AdminGlobalSearch({ items, isLoading }: AdminGlobalSearc
     navigate(href);
   };
 
+  const accountDirectoryHref = `/admin/users?q=${encodeURIComponent(query.trim())}`;
+  const unavailable = (
+    <div className="mx-2 my-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-900" role="alert">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium">The admin search index is unavailable.</p>
+          <p className="mt-1 line-clamp-2 text-xs text-red-700">
+            {errorMessage || "Live operational results could not be loaded."}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-2 h-7 border-red-200 bg-white px-2 text-xs text-red-800 hover:bg-red-100"
+            onClick={onRetry}
+            disabled={isRetrying}
+          >
+            {isRetrying ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1.5 h-3 w-3" />}
+            Retry live search
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <Button
         variant="outline"
         size="sm"
-        className="hidden h-9 w-[260px] justify-between bg-white text-muted-foreground md:flex"
+        className={`hidden h-9 w-[260px] justify-between bg-white md:flex ${isError ? "border-red-200 text-red-700" : "text-muted-foreground"}`}
         onClick={() => setOpen(true)}
         data-testid="admin-global-search-trigger"
       >
@@ -119,45 +158,72 @@ export default function AdminGlobalSearch({ items, isLoading }: AdminGlobalSearc
         />
         <CommandList>
           {query.trim().length < 2 ? (
-            <CommandGroup heading="Go to">
-              {destinations.map((destination) => (
-                <CommandItem
-                  key={destination.href}
-                  value={destination.title}
-                  onSelect={() => go(destination.href)}
-                >
-                  <destination.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                  {destination.title}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          ) : isLoading ? (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">Loading results…</div>
+            <>
+              <CommandGroup heading="Go to">
+                {destinations.map((destination) => (
+                  <CommandItem
+                    key={destination.href}
+                    value={destination.title}
+                    onSelect={() => go(destination.href)}
+                  >
+                    <destination.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    {destination.title}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+              {isError && unavailable}
+            </>
           ) : (
             <>
-              <CommandEmpty>No matching records found.</CommandEmpty>
-              <CommandGroup heading={`${results.length} result${results.length === 1 ? "" : "s"}`}>
-                {results.map((item) => {
-                  const Icon = typeIcons[item.type];
-                  return (
-                    <CommandItem
-                      key={item.id}
-                      value={`${item.type} ${item.title} ${item.subtitle}`}
-                      onSelect={() => go(item.href)}
-                      className="gap-3"
-                    >
-                      <div className="rounded-md bg-muted p-2">
-                        <Icon className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{item.title}</p>
-                        <p className="truncate text-xs text-muted-foreground">{item.subtitle}</p>
-                      </div>
-                      <CommandShortcut>{item.type}</CommandShortcut>
-                    </CommandItem>
-                  );
-                })}
+              <CommandGroup heading="Complete account directory">
+                <CommandItem
+                  value={`Search all Users & Accounts ${query}`}
+                  onSelect={() => go(accountDirectoryHref)}
+                  className="gap-3"
+                  data-testid="admin-search-all-accounts"
+                >
+                  <div className="rounded-md bg-primary/10 p-2">
+                    <Users className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">Search all Users &amp; Accounts</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      Search the server-backed directory for “{query.trim()}”, including auth-only accounts.
+                    </p>
+                  </div>
+                  <CommandShortcut>All accounts</CommandShortcut>
+                </CommandItem>
               </CommandGroup>
+              {isLoading ? (
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">Loading live results…</div>
+              ) : isError ? unavailable : results.length === 0 ? (
+                <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  No matching indexed records. Search the complete account directory above.
+                </div>
+              ) : (
+                <CommandGroup heading={`${results.length} live result${results.length === 1 ? "" : "s"}`}>
+                  {results.map((item) => {
+                    const Icon = typeIcons[item.type];
+                    return (
+                      <CommandItem
+                        key={item.id}
+                        value={`${item.type} ${item.title} ${item.subtitle}`}
+                        onSelect={() => go(item.href)}
+                        className="gap-3"
+                      >
+                        <div className="rounded-md bg-muted p-2">
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{item.title}</p>
+                          <p className="truncate text-xs text-muted-foreground">{item.subtitle}</p>
+                        </div>
+                        <CommandShortcut>{item.type}</CommandShortcut>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              )}
             </>
           )}
         </CommandList>

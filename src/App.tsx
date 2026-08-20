@@ -28,6 +28,7 @@ const AuthCallback = lazy(() => import("@/pages/auth/AuthCallback"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const SupportTickets = lazy(() => import("@/pages/admin/SupportTickets"));
 const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
+const AdminUserDetail = lazy(() => import("@/pages/admin/AdminUserDetail"));
 const AdminDeals = lazy(() => import("@/pages/admin/AdminDeals"));
 const AdminExchangeDetail = lazy(() => import("@/pages/admin/AdminExchangeDetail"));
 const AdminConnectionDetail = lazy(() => import("@/pages/admin/AdminConnectionDetail"));
@@ -194,6 +195,7 @@ const App = () => (
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
               <Route path="/admin/deals" element={<AdminDeals />} />
               <Route path="/admin/deals/exchanges/:id" element={<AdminExchangeDetail />} />
               <Route path="/admin/deals/connections/:id" element={<AdminConnectionDetail />} />

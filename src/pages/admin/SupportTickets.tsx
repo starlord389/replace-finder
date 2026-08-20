@@ -1,5 +1,5 @@
 import { Fragment, useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -211,10 +211,16 @@ export default function SupportTickets() {
                           {new Date(ticket.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">{ticket.user_email}</div>
-                          {ticket.user_name && (
-                            <div className="text-xs text-muted-foreground">{ticket.user_name}</div>
-                          )}
+                          <Link
+                            to={`/admin/users/${ticket.user_id}`}
+                            onClick={(event) => event.stopPropagation()}
+                            className="block rounded-sm hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <div className="text-sm font-medium">{ticket.user_name || ticket.user_email}</div>
+                            {ticket.user_name && (
+                              <div className="text-xs text-muted-foreground">{ticket.user_email}</div>
+                            )}
+                          </Link>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs capitalize">{ticket.category}</Badge>
