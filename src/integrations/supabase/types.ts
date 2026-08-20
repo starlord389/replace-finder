@@ -3184,6 +3184,7 @@ export type Database = {
         Args: { _exchange_id: string; _user_id: string }
         Returns: boolean
       }
+      is_verified_agent: { Args: { p_user_id: string }; Returns: boolean }
       log_admin_action: {
         Args: {
           p_action: string
