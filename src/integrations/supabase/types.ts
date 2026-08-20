@@ -3179,6 +3179,7 @@ export type Database = {
         }[]
       }
       is_account_active: { Args: { p_user_id: string }; Returns: boolean }
+      is_active_agent: { Args: { p_user_id: string }; Returns: boolean }
       is_exchange_agent: {
         Args: { _exchange_id: string; _user_id: string }
         Returns: boolean
