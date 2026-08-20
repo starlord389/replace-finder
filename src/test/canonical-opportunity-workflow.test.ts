@@ -7,6 +7,9 @@ function source(path: string) {
 }
 
 const migration = source("supabase/migrations/20260811160000_canonical_match_workflow.sql");
+const connectionPrecedence = source(
+  "supabase/migrations/20260820224500_cancelled_connection_workflow_precedence.sql",
+);
 const pipeline = source("src/pages/agent/AgentPipeline.tsx");
 const kanban = source("src/features/pipeline/components/OpportunityPipelineKanban.tsx");
 const actions = source("src/features/matches/components/inbox/useMatchActions.ts");
@@ -33,6 +36,19 @@ describe("canonical opportunity workflow", () => {
     expect(migration).toContain("'agent_conversation_started'");
     expect(migration).toContain("'connection_under_contract'");
     expect(migration).toContain("'connection_closed'");
+  });
+
+  it("does not mistake a cancelled conversation timestamp for a closed deal", () => {
+    const endedBranch = connectionPrecedence.indexOf("IF NEW.status IN ('declined', 'cancelled')");
+    const closedBranch = connectionPrecedence.indexOf(
+      "ELSIF NEW.status = 'completed' OR NEW.closed_at IS NOT NULL",
+    );
+    expect(endedBranch).toBeGreaterThan(-1);
+    expect(closedBranch).toBeGreaterThan(endedBranch);
+    expect(connectionPrecedence).toContain("AND c.status = 'completed'");
+    expect(connectionPrecedence).toContain("'connection_status_repair'");
+    expect(connectionPrecedence).toContain("AND s.stage_source = 'connection_closed'");
+    expect(connectionPrecedence).not.toContain("DROP TRIGGER");
   });
 
   it("requires a real agent conversation before deal-progress stages", () => {
