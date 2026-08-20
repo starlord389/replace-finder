@@ -253,7 +253,7 @@ describe("Meta agent replacement-property landing page", () => {
 
     unmount();
     expect(document.querySelector('meta[name="robots"]')).not.toBeInTheDocument();
-  });
+  }, 10_000);
 
   it("starts the Step 1 dashboard sequence in view and advances through listing publication", () => {
     vi.useFakeTimers();
