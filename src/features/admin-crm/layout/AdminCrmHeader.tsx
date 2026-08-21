@@ -34,7 +34,7 @@ export default function AdminCrmHeader() {
           <button type="button" onClick={() => setScope("live")} className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition ${scope === "live" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"}`}>Live</button>
           <button type="button" onClick={() => setScope("demo")} className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition ${scope === "demo" ? "bg-amber-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"}`}>Demo</button>
         </div>
-        <Button asChild variant="ghost" size="sm" className="hidden gap-2 text-xs sm:flex"><Link to="/admin/users"><Users className="h-4 w-4" />Users</Link></Button>
+        <Button asChild variant="ghost" size="sm" className="hidden gap-2 text-xs sm:flex"><Link to="/admin/users"><Users className="h-4 w-4" />People</Link></Button>
         <Button asChild variant="ghost" size="icon" className="relative">
           <Link to="/admin" aria-label={isError ? "Admin data unavailable" : `${attentionCount} items need attention`}>
             {isError ? <AlertTriangle className="h-4 w-4 text-red-600" /> : <Bell className="h-4 w-4" />}

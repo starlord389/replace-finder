@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { ArrowRight, BriefcaseBusiness, ChevronLeft, ChevronRight, Home, RefreshCw, Search, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ function value(params: URLSearchParams, key: string, allowed: string[], fallback
 }
 
 export default function CrmUsersIndex() {
+  const location = useLocation();
   const { scope, isDemo } = useAdminCrmScope();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState(params.get("q") ?? "");
@@ -46,7 +47,7 @@ export default function CrmUsersIndex() {
   const users = directory.data?.users ?? [];
   return (
     <div className="space-y-6">
-      <CrmPageHeader eyebrow="People & accounts" title="Users" description="A contacts-style directory for every registered account. Open a user to enter their complete ExchangeUp workspace." actions={<Button variant="outline" size="sm" onClick={() => directory.refetch()} disabled={directory.isFetching}><RefreshCw className={`mr-2 h-4 w-4 ${directory.isFetching ? "animate-spin" : ""}`} />Refresh</Button>} />
+      <CrmPageHeader eyebrow="CRM directory" title="People" description="Find an account, then open its workspace to follow every client, property, opportunity, conversation, and activity record in context." actions={<Button variant="outline" size="sm" onClick={() => directory.refetch()} disabled={directory.isFetching}><RefreshCw className={`mr-2 h-4 w-4 ${directory.isFetching ? "animate-spin" : ""}`} />Refresh</Button>} />
       <div className="grid gap-3 sm:grid-cols-3">
         <MetricTile label={isDemo ? "Demo users" : "Live users"} value={summary?.totalAccounts ?? "—"} icon={Users} detail={isDemo ? "Accounts connected to sample data" : "Accounts connected to live data"} tone="blue" />
         <MetricTile label="Agents" value={summary?.agentAccounts ?? "—"} icon={BriefcaseBusiness} detail={`${isDemo ? "Demo" : "Live"} agent workspaces`} />
@@ -68,7 +69,7 @@ export default function CrmUsersIndex() {
           : directory.isLoading ? <div className="p-5"><CrmLoading rows={8} /></div>
             : users.length === 0 ? <div className="p-14 text-center"><Search className="mx-auto h-8 w-8 text-slate-300" /><p className="mt-3 font-medium text-slate-800">No users match these filters</p><p className="mt-1 text-sm text-slate-500">Try a broader search.</p></div>
               : <div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left"><thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500"><tr className={`grid ${USER_DIRECTORY_GRID}`}><th className="px-5 py-3">User</th><th className="px-4 py-3">Account type</th><th className="px-4 py-3">Organization & market</th><th className="px-4 py-3">Workspace</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Last activity</th><th aria-label="Open user" /></tr></thead><tbody className="divide-y divide-slate-100">{users.map((user) => (
-                <tr key={user.id} className="group transition hover:bg-slate-50/80"><td className="p-0" colSpan={7}><Link to={`/admin/users/${user.id}`} className={`grid ${USER_DIRECTORY_GRID} items-center`}>
+                <tr key={user.id} className="group transition hover:bg-slate-50/80"><td className="p-0" colSpan={7}><Link to={`/admin/users/${user.id}`} state={{ adminReturnTo: `${location.pathname}${location.search}` }} className={`grid ${USER_DIRECTORY_GRID} items-center`}>
                   <div className="flex min-w-0 items-center gap-3 px-5 py-4"><ProfileAvatar photoUrl={user.profile_photo_url} name={user.full_name || user.email || "User"} className="h-10 w-10" /><div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-950">{user.full_name || user.email || "Unnamed user"}</p><p className="truncate text-xs text-slate-500">{user.email || "No email"}</p></div></div>
                   <div className="flex flex-wrap gap-1 px-4 py-4">{user.roles.length ? user.roles.map((item) => <RoleBadge key={item} role={item} />) : <span className="text-xs text-slate-400">No role</span>}</div>
                   <div className="min-w-0 px-4 py-4"><p className="truncate text-sm text-slate-700">{user.brokerage_name || user.company || "Independent / not provided"}</p><p className="mt-0.5 text-xs text-slate-500">{[user.license_state, user.mls_number ? `MLS ${user.mls_number}` : null].filter(Boolean).join(" · ") || "Market not provided"}</p></div>

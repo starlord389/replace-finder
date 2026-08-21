@@ -21,18 +21,18 @@ import { useAuth } from "@/hooks/useAuth";
 
 type NavItem = { label: string; href: string; icon: LucideIcon; end?: boolean };
 
-const workspace: NavItem[] = [
+const coreCrm: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: Gauge, end: true },
-  { label: "Users", href: "/admin/users", icon: Users },
+  { label: "People", href: "/admin/users", icon: Users },
   { label: "Properties", href: "/admin/properties", icon: Building2 },
   { label: "Opportunities", href: "/admin/opportunities", icon: BriefcaseBusiness },
+  { label: "Inbox", href: "/admin/communications", icon: MessageSquareText },
 ];
 
 const operations: NavItem[] = [
-  { label: "Communications", href: "/admin/communications", icon: MessageSquareText },
-  { label: "Representation Requests", href: "/admin/representation-requests", icon: Handshake },
-  { label: "Leads & Requests", href: "/admin/intake", icon: Inbox },
-  { label: "Demo Requests", href: "/admin/demos", icon: CalendarClock },
+  { label: "Representation", href: "/admin/representation-requests", icon: Handshake },
+  { label: "Leads & intake", href: "/admin/intake", icon: Inbox },
+  { label: "Demo bookings", href: "/admin/demos", icon: CalendarClock },
   { label: "Support", href: "/admin/support", icon: Headphones },
 ];
 
@@ -82,8 +82,8 @@ export default function AdminCrmSidebar({ onNavigate }: { onNavigate?: () => voi
       </div>
 
       <nav className="flex-1 space-y-7 overflow-y-auto px-3 py-5">
-        <NavigationGroup label="Workspace" items={workspace} onNavigate={onNavigate} />
-        <NavigationGroup label="Operations" items={operations} onNavigate={onNavigate} />
+        <NavigationGroup label="Core CRM" items={coreCrm} onNavigate={onNavigate} />
+        <NavigationGroup label="Requests & service" items={operations} onNavigate={onNavigate} />
         <NavigationGroup label="Administration" items={administration} onNavigate={onNavigate} />
       </nav>
 

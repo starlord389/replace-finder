@@ -16,9 +16,9 @@ const center = read("src/features/admin-crm/components/CommunicationsCenter.tsx"
 describe("admin communications center", () => {
   it("provides one global center and embeds the same center in user workspaces", () => {
     expect(app).toContain('<Route path="/admin/communications" element={<CrmCommunications />} />');
-    expect(sidebar).toContain('{ label: "Communications", href: "/admin/communications"');
+    expect(sidebar).toContain('{ label: "Inbox", href: "/admin/communications"');
     expect(workspaceGraph).toContain('| "communications"');
-    expect(workspaceNavigator).toContain('title="Communications"');
+    expect(workspaceNavigator).toContain('title="Inbox"');
     expect(workspaceDetail).toContain("<CommunicationsCenter userId={data.profile.id}");
     expect(center).toContain('data-testid="admin-communications-center"');
   });

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ExternalLink, RefreshCw } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { CrmError, CrmLoading } from "../components/CrmPrimitives";
@@ -60,6 +60,7 @@ async function locateRecordOwner(recordType: CanonicalRecordType, recordId: stri
 export default function AdminCanonicalRecord({ recordType }: { recordType: CanonicalRecordType }) {
   const { scope, isDemo } = useAdminCrmScope();
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const locator = useQuery({
     queryKey: ["admin-canonical-record-owner", scope, recordType, id],
@@ -77,8 +78,11 @@ export default function AdminCanonicalRecord({ recordType }: { recordType: Canon
     [workspace.data, view],
   );
   const selection: WorkspaceSelection = { type: recordType, id };
-  const indexHref = recordType === "property" ? "/admin/properties" : "/admin/opportunities";
-  const indexLabel = recordType === "property" ? "Properties" : "Opportunities";
+  const workspaceReturn = typeof (location.state as { adminReturnTo?: unknown } | null)?.adminReturnTo === "string"
+    ? (location.state as { adminReturnTo: string }).adminReturnTo
+    : null;
+  const indexHref = workspaceReturn ?? (recordType === "property" ? "/admin/properties" : "/admin/opportunities");
+  const indexLabel = workspaceReturn ? "Return to workspace" : recordType === "property" ? "Properties" : "Opportunities";
 
   function openRecord(next: WorkspaceSelection) {
     if (!locator.data) return;

@@ -31,7 +31,8 @@ describe("admin CRM architecture", () => {
   });
 
   it("treats users as CRM contacts that open a relationship-aware workspace", () => {
-    expect(directory).toContain("A contacts-style directory for every registered account");
+    expect(directory).toContain('title="People"');
+    expect(directory).toContain("follow every client, property, opportunity, conversation, and activity record in context");
     expect(directory).toContain('to={`/admin/users/${user.id}`}');
     expect(directory).toContain("const USER_DIRECTORY_GRID");
     expect(directory).toContain('<tr className={`grid ${USER_DIRECTORY_GRID}`}>');
@@ -41,17 +42,17 @@ describe("admin CRM architecture", () => {
     expect(workspace).toContain("buildAdminWorkspaceGraph");
     expect(workspace).toContain("scopeCrmUserWorkspace");
     expect(navigator).toContain("Account relationships");
-    expect(navigator).toContain("Listing inventory");
+    expect(navigator).toContain("Properties & listings");
     expect(detail).toContain("Client portfolio");
     expect(detail).toContain("Matched replacement properties");
     expect(detail).toContain("Detailed financials");
     expect(detail).toContain('TabsTrigger value="properties"');
     expect(detail).toContain('TabsTrigger value="matches"');
     expect(detail).toContain("ClientMatchGroup");
-    expect(navigator).toContain("Agent conversations");
-    expect(navigator).toContain("Listings & drafts");
+    expect(navigator).toContain('label="Conversations"');
+    expect(navigator).toContain('title="Property inventory"');
     expect(navigator).toContain("Launchpad progress");
-    expect(navigator).toContain("Communications");
+    expect(navigator).toContain('title="Inbox"');
     expect(detail).toContain("Draft workspaces");
     expect(detail).toContain("Launchpad timestamps");
     expect(detail).toContain("Full timestamped history");
@@ -60,15 +61,23 @@ describe("admin CRM architecture", () => {
     expect(detail).toContain("CrmAccountControls");
   });
 
-  it("keeps relationship context in Users and sends canonical records to their own sections", () => {
+  it("keeps relationship context in People and treats global records as optional operational views", () => {
+    expect(sidebar).toContain('{ label: "People", href: "/admin/users"');
     expect(sidebar).toContain('{ label: "Properties", href: "/admin/properties"');
     expect(sidebar).toContain('{ label: "Opportunities", href: "/admin/opportunities"');
-    expect(sidebar).toContain('{ label: "Representation Requests", href: "/admin/representation-requests"');
+    expect(sidebar).toContain('{ label: "Inbox", href: "/admin/communications"');
+    expect(sidebar).toContain('{ label: "Representation", href: "/admin/representation-requests"');
     expect(sidebar).not.toContain('{ label: "Relationships"');
-    expect(workspace).toContain('navigate(`/admin/properties/${next.id}`)');
-    expect(workspace).toContain('navigate(`/admin/opportunities/matches/${next.id}`)');
-    expect(workspace).toContain('navigate(`/admin/opportunities/exchanges/${next.id}`)');
+    expect(workspace).toContain("serializeWorkspaceSelection(next)");
+    expect(workspace).not.toContain('navigate(`/admin/properties/${next.id}`)');
+    expect(workspace).not.toContain('navigate(`/admin/opportunities/matches/${next.id}`)');
+    expect(workspace).not.toContain('navigate(`/admin/opportunities/exchanges/${next.id}`)');
+    expect(workspace).toContain('action: "Open in Properties"');
+    expect(workspace).toContain('action: "Open in Opportunities"');
+    expect(navigator).toContain("Matched opportunities");
+    expect(navigator).toContain('onSelect({ type: "match", id: match.id })');
     expect(canonicalRecord).toContain("WorkspaceRecordDetail");
+    expect(canonicalRecord).toContain("Return to workspace");
     expect(canonicalRecord).toContain('data-testid={`admin-canonical-${recordType}`}');
   });
 
