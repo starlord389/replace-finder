@@ -2927,6 +2927,12 @@ export type Database = {
           total_accounts: number
         }[]
       }
+      admin_get_command_center: {
+        Args: { p_data_scope: string }
+        Returns: {
+          snapshot: Json
+        }[]
+      }
       admin_get_communication_items: {
         Args: {
           p_limit?: number
@@ -2984,6 +2990,22 @@ export type Database = {
           title: string
           total_count: number
           unread_count: number
+        }[]
+      }
+      admin_list_crm_records: {
+        Args: {
+          p_data_scope: string
+          p_limit?: number
+          p_offset?: number
+          p_record_type: string
+          p_search?: string
+          p_status?: string
+        }
+        Returns: {
+          available_statuses: string[]
+          records: Json
+          summary: Json
+          total_count: number
         }[]
       }
       admin_list_user_resources: {
@@ -3089,6 +3111,16 @@ export type Database = {
           p_user_id: string
         }
         Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      admin_search_crm: {
+        Args: { p_data_scope: string; p_limit?: number; p_search: string }
+        Returns: {
+          href: string
+          id: string
+          result_type: string
+          subtitle: string
+          title: string
+        }[]
       }
       admin_system_health: { Args: never; Returns: Json }
       apply_match_workflow_stage: {

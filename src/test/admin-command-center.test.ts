@@ -60,13 +60,13 @@ describe("admin command center", () => {
     const source = read("src/features/admin/hooks/useAdminCommandCenter.ts");
     expect(source).toContain('export function useAdminCommandCenter(scope: "live" | "demo" = "live")');
     expect(source).toContain('queryKey: ["admin-command-center", scope]');
-    expect(source).toContain('.eq("is_demo", isDemo)');
+    expect(source).toContain('rpc("admin_get_command_center"');
+    expect(source).toContain("p_data_scope: scope");
     expect(source).not.toContain('supabase.rpc("admin_get_account_summary")');
-    expect(source).toContain("users: accountSummary.totalAccounts");
-    expect(source).toContain("users: accountSummary.newAccounts7d");
+    expect(source).toContain("users: Number(row.growth?.users ?? 0)");
   });
 
-  it("rejects capped or unverifiable table reads instead of showing partial totals", () => {
+  it("retains completeness guards for legacy builders while the live hook uses one bounded snapshot", () => {
     expect(() => assertAdminCommandCenterRowsComplete("profile", 10, 10)).not.toThrow();
     expect(() => assertAdminCommandCenterRowsComplete("profile", 1_000, 1_001))
       .toThrow("loaded 1000 of 1001 profile records");
@@ -74,10 +74,12 @@ describe("admin command center", () => {
       .toThrow("could not verify the profile row count");
 
     const source = read("src/features/admin/hooks/useAdminCommandCenter.ts");
-    expect(source).toContain('.select("*", { count: "exact" })');
-    expect(source).toContain(
-      "assertAdminCommandCenterRowsComplete(label, result.data?.length ?? 0, result.count)",
-    );
+    expect(source).toContain('rpc("admin_get_command_center"');
+    expect(source).not.toContain('.from("profiles").select("*")');
+    expect(source).not.toContain('.from("matches").select("*")');
+    const migration = read("supabase/migrations/20260821213000_admin_crm_scalability.sql");
+    expect(migration).toContain("LIMIT 100");
+    expect(migration).toContain("'attentionTruncated'");
   });
 
   it("keeps auth-only accounts discoverable and exposes command-center retry states", () => {
@@ -86,8 +88,15 @@ describe("admin command center", () => {
 
     expect(search).toContain("Search all Users &amp; Accounts");
     expect(search).toContain("including auth-only accounts");
-    expect(search).toContain("`/admin/users?q=${encodeURIComponent(query.trim())}`");
-    expect(search).toContain("Retry live search");
+    expect(search).toContain("/admin/users?q=${encodeURIComponent(query.trim())}");
+    expect(search).toContain("useAdminCrmSearch");
+    expect(search).toContain("Retry search");
+    const searchHook = read("src/features/admin-crm/data/useAdminCrmSearch.ts");
+    const scalability = read("supabase/migrations/20260821213000_admin_crm_scalability.sql");
+    for (const type of ["User", "Exchange", "Property", "Connection", "Demo", "Lead", "Ticket", "Event"]) {
+      expect(searchHook).toContain(`"${type}"`);
+      expect(scalability).toContain(`'${type}'`);
+    }
     expect(header).toContain("Live attention data is unavailable");
     expect(header).toContain("Admin attention data unavailable");
   });

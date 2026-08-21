@@ -24,12 +24,7 @@ export default function AdminHeader() {
       <div className="flex min-w-0 items-center gap-3">
         <SidebarTrigger className="h-8 w-8" />
         <AdminGlobalSearch
-          items={data?.searchItems ?? []}
-          isLoading={isLoading}
-          isError={isError}
-          errorMessage={errorMessage}
-          isRetrying={isFetching}
-          onRetry={() => { void refetch(); }}
+          scope="live"
         />
       </div>
 

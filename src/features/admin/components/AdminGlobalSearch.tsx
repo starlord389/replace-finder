@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeftRight,
@@ -29,14 +29,10 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import type { AdminSearchItem } from "@/features/admin/hooks/useAdminCommandCenter";
+import { useAdminCrmSearch } from "@/features/admin-crm/data/useAdminCrmSearch";
 
 interface AdminGlobalSearchProps {
-  items: AdminSearchItem[];
-  isLoading: boolean;
-  isError: boolean;
-  errorMessage?: string;
-  isRetrying: boolean;
-  onRetry: () => void;
+  scope: "live" | "demo";
 }
 
 const destinations = [
@@ -65,15 +61,16 @@ const typeIcons: Record<AdminSearchItem["type"], React.ElementType> = {
 };
 
 export default function AdminGlobalSearch({
-  items,
-  isLoading,
-  isError,
-  errorMessage,
-  isRetrying,
-  onRetry,
+  scope,
 }: AdminGlobalSearchProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+  const search = useAdminCrmSearch(scope, deferredQuery, open);
+  const results = search.data ?? [];
+  const isLoading = search.isLoading || search.isFetching;
+  const isError = search.isError;
+  const errorMessage = search.error instanceof Error ? search.error.message : undefined;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,23 +84,13 @@ export default function AdminGlobalSearch({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const results = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    if (term.length < 2) return [];
-    return items
-      .filter((item) =>
-        `${item.type} ${item.title} ${item.subtitle}`.toLowerCase().includes(term),
-      )
-      .slice(0, 30);
-  }, [items, query]);
-
   const go = (href: string) => {
     setOpen(false);
     setQuery("");
     navigate(href);
   };
 
-  const accountDirectoryHref = `/admin/users?q=${encodeURIComponent(query.trim())}`;
+  const accountDirectoryHref = `/admin/users?q=${encodeURIComponent(query.trim())}${scope === "demo" ? "&scope=demo" : ""}`;
   const unavailable = (
     <div className="mx-2 my-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-900" role="alert">
       <div className="flex items-start gap-2">
@@ -118,11 +105,11 @@ export default function AdminGlobalSearch({
             variant="outline"
             size="sm"
             className="mt-2 h-7 border-red-200 bg-white px-2 text-xs text-red-800 hover:bg-red-100"
-            onClick={onRetry}
-            disabled={isRetrying}
+            onClick={() => { void search.refetch(); }}
+            disabled={search.isFetching}
           >
-            {isRetrying ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1.5 h-3 w-3" />}
-            Retry live search
+            {search.isFetching ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1.5 h-3 w-3" />}
+            Retry search
           </Button>
         </div>
       </div>
@@ -175,7 +162,6 @@ export default function AdminGlobalSearch({
                   </CommandItem>
                 ))}
               </CommandGroup>
-              {isError && unavailable}
             </>
           ) : (
             <>
@@ -205,7 +191,7 @@ export default function AdminGlobalSearch({
                   No matching indexed records. Search the complete account directory above.
                 </div>
               ) : (
-                <CommandGroup heading={`${results.length} live result${results.length === 1 ? "" : "s"}`}>
+                <CommandGroup heading={`${results.length} ${scope} result${results.length === 1 ? "" : "s"}`}>
                   {results.map((item) => {
                     const Icon = typeIcons[item.type];
                     return (

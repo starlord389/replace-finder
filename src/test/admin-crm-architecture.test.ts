@@ -14,6 +14,7 @@ describe("admin CRM architecture", () => {
   const canonicalRecord = read("src/features/admin-crm/pages/AdminCanonicalRecord.tsx");
   const sidebar = read("src/features/admin-crm/layout/AdminCrmSidebar.tsx");
   const opportunities = read("src/pages/admin/AdminDeals.tsx");
+  const scalability = read("supabase/migrations/20260821213000_admin_crm_scalability.sql");
   const conversation = read("src/pages/admin/AdminConnectionDetail.tsx");
   const representations = read("src/pages/admin/AdminRepresentations.tsx");
 
@@ -86,7 +87,8 @@ describe("admin CRM architecture", () => {
   it("keeps opportunity context attached to conversations and representation work", () => {
     expect(opportunities).toContain("Latest message");
     expect(opportunities).toContain("Property opportunity");
-    expect(opportunities).toContain('from("messages")');
+    expect(opportunities).toContain("context.latest_message");
+    expect(scalability).toContain("FROM public.messages msg");
     expect(conversation).toContain("Agent conversation");
     expect(conversation).toContain("Client’s current property");
     expect(conversation).toContain("Matched replacement property");

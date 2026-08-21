@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useCallback, useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 import { Loader2, ChevronDown, ChevronUp, Save } from "lucide-react";
+import { useAdminCrmScope } from "@/features/admin-crm/layout/AdminCrmScope";
 
 const statusOptions = [
   { value: "open", label: "Open" },
@@ -41,6 +42,7 @@ type Ticket = {
 };
 
 export default function SupportTickets() {
+  const { scope, isDemo } = useAdminCrmScope();
   const [searchParams] = useSearchParams();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,19 +52,16 @@ export default function SupportTickets() {
   const [saving, setSaving] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    loadTickets();
-  }, []);
-
-  useEffect(() => {
     const requestedTicket = searchParams.get("ticket");
     if (requestedTicket) setExpandedId(requestedTicket);
   }, [searchParams]);
 
-  async function loadTickets() {
+  const loadTickets = useCallback(async () => {
     setLoading(true);
     const { data: ticketData, error } = await supabase
       .from("support_tickets")
       .select("*")
+      .eq("is_demo", isDemo)
       .order("created_at", { ascending: false });
 
     if (error || !ticketData) {
@@ -92,7 +91,11 @@ export default function SupportTickets() {
 
     setTickets(enriched);
     setLoading(false);
-  }
+  }, [isDemo]);
+
+  useEffect(() => {
+    void loadTickets();
+  }, [loadTickets]);
 
   async function updateStatus(ticketId: string, newStatus: string) {
     const previousStatus = tickets.find((ticket) => ticket.id === ticketId)?.status ?? "unknown";
@@ -100,7 +103,8 @@ export default function SupportTickets() {
     const { error } = await supabase
       .from("support_tickets")
       .update({ status: newStatus as Tables<"support_tickets">["status"] })
-      .eq("id", ticketId);
+      .eq("id", ticketId)
+      .eq("is_demo", isDemo);
     setSaving((p) => ({ ...p, [ticketId]: false }));
     if (error) {
       toast({ title: "Failed to update status.", variant: "destructive" });
@@ -123,7 +127,8 @@ export default function SupportTickets() {
     const { error } = await supabase
       .from("support_tickets")
       .update({ admin_notes: notes })
-      .eq("id", ticketId);
+      .eq("id", ticketId)
+      .eq("is_demo", isDemo);
     setSaving((p) => ({ ...p, [`notes-${ticketId}`]: false }));
     if (error) {
       toast({ title: "Failed to save notes.", variant: "destructive" });
@@ -156,7 +161,7 @@ export default function SupportTickets() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Support Tickets</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {tickets.length} total ticket{tickets.length !== 1 ? "s" : ""} ·{" "}
+            {tickets.length} {scope} ticket{tickets.length !== 1 ? "s" : ""} ·{" "}
             {tickets.filter((t) => t.status === "open").length} open
           </p>
         </div>

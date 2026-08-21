@@ -92,6 +92,72 @@ export interface AdminAccountSummary {
   newAccounts7d: number;
 }
 
+type AdminCommandCenterSnapshot = {
+  attentionItems: AdminAttentionItem[];
+  attentionTotal: number;
+  attentionTruncated: boolean;
+  pipeline: Record<string, number>;
+  upcomingDemos: Demo[];
+  recentActivity: TimelineEvent[];
+  eventRegistrations: EventRegistration[];
+  lastUpdatedAt: string;
+  overdueDeadlineCount: number;
+  kpis: {
+    activeExchanges: number;
+    activeMatches: number;
+    readyToAdvance: number;
+    openConnections: number;
+    properties: number;
+    activeRepresentations: number;
+    openContactRequests: number;
+    awaitingRepresentation: number;
+    openTickets: number;
+    newLeads: number;
+  };
+  growth: {
+    users: number;
+    exchanges: number;
+    demos: number;
+    events: number;
+  };
+};
+
+function parseCommandCenterSnapshot(value: unknown): AdminCommandCenterSnapshot {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("The Command Center returned an invalid response.");
+  }
+  const row = value as Partial<AdminCommandCenterSnapshot>;
+  return {
+    attentionItems: Array.isArray(row.attentionItems) ? row.attentionItems : [],
+    attentionTotal: Number(row.attentionTotal ?? 0),
+    attentionTruncated: Boolean(row.attentionTruncated),
+    pipeline: row.pipeline && typeof row.pipeline === "object" ? row.pipeline : {},
+    upcomingDemos: Array.isArray(row.upcomingDemos) ? row.upcomingDemos : [],
+    recentActivity: Array.isArray(row.recentActivity) ? row.recentActivity : [],
+    eventRegistrations: Array.isArray(row.eventRegistrations) ? row.eventRegistrations : [],
+    lastUpdatedAt: String(row.lastUpdatedAt ?? new Date().toISOString()),
+    overdueDeadlineCount: Number(row.overdueDeadlineCount ?? 0),
+    kpis: {
+      activeExchanges: Number(row.kpis?.activeExchanges ?? 0),
+      activeMatches: Number(row.kpis?.activeMatches ?? 0),
+      readyToAdvance: Number(row.kpis?.readyToAdvance ?? 0),
+      openConnections: Number(row.kpis?.openConnections ?? 0),
+      properties: Number(row.kpis?.properties ?? 0),
+      activeRepresentations: Number(row.kpis?.activeRepresentations ?? 0),
+      openContactRequests: Number(row.kpis?.openContactRequests ?? 0),
+      awaitingRepresentation: Number(row.kpis?.awaitingRepresentation ?? 0),
+      openTickets: Number(row.kpis?.openTickets ?? 0),
+      newLeads: Number(row.kpis?.newLeads ?? 0),
+    },
+    growth: {
+      users: Number(row.growth?.users ?? 0),
+      exchanges: Number(row.growth?.exchanges ?? 0),
+      demos: Number(row.growth?.demos ?? 0),
+      events: Number(row.growth?.events ?? 0),
+    },
+  };
+}
+
 export function mapAdminAccountSummary(row: AdminAccountSummaryRow): AdminAccountSummary {
   return {
     totalAccounts: Number(row.total_accounts ?? 0),
@@ -470,212 +536,17 @@ export function formatAdminRelativeTime(iso: string) {
 }
 
 export function useAdminCommandCenter(scope: "live" | "demo" = "live") {
-  const isDemo = scope === "demo";
   return useQuery({
     queryKey: ["admin-command-center", scope],
     staleTime: 30_000,
     refetchInterval: 60_000,
     queryFn: async () => {
-      const exchangeResult = await supabase
-        .from("exchanges")
-        .select("*", { count: "exact" })
-        .eq("is_demo", isDemo)
-        .order("created_at", { ascending: false });
-      if (exchangeResult.error) throw exchangeResult.error;
-      assertAdminCommandCenterRowsComplete(
-        `${scope} exchange`,
-        exchangeResult.data?.length ?? 0,
-        exchangeResult.count,
-      );
-
-      const exchanges = exchangeResult.data ?? [];
-      const scopedExchangeIds = exchanges.map((exchange) => exchange.id);
-      const scopeIds = scopedExchangeIds.length
-        ? scopedExchangeIds
-        : ["00000000-0000-0000-0000-000000000000"];
-
-      const [
-        propertiesResult,
-        matchesResult,
-        connectionsResult,
-        profilesResult,
-        rolesResult,
-        clientsResult,
-        ticketsResult,
-        demosResult,
-        contactsResult,
-        referralsResult,
-        eventsResult,
-        timelineResult,
-        representationsResult,
-        representationInvitesResult,
-        assignmentsResult,
-        contactRequestsResult,
-        connectionIntentsResult,
-      ] = await Promise.all([
-        supabase.from("pledged_properties").select("*", { count: "exact" }).eq("is_demo", isDemo).order("created_at", { ascending: false }),
-        supabase.from("matches").select("*", { count: "exact" }).order("created_at", { ascending: false }),
-        supabase.from("exchange_connections").select("*", { count: "exact" }).order("created_at", { ascending: false }),
-        supabase.from("profiles").select("*", { count: "exact" }).order("created_at", { ascending: false }),
-        supabase.from("user_roles").select("*", { count: "exact" }),
-        supabase.from("agent_clients").select("*", { count: "exact" }).eq("is_demo", isDemo).order("created_at", { ascending: false }),
-        supabase.from("support_tickets").select("*", { count: "exact" }).order("created_at", { ascending: false }),
-        supabase.from("demo_requests").select("*", { count: "exact" }).order("created_at", { ascending: false }),
-        supabase.from("contact_submissions").select("*", { count: "exact" }).order("created_at", { ascending: false }),
-        supabase.from("referrals").select("*", { count: "exact" }).order("created_at", { ascending: false }),
-        supabase.from("event_registrations").select("*", { count: "exact" }).order("created_at", { ascending: false }),
-        supabase.from("exchange_timeline").select("*").in("exchange_id", scopeIds).order("created_at", { ascending: false }).limit(30),
-        supabase.from("agent_representations").select("*", { count: "exact" }).eq("is_demo", isDemo).order("created_at", { ascending: false }),
-        supabase
-          .from("representation_invites")
-          .select("id, delivery_status, status, email, delivery_error_code, updated_at, representation_id", { count: "exact" })
-          .order("updated_at", { ascending: false }),
-        supabase.from("exchange_agent_assignments").select("*", { count: "exact" }).in("exchange_id", scopeIds).order("created_at", { ascending: false }),
-        supabase.from("agent_contact_requests").select("*", { count: "exact" }).in("exchange_id", scopeIds).order("created_at", { ascending: false }),
-        supabase.from("agent_connection_intents").select("*", { count: "exact" }).eq("is_demo", isDemo).order("created_at", { ascending: false }),
-      ]);
-
-      const countedResults: Array<[string, CountedAdminQueryResult]> = [
-        [`${scope} property`, propertiesResult],
-        ["match", matchesResult],
-        ["connection", connectionsResult],
-        ["profile", profilesResult],
-        ["role", rolesResult],
-        ["client", clientsResult],
-        ["support ticket", ticketsResult],
-        ["demo request", demosResult],
-        ["contact submission", contactsResult],
-        ["referral", referralsResult],
-        ["event registration", eventsResult],
-        [`${scope} representation`, representationsResult],
-        ["representation invitation", representationInvitesResult],
-        ["exchange assignment", assignmentsResult],
-        ["agent contact request", contactRequestsResult],
-        [`${scope} connection intent`, connectionIntentsResult],
-      ];
-      for (const [label, result] of countedResults) {
-        if (result.error) throw result.error;
-        assertAdminCommandCenterRowsComplete(label, result.data?.length ?? 0, result.count);
-      }
-      if (timelineResult.error) throw timelineResult.error;
-
-      const scopedProperties = propertiesResult.data ?? [];
-      const scopedClients = clientsResult.data ?? [];
-      const scopedRepresentations = representationsResult.data ?? [];
-      const scopedAssignments = assignmentsResult.data ?? [];
-      const scopedContactRequests = contactRequestsResult.data ?? [];
-      const scopedConnectionIntents = connectionIntentsResult.data ?? [];
-      const scopedPropertyIds = new Set(scopedProperties.map((property) => property.id));
-      const scopedExchangeIdSet = new Set(scopedExchangeIds);
-      const scopedRepresentationIds = new Set(scopedRepresentations.map((representation) => representation.id));
-      const scopedMatches = (matchesResult.data ?? []).filter(
-        (match) => scopedExchangeIdSet.has(match.buyer_exchange_id) && scopedPropertyIds.has(match.seller_property_id),
-      );
-      const scopedConnections = (connectionsResult.data ?? []).filter(
-        (connection) => scopedExchangeIdSet.has(connection.buyer_exchange_id) && (!connection.seller_exchange_id || scopedExchangeIdSet.has(connection.seller_exchange_id)),
-      );
-      const relatedProfileIds = new Set<string>();
-      exchanges.forEach((row) => relatedProfileIds.add(row.agent_id));
-      scopedProperties.forEach((row) => relatedProfileIds.add(row.agent_id));
-      scopedClients.forEach((row) => { relatedProfileIds.add(row.agent_id); if (row.client_user_id) relatedProfileIds.add(row.client_user_id); });
-      scopedRepresentations.forEach((row) => { relatedProfileIds.add(row.investor_id); if (row.agent_id) relatedProfileIds.add(row.agent_id); });
-      scopedAssignments.forEach((row) => relatedProfileIds.add(row.agent_id));
-      scopedConnections.forEach((row) => { relatedProfileIds.add(row.buyer_agent_id); relatedProfileIds.add(row.seller_agent_id); });
-      scopedConnectionIntents.forEach((row) => { relatedProfileIds.add(row.waiting_owner_id); if (row.initiating_agent_id) relatedProfileIds.add(row.initiating_agent_id); });
-      const profiles = (profilesResult.data ?? []).filter((profile) => isDemo
-        ? relatedProfileIds.has(profile.id) || Boolean(profile.email?.toLowerCase().endsWith("@replacefinder.test"))
-        : !profile.email?.toLowerCase().endsWith("@replacefinder.test"));
-      const profileIds = new Set(profiles.map((profile) => profile.id));
-      const scopedRoles = (rolesResult.data ?? []).filter((role) => profileIds.has(role.user_id));
-      const rolesByUser = scopedRoles.reduce<Map<string, Set<string>>>((map, role) => {
-        const roles = map.get(role.user_id) ?? new Set<string>();
-        roles.add(role.role);
-        map.set(role.user_id, roles);
-        return map;
-      }, new Map());
-      const accountSummary: AdminAccountSummary = {
-        totalAccounts: profiles.length,
-        agentAccounts: profiles.filter((profile) => rolesByUser.get(profile.id)?.has("agent")).length,
-        investorAccounts: profiles.filter((profile) => rolesByUser.get(profile.id)?.has("investor")).length,
-        newAccounts7d: profiles.filter((profile) => new Date(profile.created_at).getTime() >= Date.now() - 7 * 24 * 60 * 60 * 1000).length,
-      };
-      const source: CommandCenterSource = {
-        profiles,
-        roles: scopedRoles,
-        exchanges,
-        properties: scopedProperties,
-        matches: scopedMatches,
-        connections: scopedConnections,
-        clients: scopedClients,
-        tickets: isDemo ? [] : ticketsResult.data ?? [],
-        demos: isDemo ? [] : demosResult.data ?? [],
-        contacts: isDemo ? [] : contactsResult.data ?? [],
-        referrals: isDemo ? [] : referralsResult.data ?? [],
-        eventRegistrations: isDemo ? [] : eventsResult.data ?? [],
-        timeline: timelineResult.data ?? [],
-        representations: scopedRepresentations,
-        representationInvites: (representationInvitesResult.data ?? []).filter((invite) => scopedRepresentationIds.has(invite.representation_id)),
-        assignments: scopedAssignments,
-        contactRequests: scopedContactRequests,
-        connectionIntents: scopedConnectionIntents,
-      };
-
-      const now = Date.now();
-      const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
-      const activeExchanges = source.exchanges.filter((exchange) => ACTIVE_EXCHANGE_STATUSES.has(exchange.status));
-      const attentionItems = buildAdminAttentionItems(source);
-      const pipeline = source.exchanges.reduce<Record<string, number>>((counts, exchange) => {
-        counts[exchange.status] = (counts[exchange.status] ?? 0) + 1;
-        return counts;
-      }, {});
-      const upcomingDemos = source.demos
-        .filter((demo) =>
-          demo.scheduled_at &&
-          !["unqualified", "closed"].includes(demo.status) &&
-          new Date(demo.scheduled_at).getTime() >= now
-        )
-        .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
-        .slice(0, 5);
-
-      return {
-        attentionItems,
-        searchItems: buildAdminSearchItems(source),
-        pipeline,
-        upcomingDemos,
-        recentActivity: source.timeline.slice(0, 10),
-        eventRegistrations: source.eventRegistrations,
-        lastUpdatedAt: new Date().toISOString(),
-        overdueDeadlineCount: attentionItems.filter(
-          (item) => item.category === "deadline" && item.title.includes("overdue"),
-        ).length,
-        kpis: {
-          activeExchanges: activeExchanges.length,
-          activeMatches: source.matches.filter((match) => match.status === "active").length,
-          openConnections: source.connections.filter((connection) =>
-            ["pending", "accepted", "in_progress"].includes(connection.status)
-          ).length,
-          properties: source.properties.length,
-          users: accountSummary.totalAccounts,
-          agents: accountSummary.agentAccounts,
-          investors: accountSummary.investorAccounts,
-          agentManagedExchanges: activeExchanges.filter((exchange) => !isInvestorOwned(exchange.owner_type)).length,
-          investorManagedExchanges: activeExchanges.filter((exchange) => isInvestorOwned(exchange.owner_type)).length,
-          newLeads:
-            source.contacts.filter((contact) => contact.status === "new").length +
-            source.referrals.filter((referral) => referral.status === "pending").length +
-            source.demos.filter((demo) => demo.status === "new").length,
-          openTickets: source.tickets.filter((ticket) => ["open", "in_progress"].includes(ticket.status)).length,
-          activeRepresentations: source.representations.filter((representation) => representation.status === "active").length,
-          openContactRequests: source.contactRequests.filter((request) => ["requested", "awaiting_counterparty_agent"].includes(request.status)).length,
-          awaitingRepresentation: source.connectionIntents.filter((intent) => intent.status === "awaiting_representation").length,
-        },
-        growth: {
-          users: accountSummary.newAccounts7d,
-          exchanges: source.exchanges.filter((exchange) => new Date(exchange.created_at).getTime() >= weekAgo).length,
-          demos: source.demos.filter((demo) => new Date(demo.created_at).getTime() >= weekAgo).length,
-          events: source.eventRegistrations.filter((registration) => new Date(registration.created_at).getTime() >= weekAgo).length,
-        },
-      };
+      const { data, error } = await supabase.rpc("admin_get_command_center", {
+        p_data_scope: scope,
+      });
+      if (error) throw error;
+      if (!data?.[0]) throw new Error("The Command Center returned no response.");
+      return parseCommandCenterSnapshot(data[0].snapshot);
     },
   });
 }

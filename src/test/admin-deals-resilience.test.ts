@@ -2,28 +2,31 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const source = readFileSync(resolve(process.cwd(), "src/pages/admin/AdminDeals.tsx"), "utf8");
+const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
-describe("admin canonical record lists load resilience", () => {
-  it("tracks every dataset and prevents stale requests from replacing a newer snapshot", () => {
-    for (const dataset of ["exchanges", "properties", "matches", "connections", "profiles", "clients"]) {
-      expect(source).toContain(`${dataset}:`);
-    }
-    expect(source).toContain("const requestId = ++requestSequence.current");
-    expect(source.match(/requestId !== requestSequence\.current/g)?.length).toBeGreaterThanOrEqual(2);
-    expect(source).toContain("setExchanges([])");
-    expect(source).toContain("setProperties([])");
-    expect(source).toContain("setMatches([])");
-    expect(source).toContain("setConnections([])");
+describe("admin canonical record directory resilience", () => {
+  it("pages and filters canonical records on the server", () => {
+    const page = read("src/pages/admin/AdminDeals.tsx");
+    const hook = read("src/features/admin-crm/data/useAdminCrmDirectory.ts");
+
+    expect(page).toContain("useAdminCrmDirectory<DirectoryRecord, DirectoryContext>");
+    expect(page).toContain("const PAGE_SIZE = 25");
+    expect(page).toContain("Showing");
+    expect(page).toContain("Page {page} of {totalPages}");
+    expect(hook).toContain('rpc("admin_list_crm_records"');
+    expect(hook).toContain("p_limit: pageSize");
+    expect(hook).toContain("p_offset: (page - 1) * pageSize");
+    expect(page).not.toContain('.from("pledged_properties").select("*")');
+    expect(page).not.toContain('.from("matches").select("*")');
   });
 
-  it("distinguishes partial data from total failure and never labels a failed dataset as zero", () => {
-    expect(source).toContain('return "Unavailable"');
-    expect(source).toContain('status === "partial" ? "Partial · "');
-    expect(source).toContain("adminDealsHasTotalFailure");
-    expect(source).toContain("Admin records could not be loaded");
-    expect(source).toContain("Admin records are showing partial data");
-    expect(source).toContain("no empty totals are being presented as authoritative");
-    expect(source).toContain("Retry loading");
+  it("shows an explicit retry state instead of presenting a failed query as zero records", () => {
+    const page = read("src/pages/admin/AdminDeals.tsx");
+
+    expect(page).toContain("directory.isError");
+    expect(page).toContain("This directory is unavailable");
+    expect(page).toContain("The server-backed directory could not be loaded.");
+    expect(page).toContain("directory.refetch()");
+    expect(page).toContain("Retry");
   });
 });

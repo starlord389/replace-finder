@@ -32,7 +32,9 @@ describe("admin CRM operating UX", () => {
     expect(deals).toContain("MatchOpportunityCard");
     expect(deals).toContain('label="ROE improvement"');
     expect(deals).toContain('aria-label="Filter by status"');
-    expect(deals).toContain('from("property_financials")');
-    expect(deals).toContain('from("property_images")');
+    expect(deals).toContain("useAdminCrmDirectory<DirectoryRecord, DirectoryContext>");
+    const migration = read("supabase/migrations/20260821213000_admin_crm_scalability.sql");
+    expect(migration).toContain("LEFT JOIN public.property_financials");
+    expect(migration).toContain("FROM public.property_images");
   });
 });

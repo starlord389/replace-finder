@@ -19,6 +19,9 @@ describe("admin CRM live/demo boundary", () => {
   const exchangeDetail = read("src/pages/admin/AdminExchangeDetail.tsx");
   const connectionDetail = read("src/pages/admin/AdminConnectionDetail.tsx");
   const commandCenter = read("src/features/admin/hooks/useAdminCommandCenter.ts");
+  const directory = read("src/features/admin-crm/data/useAdminCrmDirectory.ts");
+  const routeScope = read("src/features/admin-crm/layout/adminRouteScope.ts");
+  const support = read("src/pages/admin/SupportTickets.tsx");
   const user360 = read("src/features/admin/hooks/useAdminUser360.ts");
   const migration = read("supabase/migrations/20260821180000_admin_live_demo_boundary.sql");
   const matchingCore = read("supabase/functions/_shared/matching-core.ts");
@@ -33,7 +36,9 @@ describe("admin CRM live/demo boundary", () => {
     expect(shell).toContain("Demo workspace · Sample records are isolated from live platform activity.");
     expect(header).toContain('onClick={() => setScope("live")}');
     expect(header).toContain('onClick={() => setScope("demo")}');
-    expect(header).toContain("useAdminCommandCenter(scope)");
+    expect(header).toContain("useAdminCommandCenter(effectiveScope)");
+    expect(header).toContain('routeMode === "platform"');
+    expect(routeScope).toContain('return "live-only"');
   });
 
   it("removes mixed mode from every primary CRM surface", () => {
@@ -51,8 +56,13 @@ describe("admin CRM live/demo boundary", () => {
     expect(communications).not.toContain('value="all"');
     expect(communicationHook).toContain('dataScope: "live" | "demo"');
     expect(communicationHook).toContain("p_data_scope: filters.dataScope");
-    expect(opportunities).toContain('.eq("is_demo", isDemo)');
+    expect(opportunities).toContain("dataScope: scope");
+    expect(directory).toContain("p_data_scope: dataScope");
     expect(commandCenter).toContain('queryKey: ["admin-command-center", scope]');
+    expect(commandCenter).toContain("p_data_scope: scope");
+    expect(routeScope).toContain('return "platform"');
+    expect(routeScope).toContain('return "live-only"');
+    expect(support).toContain('.eq("is_demo", isDemo)');
   });
 
   it("blocks deep links from opening records in the wrong workspace", () => {

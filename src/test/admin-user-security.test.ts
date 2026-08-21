@@ -20,11 +20,12 @@ describe("admin account-control security contract", () => {
   it("never downloads representation invitation bearer tokens into admin pages", () => {
     const commandCenter = read("src/features/admin/hooks/useAdminCommandCenter.ts");
     const user360 = read("src/features/admin/hooks/useAdminUser360.ts");
-    expect(commandCenter).toContain(
-      'select("id, delivery_status, status, email, delivery_error_code, updated_at, representation_id", { count: "exact" })',
-    );
+    const scalability = read("supabase/migrations/20260821213000_admin_crm_scalability.sql");
+    expect(commandCenter).toContain('rpc("admin_get_command_center"');
+    expect(commandCenter).not.toContain('from("representation_invites")');
     expect(commandCenter).not.toContain('from("representation_invites").select("*")');
     expect(user360).not.toContain('from("representation_invites").select("*")');
+    expect(scalability).not.toMatch(/representation_invites[\s\S]{0,300}\btoken\b/i);
   });
 
   it("protects the current and final administrator atomically", () => {

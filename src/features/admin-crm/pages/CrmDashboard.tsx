@@ -28,7 +28,7 @@ export default function CrmDashboard() {
       />
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-6">
-        <MetricTile label="Needs attention" value={data?.attentionItems.length ?? "—"} icon={AlertCircle} detail="Administrator action queue" tone={(data?.attentionItems.length ?? 0) ? "amber" : "slate"} />
+        <MetricTile label="Needs attention" value={data?.attentionTotal ?? "—"} icon={AlertCircle} detail={data?.attentionTruncated ? "Showing the 100 highest-priority items" : "Administrator action queue"} tone={(data?.attentionTotal ?? 0) ? "amber" : "slate"} />
         <MetricTile label={isDemo ? "Demo people" : "Live people"} value={accountSummary?.totalAccounts ?? "—"} icon={Users} detail={`${accountSummary?.agentAccounts ?? 0} agents · ${accountSummary?.investorAccounts ?? 0} owners`} tone="blue" />
         <MetricTile label="Properties" value={data?.kpis.properties ?? "—"} icon={Home} detail={`${scope} inventory records`} tone="green" />
         <MetricTile label="Active exchanges" value={data?.kpis.activeExchanges ?? "—"} icon={RefreshCw} tone="blue" />
