@@ -495,7 +495,7 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
         {/* Properties */}
         <TabsContent value="properties" className="mt-4">
           <TableCard empty={fProperties.length === 0} emptyLabel="No properties found." status={datasetStatuses.properties} error={datasetErrors.properties} onRetry={loadDeals}>
-            <div className="grid gap-px bg-slate-200 xl:grid-cols-2">
+            <div className="divide-y divide-slate-100">
               {fProperties.map((property) => {
                 const exchange = exchangeById.get(property.exchange_id ?? "");
                 return <PropertyDirectoryCard key={property.id} property={property} financial={financialByProperty.get(property.id)} image={firstImageByProperty.get(property.id)} matchCount={matchCountByProperty.get(property.id) ?? 0} relationship={currentPropertyIds.has(property.id) ? "Current property" : "Available listing"} ownerType={exchangeOwnerTypeLabel(exchange?.owner_type)} ownerName={agent(property.agent_id)} managedFor={exchange ? exchangeManagedForLabel(exchange.owner_type, exchange.client_id ? clientName.get(exchange.client_id) : null) : "Standalone listing"} onOpen={() => navigate(`/admin/properties/${property.id}`)} />;
@@ -588,24 +588,35 @@ function PropertyDirectoryCard({ property, financial, image, matchCount, relatio
   onOpen: () => void;
 }) {
   return (
-    <button type="button" onClick={onOpen} className="group flex min-w-0 flex-col bg-white text-left transition hover:bg-slate-50 sm:flex-row">
-      <div className="relative h-40 shrink-0 overflow-hidden bg-slate-100 sm:h-auto sm:w-44">
+    <button type="button" onClick={onOpen} className="group flex w-full min-w-0 flex-col bg-white text-left transition hover:bg-slate-50 md:flex-row md:items-stretch">
+      <div className="relative h-44 shrink-0 overflow-hidden bg-slate-100 md:h-auto md:min-h-36 md:w-44 xl:w-52">
         {image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]" /> : <PropertyPhotoPlaceholder className="h-full min-h-40 w-full" compact />}
         <Badge variant="outline" className="absolute left-3 top-3 border-white/70 bg-white/90 text-[10px] text-slate-700 shadow-sm">{relationship}</Badge>
       </div>
-      <div className="min-w-0 flex-1 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">{resolveListingName(property, true)}</p><p className="mt-1 truncate text-xs text-slate-500">{[property.city, property.state].filter(Boolean).join(", ") || "Location not provided"} · {property.asset_type ? pretty(property.asset_type) : "Asset type not provided"}</p></div>
-          <StatusPill value={property.status} />
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-3 rounded-lg bg-slate-50 p-3">
-          <CompactFact label="Value" value={money(financial?.asking_price ?? financial?.appraised_value ?? null)} />
-          <CompactFact label="NOI" value={money(financial?.noi ?? null)} />
-          <CompactFact label="Cap rate" value={formatPercent(financial?.cap_rate)} />
-        </div>
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-slate-100 pt-3">
-          <div><p className="text-xs font-medium text-slate-800">{ownerName}</p><p className="mt-0.5 text-[10px] text-slate-500">{ownerType} · {managedFor}</p></div>
-          <div className="flex items-center gap-3"><span className="text-xs font-medium text-slate-600">{matchCount} {matchCount === 1 ? "match" : "matches"}</span><ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" /></div>
+      <div className="min-w-0 flex-1 p-4 lg:p-5">
+        <div className="grid h-full min-w-0 gap-5 lg:grid-cols-[minmax(220px,1fr)_minmax(300px,.95fr)_minmax(210px,.75fr)_auto] lg:items-center xl:gap-7">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">{resolveListingName(property, true)}</p>
+              <StatusPill value={property.status} />
+            </div>
+            <p className="mt-1.5 truncate text-xs text-slate-500">{[property.city, property.state].filter(Boolean).join(", ") || "Location not provided"}</p>
+            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.08em] text-slate-400">{property.asset_type ? pretty(property.asset_type) : "Asset type not provided"}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 rounded-lg bg-slate-50 p-3.5">
+            <CompactFact label="Value" value={money(financial?.asking_price ?? financial?.appraised_value ?? null)} />
+            <CompactFact label="NOI" value={money(financial?.noi ?? null)} />
+            <CompactFact label="Cap rate" value={formatPercent(financial?.cap_rate)} />
+          </div>
+          <div className="min-w-0 border-t border-slate-100 pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-slate-400">Owner and client</p>
+            <p className="mt-1.5 truncate text-xs font-semibold text-slate-800">{ownerName}</p>
+            <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-slate-500">{ownerType} · {managedFor}</p>
+          </div>
+          <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-4 lg:min-w-24 lg:justify-end lg:border-t-0 lg:pt-0">
+            <div className="lg:text-right"><p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-slate-400">Opportunities</p><p className="mt-1.5 text-xs font-semibold text-slate-700">{matchCount} {matchCount === 1 ? "match" : "matches"}</p></div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" />
+          </div>
         </div>
       </div>
     </button>

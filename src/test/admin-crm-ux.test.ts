@@ -27,6 +27,8 @@ describe("admin CRM operating UX", () => {
     expect(deals).toContain('label="Missing photos"');
     expect(deals).toContain('label="Ready to advance"');
     expect(deals).toContain("PropertyDirectoryCard");
+    expect(deals).toContain('className="divide-y divide-slate-100"');
+    expect(deals).not.toContain('className="grid gap-px bg-slate-200 xl:grid-cols-2"');
     expect(deals).toContain("MatchOpportunityCard");
     expect(deals).toContain('label="ROE improvement"');
     expect(deals).toContain('aria-label="Filter by status"');
