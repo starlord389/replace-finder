@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 const migration = read("supabase/migrations/20260821120000_admin_communications_center.sql");
+const repairMigration = read("supabase/migrations/20260821160000_admin_communications_type_fix.sql");
 const app = read("src/App.tsx");
 const sidebar = read("src/features/admin-crm/layout/AdminCrmSidebar.tsx");
 const workspaceGraph = read("src/features/admin-crm/workspace/workspaceGraph.ts");
@@ -61,5 +62,14 @@ describe("admin communications center", () => {
     expect(hook).toContain("The communications migration has not been applied yet");
     expect(hook).toContain('source: "legacy"');
     expect(center).toContain("Audit logging activates after deployment");
+  });
+
+  it("repairs the deployed recipient join without rewriting migration history", () => {
+    expect(repairMigration).toContain("rp.id::text = am.recipient_id");
+    expect(repairMigration).toContain("rp.id = am.recipient_id");
+    expect(repairMigration).toContain("pg_get_functiondef");
+    expect(repairMigration).toContain("to_regprocedure");
+    expect(repairMigration).toContain("SET search_path = public");
+    expect(repairMigration).not.toContain("DROP FUNCTION");
   });
 });
