@@ -296,7 +296,7 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     return map;
   }, [propertyImages]);
   const currentPropertyIds = useMemo(
-    () => new Set(currentPropertyByExchange.values().map((property) => property.id)),
+    () => new Set([...currentPropertyByExchange.values()].map((property) => property.id)),
     [currentPropertyByExchange],
   );
   const matchCountByProperty = useMemo(() => {
