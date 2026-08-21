@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { CrmError, CrmLoading } from "../components/CrmPrimitives";
 import { scopeCrmUserWorkspace, useCrmUserWorkspace } from "../data/useCrmUserWorkspace";
+import { useAdminCrmScope } from "../layout/AdminCrmScope";
 import WorkspaceRecordDetail from "../workspace/WorkspaceRecordDetail";
 import {
   buildAdminWorkspaceGraph,
@@ -15,20 +16,21 @@ import {
 
 type CanonicalRecordType = "property" | "match";
 
-async function locateRecordOwner(recordType: CanonicalRecordType, recordId: string) {
+async function locateRecordOwner(recordType: CanonicalRecordType, recordId: string, isDemo: boolean) {
   if (recordType === "property") {
     const { data: property, error } = await supabase
       .from("pledged_properties")
-      .select("id, agent_id, exchange_id")
+      .select("id, agent_id, exchange_id, is_demo")
       .eq("id", recordId)
       .maybeSingle();
     if (error) throw error;
     if (!property) throw new Error("Property record not found.");
+    if (property.is_demo !== isDemo) throw new Error(`This property belongs to the ${property.is_demo ? "Demo" : "Live"} workspace.`);
     if (property.agent_id) return property.agent_id;
     if (property.exchange_id) {
       const { data: exchange, error: exchangeError } = await supabase
         .from("exchanges")
-        .select("agent_id")
+        .select("agent_id, is_demo")
         .eq("id", property.exchange_id)
         .maybeSingle();
       if (exchangeError) throw exchangeError;
@@ -46,27 +48,29 @@ async function locateRecordOwner(recordType: CanonicalRecordType, recordId: stri
   if (!match) throw new Error("Opportunity record not found.");
   const { data: exchange, error: exchangeError } = await supabase
     .from("exchanges")
-    .select("agent_id")
+    .select("agent_id, is_demo")
     .eq("id", match.buyer_exchange_id)
     .maybeSingle();
   if (exchangeError) throw exchangeError;
+  if (exchange && exchange.is_demo !== isDemo) throw new Error(`This opportunity belongs to the ${exchange.is_demo ? "Demo" : "Live"} workspace.`);
   if (!exchange?.agent_id) throw new Error("This opportunity is not connected to an account workspace.");
   return exchange.agent_id;
 }
 
 export default function AdminCanonicalRecord({ recordType }: { recordType: CanonicalRecordType }) {
+  const { scope, isDemo } = useAdminCrmScope();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const locator = useQuery({
-    queryKey: ["admin-canonical-record-owner", recordType, id],
-    queryFn: () => locateRecordOwner(recordType, id!),
+    queryKey: ["admin-canonical-record-owner", scope, recordType, id],
+    queryFn: () => locateRecordOwner(recordType, id!, isDemo),
     enabled: Boolean(id),
     retry: false,
   });
   const workspace = useCrmUserWorkspace(locator.data);
   const view = useMemo(
-    () => workspace.data ? scopeCrmUserWorkspace(workspace.data, "all") : null,
-    [workspace.data],
+    () => workspace.data ? scopeCrmUserWorkspace(workspace.data, scope) : null,
+    [workspace.data, scope],
   );
   const graph = useMemo(
     () => workspace.data && view ? buildAdminWorkspaceGraph(workspace.data, view) : null,
@@ -122,7 +126,7 @@ export default function AdminCanonicalRecord({ recordType }: { recordType: Canon
         </div>
       </div>
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/40 shadow-sm">
-        <WorkspaceRecordDetail data={workspace.data} view={view} graph={graph} selection={selection} onSelect={openRecord} onRefetch={workspace.refetch} scope="all" />
+        <WorkspaceRecordDetail data={workspace.data} view={view} graph={graph} selection={selection} onSelect={openRecord} onRefetch={workspace.refetch} scope={scope} />
       </div>
     </div>
   );

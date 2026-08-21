@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ import {
   isInvestorOwned,
 } from "@/features/admin/lib/accountTypes";
 import { getListingLocationLabel, resolveListingName } from "@/lib/listingDisplay";
+import { useAdminCrmScope } from "@/features/admin-crm/layout/AdminCrmScope";
 
 interface DiagRow {
   direction: "buyer" | "seller";
@@ -131,6 +132,7 @@ function eligibilityReasons(value: unknown) {
 }
 
 export default function AdminExchangeDetail() {
+  const { scope, isDemo } = useAdminCrmScope();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -160,12 +162,7 @@ export default function AdminExchangeDetail() {
   const [matchResult, setMatchResult] = useState<DiagResult | null>(null);
   const loadRequestRef = useRef(0);
 
-  useEffect(() => {
-    if (id) load(id);
-    return () => { loadRequestRef.current += 1; };
-  }, [id]);
-
-  async function load(exchangeId: string) {
+  const load = useCallback(async (exchangeId: string) => {
     const requestId = ++loadRequestRef.current;
     setLoading(true);
     setLoadError(null);
@@ -181,6 +178,11 @@ export default function AdminExchangeDetail() {
     }
     if (!ex) {
       setLoadError("This exchange does not exist or is no longer available.");
+      setLoading(false);
+      return;
+    }
+    if (ex.is_demo !== isDemo) {
+      setLoadError(`This exchange belongs to the ${ex.is_demo ? "Demo" : "Live"} workspace. Switch workspace mode to open it.`);
       setLoading(false);
       return;
     }
@@ -337,7 +339,12 @@ export default function AdminExchangeDetail() {
     setProfilesById(byId(profileRows));
     setDataWarnings([...new Set(warnings.map((item) => item.message))]);
     setLoading(false);
-  }
+  }, [isDemo]);
+
+  useEffect(() => {
+    if (id) void load(id);
+    return () => { loadRequestRef.current += 1; };
+  }, [id, load, scope]);
 
   async function logEvent(description: string) {
     if (!exchange) return;

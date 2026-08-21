@@ -27,6 +27,7 @@ export type AdminUserProperty = Tables<"pledged_properties"> & {
 
 export type AdminUserMatch = Tables<"matches"> & {
   relationships: AdminUserRelationship[];
+  is_demo: boolean;
 };
 
 export type AdminRepresentationInvite = Omit<Tables<"representation_invites">, "token">;
@@ -558,14 +559,20 @@ export async function loadAdminUser360(userId: string): Promise<AdminUser360> {
   const matchRows = collect(matchesResult, "Matches", warnings);
   const matchMap = new Map<string, AdminUserMatch>();
   for (const match of matchRows) {
-    if (exchangeMap.has(match.buyer_exchange_id)) addRelationship(matchMap, match, "buyer_side");
-    if (propertyMap.has(match.seller_property_id)) addRelationship(matchMap, match, "listing_side");
+    const scopedMatch = {
+      ...match,
+      is_demo: exchangeMap.get(match.buyer_exchange_id)?.is_demo
+        ?? propertyMap.get(match.seller_property_id)?.is_demo
+        ?? false,
+    };
+    if (exchangeMap.has(match.buyer_exchange_id)) addRelationship(matchMap, scopedMatch, "buyer_side");
+    if (propertyMap.has(match.seller_property_id)) addRelationship(matchMap, scopedMatch, "listing_side");
     if (match.buyer_agent_id === userId || match.seller_agent_id === userId) {
-      addRelationship(matchMap, match, "historical_participant");
+      addRelationship(matchMap, scopedMatch, "historical_participant");
     }
   }
-  const matches = [...matchMap.values()].sort((a, b) => b.created_at.localeCompare(a.created_at));
-  const matchIds = matches.map((match) => match.id);
+  let matches = [...matchMap.values()].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  let matchIds = matches.map((match) => match.id);
 
   const contextPropertyIds = [...new Set([
     ...matches.flatMap((match) => [match.seller_property_id, match.relinquished_property_id]),
@@ -583,6 +590,21 @@ export async function loadAdminUser360(userId: string): Promise<AdminUser360> {
     if (!propertyMap.has(property.id)) {
       propertyMap.set(property.id, { ...property, relationships: [], contextualOnly: true });
     }
+  }
+  const invalidMatchIds = new Set<string>();
+  for (const match of matches) {
+    const buyerDemo = exchangeMap.get(match.buyer_exchange_id)?.is_demo;
+    const sellerDemo = propertyMap.get(match.seller_property_id)?.is_demo;
+    if (buyerDemo != null && sellerDemo != null && buyerDemo !== sellerDemo) {
+      warnings.push(`Match ${match.id} links Live and Demo records and was hidden from scoped views.`);
+      invalidMatchIds.add(match.id);
+      continue;
+    }
+    match.is_demo = buyerDemo ?? sellerDemo ?? false;
+  }
+  if (invalidMatchIds.size) {
+    matches = matches.filter((match) => !invalidMatchIds.has(match.id));
+    matchIds = matches.map((match) => match.id);
   }
   const allProperties = [...propertyMap.values()];
   const allPropertyIds = allProperties.map((property) => property.id);
@@ -789,6 +811,8 @@ export type AdminUserScopedData = {
   listingInquiries: AdminUser360["listingInquiries"];
   clientInvites: AdminUser360["clientInvites"];
   identificationList: AdminUser360["identificationList"];
+  notifications: AdminUser360["notifications"];
+  supportTickets: AdminUser360["supportTickets"];
   timeline: AdminUser360["timeline"];
   workflowEvents: AdminUser360["workflowEvents"];
 };
@@ -820,6 +844,8 @@ export function scopeAdminUser360(data: AdminUser360, scope: AdminUserScope): Ad
       listingInquiries: data.listingInquiries,
       clientInvites: data.clientInvites,
       identificationList: data.identificationList,
+      notifications: data.notifications,
+      supportTickets: data.supportTickets,
       timeline: data.timeline,
       workflowEvents: data.workflowEvents,
     };
@@ -832,30 +858,24 @@ export function scopeAdminUser360(data: AdminUser360, scope: AdminUserScope): Ad
   const exchangeIds = new Set(exchanges.map((row) => row.id));
   const propertyIds = new Set(properties.map((row) => row.id));
   const representationIds = new Set(representations.map((row) => row.id));
-  const matches = data.matches.filter((row) =>
-    exchangeIds.has(row.buyer_exchange_id) || propertyIds.has(row.seller_property_id),
-  );
+  const matches = data.matches.filter((row) => recordMatchesScope(row, scope));
   const matchIds = new Set(matches.map((row) => row.id));
   const assignments = data.assignments.filter((row) =>
-    exchangeIds.has(row.exchange_id) || representationIds.has(row.representation_id),
+    exchangeIds.has(row.exchange_id) && representationIds.has(row.representation_id),
   );
   const contactRequests = data.contactRequests.filter((row) =>
-    exchangeIds.has(row.exchange_id) || matchIds.has(row.match_id) || propertyIds.has(row.property_id),
+    exchangeIds.has(row.exchange_id) && matchIds.has(row.match_id),
   );
   const recommendations = data.recommendations.filter((row) =>
-    exchangeIds.has(row.exchange_id) || matchIds.has(row.match_id),
+    exchangeIds.has(row.exchange_id) && matchIds.has(row.match_id),
   );
   const connectionIntents = data.connectionIntents.filter((row) => recordMatchesScope(row, scope));
-  const connections = data.connections.filter((row) =>
-    matchIds.has(row.match_id) ||
-    exchangeIds.has(row.buyer_exchange_id) ||
-    Boolean(row.seller_exchange_id && exchangeIds.has(row.seller_exchange_id)),
-  );
+  const connections = data.connections.filter((row) => matchIds.has(row.match_id));
   const connectionIds = new Set(connections.map((row) => row.id));
   const collaborationThreads = data.collaborationThreads.filter((row) =>
+    representationIds.has(row.representation_id) ||
     Boolean(row.exchange_id && exchangeIds.has(row.exchange_id)) ||
-    Boolean(row.match_id && matchIds.has(row.match_id)) ||
-    Boolean(row.representation_id && representationIds.has(row.representation_id)),
+    Boolean(row.match_id && matchIds.has(row.match_id)),
   );
   const threadIds = new Set(collaborationThreads.map((row) => row.id));
   const visibleClientIds = new Set(clients.map((row) => row.id));
@@ -879,6 +899,14 @@ export function scopeAdminUser360(data: AdminUser360, scope: AdminUserScope): Ad
     listingInquiries: data.listingInquiries.filter((row) => recordMatchesScope(row, scope)),
     clientInvites: data.clientInvites.filter((row) => visibleClientIds.has(row.client_id)),
     identificationList: data.identificationList.filter((row) => exchangeIds.has(row.exchange_id)),
+    notifications: data.notifications.filter((row) => {
+      const legacyDemo = Boolean(
+        row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+        && (row.metadata as Record<string, unknown>).demo === true,
+      );
+      return recordMatchesScope({ is_demo: row.is_demo === true || legacyDemo }, scope);
+    }),
+    supportTickets: data.supportTickets.filter((row) => recordMatchesScope(row, scope)),
     timeline: data.timeline.filter((row) => exchangeIds.has(row.exchange_id)),
     workflowEvents: data.workflowEvents.filter((row) => matchIds.has(row.match_id)),
   };

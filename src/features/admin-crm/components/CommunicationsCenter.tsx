@@ -36,7 +36,7 @@ type Props = {
   userId?: string;
   accountName?: string;
   embedded?: boolean;
-  dataScope?: "all" | "live" | "demo";
+  dataScope: "live" | "demo";
 };
 
 const PAGE_SIZE = 30;
@@ -69,14 +69,12 @@ const statusOptions = [
 
 export default function CommunicationsCenter({ userId, accountName, embedded = false, dataScope }: Props) {
   const [channel, setChannel] = useState<CommunicationChannel>("all");
-  const [localDataScope, setLocalDataScope] = useState<"all" | "live" | "demo">("all");
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
   const [page, setPage] = useState(1);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const effectiveDataScope = dataScope ?? localDataScope;
-  const query = useAdminCommunications({ userId, dataScope: effectiveDataScope, channel, status, search: deferredSearch, page, pageSize: PAGE_SIZE });
+  const query = useAdminCommunications({ userId, dataScope, channel, status, search: deferredSearch, page, pageSize: PAGE_SIZE });
   const rows = useMemo(() => query.data?.rows ?? [], [query.data?.rows]);
   const selected = rows.find((row) => communicationKey(row) === selectedKey) ?? null;
   const items = useAdminCommunicationItems(selected);
@@ -163,16 +161,6 @@ export default function CommunicationsCenter({ userId, accountName, embedded = f
             >
               {statusOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
-            {!dataScope && <select
-              value={localDataScope}
-              onChange={(event) => { setLocalDataScope(event.target.value as "all" | "live" | "demo"); setPage(1); setSelectedKey(null); }}
-              className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none focus:border-slate-400"
-              aria-label="Communication data scope"
-            >
-              <option value="all">Live and demo data</option>
-              <option value="live">Live data only</option>
-              <option value="demo">Demo data only</option>
-            </select>}
           </div>
 
           {query.data?.warning && <Alert className="m-3 border-amber-200 bg-amber-50 p-3"><CircleAlert className="h-4 w-4 text-amber-700" /><AlertTitle className="text-xs text-amber-950">Deployment pending</AlertTitle><AlertDescription className="mt-1 text-[11px] leading-4 text-amber-800">{query.data.warning}</AlertDescription></Alert>}

@@ -114,10 +114,10 @@ describe("admin user 360 live/demo scope", () => {
       { id: "seller-demo", is_demo: true, relationships: [], contextualOnly: false },
     ] as AdminUser360["properties"],
     matches: [
-      { id: "match-live-buyer", buyer_exchange_id: "exchange-live", seller_property_id: "outside", relationships: [] },
-      { id: "match-demo-buyer", buyer_exchange_id: "exchange-demo", seller_property_id: "outside", relationships: [] },
-      { id: "match-live-seller", buyer_exchange_id: "outside-live", seller_property_id: "seller-live", relationships: [] },
-      { id: "match-demo-seller", buyer_exchange_id: "outside-demo", seller_property_id: "seller-demo", relationships: [] },
+      { id: "match-live-buyer", buyer_exchange_id: "exchange-live", seller_property_id: "outside", relationships: [], is_demo: false },
+      { id: "match-demo-buyer", buyer_exchange_id: "exchange-demo", seller_property_id: "outside", relationships: [], is_demo: true },
+      { id: "match-live-seller", buyer_exchange_id: "outside-live", seller_property_id: "seller-live", relationships: [], is_demo: false },
+      { id: "match-demo-seller", buyer_exchange_id: "outside-demo", seller_property_id: "seller-demo", relationships: [], is_demo: true },
     ] as AdminUser360["matches"],
     representations: [
       { id: "rep-live", is_demo: false },
@@ -169,6 +169,15 @@ describe("admin user 360 live/demo scope", () => {
       { id: "inquiry-live", is_demo: false },
       { id: "inquiry-demo", is_demo: true },
     ] as AdminUser360["listingInquiries"],
+    notifications: [
+      { id: "notification-live", is_demo: false },
+      { id: "notification-demo", is_demo: true },
+      { id: "notification-legacy-demo", metadata: { demo: true } },
+    ] as AdminUser360["notifications"],
+    supportTickets: [
+      { id: "support-live", is_demo: false },
+      { id: "support-demo", is_demo: true },
+    ] as AdminUser360["supportTickets"],
     clientInvites: [
       { id: "client-invite-live", client_id: "client-live" },
       { id: "client-invite-demo", client_id: "client-demo" },
@@ -194,6 +203,8 @@ describe("admin user 360 live/demo scope", () => {
     expect(live.collaborationThreads.map((row) => row.id)).toEqual(["thread-live"]);
     expect(live.representations.map((row) => row.id)).toEqual(["rep-live"]);
     expect(live.clientInvites.map((row) => row.id)).toEqual(["client-invite-live"]);
+    expect(live.notifications.map((row) => row.id)).toEqual(["notification-live"]);
+    expect(live.supportTickets.map((row) => row.id)).toEqual(["support-live"]);
     expect(live.timeline.map((row) => row.id)).toEqual(["timeline-live"]);
     expect(live.workflowEvents.map((row) => row.id)).toEqual(["workflow-live"]);
   });
@@ -205,6 +216,8 @@ describe("admin user 360 live/demo scope", () => {
     expect(demo.collaborationThreads.map((row) => row.id)).toEqual(["thread-demo"]);
     expect(demo.savedProperties.map((row) => row.id)).toEqual(["saved-demo"]);
     expect(demo.listingInquiries.map((row) => row.id)).toEqual(["inquiry-demo"]);
+    expect(demo.notifications.map((row) => row.id)).toEqual(["notification-demo", "notification-legacy-demo"]);
+    expect(demo.supportTickets.map((row) => row.id)).toEqual(["support-demo"]);
     expect(demo.representationInvites.map((row) => row.id)).toEqual(["rep-invite-demo"]);
   });
 

@@ -19,6 +19,7 @@ import {
 import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 import { resolveListingName } from "@/lib/listingDisplay";
 import type { CrmUserWorkspace } from "../data/useCrmUserWorkspace";
+import type { CrmUserWorkspaceView } from "../data/useCrmUserWorkspace";
 import type {
   AdminWorkspaceGraph,
   WorkspaceClientBranch,
@@ -28,6 +29,7 @@ import type {
 
 type Props = {
   data: CrmUserWorkspace;
+  view: CrmUserWorkspaceView;
   graph: AdminWorkspaceGraph;
   selection: WorkspaceSelection;
   onSelect: (selection: WorkspaceSelection) => void;
@@ -37,7 +39,7 @@ function isSelected(selection: WorkspaceSelection, type: WorkspaceSelection["typ
   return selection.type === type && selection.id === id;
 }
 
-export default function WorkspaceNavigator({ data, graph, selection, onSelect }: Props) {
+export default function WorkspaceNavigator({ data, view, graph, selection, onSelect }: Props) {
   const [collapsedClients, setCollapsedClients] = useState<Set<string>>(() => new Set(graph.clients.map((branch) => branch.client.id)));
   const [clientsCollapsed, setClientsCollapsed] = useState(false);
   const [inventoryCollapsed, setInventoryCollapsed] = useState(false);
@@ -49,7 +51,7 @@ export default function WorkspaceNavigator({ data, graph, selection, onSelect }:
       ? "Property owner account"
       : "User account";
   const isAgent = data.roles.includes("agent");
-  const agentRelationshipCount = data.representations.filter((item) => item.status === "active").length;
+  const agentRelationshipCount = view.representations.filter((item) => item.status === "active").length;
 
   const totals = useMemo(() => ({
     properties: graph.clients.reduce((sum, branch) => sum + branch.properties.length, 0) + graph.directProperties.length,
@@ -157,17 +159,17 @@ export default function WorkspaceNavigator({ data, graph, selection, onSelect }:
           </div>
         )}
 
-        {data.connections.length > 0 && <>
+        {view.connections.length > 0 && <>
           <SectionButton
             icon={MessageSquare}
             label="Agent conversations"
-            count={data.connections.length}
+            count={view.connections.length}
             collapsed={conversationsCollapsed}
             onClick={() => setConversationsCollapsed((value) => !value)}
           />
           {!conversationsCollapsed && (
             <div className="mb-3 space-y-1 pl-2">
-              {data.connections.map((connection) => {
+              {view.connections.map((connection) => {
                 const counterpartId = connection.buyer_agent_id === data.profile.id
                   ? connection.seller_agent_id
                   : connection.buyer_agent_id;
@@ -177,7 +179,7 @@ export default function WorkspaceNavigator({ data, graph, selection, onSelect }:
                   ? Object.values(graph.propertyById).find((branch) => branch.exchange?.id === match.buyer_exchange_id)
                   : null;
                 const candidate = match ? data.propertiesById[match.seller_property_id] : null;
-                const messageCount = data.connectionMessageMetadata.filter((message) => message.parentId === connection.id).length;
+                const messageCount = view.connectionMessageMetadata.filter((message) => message.parentId === connection.id).length;
                 return (
                   <Link
                     key={connection.id}
@@ -221,7 +223,7 @@ export default function WorkspaceNavigator({ data, graph, selection, onSelect }:
           active={isSelected(selection, "listings")}
           icon={<ListChecks className="h-4 w-4" />}
           title="Listings & drafts"
-          meta={`${data.exchanges.filter((exchange) => exchange.status === "draft").length} drafts · ${data.exchanges.length} total`}
+          meta={`${view.exchanges.filter((exchange) => exchange.status === "draft").length} drafts · ${view.exchanges.length} total`}
           onClick={() => onSelect({ type: "listings" })}
         />
         <TreeButton
@@ -235,7 +237,7 @@ export default function WorkspaceNavigator({ data, graph, selection, onSelect }:
           active={isSelected(selection, "communications")}
           icon={<MessagesSquare className="h-4 w-4" />}
           title="Communications"
-          meta={`${data.connections.length + data.collaborationThreads.length} conversations · ${data.notifications.length} notifications`}
+          meta={`${view.connections.length + view.collaborationThreads.length} conversations · ${view.notifications.length} notifications`}
           onClick={() => onSelect({ type: "communications" })}
         />
         <TreeButton

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { ArrowLeft, RefreshCw, UserRound } from "lucide-react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -8,8 +8,8 @@ import { CrmError, CrmLoading } from "../components/CrmPrimitives";
 import {
   scopeCrmUserWorkspace,
   useCrmUserWorkspace,
-  type CrmWorkspaceScope,
 } from "../data/useCrmUserWorkspace";
+import { useAdminCrmScope } from "../layout/AdminCrmScope";
 import WorkspaceNavigator from "../workspace/WorkspaceNavigator";
 import WorkspaceRecordDetail from "../workspace/WorkspaceRecordDetail";
 import {
@@ -24,11 +24,7 @@ export default function CrmUserWorkspace() {
   const location = useLocation();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [scope, setScope] = useState<CrmWorkspaceScope>(
-    params.get("scope") === "live" || params.get("scope") === "demo"
-      ? params.get("scope") as CrmWorkspaceScope
-      : "all",
-  );
+  const { scope } = useAdminCrmScope();
   const query = useCrmUserWorkspace(userId);
   const selection = parseWorkspaceSelection(params.get("record"));
   const returnPath = typeof (location.state as { adminReturnTo?: unknown } | null)?.adminReturnTo === "string"
@@ -71,14 +67,6 @@ export default function CrmUserWorkspace() {
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   }
 
-  function changeScope(next: CrmWorkspaceScope) {
-    setScope(next);
-    const updated = new URLSearchParams(params);
-    if (next === "all") updated.delete("scope"); else updated.set("scope", next);
-    updated.delete("record");
-    setParams(updated, { replace: true });
-  }
-
   if (query.isLoading) {
     return <div className="space-y-4"><CrmLoading rows={2} /><div className="grid gap-0 overflow-hidden rounded-xl border border-slate-200 lg:grid-cols-[310px_minmax(0,1fr)]"><CrmLoading rows={9} /><CrmLoading rows={12} /></div></div>;
   }
@@ -101,7 +89,6 @@ export default function CrmUserWorkspace() {
           <span className="hidden text-slate-500 sm:inline">Workspace</span>
         </div>
         <div className="flex items-center gap-2">
-          <ScopeSwitch value={scope} onChange={changeScope} />
           <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isFetching}><RefreshCw className={`mr-2 h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} />Refresh</Button>
         </div>
       </div>
@@ -111,7 +98,7 @@ export default function CrmUserWorkspace() {
 
       <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:grid lg:min-h-[760px] lg:grid-cols-[310px_minmax(0,1fr)]">
         <div className="max-h-[430px] overflow-hidden border-b border-slate-200 lg:max-h-none lg:border-b-0">
-          <WorkspaceNavigator data={data} graph={graph} selection={selection} onSelect={selectRecord} />
+          <WorkspaceNavigator data={data} view={view} graph={graph} selection={selection} onSelect={selectRecord} />
         </div>
         <main className="min-w-0 bg-slate-50/40">
           <WorkspaceRecordDetail data={data} view={view} graph={graph} selection={selection} onSelect={selectRecord} onRefetch={query.refetch} scope={scope} />
@@ -119,8 +106,4 @@ export default function CrmUserWorkspace() {
       </div>
     </div>
   );
-}
-
-function ScopeSwitch({ value, onChange }: { value: CrmWorkspaceScope; onChange: (scope: CrmWorkspaceScope) => void }) {
-  return <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5" aria-label="Workspace data scope">{(["all", "live", "demo"] as const).map((scope) => <button key={scope} type="button" onClick={() => onChange(scope)} className={`rounded-md px-2.5 py-1.5 text-xs font-medium capitalize ${value === scope ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-900"}`}>{scope}</button>)}</div>;
 }

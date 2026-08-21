@@ -9,6 +9,7 @@ import type { Enums } from "@/integrations/supabase/types";
 import { useCrmUsers, type CrmUserAccountStatus, type CrmUserDataScope, type CrmUserSort } from "../data/useCrmUsers";
 import { AccountStatusBadge, CrmError, CrmLoading, CrmPageHeader, MetricTile, RoleBadge } from "../components/CrmPrimitives";
 import { formatDate } from "../lib/crmFormat";
+import { useAdminCrmScope } from "../layout/AdminCrmScope";
 
 const PAGE_SIZE = 25;
 const USER_DIRECTORY_GRID = "grid-cols-[minmax(220px,1.25fr)_minmax(160px,.8fr)_minmax(190px,1fr)_minmax(190px,.9fr)_minmax(110px,.55fr)_minmax(130px,.6fr)_40px]";
@@ -20,12 +21,13 @@ function value(params: URLSearchParams, key: string, allowed: string[], fallback
 }
 
 export default function CrmUsersIndex() {
+  const { scope, isDemo } = useAdminCrmScope();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState(params.get("q") ?? "");
   const deferredSearch = useDeferredValue(search);
   const role = value(params, "role", ["all", "admin", "agent", "investor", "client"]);
   const account = value(params, "account", ["all", "active", "suspended", "deleted"]) as CrmUserAccountStatus;
-  const dataScope = value(params, "data", ["all", "live", "demo"]) as CrmUserDataScope;
+  const dataScope = scope as CrmUserDataScope;
   const sort = value(params, "sort", ["recent", "name", "activity"], "recent") as CrmUserSort;
   const page = Math.max(1, Number(params.get("page")) || 1);
   const directory = useCrmUsers({ search: deferredSearch, role: role as AppRole | "all", accountStatus: account, dataScope, sort, page, pageSize: PAGE_SIZE });
@@ -38,7 +40,7 @@ export default function CrmUsersIndex() {
     setParams(updated, { replace: true });
   }
 
-  const summary = directory.data?.platformSummary;
+  const summary = directory.data?.filteredSummary;
   const total = directory.data?.totalCount ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const users = directory.data?.users ?? [];
@@ -46,18 +48,17 @@ export default function CrmUsersIndex() {
     <div className="space-y-6">
       <CrmPageHeader eyebrow="People & accounts" title="Users" description="A contacts-style directory for every registered account. Open a user to enter their complete ExchangeUp workspace." actions={<Button variant="outline" size="sm" onClick={() => directory.refetch()} disabled={directory.isFetching}><RefreshCw className={`mr-2 h-4 w-4 ${directory.isFetching ? "animate-spin" : ""}`} />Refresh</Button>} />
       <div className="grid gap-3 sm:grid-cols-3">
-        <MetricTile label="All users" value={summary?.totalAccounts ?? "—"} icon={Users} detail="Every registered account" tone="blue" />
-        <MetricTile label="Agents" value={summary?.agentAccounts ?? "—"} icon={BriefcaseBusiness} detail="Agent workspaces" />
-        <MetricTile label="Property owners" value={summary?.investorAccounts ?? "—"} icon={Home} detail="Investor and owner workspaces" tone="green" />
+        <MetricTile label={isDemo ? "Demo users" : "Live users"} value={summary?.totalAccounts ?? "—"} icon={Users} detail={isDemo ? "Accounts connected to sample data" : "Accounts connected to live data"} tone="blue" />
+        <MetricTile label="Agents" value={summary?.agentAccounts ?? "—"} icon={BriefcaseBusiness} detail={`${isDemo ? "Demo" : "Live"} agent workspaces`} />
+        <MetricTile label="Property owners" value={summary?.investorAccounts ?? "—"} icon={Home} detail={`${isDemo ? "Demo" : "Live"} owner workspaces`} tone="green" />
       </div>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,.03)]">
         <div className="border-b border-slate-200 p-4">
-          <div className="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_repeat(4,minmax(145px,auto))]">
+          <div className="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_repeat(3,minmax(145px,auto))]">
             <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><Input value={search} onChange={(event) => { setSearch(event.target.value); setParam("q", event.target.value); }} className="pl-9" placeholder="Search name, email, phone, brokerage, or license" aria-label="Search users" /></div>
             <Filter value={role} onChange={(next) => setParam("role", next)} label="Filter by role" options={[["all", "All user types"], ["agent", "Agents"], ["investor", "Property owners"], ["admin", "Administrators"]]} />
             <Filter value={account} onChange={(next) => setParam("account", next)} label="Filter by access" options={[["all", "All access states"], ["active", "Active"], ["suspended", "Suspended"], ["deleted", "Deleted"]]} />
-            <Filter value={dataScope} onChange={(next) => setParam("data", next)} label="Filter by data" options={[["all", "Live + demo"], ["live", "Has live data"], ["demo", "Has demo data"]]} />
             <Filter value={sort} onChange={(next) => setParam("sort", next)} label="Sort users" options={[["recent", "Newest first"], ["name", "Name A–Z"], ["activity", "Most active"]]} />
           </div>
           <p className="mt-3 text-xs text-slate-500">{total} matching users</p>

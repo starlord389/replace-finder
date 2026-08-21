@@ -14,6 +14,7 @@ import {
   exchangeManagedForLabel,
   exchangeOwnerTypeLabel,
 } from "@/features/admin/lib/accountTypes";
+import { useAdminCrmScope } from "@/features/admin-crm/layout/AdminCrmScope";
 
 type Exchange = Tables<"exchanges">;
 type Property = Tables<"pledged_properties">;
@@ -97,6 +98,7 @@ function StatusPill({ value }: { value: string }) {
 }
 
 export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportunities" | "properties" }) {
+  const { scope, isDemo } = useAdminCrmScope();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestSequence = useRef(0);
@@ -128,8 +130,8 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     setClientName(new Map());
 
     const [exchangeResult, propertyResult] = await Promise.all([
-      supabase.from("exchanges").select("*").eq("is_demo", false).order("created_at", { ascending: false }),
-      supabase.from("pledged_properties").select("*").eq("is_demo", false).order("created_at", { ascending: false }),
+      supabase.from("exchanges").select("*").eq("is_demo", isDemo).order("created_at", { ascending: false }),
+      supabase.from("pledged_properties").select("*").eq("is_demo", isDemo).order("created_at", { ascending: false }),
     ]);
     if (requestId !== requestSequence.current) return;
 
@@ -148,7 +150,7 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
         : unavailable("Matches were not queried because both exchange and property scopes failed to load."),
       !exchangeResult.error
         ? supabase.from("exchange_connections").select("*").or(`buyer_exchange_id.in.(${exchangeScopeIds.join(",")}),seller_exchange_id.in.(${exchangeScopeIds.join(",")})`).order("created_at", { ascending: false })
-        : unavailable("Connections were not queried because the live exchange scope failed to load."),
+        : unavailable(`Connections were not queried because the ${scope} exchange scope failed to load.`),
       supabase.from("profiles").select("id, full_name, email"),
       supabase.from("agent_clients").select("id, client_name"),
     ]);
@@ -195,7 +197,7 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     setDatasetStatuses(statuses);
     setDatasetErrors(errors);
     setLoading(false);
-  }, []);
+  }, [isDemo, scope]);
 
   useEffect(() => {
     void loadDeals();
@@ -330,10 +332,10 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === "properties"
               ? "The canonical listing directory across agent-managed clients and self-managed property owners. Open any property for photos, financials, exchange context, and matched opportunities."
-              : "Track every active exchange, matched opportunity, and agent conversation from one operating queue (demo data excluded)."}
+              : `Track every ${scope} exchange, matched opportunity, and agent conversation from one operating queue.`}
           </p>
         </div>
-        {mode === "opportunities" && <ReseedStagingButton />}
+        {mode === "opportunities" && isDemo && <ReseedStagingButton />}
       </div>
 
       {loadIssues.length > 0 && (

@@ -519,6 +519,7 @@ export async function persistMatchesAndNotifications(
         message: "Exchange IQ found a new opportunity for one of your monitored properties. Review the fit and the numbers.",
 
         link_to: linkTo,
+        is_demo: isDemo,
         metadata: { demo: isDemo, match_id: matchId ?? null },
       };
     });

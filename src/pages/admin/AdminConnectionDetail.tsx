@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { recordAdminAction } from "@/features/admin/hooks/useAdminOperations";
 import { exchangeOwnerTypeLabel } from "@/features/admin/lib/accountTypes";
 import { resolveListingName } from "@/lib/listingDisplay";
 import { Loader2, ArrowLeft, RefreshCw, ArrowRight, Building2, MessageSquare } from "lucide-react";
+import { useAdminCrmScope } from "@/features/admin-crm/layout/AdminCrmScope";
 
 const CONNECTION_STATUSES = ["pending", "accepted", "in_progress", "declined", "cancelled", "completed"];
 
@@ -37,6 +38,7 @@ function pretty(s: string) {
 }
 
 export default function AdminConnectionDetail() {
+  const { scope, isDemo } = useAdminCrmScope();
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -49,12 +51,7 @@ export default function AdminConnectionDetail() {
   const [saving, setSaving] = useState(false);
   const loadRequestRef = useRef(0);
 
-  useEffect(() => {
-    if (id) load(id);
-    return () => { loadRequestRef.current += 1; };
-  }, [id]);
-
-  async function load(connId: string) {
+  const load = useCallback(async (connId: string) => {
     const requestId = ++loadRequestRef.current;
     setLoading(true);
     setLoadError(null);
@@ -75,15 +72,20 @@ export default function AdminConnectionDetail() {
       setLoading(false);
       return;
     }
-    setConn(c);
     const exchangeIds = [c.buyer_exchange_id, c.seller_exchange_id].filter((value): value is string => Boolean(value));
     const [mt, msgs, profs, exchanges] = await Promise.all([
       c.match_id ? supabase.from("matches").select("*").eq("id", c.match_id).maybeSingle() : Promise.resolve({ data: null }),
       supabase.from("messages").select("*").eq("connection_id", connId).order("created_at", { ascending: true }),
       supabase.from("profiles").select("id, full_name, email").in("id", [c.buyer_agent_id, c.seller_agent_id]),
-      supabase.from("exchanges").select("id, owner_type, relinquished_property_id").in("id", exchangeIds),
+      supabase.from("exchanges").select("id, owner_type, relinquished_property_id, is_demo").in("id", exchangeIds),
     ]);
     if (requestId !== loadRequestRef.current) return;
+    if ((exchanges.data ?? []).some((exchange) => exchange.is_demo !== isDemo)) {
+      setLoadError(`This conversation belongs to the ${isDemo ? "Live" : "Demo"} workspace. Switch workspace mode to open it.`);
+      setLoading(false);
+      return;
+    }
+    setConn(c);
     const loadedMatch = mt.data ?? null;
     const buyerExchange = (exchanges.data ?? []).find((exchange) => exchange.id === c.buyer_exchange_id);
     const propertyIds = [...new Set([
@@ -101,7 +103,12 @@ export default function AdminConnectionDetail() {
     setNames(new Map((profs.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"])));
     setOwnerTypes(new Map((exchanges.data ?? []).map((exchange) => [exchange.id, exchange.owner_type])));
     setLoading(false);
-  }
+  }, [isDemo]);
+
+  useEffect(() => {
+    if (id) void load(id);
+    return () => { loadRequestRef.current += 1; };
+  }, [id, load, scope]);
 
   async function changeStatus(status: string) {
     if (!conn) return;

@@ -55,7 +55,7 @@ export type AdminCommunicationItem = {
 
 export type CommunicationFilters = {
   userId?: string;
-  dataScope?: "all" | "live" | "demo";
+  dataScope: "live" | "demo";
   channel?: CommunicationChannel;
   status?: string;
   search?: string;
@@ -156,11 +156,11 @@ export function useAdminCommunications(filters: CommunicationFilters) {
   const pageSize = Math.min(100, Math.max(1, filters.pageSize ?? 30));
   const channel = filters.channel && filters.channel !== "all" ? filters.channel : null;
   return useQuery({
-    queryKey: ["admin-communications", filters.userId ?? null, filters.dataScope ?? "all", channel, filters.status ?? null, filters.search ?? null, page, pageSize],
+    queryKey: ["admin-communications", filters.userId ?? null, filters.dataScope, channel, filters.status ?? null, filters.search ?? null, page, pageSize],
     queryFn: async (): Promise<CommunicationPage> => {
       const { data, error } = await supabase.rpc("admin_list_communications", {
         p_user_id: filters.userId ?? undefined,
-        p_data_scope: filters.dataScope && filters.dataScope !== "all" ? filters.dataScope : undefined,
+        p_data_scope: filters.dataScope,
         p_channel: channel ?? undefined,
         p_status: filters.status?.trim() || undefined,
         p_search: filters.search?.trim() || undefined,
@@ -301,7 +301,7 @@ async function loadLegacyCommunications(filters: CommunicationFilters): Promise<
       preview: notification.message, status: notification.read ? "read" : "unread", messageCount: 1,
       unreadCount: notification.read ? 0 : 1, occurredAt: notification.created_at,
       participantSummary: profileName(notification.user_id, "Account notification"), primaryUserId: notification.user_id,
-      secondaryUserId: null, isDemo: jsonRecord(notification.metadata).demo === true, context: { notification_type: notification.type, link_to: notification.link_to, emailed_at: notification.emailed_at, email_status: notification.email_status },
+      secondaryUserId: null, isDemo: Boolean(notification.is_demo) || jsonRecord(notification.metadata).demo === true, context: { notification_type: notification.type, link_to: notification.link_to, emailed_at: notification.emailed_at, email_status: notification.email_status },
     });
   }
   for (const message of adminMessagesResult.data ?? []) {
@@ -310,7 +310,7 @@ async function loadLegacyCommunications(filters: CommunicationFilters): Promise<
       recordType: "admin_message", recordId: message.id, channel: "email", title: message.subject,
       preview: message.message_text, status: message.status, messageCount: 1, unreadCount: 0,
       occurredAt: message.sent_at || message.updated_at, participantSummary: message.recipient_name || message.recipient_email,
-      primaryUserId: recipient?.id ?? null, secondaryUserId: null, isDemo: message.recipient_email.toLowerCase().endsWith("@replacefinder.test"),
+      primaryUserId: recipient?.id ?? null, secondaryUserId: null, isDemo: Boolean(message.is_demo) || message.recipient_email.toLowerCase().endsWith("@replacefinder.test"),
       context: { source: "administrator", recipient_email: message.recipient_email, provider_message_id: message.provider_message_id },
     });
   }
@@ -321,7 +321,7 @@ async function loadLegacyCommunications(filters: CommunicationFilters): Promise<
       recordType: "sms_message", recordId: sms.id, channel: "sms", title: sms.purpose?.replace(/_/g, " ") || "Text message",
       preview: sms.body || sms.error_message || "SMS delivery event", status: sms.status, messageCount: 1, unreadCount: 0,
       occurredAt: sms.status_updated_at || sms.updated_at, participantSummary: recipient?.full_name || recipient?.email || sms.to_number,
-      primaryUserId: recipient?.id ?? null, secondaryUserId: null, isDemo: Boolean(recipient?.email?.endsWith("@replacefinder.test")),
+      primaryUserId: recipient?.id ?? null, secondaryUserId: null, isDemo: Boolean(sms.is_demo) || Boolean(recipient?.email?.endsWith("@replacefinder.test")),
       context: { to_number: sms.to_number, from_number: sms.from_number, purpose: sms.purpose, delivered_at: sms.delivered_at, error_code: sms.error_code },
     });
   }
@@ -333,7 +333,7 @@ async function loadLegacyCommunications(filters: CommunicationFilters): Promise<
       preview: ticket.message, status: ticket.status, messageCount: ticket.admin_notes?.trim() ? 2 : 1,
       unreadCount: ["open", "in_progress"].includes(ticket.status) ? 1 : 0, occurredAt: ticket.updated_at,
       participantSummary: profileName(ticket.user_id, "Support requester"), primaryUserId: ticket.user_id,
-      secondaryUserId: ticket.resolved_by, isDemo: Boolean(profileById.get(ticket.user_id)?.email?.endsWith("@replacefinder.test")),
+      secondaryUserId: ticket.resolved_by, isDemo: Boolean(ticket.is_demo) || Boolean(profileById.get(ticket.user_id)?.email?.endsWith("@replacefinder.test")),
       context: { category: ticket.category, admin_notes: ticket.admin_notes },
     });
   }

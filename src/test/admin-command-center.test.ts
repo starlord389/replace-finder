@@ -44,7 +44,7 @@ afterEach(() => {
 });
 
 describe("admin command center", () => {
-  it("maps the auth-backed account summary into command-center KPIs", () => {
+  it("maps account summaries and derives workspace-scoped command-center KPIs", () => {
     expect(mapAdminAccountSummary({
       total_accounts: 42,
       agent_accounts: 12,
@@ -58,7 +58,10 @@ describe("admin command center", () => {
     });
 
     const source = read("src/features/admin/hooks/useAdminCommandCenter.ts");
-    expect(source).toContain('supabase.rpc("admin_get_account_summary")');
+    expect(source).toContain('export function useAdminCommandCenter(scope: "live" | "demo" = "live")');
+    expect(source).toContain('queryKey: ["admin-command-center", scope]');
+    expect(source).toContain('.eq("is_demo", isDemo)');
+    expect(source).not.toContain('supabase.rpc("admin_get_account_summary")');
     expect(source).toContain("users: accountSummary.totalAccounts");
     expect(source).toContain("users: accountSummary.newAccounts7d");
   });

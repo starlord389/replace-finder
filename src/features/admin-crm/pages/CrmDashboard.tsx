@@ -6,14 +6,17 @@ import { useAdminCommandCenter, formatAdminRelativeTime } from "@/features/admin
 import { useCrmUsers } from "../data/useCrmUsers";
 import { CrmError, CrmLoading, CrmPageHeader, MetricTile, RoleBadge } from "../components/CrmPrimitives";
 import { formatDate } from "../lib/crmFormat";
+import { useAdminCrmScope } from "../layout/AdminCrmScope";
 
 export default function CrmDashboard() {
-  const command = useAdminCommandCenter();
-  const users = useCrmUsers({ page: 1, pageSize: 6, sort: "recent" });
+  const { scope, isDemo } = useAdminCrmScope();
+  const command = useAdminCommandCenter(scope);
+  const users = useCrmUsers({ page: 1, pageSize: 6, sort: "recent", dataScope: scope });
   const refresh = () => { void Promise.all([command.refetch(), users.refetch()]); };
   if (command.isError) return <CrmError title="The CRM dashboard is unavailable" message={command.error instanceof Error ? command.error.message : "The operational snapshot could not be loaded."} onRetry={refresh} />;
 
   const data = command.data;
+  const accountSummary = users.data?.filteredSummary;
   const recentUsers = users.data?.users ?? [];
   return (
     <div className="space-y-6">
@@ -25,9 +28,9 @@ export default function CrmDashboard() {
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        <MetricTile label="Registered users" value={data?.kpis.users ?? "—"} icon={Users} detail={`+${data?.growth.users ?? 0} this week`} tone="blue" />
-        <MetricTile label="Agents" value={data?.kpis.agents ?? "—"} icon={BriefcaseBusiness} tone="slate" />
-        <MetricTile label="Property owners" value={data?.kpis.investors ?? "—"} icon={Home} tone="green" />
+        <MetricTile label={isDemo ? "Demo users" : "Live users"} value={accountSummary?.totalAccounts ?? "—"} icon={Users} detail={`${scope} workspace accounts`} tone="blue" />
+        <MetricTile label="Agents" value={accountSummary?.agentAccounts ?? "—"} icon={BriefcaseBusiness} tone="slate" />
+        <MetricTile label="Property owners" value={accountSummary?.investorAccounts ?? "—"} icon={Home} tone="green" />
         <MetricTile label="Active exchanges" value={data?.kpis.activeExchanges ?? "—"} icon={RefreshCw} tone="blue" />
         <MetricTile label="Open conversations" value={data?.kpis.openConnections ?? "—"} icon={Handshake} tone="green" />
         <MetricTile label="Needs attention" value={data?.attentionItems.length ?? "—"} icon={AlertCircle} tone={(data?.attentionItems.length ?? 0) ? "amber" : "slate"} />

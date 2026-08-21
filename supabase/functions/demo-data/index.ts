@@ -469,9 +469,9 @@ async function buildOwnerDemo(db: any, ownerId: string) {
 
   // Notifications (varied types; some unread). Tagged demo for clean teardown.
   await mustInsert(db, "notifications", [
-    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: `${displayLocation(fixture["chelmsford_industrial"])} matched James Wilson's exchange.`, link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: `${displayLocation(fixture["brockton_mixed_use"])} matched Marcus Rodriguez's exchange.`, link_to: "/agent/matches", read: false, metadata: { demo: true } },
-    { user_id: ownerId, type: "connection_request", title: "New agent conversation", message: `Elena Vasquez started a conversation about ${displayLocation(fixture["brockton_mixed_use"])}.`, link_to: "/agent/pipeline", read: false, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: `${displayLocation(fixture["chelmsford_industrial"])} matched James Wilson's exchange.`, link_to: "/agent/matches", read: false, is_demo: true, metadata: { demo: true } },
+    { user_id: ownerId, type: "new_match", title: "Qualified new match", message: `${displayLocation(fixture["brockton_mixed_use"])} matched Marcus Rodriguez's exchange.`, link_to: "/agent/matches", read: false, is_demo: true, metadata: { demo: true } },
+    { user_id: ownerId, type: "connection_request", title: "New agent conversation", message: `Elena Vasquez started a conversation about ${displayLocation(fixture["brockton_mixed_use"])}.`, link_to: "/agent/pipeline", read: false, is_demo: true, metadata: { demo: true } },
     { user_id: ownerId, type: "connection_accepted", title: "Conversation active", message: "Your conversation with Priya Mehta is ready for messaging.", link_to: "/agent/pipeline", read: true, metadata: { demo: true } },
   ]);
 

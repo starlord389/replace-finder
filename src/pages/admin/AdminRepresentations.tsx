@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowRight, Handshake, Loader2, Search, UserRoundCheck, Users } from "lucide-react";
@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAdminCrmScope } from "@/features/admin-crm/layout/AdminCrmScope";
 
 type AdminProfile = Pick<Tables<"profiles">, "id" | "full_name" | "email" | "brokerage_name" | "license_state">;
 type Assignment = Tables<"exchange_agent_assignments">;
@@ -22,6 +23,7 @@ type QueueTab = "action" | "active" | "history";
 const TERMINAL_STATUSES = new Set(["declined", "expired", "revoked"]);
 
 export default function AdminRepresentations() {
+  const { scope, isDemo } = useAdminCrmScope();
   const [searchParams] = useSearchParams();
   const [representations, setRepresentations] = useState<Representation[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -36,10 +38,10 @@ export default function AdminRepresentations() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     const [{ data: reps, error: repError }, { data: roles }, { data: assignmentRows }] = await Promise.all([
-      supabase.from("agent_representations").select("*").order("created_at", { ascending: false }),
+      supabase.from("agent_representations").select("*").eq("is_demo", isDemo).order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "agent"),
       supabase.from("exchange_agent_assignments").select("*").order("assigned_at", { ascending: false }),
     ]);
@@ -49,7 +51,8 @@ export default function AdminRepresentations() {
       return;
     }
     const representationRows = (reps ?? []) as unknown as Representation[];
-    const loadedAssignments = (assignmentRows ?? []) as Assignment[];
+    const representationIds = new Set(representationRows.map((row) => row.id));
+    const loadedAssignments = ((assignmentRows ?? []) as Assignment[]).filter((row) => row.representation_id && representationIds.has(row.representation_id));
     const userIds = [...new Set([
       ...representationRows.flatMap((rep) => [rep.investor_id, rep.agent_id]),
       ...(roles ?? []).map((role) => role.user_id),
@@ -78,14 +81,14 @@ export default function AdminRepresentations() {
     setProfiles(profileMap);
     setRepresentations(representationRows);
     setAssignments(loadedAssignments);
-    setAgents((roles ?? []).map((role) => profileMap[role.user_id]).filter(Boolean));
+    setAgents((roles ?? []).map((role) => profileMap[role.user_id]).filter((profile): profile is AdminProfile => Boolean(profile)).filter((profile) => isDemo ? profile.email?.toLowerCase().endsWith("@replacefinder.test") : !profile.email?.toLowerCase().endsWith("@replacefinder.test")));
     setExchanges(Object.fromEntries(loadedExchanges.map((exchange) => [exchange.id, exchange])));
     setProperties(Object.fromEntries(((propertyRows ?? []) as Property[]).map((property) => [property.id, property])));
     setMatchCounts(countMap);
     setLoading(false);
-  }
+  }, [isDemo]);
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(); }, [load, scope]);
   useEffect(() => { setSearch(searchParams.get("q") ?? ""); }, [searchParams]);
 
   const groupedCounts = useMemo(() => ({
