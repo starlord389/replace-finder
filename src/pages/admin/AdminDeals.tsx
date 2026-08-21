@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,8 +10,25 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { resolveListingName } from "@/lib/listingDisplay";
-import { AlertTriangle, Database, Loader2, RefreshCw, Search } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Building2,
+  CircleDollarSign,
+  Database,
+  Handshake,
+  Home,
+  ImageOff,
+  Loader2,
+  MessageSquare,
+  RefreshCw,
+  Search,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
+import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
+import { CrmPageHeader, MetricTile } from "@/features/admin-crm/components/CrmPrimitives";
 import {
   exchangeManagedForLabel,
   exchangeOwnerTypeLabel,
@@ -21,7 +40,9 @@ type Property = Tables<"pledged_properties">;
 type Match = Tables<"matches">;
 type Connection = Tables<"exchange_connections">;
 type Message = Tables<"messages">;
-type DatasetKey = "exchanges" | "properties" | "matches" | "connections" | "messages" | "profiles" | "clients";
+type Financials = Tables<"property_financials">;
+type PropertyImage = Tables<"property_images">;
+type DatasetKey = "exchanges" | "properties" | "matches" | "connections" | "messages" | "profiles" | "clients" | "financials" | "images";
 type DatasetStatus = "loading" | "loaded" | "partial" | "failed";
 type DatasetStatuses = Record<DatasetKey, DatasetStatus>;
 type DatasetErrors = Partial<Record<DatasetKey, string>>;
@@ -38,6 +59,8 @@ const DATASET_LABELS: Record<DatasetKey, string> = {
   messages: "Conversation messages",
   profiles: "User profiles",
   clients: "Client records",
+  financials: "Property financials",
+  images: "Property photos",
 };
 
 const INITIAL_DATASET_STATUSES: DatasetStatuses = {
@@ -48,6 +71,8 @@ const INITIAL_DATASET_STATUSES: DatasetStatuses = {
   messages: "loading",
   profiles: "loading",
   clients: "loading",
+  financials: "loading",
+  images: "loading",
 };
 
 const EMPTY_SCOPE_ID = "00000000-0000-0000-0000-000000000000";
@@ -110,9 +135,12 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
   const [matches, setMatches] = useState<Match[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [financials, setFinancials] = useState<Financials[]>([]);
+  const [propertyImages, setPropertyImages] = useState<PropertyImage[]>([]);
   const [agentName, setAgentName] = useState<Map<string, string>>(new Map());
   const [clientName, setClientName] = useState<Map<string, string>>(new Map());
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const [recordStatus, setRecordStatus] = useState("all");
 
   const loadDeals = useCallback(async () => {
     const requestId = ++requestSequence.current;
@@ -126,6 +154,8 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     setMatches([]);
     setConnections([]);
     setMessages([]);
+    setFinancials([]);
+    setPropertyImages([]);
     setAgentName(new Map());
     setClientName(new Map());
 
@@ -144,7 +174,7 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     if (!propertyResult.error) matchScope.push(`seller_property_id.in.(${propertyScopeIds.join(",")})`);
 
     const unavailable = (message: string) => Promise.resolve({ data: null, error: { message } });
-    const [matchResult, connectionResult, profileResult, clientResult] = await Promise.all([
+    const [matchResult, connectionResult, profileResult, clientResult, financialResult, imageResult] = await Promise.all([
       matchScope.length
         ? supabase.from("matches").select("*").or(matchScope.join(",")).order("created_at", { ascending: false })
         : unavailable("Matches were not queried because both exchange and property scopes failed to load."),
@@ -153,6 +183,12 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
         : unavailable(`Connections were not queried because the ${scope} exchange scope failed to load.`),
       supabase.from("profiles").select("id, full_name, email"),
       supabase.from("agent_clients").select("id, client_name"),
+      !propertyResult.error && liveProperties.length
+        ? supabase.from("property_financials").select("*").in("property_id", propertyScopeIds)
+        : propertyResult.error ? unavailable("Financials were not queried because properties failed to load.") : Promise.resolve({ data: [] as Financials[], error: null }),
+      !propertyResult.error && liveProperties.length
+        ? supabase.from("property_images").select("*").in("property_id", propertyScopeIds).order("sort_order", { ascending: true })
+        : propertyResult.error ? unavailable("Photos were not queried because properties failed to load.") : Promise.resolve({ data: [] as PropertyImage[], error: null }),
     ]);
     if (requestId !== requestSequence.current) return;
 
@@ -171,6 +207,8 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
       messages: connectionResult.error || messageResult.error ? "failed" : "loaded",
       profiles: profileResult.error ? "failed" : "loaded",
       clients: clientResult.error ? "failed" : "loaded",
+      financials: financialResult.error ? "failed" : "loaded",
+      images: imageResult.error ? "failed" : "loaded",
     };
     const errors: DatasetErrors = {};
     if (exchangeResult.error) errors.exchanges = exchangeResult.error.message;
@@ -186,12 +224,16 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     else if (messageResult.error) errors.messages = messageResult.error.message;
     if (profileResult.error) errors.profiles = profileResult.error.message;
     if (clientResult.error) errors.clients = clientResult.error.message;
+    if (financialResult.error) errors.financials = financialResult.error.message;
+    if (imageResult.error) errors.images = imageResult.error.message;
 
     setExchanges(liveExchanges);
     setProperties(liveProperties);
     setMatches(matchResult.error ? [] : (matchResult.data ?? []) as Match[]);
     setConnections(connectionRows);
     setMessages(messageResult.error ? [] : (messageResult.data ?? []) as Message[]);
+    setFinancials(financialResult.error ? [] : (financialResult.data ?? []) as Financials[]);
+    setPropertyImages(imageResult.error ? [] : (imageResult.data ?? []) as PropertyImage[]);
     setAgentName(new Map(profileResult.error ? [] : (profileResult.data ?? []).map((profile) => [profile.id, profile.full_name || profile.email || "Unknown"])));
     setClientName(new Map(clientResult.error ? [] : (clientResult.data ?? []).map((client) => [client.id, client.client_name])));
     setDatasetStatuses(statuses);
@@ -244,6 +286,33 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     }
     return map;
   }, [exchanges, properties, propertyById]);
+  const financialByProperty = useMemo(
+    () => new Map(financials.map((row) => [row.property_id, row])),
+    [financials],
+  );
+  const firstImageByProperty = useMemo(() => {
+    const map = new Map<string, PropertyImage>();
+    for (const image of propertyImages) if (!map.has(image.property_id)) map.set(image.property_id, image);
+    return map;
+  }, [propertyImages]);
+  const currentPropertyIds = useMemo(
+    () => new Set(currentPropertyByExchange.values().map((property) => property.id)),
+    [currentPropertyByExchange],
+  );
+  const matchCountByProperty = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const match of matches) {
+      map.set(match.seller_property_id, (map.get(match.seller_property_id) ?? 0) + 1);
+      const current = currentPropertyByExchange.get(match.buyer_exchange_id);
+      if (current) map.set(current.id, (map.get(current.id) ?? 0) + 1);
+    }
+    return map;
+  }, [matches, currentPropertyByExchange]);
+  const matchCountByExchange = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const match of matches) map.set(match.buyer_exchange_id, (map.get(match.buyer_exchange_id) ?? 0) + 1);
+    return map;
+  }, [matches]);
 
   const term = search.trim().toLowerCase();
   const selectedPropertyId = mode === "properties" ? searchParams.get("property") : null;
@@ -259,19 +328,31 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     if (tab === "matches") next.delete("tab");
     else next.set("tab", tab);
     next.delete("property");
+    setRecordStatus("all");
     setSearchParams(next, { replace: true });
   }
+  const statusOptions = useMemo(() => {
+    const rows = mode === "properties"
+      ? properties
+      : activeTab === "exchanges"
+        ? exchanges
+        : activeTab === "connections"
+          ? connections
+          : matches;
+    return [...new Set(rows.map((row) => row.status))].sort();
+  }, [mode, activeTab, properties, exchanges, connections, matches]);
   const fExchanges = useMemo(
-    () => exchanges.filter((e) => !term || agent(e.agent_id).toLowerCase().includes(term) || exchangeManagedForLabel(e.owner_type, clientName.get(e.client_id)).toLowerCase().includes(term) || exchangeOwnerTypeLabel(e.owner_type).toLowerCase().includes(term) || e.status.toLowerCase().includes(term)),
-    [exchanges, term, agent, clientName],
+    () => exchanges.filter((e) => (recordStatus === "all" || e.status === recordStatus) && (!term || agent(e.agent_id).toLowerCase().includes(term) || exchangeManagedForLabel(e.owner_type, clientName.get(e.client_id)).toLowerCase().includes(term) || exchangeOwnerTypeLabel(e.owner_type).toLowerCase().includes(term) || e.status.toLowerCase().includes(term))),
+    [exchanges, term, recordStatus, agent, clientName],
   );
   const fProperties = useMemo(
     () => properties.filter((p) => {
       if (selectedPropertyId && p.id !== selectedPropertyId) return false;
+      if (recordStatus !== "all" && p.status !== recordStatus) return false;
       const ownerType = exchangeById.get(p.exchange_id ?? "")?.owner_type;
       return !term || resolveListingName(p, true).toLowerCase().includes(term) || (p.property_name ?? "").toLowerCase().includes(term) || (p.address ?? "").toLowerCase().includes(term) || (p.city ?? "").toLowerCase().includes(term) || (p.state ?? "").toLowerCase().includes(term) || (p.zip ?? "").toLowerCase().includes(term) || (p.asset_type ?? "").toLowerCase().includes(term) || agent(p.agent_id).toLowerCase().includes(term) || exchangeOwnerTypeLabel(ownerType).toLowerCase().includes(term);
     }),
-    [properties, selectedPropertyId, term, agent, exchangeById],
+    [properties, selectedPropertyId, term, recordStatus, agent, exchangeById],
   );
   const fConnections = useMemo(
     () => connections.filter((c) => {
@@ -279,7 +360,7 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
       const currentProperty = linkedMatch ? currentPropertyByExchange.get(linkedMatch.buyer_exchange_id) : null;
       const candidate = linkedMatch ? propertyById.get(linkedMatch.seller_property_id) : null;
       const conversationMessages = messagesByConnection.get(c.id) ?? [];
-      return !term
+      return (recordStatus === "all" || c.status === recordStatus) && (!term
         || agent(c.buyer_agent_id).toLowerCase().includes(term)
         || agent(c.seller_agent_id).toLowerCase().includes(term)
         || exchangeOwnerTypeLabel(exchangeById.get(c.buyer_exchange_id)?.owner_type).toLowerCase().includes(term)
@@ -287,25 +368,25 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
         || c.status.toLowerCase().includes(term)
         || resolveListingName(currentProperty ?? null, true).toLowerCase().includes(term)
         || resolveListingName(candidate ?? null, true).toLowerCase().includes(term)
-        || conversationMessages.some((message) => message.content.toLowerCase().includes(term));
+        || conversationMessages.some((message) => message.content.toLowerCase().includes(term)));
     }),
-    [connections, term, agent, exchangeById, matchById, currentPropertyByExchange, propertyById, messagesByConnection],
+    [connections, term, recordStatus, agent, exchangeById, matchById, currentPropertyByExchange, propertyById, messagesByConnection],
   );
   const fMatches = useMemo(
     () => matches.filter((m) => {
       const exchange = exchangeById.get(m.buyer_exchange_id);
       const currentProperty = currentPropertyByExchange.get(m.buyer_exchange_id);
       const candidate = propertyById.get(m.seller_property_id);
-      return !term
+      return (recordStatus === "all" || m.status === recordStatus) && (!term
         || (m.status ?? "").toLowerCase().includes(term)
         || (m.boot_status ?? "").toLowerCase().includes(term)
         || (m.match_classification ?? "").toLowerCase().includes(term)
         || exchangeOwnerTypeLabel(exchange?.owner_type).toLowerCase().includes(term)
         || agent(exchange?.agent_id ?? null).toLowerCase().includes(term)
         || resolveListingName(currentProperty ?? null, true).toLowerCase().includes(term)
-        || resolveListingName(candidate ?? null, true).toLowerCase().includes(term);
+        || resolveListingName(candidate ?? null, true).toLowerCase().includes(term));
     }),
-    [matches, term, exchangeById, currentPropertyByExchange, propertyById, agent],
+    [matches, term, recordStatus, exchangeById, currentPropertyByExchange, propertyById, agent],
   );
   const conversationDatasetStatus: DatasetStatus = datasetStatuses.connections === "failed"
     ? "failed"
@@ -323,37 +404,61 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
 
   const loadIssues = (Object.entries(datasetErrors) as Array<[DatasetKey, string]>);
   const totalFailure = adminDealsHasTotalFailure(datasetStatuses);
+  const openConnections = connections.filter((connection) => ["pending", "accepted", "in_progress"].includes(connection.status));
+  const connectedMatchIds = new Set(connections.map((connection) => connection.match_id).filter(Boolean));
+  const unconnectedMatches = matches.filter((match) => match.status === "active" && !connectedMatchIds.has(match.id));
+  const listedProperties = properties.filter((property) => property.status === "active" || Boolean(property.listed_at));
+  const draftProperties = properties.filter((property) => property.status === "draft");
+  const missingPhotoProperties = properties.filter((property) => !firstImageByProperty.has(property.id));
 
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{mode === "properties" ? "Properties" : "Opportunities"}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "properties"
-              ? "The canonical listing directory across agent-managed clients and self-managed property owners. Open any property for photos, financials, exchange context, and matched opportunities."
-              : `Track every ${scope} exchange, matched opportunity, and agent conversation from one operating queue.`}
-          </p>
-        </div>
-        {mode === "opportunities" && isDemo && <ReseedStagingButton />}
-      </div>
+    <div className="space-y-6">
+      <CrmPageHeader
+        eyebrow={mode === "properties" ? "Property inventory" : "Deal workflow"}
+        title={mode === "properties" ? "Properties" : "Opportunities"}
+        description={mode === "properties"
+          ? "See every current property and listing with its owner, exchange, financial position, photos, and matched opportunities in one directory."
+          : `Follow each ${scope} exchange from the current property to its matches and the agent conversations that move it forward.`}
+        actions={<div className="flex items-center gap-2"><Button variant="outline" size="sm" onClick={() => void loadDeals()}><RefreshCw className="mr-2 h-4 w-4" />Refresh</Button>{mode === "opportunities" && isDemo && <ReseedStagingButton />}</div>}
+      />
 
       {loadIssues.length > 0 && (
         <LoadHealthNotice issues={loadIssues} totalFailure={totalFailure} onRetry={loadDeals} />
       )}
 
       {!totalFailure && <>
-      <div className="relative mb-4 max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => { setSearch(e.target.value); if (selectedPropertyId) { const next = new URLSearchParams(searchParams); next.delete("property"); setSearchParams(next, { replace: true }); } }} placeholder={mode === "properties" ? "Search address, owner, location, asset type, or status…" : "Search account owner, client, account type, or status…"} className="pl-9" aria-label={mode === "properties" ? "Search properties" : "Search opportunities"} />
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {mode === "properties" ? <>
+          <MetricTile label="All properties" value={properties.length} icon={Building2} detail={`${scope} property records`} tone="blue" />
+          <MetricTile label="Listed or active" value={listedProperties.length} icon={Home} detail="Visible inventory and active exchanges" tone="green" />
+          <MetricTile label="Drafts" value={draftProperties.length} icon={CircleDollarSign} detail="Started but not yet published" tone={draftProperties.length ? "amber" : "slate"} />
+          <MetricTile label="Missing photos" value={missingPhotoProperties.length} icon={ImageOff} detail="Listings that may need follow-up" tone={missingPhotoProperties.length ? "amber" : "slate"} />
+        </> : <>
+          <MetricTile label="Active exchanges" value={exchanges.filter((exchange) => ["active", "in_identification", "in_closing"].includes(exchange.status)).length} icon={Building2} detail={`${exchanges.length} total exchange workspaces`} tone="blue" />
+          <MetricTile label="Matched opportunities" value={matches.filter((match) => match.status === "active").length} icon={Sparkles} detail={`${matches.length} matches in this workspace`} tone="green" />
+          <MetricTile label="Agent conversations" value={openConnections.length} icon={Handshake} detail={`${connections.length} total conversation records`} tone="blue" />
+          <MetricTile label="Ready to advance" value={unconnectedMatches.length} icon={MessageSquare} detail="Active matches without a conversation" tone={unconnectedMatches.length ? "amber" : "slate"} />
+        </>}
       </div>
 
       <Tabs value={activeTab} onValueChange={changeTab}>
-        {mode === "opportunities" && <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="matches">Matches ({adminDealsCountLabel(datasetStatuses.matches, fMatches.length, matches.length)})</TabsTrigger>
-          <TabsTrigger value="exchanges">Exchanges ({adminDealsCountLabel(datasetStatuses.exchanges, fExchanges.length, exchanges.length)})</TabsTrigger>
-          <TabsTrigger value="connections">Conversations ({adminDealsCountLabel(conversationDatasetStatus, fConnections.length, connections.length)})</TabsTrigger>
-        </TabsList>}
+        {mode === "opportunities" && <div className="overflow-hidden rounded-xl border border-slate-200 bg-white"><TabsList className="grid h-auto w-full grid-cols-1 rounded-none bg-slate-50 p-1.5 sm:grid-cols-3">
+          <WorkflowTab value="matches" label="Matches" detail="Review property fit" count={adminDealsCountLabel(datasetStatuses.matches, fMatches.length, matches.length)} icon={Sparkles} />
+          <WorkflowTab value="exchanges" label="Exchanges" detail="Track active searches" count={adminDealsCountLabel(datasetStatuses.exchanges, fExchanges.length, exchanges.length)} icon={Building2} />
+          <WorkflowTab value="connections" label="Conversations" detail="Follow agent activity" count={adminDealsCountLabel(conversationDatasetStatus, fConnections.length, connections.length)} icon={MessageSquare} />
+        </TabsList></div>}
+
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 lg:flex-row lg:items-center">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input value={search} onChange={(e) => { setSearch(e.target.value); if (selectedPropertyId) { const next = new URLSearchParams(searchParams); next.delete("property"); setSearchParams(next, { replace: true }); } }} placeholder={mode === "properties" ? "Search property, owner, market, or asset type" : "Search owner, client, property, agent, or status"} className="pl-9" aria-label={mode === "properties" ? "Search properties" : "Search opportunities"} />
+          </div>
+          <select value={recordStatus} onChange={(event) => setRecordStatus(event.target.value)} className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700" aria-label="Filter by status">
+            <option value="all">All statuses</option>
+            {statusOptions.map((status) => <option key={status} value={status}>{pretty(status)}</option>)}
+          </select>
+          {(search || recordStatus !== "all" || selectedPropertyId) && <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setRecordStatus("all"); const next = new URLSearchParams(searchParams); next.delete("q"); next.delete("property"); setSearchParams(next, { replace: true }); }}>Clear filters</Button>}
+        </div>
 
         {/* Exchanges */}
         <TabsContent value="exchanges" className="mt-4">
@@ -361,25 +466,27 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]">Created</TableHead>
-                  <TableHead>Account type</TableHead>
-                  <TableHead>Account owner</TableHead>
-                  <TableHead>Managed for</TableHead>
+                  <TableHead>Exchange workspace</TableHead>
+                  <TableHead>Current property</TableHead>
+                  <TableHead>Owner and client</TableHead>
+                  <TableHead className="w-[100px] text-center">Matches</TableHead>
                   <TableHead className="w-[150px]">Status</TableHead>
-                  <TableHead className="w-[120px]">Proceeds</TableHead>
+                  <TableHead className="w-[150px]">Exchange proceeds</TableHead>
+                  <TableHead className="w-10"><span className="sr-only">Open</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {fExchanges.map((e) => (
-                  <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/opportunities/exchanges/${e.id}`)}>
-                    <TableCell className="text-xs text-muted-foreground">{fmtDate(e.created_at)}</TableCell>
-                    <TableCell className="text-xs font-medium">{exchangeOwnerTypeLabel(e.owner_type)}</TableCell>
-                    <TableCell className="text-sm">{agent(e.agent_id)}</TableCell>
-                    <TableCell className="text-sm">{exchangeManagedForLabel(e.owner_type, clientName.get(e.client_id))}</TableCell>
+                {fExchanges.map((e) => { const current = currentPropertyByExchange.get(e.id); return (
+                  <TableRow key={e.id} className="group cursor-pointer hover:bg-slate-50" onClick={() => navigate(`/admin/opportunities/exchanges/${e.id}`)}>
+                    <TableCell><p className="text-sm font-semibold text-slate-950">{exchangeManagedForLabel(e.owner_type, clientName.get(e.client_id))}</p><p className="mt-1 text-xs text-slate-500">Created {fmtDate(e.created_at)} · {exchangeOwnerTypeLabel(e.owner_type)}</p></TableCell>
+                    <TableCell><p className="max-w-[260px] truncate text-sm font-medium">{current ? resolveListingName(current, true) : "Property not added"}</p><p className="mt-1 text-xs text-slate-500">{current ? [current.city, current.state].filter(Boolean).join(", ") || "Location not provided" : "Exchange setup incomplete"}</p></TableCell>
+                    <TableCell><p className="text-sm font-medium">{agent(e.agent_id)}</p><p className="mt-1 text-xs text-slate-500">{exchangeManagedForLabel(e.owner_type, clientName.get(e.client_id))}</p></TableCell>
+                    <TableCell className="text-center text-sm font-semibold">{matchCountByExchange.get(e.id) ?? 0}</TableCell>
                     <TableCell><StatusPill value={e.status} /></TableCell>
-                    <TableCell className="text-sm">{money(e.exchange_proceeds)}</TableCell>
+                    <TableCell className="text-sm font-medium">{money(e.exchange_proceeds)}</TableCell>
+                    <TableCell><ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" /></TableCell>
                   </TableRow>
-                ))}
+                ); })}
               </TableBody>
             </Table>
           </TableCard>
@@ -388,75 +495,27 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
         {/* Properties */}
         <TabsContent value="properties" className="mt-4">
           <TableCard empty={fProperties.length === 0} emptyLabel="No properties found." status={datasetStatuses.properties} error={datasetErrors.properties} onRetry={loadDeals}>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px]">Created</TableHead>
-                  <TableHead>Property</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Asset type</TableHead>
-                  <TableHead>Account type</TableHead>
-                  <TableHead>Account owner</TableHead>
-                  <TableHead className="w-[130px]">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fProperties.map((p) => {
-                  const ownerType = exchangeById.get(p.exchange_id ?? "")?.owner_type;
-                  return (
-                  <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/properties/${p.id}`)}>
-                    <TableCell className="text-xs text-muted-foreground">{fmtDate(p.created_at)}</TableCell>
-                    <TableCell className="text-sm font-medium">{resolveListingName(p, true)}</TableCell>
-                    <TableCell className="text-sm">{[p.city, p.state].filter(Boolean).join(", ") || "-"}</TableCell>
-                    <TableCell className="text-sm capitalize">{p.asset_type ? pretty(p.asset_type) : "-"}</TableCell>
-                    <TableCell className="text-xs font-medium">{exchangeOwnerTypeLabel(ownerType)}</TableCell>
-                    <TableCell className="text-sm">{agent(p.agent_id)}</TableCell>
-                    <TableCell><StatusPill value={p.status} /></TableCell>
-                  </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            <div className="grid gap-px bg-slate-200 xl:grid-cols-2">
+              {fProperties.map((property) => {
+                const exchange = exchangeById.get(property.exchange_id ?? "");
+                return <PropertyDirectoryCard key={property.id} property={property} financial={financialByProperty.get(property.id)} image={firstImageByProperty.get(property.id)} matchCount={matchCountByProperty.get(property.id) ?? 0} relationship={currentPropertyIds.has(property.id) ? "Current property" : "Available listing"} ownerType={exchangeOwnerTypeLabel(exchange?.owner_type)} ownerName={agent(property.agent_id)} managedFor={exchange ? exchangeManagedForLabel(exchange.owner_type, exchange.client_id ? clientName.get(exchange.client_id) : null) : "Standalone listing"} onOpen={() => navigate(`/admin/properties/${property.id}`)} />;
+              })}
+            </div>
           </TableCard>
         </TabsContent>
 
         {/* Matches */}
         <TabsContent value="matches" className="mt-4">
           <TableCard empty={fMatches.length === 0} emptyLabel="No matches found." status={datasetStatuses.matches} error={datasetErrors.matches} onRetry={loadDeals}>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[110px]">Created</TableHead>
-                  <TableHead>Account / client</TableHead>
-                  <TableHead>Current property</TableHead>
-                  <TableHead>Matched property</TableHead>
-                  <TableHead className="w-[100px]">Score</TableHead>
-                  <TableHead className="w-[140px]">Boot</TableHead>
-                  <TableHead className="w-[110px]">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <div className="divide-y divide-slate-100">
                 {fMatches.map((m) => {
                   const exchange = exchangeById.get(m.buyer_exchange_id);
                   const currentProperty = currentPropertyByExchange.get(m.buyer_exchange_id);
                   const candidate = propertyById.get(m.seller_property_id);
-                  return <TableRow key={m.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/opportunities/matches/${m.id}`)}>
-                    <TableCell className="text-xs text-muted-foreground">{fmtDate(m.created_at)}</TableCell>
-                    <TableCell className="text-sm">
-                      <div className="font-medium">{agent(exchange?.agent_id ?? null)}</div>
-                      <div className="text-xs text-muted-foreground">{exchangeManagedForLabel(exchange?.owner_type, exchange?.client_id ? clientName.get(exchange.client_id) : null)}</div>
-                    </TableCell>
-                    <TableCell className="text-sm font-medium">{currentProperty ? resolveListingName(currentProperty, true) : "Property unavailable"}</TableCell>
-                    <TableCell className="text-sm font-medium">{candidate ? resolveListingName(candidate, true) : "Property unavailable"}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex min-w-10 items-center justify-center rounded-md bg-slate-950 px-2 py-1 text-sm font-semibold text-white">{Math.round(m.total_score)}</span>
-                    </TableCell>
-                    <TableCell className="text-xs capitalize">{pretty(m.boot_status)}</TableCell>
-                    <TableCell><StatusPill value={m.status} /></TableCell>
-                  </TableRow>;
+                  const conversation = connections.find((connection) => connection.match_id === m.id);
+                  return <MatchOpportunityCard key={m.id} match={m} exchange={exchange} currentProperty={currentProperty} candidate={candidate} candidateFinancial={candidate ? financialByProperty.get(candidate.id) : undefined} candidateImage={candidate ? firstImageByProperty.get(candidate.id) : undefined} accountOwner={agent(exchange?.agent_id ?? null)} managedFor={exchangeManagedForLabel(exchange?.owner_type, exchange?.client_id ? clientName.get(exchange.client_id) : null)} conversationStatus={conversation?.status ?? null} onOpen={() => navigate(`/admin/opportunities/matches/${m.id}`)} />;
                 })}
-              </TableBody>
-            </Table>
+            </div>
           </TableCard>
         </TabsContent>
 
@@ -506,6 +565,96 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
       </>}
     </div>
   );
+}
+
+function WorkflowTab({ value, label, detail, count, icon: Icon }: { value: string; label: string; detail: string; count: string; icon: LucideIcon }) {
+  return (
+    <TabsTrigger value={value} className="h-auto justify-start gap-3 rounded-lg px-3 py-3 text-left data-[state=active]:bg-white data-[state=active]:shadow-sm">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600"><Icon className="h-4 w-4" /></span>
+      <span className="min-w-0"><span className="flex items-center gap-1.5 text-sm font-semibold"><span>{label}</span><span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">{count}</span></span><span className="mt-0.5 hidden text-[11px] font-normal text-slate-500 sm:block">{detail}</span></span>
+    </TabsTrigger>
+  );
+}
+
+function PropertyDirectoryCard({ property, financial, image, matchCount, relationship, ownerType, ownerName, managedFor, onOpen }: {
+  property: Property;
+  financial?: Financials;
+  image?: PropertyImage;
+  matchCount: number;
+  relationship: string;
+  ownerType: string;
+  ownerName: string;
+  managedFor: string;
+  onOpen: () => void;
+}) {
+  return (
+    <button type="button" onClick={onOpen} className="group flex min-w-0 flex-col bg-white text-left transition hover:bg-slate-50 sm:flex-row">
+      <div className="relative h-40 shrink-0 overflow-hidden bg-slate-100 sm:h-auto sm:w-44">
+        {image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]" /> : <PropertyPhotoPlaceholder className="h-full min-h-40 w-full" compact />}
+        <Badge variant="outline" className="absolute left-3 top-3 border-white/70 bg-white/90 text-[10px] text-slate-700 shadow-sm">{relationship}</Badge>
+      </div>
+      <div className="min-w-0 flex-1 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">{resolveListingName(property, true)}</p><p className="mt-1 truncate text-xs text-slate-500">{[property.city, property.state].filter(Boolean).join(", ") || "Location not provided"} · {property.asset_type ? pretty(property.asset_type) : "Asset type not provided"}</p></div>
+          <StatusPill value={property.status} />
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-3 rounded-lg bg-slate-50 p-3">
+          <CompactFact label="Value" value={money(financial?.asking_price ?? financial?.appraised_value ?? null)} />
+          <CompactFact label="NOI" value={money(financial?.noi ?? null)} />
+          <CompactFact label="Cap rate" value={formatPercent(financial?.cap_rate)} />
+        </div>
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-slate-100 pt-3">
+          <div><p className="text-xs font-medium text-slate-800">{ownerName}</p><p className="mt-0.5 text-[10px] text-slate-500">{ownerType} · {managedFor}</p></div>
+          <div className="flex items-center gap-3"><span className="text-xs font-medium text-slate-600">{matchCount} {matchCount === 1 ? "match" : "matches"}</span><ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" /></div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function MatchOpportunityCard({ match, exchange, currentProperty, candidate, candidateFinancial, candidateImage, accountOwner, managedFor, conversationStatus, onOpen }: {
+  match: Match;
+  exchange?: Exchange;
+  currentProperty?: Property;
+  candidate?: Property;
+  candidateFinancial?: Financials;
+  candidateImage?: PropertyImage;
+  accountOwner: string;
+  managedFor: string;
+  conversationStatus: string | null;
+  onOpen: () => void;
+}) {
+  return (
+    <button type="button" onClick={onOpen} className="group block w-full p-4 text-left transition hover:bg-slate-50 sm:p-5">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+          <div className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-slate-100 sm:h-24 sm:w-32">{candidateImage ? <img src={resolvePropertyImageUrl(candidateImage.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full w-full" compact />}</div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2"><span className="rounded-md bg-slate-950 px-2 py-1 text-xs font-semibold text-white">{Math.round(match.total_score)} score</span><StatusPill value={match.status} />{conversationStatus && <Badge variant="outline" className="border-blue-200 bg-blue-50 text-[10px] text-blue-700">Conversation {pretty(conversationStatus)}</Badge>}</div>
+            <p className="mt-2 truncate text-base font-semibold text-slate-950 group-hover:text-emerald-700">{candidate ? resolveListingName(candidate, true) : "Matched property unavailable"}</p>
+            <p className="mt-1 truncate text-xs text-slate-500">Matched against {currentProperty ? resolveListingName(currentProperty, true) : "current property unavailable"}</p>
+          </div>
+        </div>
+        <div className="grid shrink-0 grid-cols-2 gap-x-6 gap-y-3 rounded-xl bg-slate-50 p-4 sm:grid-cols-4 xl:w-[560px]">
+          <CompactFact label="Purchase price" value={money(candidateFinancial?.asking_price ?? null)} />
+          <CompactFact label="Projected NOI" value={money(candidateFinancial?.noi ?? null)} />
+          <CompactFact label="ROE improvement" value={match.roe_improvement_pp != null ? `${match.roe_improvement_pp.toFixed(1)} pts` : "—"} />
+          <CompactFact label="Boot" value={pretty(match.boot_status)} />
+        </div>
+        <div className="flex shrink-0 items-center justify-between gap-3 xl:w-44 xl:justify-end"><div className="min-w-0 xl:text-right"><p className="truncate text-xs font-semibold text-slate-800">{accountOwner}</p><p className="mt-1 truncate text-[10px] text-slate-500">{managedFor} · {fmtDate(match.created_at)}</p></div><ArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" /></div>
+      </div>
+      {exchange && <span className="sr-only">Exchange {exchange.id}</span>}
+    </button>
+  );
+}
+
+function CompactFact({ label, value }: { label: string; value: React.ReactNode }) {
+  return <div className="min-w-0"><p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-slate-400">{label}</p><p className="mt-1 truncate text-xs font-semibold capitalize text-slate-800">{value || "—"}</p></div>;
+}
+
+function formatPercent(value: number | null | undefined) {
+  if (value == null) return "—";
+  return `${value.toFixed(2)}%`;
 }
 
 function ReseedStagingButton() {
