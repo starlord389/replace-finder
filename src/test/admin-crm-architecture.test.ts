@@ -45,6 +45,13 @@ describe("admin CRM architecture", () => {
     expect(detail).toContain('TabsTrigger value="matches"');
     expect(detail).toContain("ClientMatchGroup");
     expect(navigator).toContain("Agent conversations");
+    expect(navigator).toContain("Listings & drafts");
+    expect(navigator).toContain("Launchpad progress");
+    expect(detail).toContain("Draft workspaces");
+    expect(detail).toContain("Launchpad timestamps");
+    expect(detail).toContain("Full timestamped history");
+    expect(detail).toContain("Account created");
+    expect(detail).toContain("Pending invitations");
     expect(detail).toContain("CrmAccountControls");
   });
 

@@ -5,10 +5,14 @@ import {
   CalendarDays,
   CheckCircle2,
   CircleDollarSign,
+  Circle,
+  Clock3,
   ExternalLink,
   FileText,
   Home,
   ImageIcon,
+  Inbox,
+  KanbanSquare,
   LifeBuoy,
   Mail,
   MapPin,
@@ -16,8 +20,12 @@ import {
   Phone,
   ShieldCheck,
   Sparkles,
+  ListChecks,
+  Rocket,
   UserRound,
+  UserPlus,
   Users,
+  Workflow,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +70,8 @@ export default function WorkspaceRecordDetail(props: Props) {
   if (selection.type === "exchange" && selection.id && graph.exchangeById[selection.id]) {
     return <ExchangeRecord {...props} exchange={graph.exchangeById[selection.id]} />;
   }
+  if (selection.type === "listings") return <ListingsRecord {...props} />;
+  if (selection.type === "launchpad") return <LaunchpadRecord {...props} />;
   if (selection.type === "activity") return <ActivityRecord {...props} />;
   if (selection.type === "access") return <AccessRecord {...props} />;
   return <AccountRecord {...props} />;
@@ -76,6 +86,12 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
   const activeAgentRelationships = view.representations.filter((item) => item.status === "active").length;
   const representedOwners = view.representations.filter((item) => item.agent_id === data.profile.id);
   const recentActivity = buildEvents(data, view).slice(0, 7);
+  const launchpad = buildLaunchpadProgress(data, view);
+  const draftCount = view.exchanges.filter((exchange) => exchange.status === "draft").length;
+  const pendingRepresentationInvites = view.representationInvites.filter((invite) => invite.status === "pending").length;
+  const pendingClientInvites = view.clientInvites.filter((invite) => invite.status === "pending").length;
+  const openContactRequests = view.contactRequests.filter((request) => !["contacted", "declined", "cancelled"].includes(request.status)).length;
+  const unreadIncomingMessages = [...view.connectionMessageMetadata, ...view.collaborationMessageMetadata].filter((message) => message.senderId !== data.profile.id && !message.readAt).length;
   return (
     <div>
       <RecordHeader
@@ -162,9 +178,21 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
               </div>
             </Panel>
           )}
+          <Panel title="Relationship operations" detail="Invitations, representation work, private collaboration, and messages that still need attention.">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <button type="button" onClick={() => onSelect({ type: "activity" })} className="rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/30"><Mail className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{pendingRepresentationInvites + pendingClientInvites}</p><p className="mt-1 text-xs font-medium text-slate-700">Pending invitations</p><p className="mt-1 text-[10px] text-slate-400">{pendingRepresentationInvites} representation · {pendingClientInvites} client</p></button>
+              <Button asChild variant="outline" className="h-auto justify-start rounded-xl p-4 text-left"><Link to="/admin/representation-requests"><span><Users className="h-4 w-4 text-emerald-700" /><span className="mt-3 block text-xl font-semibold text-slate-950">{openContactRequests}</span><span className="mt-1 block text-xs font-medium text-slate-700">Open representation requests</span><span className="mt-1 block text-[10px] font-normal text-slate-400">Review and route agent coverage</span></span></Link></Button>
+              <button type="button" onClick={() => onSelect({ type: "activity" })} className="rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/30"><MessageSquare className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{view.collaborationThreads.length}</p><p className="mt-1 text-xs font-medium text-slate-700">Client-agent threads</p><p className="mt-1 text-[10px] text-slate-400">{view.collaborationMessageMetadata.length} recorded messages</p></button>
+              <button type="button" onClick={() => onSelect({ type: "activity" })} className={`rounded-xl border p-4 text-left transition hover:border-emerald-300 ${unreadIncomingMessages ? "border-amber-200 bg-amber-50" : "border-slate-200 hover:bg-emerald-50/30"}`}><Inbox className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{unreadIncomingMessages}</p><p className="mt-1 text-xs font-medium text-slate-700">Unread incoming messages</p><p className="mt-1 text-[10px] text-slate-400">Across agent and client conversations</p></button>
+            </div>
+          </Panel>
         </div>
 
         <div className="space-y-5">
+          <button type="button" onClick={() => onSelect({ type: "launchpad" })} className="w-full rounded-xl border border-slate-200 bg-white p-5 text-left transition hover:border-emerald-300 hover:shadow-sm">
+            <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Launchpad progress</p><p className="mt-1 text-sm font-semibold text-slate-950">{launchpad.completed} of {launchpad.steps.length} current steps complete</p><p className="mt-1 text-xs text-slate-500">{launchpad.completed === launchpad.steps.length ? `Completed ${formatDate(data.profile.launchpad_completed_at, true)}` : data.profile.launchpad_completed_at ? `A prior completion was recorded ${formatDate(data.profile.launchpad_completed_at, true)}` : "Onboarding is still in progress"}</p></div><span className="text-xl font-semibold text-slate-950">{launchpad.percent}%</span></div><div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${launchpad.percent}%` }} /></div><p className="mt-3 text-xs font-medium text-emerald-700">Open detailed launchpad audit →</p>
+          </button>
+          {draftCount > 0 && <button type="button" onClick={() => onSelect({ type: "listings" })} className="flex w-full items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left transition hover:border-amber-300"><span className="grid h-10 w-10 place-items-center rounded-lg bg-amber-100 text-amber-700"><ListChecks className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-amber-950">{draftCount} {draftCount === 1 ? "draft listing" : "draft listings"} in progress</span><span className="mt-0.5 block text-xs text-amber-800">Open the saved property and exchange data, completion state, and timestamps.</span></span><ArrowRight className="h-4 w-4 shrink-0 text-amber-700" /></button>}
           <Panel title="Account information" detail="Identity and operating context.">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
               <ProfileAvatar photoUrl={data.profile.profile_photo_url} name={name} className="h-12 w-12" />
@@ -195,15 +223,14 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
   );
 }
 
-function ClientRecord({ data, branch, onSelect }: Props & { branch: WorkspaceClientBranch }) {
+function ClientRecord({ data, view, branch, onSelect }: Props & { branch: WorkspaceClientBranch }) {
   const client = branch.client;
   const matchCount = branch.properties.reduce((sum, property) => sum + property.matches.length, 0);
   const exchangeIds = new Set(branch.exchanges.map((exchange) => exchange.id));
+  const propertyIds = new Set(branch.properties.map((property) => property.property.id));
   const matchIds = new Set(branch.properties.flatMap((property) => property.matches.map((match) => match.id)));
-  const clientEvents: EventItem[] = [
-    ...data.timeline.filter((event) => exchangeIds.has(event.exchange_id)).map((event) => ({ id: `timeline-${event.id}`, title: event.description, detail: `Exchange · ${sentence(event.event_type)}`, date: event.created_at, icon: ArrowRight })),
-    ...data.workflowEvents.filter((event) => matchIds.has(event.match_id)).map((event) => ({ id: `workflow-${event.id}`, title: `Match moved to ${sentence(event.to_stage)}`, detail: `Opportunity · ${sentence(event.source)}`, date: event.created_at, icon: Sparkles })),
-  ].sort((a, b) => b.date.localeCompare(a.date));
+  const clientEntityIds = new Set([client.id, ...exchangeIds, ...propertyIds, ...matchIds]);
+  const clientEvents = buildEvents(data, view).filter((event) => event.entityIds.some((id) => clientEntityIds.has(id)));
   return (
     <div>
       <RecordHeader
@@ -222,7 +249,7 @@ function ClientRecord({ data, branch, onSelect }: Props & { branch: WorkspaceCli
         <Tabs defaultValue="overview" className="space-y-5">
           <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-slate-100 p-1 sm:grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="properties">Properties ({branch.properties.length})</TabsTrigger>
+            <TabsTrigger value="properties">Listings & drafts ({branch.exchanges.length})</TabsTrigger>
             <TabsTrigger value="matches">Matches ({matchCount})</TabsTrigger>
             <TabsTrigger value="activity">Activity ({clientEvents.length})</TabsTrigger>
           </TabsList>
@@ -244,8 +271,8 @@ function ClientRecord({ data, branch, onSelect }: Props & { branch: WorkspaceCli
           </TabsContent>
 
           <TabsContent value="properties" className="mt-0">
-            <Panel title="Client properties" detail="The same listings and current-property records visible in the live agent workspace.">
-              {branch.properties.length ? <div className="grid gap-4 lg:grid-cols-2">{branch.properties.map((property) => <ClientPropertyCard key={property.property.id} data={data} branch={property} onSelect={onSelect} />)}</div> : <EmptyState icon={Home} title="No properties for this client" detail="No exchange or listing record is connected to this client." />}
+            <Panel title="Client listings and drafts" detail="Every exchange started for this client, including unfinished drafts that do not have a complete property record yet.">
+              {branch.exchanges.length ? <div className="space-y-3">{branch.exchanges.map((exchange) => { const propertyBranch = branch.properties.find((item) => item.exchange?.id === exchange.id); return <ListingWorkspaceCard key={exchange.id} data={data} exchange={exchange} propertyBranch={propertyBranch ?? null} clientName={client.client_name} onSelect={onSelect} />; })}</div> : <EmptyState icon={Home} title="No listings or drafts" detail="No exchange workspace has been started for this client." />}
             </Panel>
           </TabsContent>
 
@@ -260,6 +287,24 @@ function ClientRecord({ data, branch, onSelect }: Props & { branch: WorkspaceCli
       </div>
     </div>
   );
+}
+
+function ListingsRecord({ data, view, graph, onSelect }: Props) {
+  const exchangeEntries = view.exchanges.map((exchange) => ({
+    exchange,
+    propertyBranch: Object.values(graph.propertyById).find((branch) => branch.exchange?.id === exchange.id) ?? null,
+  }));
+  const exchangePropertyIds = new Set(exchangeEntries.flatMap((entry) => entry.propertyBranch ? [entry.propertyBranch.property.id] : []));
+  const standaloneProperties = view.properties.filter((property) => !exchangePropertyIds.has(property.id) && !property.exchange_id);
+  const drafts = exchangeEntries.filter((entry) => entry.exchange.status === "draft");
+  const published = exchangeEntries.filter((entry) => entry.exchange.status !== "draft");
+  return <div><RecordHeader eyebrow="Account operations" title="Listings & drafts" description="Every property and exchange workspace this user started, including incomplete drafts and the timestamps needed to understand where work stopped." /><div className="space-y-5 p-5"><section className="grid gap-3 sm:grid-cols-3"><Kpi label="Drafts" value={drafts.length} detail="Saved but not published" icon={ListChecks} /><Kpi label="Published" value={published.length} detail="Active or historical exchanges" icon={Building2} /><Kpi label="Standalone properties" value={standaloneProperties.length} detail="Not linked to an exchange" icon={Home} /></section>{drafts.length > 0 && <Panel title="Draft workspaces" detail="Drafts remain visible even when the user has not completed the address, financials, criteria, or property record."><div className="space-y-3">{drafts.map(({ exchange, propertyBranch }) => <ListingWorkspaceCard key={exchange.id} data={data} exchange={exchange} propertyBranch={propertyBranch} clientName={exchange.client_id ? data.clientsById[exchange.client_id]?.client_name : null} onSelect={onSelect} />)}</div></Panel>}<Panel title="Complete listing history" detail="Published, active, completed, cancelled, and standalone property records with their current completeness and timestamps."><div className="space-y-3">{published.map(({ exchange, propertyBranch }) => <ListingWorkspaceCard key={exchange.id} data={data} exchange={exchange} propertyBranch={propertyBranch} clientName={exchange.client_id ? data.clientsById[exchange.client_id]?.client_name : null} onSelect={onSelect} />)}{standaloneProperties.map((property) => { const branch = graph.propertyById[property.id]; return branch ? <ListingWorkspaceCard key={property.id} data={data} exchange={null} propertyBranch={branch} clientName={null} onSelect={onSelect} /> : null; })}{published.length === 0 && standaloneProperties.length === 0 && <EmptyState icon={Home} title="No published listings" detail="This account has not published or completed a property listing." />}</div></Panel></div></div>;
+}
+
+function LaunchpadRecord({ data, view }: Props) {
+  const progress = buildLaunchpadProgress(data, view);
+  const currentComplete = progress.completed === progress.steps.length;
+  return <div><RecordHeader eyebrow="Onboarding audit" title="Launchpad progress" description="The same completion signals used by the live workspace, with the stored or inferred timestamp behind every step." actions={<Badge className={currentComplete ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}>{currentComplete ? "Current steps complete" : data.profile.launchpad_completed_at ? "Previously completed" : "In progress"}</Badge>} /><div className="space-y-5 p-5"><Panel title={`${progress.completed} of ${progress.steps.length} current steps complete`} detail={`${progress.percent}% of the ${progress.audience} onboarding workflow has recorded activity. A stored completion timestamp is preserved separately so changes between launchpad versions remain visible.`}><div className="h-2.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${progress.percent}%` }} /></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><Fact label="Recorded completion" value={formatDate(data.profile.launchpad_completed_at, true)} /><Fact label="Launchpad version" value={data.profile.launchpad_version} /></div></Panel><div className="space-y-3">{progress.steps.map((step, index) => <section key={step.id} className={`rounded-xl border bg-white p-4 ${step.complete ? "border-emerald-200" : step.inProgress ? "border-amber-200" : "border-slate-200"}`}><div className="flex items-start gap-3"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-semibold ${step.complete ? "bg-emerald-100 text-emerald-700" : step.inProgress ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"}`}>{step.complete ? <CheckCircle2 className="h-4 w-4" /> : index + 1}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-2"><div><h2 className="text-sm font-semibold text-slate-950">{step.title}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{step.detail}</p></div><Status value={step.complete ? "completed" : step.inProgress ? "in_progress" : "not_started"} /></div><div className="mt-3 grid gap-3 border-t border-slate-100 pt-3 sm:grid-cols-2"><Fact label="Evidence" value={step.evidence} /><Fact label="Recorded at" value={formatDate(step.completedAt, true)} /></div></div></div></section>)}</div><Panel title="Launchpad timestamps" detail="Raw profile acknowledgements and completion records used by this onboarding audit."><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"><Fact label="Profile updated" value={formatDate(data.profile.updated_at, true)} /><Fact label="Matching walkthrough" value={formatDate(data.profile.launchpad_matching_ack_at, true)} /><Fact label="Matches opened" value={formatDate(data.profile.launchpad_matches_ack_at, true)} /><Fact label="Client requests walkthrough" value={formatDate(data.profile.launchpad_client_requests_ack_at, true)} /><Fact label="Pipeline opened" value={formatDate(data.profile.launchpad_pipeline_ack_at, true)} /><Fact label="Launchpad completed" value={formatDate(data.profile.launchpad_completed_at, true)} /></div></Panel></div></div>;
 }
 
 function PropertyRecord({ data, branch, onSelect }: Props & { branch: WorkspacePropertyBranch }) {
@@ -405,7 +450,11 @@ function ExchangeRecord({ data, exchange, graph, onSelect }: Props & { exchange:
 
 function ActivityRecord({ data, view }: Props) {
   const events = buildEvents(data, view);
-  return <div><RecordHeader eyebrow="Account history" title="Activity & support" description="A chronological view of deal, workflow, notification, and support activity." /><div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,.75fr)]"><Panel title="Activity timeline" detail="Newest activity appears first.">{events.length ? <EventList events={events} /> : <EmptyState icon={Activity} title="No activity" detail="No activity is available for this account." />}</Panel><Panel title="Support tickets" detail="Requests opened by this user.">{data.supportTickets.length ? <div className="space-y-3">{data.supportTickets.map((ticket) => <article key={ticket.id} className="rounded-xl border border-slate-200 p-4"><div className="flex items-start justify-between gap-3"><p className="text-sm font-semibold text-slate-900">{ticket.subject}</p><Status value={ticket.status} /></div><p className="mt-2 line-clamp-3 text-xs leading-5 text-slate-500">{ticket.message}</p><Button asChild variant="ghost" size="sm" className="mt-2 px-0"><Link to={`/admin/support?ticket=${ticket.id}`}>Open ticket<ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button></article>)}</div> : <EmptyState icon={LifeBuoy} title="No support tickets" detail="This user has not submitted a ticket." />}</Panel></div></div>;
+  const categoryCounts = events.reduce<Record<EventCategory, number>>((counts, event) => {
+    counts[event.category] += 1;
+    return counts;
+  }, { Account: 0, Onboarding: 0, Listings: 0, Matches: 0, Relationships: 0, Messages: 0, Support: 0, Admin: 0 });
+  return <div><RecordHeader eyebrow="Account history" title="Complete activity" description="Every available timestamp across the account lifecycle, onboarding, listings, matches, relationships, conversations, support, and administration." /><div className="space-y-5 p-5"><section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8">{(Object.entries(categoryCounts) as Array<[EventCategory, number]>).map(([category, count]) => <div key={category} className="rounded-xl border border-slate-200 bg-white p-3"><p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{category}</p><p className="mt-1 text-xl font-semibold text-slate-950">{count}</p></div>)}</section><div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,.65fr)]"><Panel title="Full timestamped history" detail={`${events.length} recorded events. Newest activity appears first and every row includes its exact timestamp.`}>{events.length ? <EventList events={events} /> : <EmptyState icon={Activity} title="No activity" detail="No activity is available for this account." />}</Panel><div className="space-y-5"><Panel title="Account lifecycle" detail="Canonical authentication and profile timestamps."><div className="grid grid-cols-2 gap-4"><Fact label="Account created" value={formatDate(data.authAccount?.created_at ?? data.profile.created_at, true)} /><Fact label="Email confirmed" value={formatDate(data.authAccount?.email_confirmed_at, true)} /><Fact label="Last sign-in" value={formatDate(data.authAccount?.last_sign_in_at, true)} /><Fact label="Profile updated" value={formatDate(data.profile.updated_at, true)} /><Fact label="Launchpad completed" value={formatDate(data.profile.launchpad_completed_at, true)} /><Fact label="Account suspended" value={formatDate(data.accountState?.suspended_at, true)} /></div></Panel><Panel title="Support tickets" detail="Requests opened by this user.">{data.supportTickets.length ? <div className="space-y-3">{data.supportTickets.map((ticket) => <article key={ticket.id} className="rounded-xl border border-slate-200 p-4"><div className="flex items-start justify-between gap-3"><p className="text-sm font-semibold text-slate-900">{ticket.subject}</p><Status value={ticket.status} /></div><p className="mt-2 line-clamp-3 text-xs leading-5 text-slate-500">{ticket.message}</p><p className="mt-2 text-[10px] text-slate-400">Opened {formatDate(ticket.created_at, true)} · Updated {formatDate(ticket.updated_at, true)}</p><Button asChild variant="ghost" size="sm" className="mt-2 px-0"><Link to={`/admin/support?ticket=${ticket.id}`}>Open ticket<ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button></article>)}</div> : <EmptyState icon={LifeBuoy} title="No support tickets" detail="This user has not submitted a ticket." />}</Panel></div></div></div></div>;
 }
 
 function AccessRecord({ data, onRefetch }: Props) {
@@ -427,6 +476,67 @@ function ClientRelationshipRow({ data, branch, onSelect }: { data: CrmUserWorksp
 
 function ClientMatchGroup({ data, branch, onSelect }: { data: CrmUserWorkspace; branch: WorkspacePropertyBranch; onSelect: (selection: WorkspaceSelection) => void }) {
   return <section className="overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3"><button type="button" onClick={() => onSelect({ type: "property", id: branch.property.id })} className="min-w-0 text-left"><p className="truncate text-sm font-semibold text-slate-950">{resolveListingName(branch.property, true)}</p><p className="mt-0.5 text-xs text-slate-500">Current property · {branch.matches.length} {branch.matches.length === 1 ? "matched opportunity" : "matched opportunities"}</p></button><Button variant="outline" size="sm" onClick={() => onSelect({ type: "property", id: branch.property.id })}>Open property</Button></div>{branch.matches.length ? <div className="divide-y divide-slate-100">{branch.matches.map((match) => { const candidate = data.propertiesById[match.seller_property_id]; const finance = candidate ? data.financialsByProperty[candidate.id] : null; const image = candidate ? data.imagesByProperty[candidate.id]?.[0] : null; const workflow = data.workflowStatesByMatch[match.id]; const connection = data.connections.find((item) => item.match_id === match.id); const messageCount = connection ? data.connectionMessageMetadata.filter((item) => item.parentId === connection.id).length : 0; return <div key={match.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><button type="button" onClick={() => onSelect({ type: "match", id: match.id })} className="flex min-w-0 flex-1 items-center gap-3 text-left"><div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">{image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full w-full" />}</div><div className="min-w-0 flex-1"><div className="flex items-center gap-2"><p className="truncate text-sm font-semibold text-slate-950">{candidate ? resolveListingName(candidate, true) : "Matched property"}</p><span className="rounded-md bg-slate-950 px-1.5 py-0.5 text-[10px] font-semibold text-white">{Math.round(match.total_score)}</span></div><p className="mt-1 text-xs text-slate-500">{formatCurrency(finance?.asking_price)} · {percent(finance?.cap_rate)} cap · {formatCurrency(finance?.noi)} NOI</p><div className="mt-2 flex flex-wrap gap-2"><Status value={workflow?.current_stage ?? match.status} />{connection && <Status value={connection.status} />}</div></div></button><div className="flex shrink-0 gap-2 sm:flex-col"><Button variant="outline" size="sm" className="flex-1" onClick={() => onSelect({ type: "match", id: match.id })}>Open match</Button>{connection && <Button asChild size="sm" className="flex-1"><Link to={`/admin/opportunities/connections/${connection.id}`}><MessageSquare className="mr-1.5 h-3.5 w-3.5" />{messageCount} {messageCount === 1 ? "message" : "messages"}</Link></Button>}</div></div>; })}</div> : <div className="p-6"><EmptyState icon={Sparkles} title="No matches yet" detail="ExchangeUp has not found a replacement opportunity for this property." /></div>}</section>;
+}
+
+function ListingWorkspaceCard({ data, exchange, propertyBranch, clientName, onSelect }: { data: CrmUserWorkspace; exchange: CrmUserWorkspace["exchanges"][number] | null; propertyBranch: WorkspacePropertyBranch | null; clientName: string | null | undefined; onSelect: (selection: WorkspaceSelection) => void }) {
+  const property = propertyBranch?.property ?? null;
+  const finance = property ? data.financialsByProperty[property.id] : null;
+  const image = property ? data.imagesByProperty[property.id]?.[0] : null;
+  const criteria = exchange ? data.criteriaByExchange[exchange.id] : null;
+  const completeness = [Boolean(property?.address), Boolean(finance), Boolean(criteria), Boolean(property && (data.imagesByProperty[property.id]?.length ?? 0) > 0)];
+  const completedParts = completeness.filter(Boolean).length;
+  const title = property ? resolveListingName(property, true) : "Untitled draft exchange";
+  const status = exchange?.status ?? property?.status ?? "draft";
+  return <article className="overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="flex flex-col sm:flex-row"><div className="h-36 bg-slate-100 sm:h-auto sm:w-44">{image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full min-h-32 w-full" />}</div><div className="min-w-0 flex-1 p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold text-slate-950">{title}</h3><Status value={status} />{exchange?.is_demo && <Badge className="bg-amber-100 text-amber-800">Demo</Badge>}</div><p className="mt-1 text-xs text-slate-500">{clientName ? `Client: ${clientName}` : sentence(exchange?.owner_type ?? "standalone listing")} · {property?.asset_type ? sentence(property.asset_type) : "Property type not entered"}</p></div><div className="text-right"><p className="text-xs font-semibold text-slate-900">{completedParts}/4 core sections</p><p className="text-[10px] text-slate-400">Address · financials · criteria · photos</p></div></div><div className="mt-4 grid grid-cols-2 gap-3 border-y border-slate-100 py-3 lg:grid-cols-4"><Fact label="Created" value={formatDate(exchange?.created_at ?? property?.created_at, true)} /><Fact label="Last updated" value={formatDate(exchange?.updated_at ?? property?.updated_at, true)} /><Fact label="Published/listed" value={formatDate(property?.listed_at, true)} /><Fact label="Matches" value={propertyBranch?.matches.length ?? 0} /></div><div className="mt-3 flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-slate-500">{property ? `${[property.city, property.state].filter(Boolean).join(", ") || "Address is incomplete"} · ${formatCurrency(finance?.asking_price ?? finance?.appraised_value) || "Value not entered"}` : "The user saved the exchange before creating a complete property record."}</p><div className="flex gap-2">{property && <Button variant="outline" size="sm" onClick={() => onSelect({ type: "property", id: property.id })}>Open property</Button>}{exchange && <Button asChild size="sm"><Link to={`/admin/opportunities/exchanges/${exchange.id}`}>Open workspace<ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button>}</div></div></div></div></article>;
+}
+
+type LaunchpadAuditStep = { id: string; title: string; detail: string; complete: boolean; inProgress: boolean; evidence: string; completedAt: string | null };
+type LaunchpadAudit = { audience: "agent" | "property-owner"; completed: number; percent: number; steps: LaunchpadAuditStep[] };
+
+function buildLaunchpadProgress(data: CrmUserWorkspace, view: CrmUserWorkspaceView): LaunchpadAudit {
+  const isAgent = data.roles.includes("agent");
+  const latest = (values: Array<string | null | undefined>) => values.filter((value): value is string => Boolean(value)).sort().at(-1) ?? null;
+  const activeConnection = view.connections.find((connection) => ["accepted", "in_progress", "completed"].includes(connection.status));
+  const viewedMatch = view.matches.find((match) => match.buyer_agent_id === data.profile.id ? match.buyer_agent_viewed : match.seller_agent_id === data.profile.id ? match.seller_agent_viewed : match.buyer_agent_viewed || match.seller_agent_viewed);
+  let steps: LaunchpadAuditStep[];
+  if (isAgent) {
+    const filledProfile = [data.profile.brokerage_name?.trim(), data.profile.brokerage_address?.trim(), data.profile.bio?.trim(), data.profile.specializations?.length ? "specializations" : ""].filter(Boolean).length;
+    const profileComplete = filledProfile === 4;
+    const client = view.clients[0];
+    const exchange = view.exchanges[0];
+    const matchingComplete = Boolean(data.profile.launchpad_matching_ack_at);
+    const matchesComplete = Boolean(data.profile.launchpad_matches_ack_at) || Boolean(viewedMatch);
+    const requestsComplete = Boolean(data.profile.launchpad_client_requests_ack_at);
+    const pipelineComplete = Boolean(data.profile.launchpad_pipeline_ack_at) || Boolean(activeConnection);
+    steps = [
+      { id: "profile", title: "Complete agent profile", detail: "Brokerage, brokerage address, bio, and specializations are the four live profile signals.", complete: profileComplete, inProgress: filledProfile > 0 && !profileComplete, evidence: `${filledProfile} of 4 profile sections completed`, completedAt: profileComplete ? data.profile.updated_at : null },
+      { id: "client", title: "Add first client", detail: "At least one agent client record exists in the selected workspace scope.", complete: Boolean(client), inProgress: false, evidence: `${view.clients.length} client records`, completedAt: client?.created_at ?? null },
+      { id: "exchange", title: "Create first listing", detail: "A draft counts as started; publishing is tracked separately in Listings & Drafts.", complete: Boolean(exchange), inProgress: false, evidence: `${view.exchanges.length} exchange workspaces`, completedAt: exchange?.created_at ?? null },
+      { id: "matching", title: "View matching walkthrough", detail: "Recorded when the agent opens the matching explanation in the live launchpad.", complete: matchingComplete, inProgress: false, evidence: matchingComplete ? "Walkthrough acknowledged" : "No acknowledgement recorded", completedAt: data.profile.launchpad_matching_ack_at },
+      { id: "matches", title: "Review matches", detail: "Recorded by the Matches acknowledgement or by actually opening a match.", complete: matchesComplete, inProgress: view.matches.length > 0 && !matchesComplete, evidence: matchesComplete ? "Match review activity recorded" : `${view.matches.length} available matches, none opened`, completedAt: data.profile.launchpad_matches_ack_at ?? (viewedMatch?.buyer_agent_viewed_at || viewedMatch?.seller_agent_viewed_at) },
+      { id: "clientRequests", title: "Understand client requests", detail: "Recorded when the agent opens the Client Requests walkthrough.", complete: requestsComplete, inProgress: view.contactRequests.length > 0 && !requestsComplete, evidence: requestsComplete ? "Walkthrough acknowledged" : `${view.contactRequests.length} client requests`, completedAt: data.profile.launchpad_client_requests_ack_at },
+      { id: "pipeline", title: "Use the pipeline", detail: "Recorded by opening Pipeline or by an accepted, under-contract, or completed agent connection.", complete: pipelineComplete, inProgress: view.connections.length > 0 && !pipelineComplete, evidence: pipelineComplete ? "Pipeline activity recorded" : `${view.connections.length} conversations, no active pipeline activity`, completedAt: data.profile.launchpad_pipeline_ack_at ?? activeConnection?.accepted_at ?? activeConnection?.under_contract_at ?? activeConnection?.closed_at },
+    ];
+  } else {
+    const profileValues = [data.profile.full_name, data.profile.profile_photo_url, data.profile.profile_headline, data.profile.bio, data.profile.specializations?.length ? "specializations" : "", data.profile.service_areas?.length ? "service areas" : ""];
+    const filledProfile = profileValues.filter((value) => Boolean(value && String(value).trim())).length;
+    const profileComplete = Boolean(data.profile.full_name?.trim()) && filledProfile >= 3;
+    const listing = view.exchanges[0];
+    const published = view.exchanges.find((exchange) => exchange.status !== "draft");
+    const matchingComplete = view.matches.length > 0 || Boolean(data.profile.launchpad_matching_ack_at);
+    const reviewed = view.savedProperties.length > 0 || view.contactRequests.length > 0 || view.connections.length > 0;
+    const pipeline = view.connections.find((connection) => ["accepted", "in_progress", "completed"].includes(connection.status));
+    steps = [
+      { id: "profile", title: "Introduce themselves", detail: "Name plus at least two recommended trust-profile details are used by the live owner launchpad.", complete: profileComplete, inProgress: filledProfile > 0 && !profileComplete, evidence: `${filledProfile} of 6 recommended profile details`, completedAt: profileComplete ? data.profile.updated_at : null },
+      { id: "listing", title: "List current property", detail: "A saved draft or active exchange counts as a listing started.", complete: Boolean(listing), inProgress: false, evidence: `${view.exchanges.length} ${view.exchanges.length === 1 ? "exchange workspace" : "exchange workspaces"}`, completedAt: listing?.created_at ?? null },
+      { id: "publish", title: "Publish exchange", detail: "At least one exchange has moved beyond draft status.", complete: Boolean(published), inProgress: Boolean(listing) && !published, evidence: published ? `${sentence(published.status)} exchange` : listing ? "Draft saved, not published" : "No listing started", completedAt: published?.updated_at ?? null },
+      { id: "matching", title: "Reach automatic matching", detail: "The owner walkthrough is not persistently acknowledged, so generated matches are used as operational evidence.", complete: matchingComplete, inProgress: Boolean(published) && !matchingComplete, evidence: matchingComplete ? `${view.matches.length} matches generated` : "No matching activity yet", completedAt: data.profile.launchpad_matching_ack_at ?? view.matches[0]?.created_at ?? null },
+      { id: "matches", title: "Review qualified matches", detail: "Saving a property, requesting agent contact, or creating a connection shows the owner acted on a match.", complete: reviewed, inProgress: view.matches.length > 0 && !reviewed, evidence: reviewed ? "Match action recorded" : `${view.matches.length} matches, no downstream action`, completedAt: latest([view.savedProperties[0]?.created_at, view.contactRequests[0]?.requested_at, view.connections[0]?.created_at]) },
+      { id: "pipeline", title: "Move an opportunity forward", detail: "An accepted, under-contract, or completed agent conversation counts as pipeline activity.", complete: Boolean(pipeline), inProgress: view.connections.length > 0 && !pipeline, evidence: pipeline ? sentence(pipeline.status) : `${view.connections.length} conversations, none active`, completedAt: pipeline?.accepted_at ?? pipeline?.under_contract_at ?? pipeline?.closed_at ?? null },
+    ];
+  }
+  const completed = steps.filter((step) => step.complete).length;
+  return { audience: isAgent ? "agent" : "property-owner", completed, percent: Math.round((completed / steps.length) * 100), steps };
 }
 
 function CompactPropertyCard({ data, branch, onClick }: { data: CrmUserWorkspace; branch: WorkspacePropertyBranch; onClick: () => void }) {
@@ -455,6 +565,139 @@ function initials(value: string) { return value.split(/\s+/).filter(Boolean).sli
 function percent(value: number | null | undefined) { return value == null ? "" : `${value.toFixed(2)}%`; }
 function percentRatio(value: number | null | undefined) { return value == null ? "" : `${(value * 100).toFixed(2)}%`; }
 
-type EventItem = { id: string; title: string; detail: string; date: string; icon: typeof Activity };
-function buildEvents(data: CrmUserWorkspace, view: CrmUserWorkspaceView): EventItem[] { return [...view.timeline.map((item) => ({ id: `timeline-${item.id}`, title: item.description, detail: `Exchange · ${sentence(item.event_type)}`, date: item.created_at, icon: ArrowRight })), ...view.workflowEvents.map((item) => ({ id: `workflow-${item.id}`, title: `Match moved to ${sentence(item.to_stage)}`, detail: `Workflow · ${sentence(item.source)}`, date: item.created_at, icon: Sparkles })), ...data.notifications.map((item) => ({ id: `notification-${item.id}`, title: item.title, detail: `Notification · ${item.read ? "Read" : "Unread"}`, date: item.created_at, icon: CheckCircle2 })), ...data.supportTickets.map((item) => ({ id: `ticket-${item.id}`, title: item.subject, detail: `Support · ${sentence(item.status)}`, date: item.updated_at, icon: LifeBuoy })), ...data.auditLog.map((item) => ({ id: `audit-${item.id}`, title: item.summary || sentence(item.action), detail: `Admin audit · ${sentence(item.action)}`, date: item.created_at, icon: ShieldCheck }))].sort((a, b) => b.date.localeCompare(a.date)); }
-function EventList({ events, compact = false }: { events: EventItem[]; compact?: boolean }) { return <div className="divide-y divide-slate-100">{events.map((event) => <div key={event.id} className="flex gap-3 py-3 first:pt-0 last:pb-0"><span className="mt-0.5 rounded-full bg-slate-100 p-2"><event.icon className="h-3.5 w-3.5 text-slate-500" /></span><span className="min-w-0 flex-1"><span className="block text-sm font-medium text-slate-900">{event.title}</span><span className="mt-0.5 block text-xs text-slate-500">{event.detail}</span></span>{!compact && <span className="shrink-0 text-[11px] text-slate-400">{formatDate(event.date, true)}</span>}</div>)}</div>; }
+type EventCategory = "Account" | "Onboarding" | "Listings" | "Matches" | "Relationships" | "Messages" | "Support" | "Admin";
+type EventItem = {
+  id: string;
+  title: string;
+  detail: string;
+  date: string;
+  icon: typeof Activity;
+  category: EventCategory;
+  entityIds: string[];
+};
+
+function buildEvents(data: CrmUserWorkspace, view: CrmUserWorkspaceView): EventItem[] {
+  const events: EventItem[] = [];
+  const add = (event: Omit<EventItem, "entityIds"> & { entityIds?: Array<string | null | undefined> }) => {
+    if (!event.date) return;
+    events.push({ ...event, entityIds: event.entityIds?.filter((id): id is string => Boolean(id)) ?? [] });
+  };
+  const changedLater = (createdAt: string, updatedAt: string | null | undefined) =>
+    Boolean(updatedAt && Math.abs(new Date(updatedAt).getTime() - new Date(createdAt).getTime()) > 60_000);
+  const propertyName = (propertyId: string) => {
+    const property = data.propertiesById[propertyId];
+    return property ? resolveListingName(property, true) : "property";
+  };
+
+  add({ id: "account-created", title: "Account created", detail: data.authAccount?.email || data.profile.email || "ExchangeUp account", date: data.authAccount?.created_at ?? data.profile.created_at, icon: UserPlus, category: "Account" });
+  if (data.authAccount?.email_confirmed_at) add({ id: "email-confirmed", title: "Email address confirmed", detail: data.authAccount.email || data.profile.email || "Authentication", date: data.authAccount.email_confirmed_at, icon: CheckCircle2, category: "Account" });
+  if (data.authAccount?.phone_confirmed_at) add({ id: "phone-confirmed", title: "Phone number confirmed", detail: data.authAccount.phone || data.profile.phone || "Authentication", date: data.authAccount.phone_confirmed_at, icon: CheckCircle2, category: "Account" });
+  if (data.authAccount?.last_sign_in_at) add({ id: "last-sign-in", title: "Most recent sign-in", detail: "Authentication activity", date: data.authAccount.last_sign_in_at, icon: Clock3, category: "Account" });
+  add({ id: "profile-created", title: "Profile created", detail: data.profile.full_name || data.profile.email || "User profile", date: data.profile.created_at, icon: UserRound, category: "Account" });
+  if (changedLater(data.profile.created_at, data.profile.updated_at)) add({ id: "profile-updated", title: "Profile last updated", detail: "Contact, company, brokerage, or trust-profile information changed", date: data.profile.updated_at, icon: UserRound, category: "Account" });
+  if (data.accountState?.suspended_at) add({ id: "account-suspended", title: "Account suspended", detail: data.accountState.suspension_reason || "Administrative account restriction", date: data.accountState.suspended_at, icon: ShieldCheck, category: "Admin" });
+  if (data.accountState?.reactivated_at) add({ id: "account-reactivated", title: "Account reactivated", detail: "Application access restored", date: data.accountState.reactivated_at, icon: ShieldCheck, category: "Admin" });
+
+  const launchpadMilestones: Array<[string, string, string | null]> = [
+    ["matching", "Matching walkthrough acknowledged", data.profile.launchpad_matching_ack_at],
+    ["matches", "Matches walkthrough acknowledged", data.profile.launchpad_matches_ack_at],
+    ["requests", "Client requests walkthrough acknowledged", data.profile.launchpad_client_requests_ack_at],
+    ["pipeline", "Pipeline walkthrough acknowledged", data.profile.launchpad_pipeline_ack_at],
+    ["completed", "Launchpad completed", data.profile.launchpad_completed_at],
+  ];
+  launchpadMilestones.forEach(([key, title, date]) => date && add({ id: `launchpad-${key}`, title, detail: `Onboarding${data.profile.launchpad_version ? ` · Version ${data.profile.launchpad_version}` : ""}`, date, icon: Rocket, category: "Onboarding" }));
+
+  view.clients.forEach((client) => {
+    add({ id: `client-created-${client.id}`, title: `Client added: ${client.client_name}`, detail: `${sentence(client.status)} client record`, date: client.created_at, icon: Users, category: "Relationships", entityIds: [client.id] });
+    if (changedLater(client.created_at, client.updated_at)) add({ id: `client-updated-${client.id}`, title: `Client updated: ${client.client_name}`, detail: `${sentence(client.status)} client record`, date: client.updated_at, icon: Users, category: "Relationships", entityIds: [client.id] });
+  });
+
+  view.exchanges.forEach((exchange) => {
+    const client = exchange.client_id ? data.clientsById[exchange.client_id] : null;
+    const property = exchange.relinquished_property_id ? data.propertiesById[exchange.relinquished_property_id] : Object.values(data.propertiesById).find((item) => item.exchange_id === exchange.id);
+    const label = property ? resolveListingName(property, true) : client?.client_name || "Untitled draft exchange";
+    add({ id: `exchange-created-${exchange.id}`, title: exchange.status === "draft" ? `Draft started: ${label}` : `Exchange created: ${label}`, detail: `${sentence(exchange.owner_type)} workspace · ${sentence(exchange.status)}`, date: exchange.created_at, icon: ListChecks, category: "Listings", entityIds: [exchange.id, exchange.client_id, property?.id] });
+    if (changedLater(exchange.created_at, exchange.updated_at)) add({ id: `exchange-updated-${exchange.id}`, title: `Exchange updated: ${label}`, detail: `Current status · ${sentence(exchange.status)}`, date: exchange.updated_at, icon: ListChecks, category: "Listings", entityIds: [exchange.id, exchange.client_id, property?.id] });
+    if (exchange.actual_close_date) add({ id: `exchange-closed-${exchange.id}`, title: `Exchange closed: ${label}`, detail: "Actual closing date", date: exchange.actual_close_date, icon: CheckCircle2, category: "Listings", entityIds: [exchange.id, exchange.client_id, property?.id] });
+  });
+
+  view.properties.forEach((property) => {
+    const label = resolveListingName(property, true);
+    add({ id: `property-created-${property.id}`, title: `Property record created: ${label}`, detail: `${sentence(property.asset_type)} · ${sentence(property.status)}`, date: property.created_at, icon: Home, category: "Listings", entityIds: [property.id, property.exchange_id] });
+    if (changedLater(property.created_at, property.updated_at)) add({ id: `property-updated-${property.id}`, title: `Property updated: ${label}`, detail: `${sentence(property.asset_type)} · ${sentence(property.status)}`, date: property.updated_at, icon: Home, category: "Listings", entityIds: [property.id, property.exchange_id] });
+    if (property.listed_at) add({ id: `property-listed-${property.id}`, title: `Listing published: ${label}`, detail: `${sentence(property.asset_type)} listing`, date: property.listed_at, icon: Building2, category: "Listings", entityIds: [property.id, property.exchange_id] });
+    if (property.withdrawn_at) add({ id: `property-withdrawn-${property.id}`, title: `Listing withdrawn: ${label}`, detail: "Property removed from active inventory", date: property.withdrawn_at, icon: Building2, category: "Listings", entityIds: [property.id, property.exchange_id] });
+  });
+
+  view.matches.forEach((match) => {
+    const label = propertyName(match.seller_property_id);
+    add({ id: `match-created-${match.id}`, title: `Match generated: ${label}`, detail: `${Math.round(match.total_score)} match score · ${sentence(match.status)}`, date: match.created_at, icon: Sparkles, category: "Matches", entityIds: [match.id, match.buyer_exchange_id, match.seller_property_id, match.relinquished_property_id, match.buyer_client_id, match.seller_client_id] });
+    if (match.buyer_agent_viewed_at) add({ id: `match-buyer-viewed-${match.id}`, title: `Buyer side reviewed: ${label}`, detail: "Match opened by the buyer-side agent", date: match.buyer_agent_viewed_at, icon: Inbox, category: "Matches", entityIds: [match.id, match.buyer_exchange_id, match.seller_property_id] });
+    if (match.seller_agent_viewed_at) add({ id: `match-seller-viewed-${match.id}`, title: `Listing side reviewed: ${label}`, detail: "Match opened by the listing-side agent", date: match.seller_agent_viewed_at, icon: Inbox, category: "Matches", entityIds: [match.id, match.buyer_exchange_id, match.seller_property_id] });
+  });
+
+  view.timeline.forEach((item) => add({ id: `timeline-${item.id}`, title: item.description, detail: `Exchange timeline · ${sentence(item.event_type)}`, date: item.created_at, icon: ArrowRight, category: "Listings", entityIds: [item.exchange_id] }));
+  view.workflowEvents.forEach((item) => add({ id: `workflow-${item.id}`, title: `Match moved to ${sentence(item.to_stage)}`, detail: `Workflow · ${sentence(item.source)}`, date: item.created_at, icon: Workflow, category: "Matches", entityIds: [item.match_id] }));
+
+  view.representations.forEach((row) => {
+    add({ id: `representation-created-${row.id}`, title: "Agent relationship created", detail: `${row.agent_email} ↔ ${row.investor_email} · ${sentence(row.source)}`, date: row.created_at, icon: Users, category: "Relationships", entityIds: [row.id, row.requested_exchange_id, row.agent_id, row.investor_id] });
+    if (row.accepted_at) add({ id: `representation-accepted-${row.id}`, title: "Agent relationship accepted", detail: `${row.agent_email} ↔ ${row.investor_email}`, date: row.accepted_at, icon: CheckCircle2, category: "Relationships", entityIds: [row.id, row.requested_exchange_id, row.agent_id, row.investor_id] });
+    if (row.revoked_at) add({ id: `representation-revoked-${row.id}`, title: "Agent relationship ended", detail: row.ended_reason || sentence(row.status), date: row.revoked_at, icon: Users, category: "Relationships", entityIds: [row.id, row.requested_exchange_id, row.agent_id, row.investor_id] });
+  });
+  view.representationInvites.forEach((row) => {
+    add({ id: `representation-invite-${row.id}`, title: `Representation invitation sent to ${row.email}`, detail: `${sentence(row.direction)} · ${sentence(row.delivery_status)}`, date: row.created_at, icon: Mail, category: "Relationships", entityIds: [row.id, row.representation_id] });
+    if (row.accepted_at) add({ id: `representation-invite-accepted-${row.id}`, title: `Invitation accepted by ${row.email}`, detail: "Representation invitation", date: row.accepted_at, icon: CheckCircle2, category: "Relationships", entityIds: [row.id, row.representation_id] });
+    if (row.cancelled_at) add({ id: `representation-invite-cancelled-${row.id}`, title: `Invitation cancelled for ${row.email}`, detail: "Representation invitation", date: row.cancelled_at, icon: Mail, category: "Relationships", entityIds: [row.id, row.representation_id] });
+  });
+  view.assignments.forEach((row) => {
+    add({ id: `assignment-${row.id}`, title: "Agent assigned to exchange", detail: `${row.is_primary ? "Primary" : "Additional"} assignment · ${sentence(row.status)}`, date: row.assigned_at, icon: UserPlus, category: "Relationships", entityIds: [row.id, row.exchange_id, row.representation_id, row.agent_id, row.investor_id] });
+    if (row.revoked_at) add({ id: `assignment-revoked-${row.id}`, title: "Agent removed from exchange", detail: "Assignment history preserved", date: row.revoked_at, icon: Users, category: "Relationships", entityIds: [row.id, row.exchange_id, row.representation_id, row.agent_id, row.investor_id] });
+  });
+  view.contactRequests.forEach((row) => {
+    add({ id: `contact-request-${row.id}`, title: `Agent contact requested for ${propertyName(row.property_id)}`, detail: sentence(row.status), date: row.requested_at, icon: MessageSquare, category: "Relationships", entityIds: [row.id, row.exchange_id, row.match_id, row.property_id] });
+    if (row.acted_at) add({ id: `contact-request-acted-${row.id}`, title: `Contact request ${sentence(row.status)}`, detail: propertyName(row.property_id), date: row.acted_at, icon: MessageSquare, category: "Relationships", entityIds: [row.id, row.exchange_id, row.match_id, row.property_id] });
+  });
+  view.recommendations.forEach((row) => {
+    add({ id: `recommendation-${row.id}`, title: `Match recommended to client`, detail: sentence(row.response), date: row.created_at, icon: Sparkles, category: "Matches", entityIds: [row.id, row.exchange_id, row.match_id] });
+    if (row.responded_at) add({ id: `recommendation-response-${row.id}`, title: `Client ${sentence(row.response)}`, detail: "Match recommendation response", date: row.responded_at, icon: CheckCircle2, category: "Matches", entityIds: [row.id, row.exchange_id, row.match_id] });
+  });
+  view.connectionIntents.forEach((row) => {
+    add({ id: `connection-intent-${row.id}`, title: "Agent connection requested", detail: `${sentence(row.status)} · Waiting on ${sentence(row.waiting_on_side)}`, date: row.created_at, icon: MessageSquare, category: "Relationships", entityIds: [row.id, row.buyer_exchange_id, row.seller_exchange_id, row.match_id, row.property_id] });
+    if (row.resolved_at) add({ id: `connection-intent-resolved-${row.id}`, title: `Connection request ${sentence(row.status)}`, detail: row.resolution_note || "Agent connection intent resolved", date: row.resolved_at, icon: CheckCircle2, category: "Relationships", entityIds: [row.id, row.connection_id, row.buyer_exchange_id, row.seller_exchange_id, row.match_id, row.property_id] });
+  });
+  view.connections.forEach((row) => {
+    add({ id: `connection-${row.id}`, title: "Agent conversation started", detail: `${sentence(row.status)} · Match conversation`, date: row.initiated_at || row.created_at, icon: MessageSquare, category: "Messages", entityIds: [row.id, row.buyer_exchange_id, row.seller_exchange_id, row.match_id] });
+    if (row.accepted_at) add({ id: `connection-accepted-${row.id}`, title: "Agent conversation activated", detail: "Both agents can exchange messages", date: row.accepted_at, icon: MessageSquare, category: "Messages", entityIds: [row.id, row.buyer_exchange_id, row.seller_exchange_id, row.match_id] });
+    if (row.under_contract_at) add({ id: `connection-contract-${row.id}`, title: "Opportunity moved under contract", detail: "Agent-to-agent deal workflow", date: row.under_contract_at, icon: KanbanSquare, category: "Matches", entityIds: [row.id, row.buyer_exchange_id, row.seller_exchange_id, row.match_id] });
+    if (row.closed_at) add({ id: `connection-closed-${row.id}`, title: `Conversation ${sentence(row.status)}`, detail: "Agent-to-agent deal workflow", date: row.closed_at, icon: CheckCircle2, category: "Matches", entityIds: [row.id, row.buyer_exchange_id, row.seller_exchange_id, row.match_id] });
+    if (row.declined_at) add({ id: `connection-declined-${row.id}`, title: "Opportunity declined", detail: row.decline_reason || "Agent-to-agent connection", date: row.declined_at, icon: MessageSquare, category: "Matches", entityIds: [row.id, row.buyer_exchange_id, row.seller_exchange_id, row.match_id] });
+    if (row.failed_at) add({ id: `connection-failed-${row.id}`, title: "Opportunity failed", detail: row.failure_reason || "Agent-to-agent connection", date: row.failed_at, icon: MessageSquare, category: "Matches", entityIds: [row.id, row.buyer_exchange_id, row.seller_exchange_id, row.match_id] });
+  });
+  view.collaborationThreads.forEach((row) => add({ id: `thread-${row.id}`, title: "Private client-agent thread created", detail: "Client collaboration workspace", date: row.created_at, icon: MessageSquare, category: "Messages", entityIds: [row.id, row.exchange_id, row.match_id, row.representation_id] }));
+  [...view.connectionMessageMetadata, ...view.collaborationMessageMetadata].forEach((row) => add({ id: `message-${row.id}`, title: "Message sent", detail: row.readAt ? `Read ${formatDate(row.readAt, true)}` : "Unread", date: row.createdAt, icon: MessageSquare, category: "Messages", entityIds: [row.parentId, row.senderId] }));
+  view.savedProperties.forEach((row) => add({ id: `saved-${row.id}`, title: `Property saved: ${propertyName(row.property_id)}`, detail: "Saved by property owner", date: row.created_at, icon: Home, category: "Matches", entityIds: [row.id, row.property_id] }));
+  view.listingInquiries.forEach((row) => {
+    add({ id: `inquiry-${row.id}`, title: `Listing inquiry created: ${propertyName(row.property_id)}`, detail: sentence(row.status), date: row.created_at, icon: MessageSquare, category: "Relationships", entityIds: [row.id, row.property_id] });
+    if (row.responded_at) add({ id: `inquiry-response-${row.id}`, title: `Listing inquiry ${sentence(row.status)}`, detail: propertyName(row.property_id), date: row.responded_at, icon: MessageSquare, category: "Relationships", entityIds: [row.id, row.property_id] });
+  });
+  view.clientInvites.forEach((row) => {
+    add({ id: `client-invite-${row.id}`, title: `Client invited: ${row.email}`, detail: sentence(row.status), date: row.created_at, icon: Mail, category: "Relationships", entityIds: [row.id, row.client_id] });
+    if (row.accepted_at) add({ id: `client-invite-accepted-${row.id}`, title: `Client joined: ${row.email}`, detail: "Client workspace invitation accepted", date: row.accepted_at, icon: CheckCircle2, category: "Relationships", entityIds: [row.id, row.client_id, row.accepted_user_id] });
+  });
+  view.identificationList.forEach((row) => {
+    add({ id: `identification-${row.id}`, title: `Property added to identification list`, detail: `Position ${row.position} · ${sentence(row.status)}`, date: row.added_at, icon: ListChecks, category: "Matches", entityIds: [row.id, row.exchange_id, row.match_id, row.property_id] });
+    if (row.removed_at) add({ id: `identification-removed-${row.id}`, title: "Property removed from identification list", detail: propertyName(row.property_id), date: row.removed_at, icon: ListChecks, category: "Matches", entityIds: [row.id, row.exchange_id, row.match_id, row.property_id] });
+  });
+  data.notifications.forEach((row) => add({ id: `notification-${row.id}`, title: row.title, detail: `Notification · ${row.read ? "Read" : "Unread"}`, date: row.created_at, icon: CheckCircle2, category: "Account" }));
+  data.supportTickets.forEach((row) => {
+    add({ id: `ticket-created-${row.id}`, title: `Support ticket opened: ${row.subject}`, detail: sentence(row.category), date: row.created_at, icon: LifeBuoy, category: "Support", entityIds: [row.id] });
+    if (changedLater(row.created_at, row.updated_at)) add({ id: `ticket-updated-${row.id}`, title: `Support ticket ${sentence(row.status)}`, detail: row.subject, date: row.updated_at, icon: LifeBuoy, category: "Support", entityIds: [row.id] });
+  });
+  data.auditLog.forEach((row) => add({ id: `audit-${row.id}`, title: row.summary || sentence(row.action), detail: `Admin audit · ${sentence(row.entity_type)} · ${sentence(row.action)}`, date: row.created_at, icon: ShieldCheck, category: "Admin", entityIds: [row.id, row.entity_id] }));
+
+  return events.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function EventList({ events, compact = false }: { events: EventItem[]; compact?: boolean }) {
+  return <div className="divide-y divide-slate-100">{events.map((event) => <div key={event.id} className={`flex gap-3 py-3 first:pt-0 last:pb-0 ${compact ? "items-start" : "items-start"}`}><span className="mt-0.5 rounded-full bg-slate-100 p-2"><event.icon className="h-3.5 w-3.5 text-slate-500" /></span><span className="min-w-0 flex-1"><span className="flex flex-wrap items-center gap-2"><span className="text-sm font-medium text-slate-900">{event.title}</span><Badge variant="outline" className="text-[9px] font-medium text-slate-500">{event.category}</Badge></span><span className="mt-0.5 block text-xs text-slate-500">{event.detail}</span><span className="mt-1 block text-[10px] text-slate-400 sm:hidden">{formatDate(event.date, true)}</span></span><span className="hidden shrink-0 text-[11px] text-slate-400 sm:block">{formatDate(event.date, true)}</span></div>)}</div>;
+}

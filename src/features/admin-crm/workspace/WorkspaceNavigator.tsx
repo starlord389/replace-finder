@@ -9,7 +9,9 @@ import {
   FileLock2,
   Home,
   Layers3,
+  ListChecks,
   MessageSquare,
+  Rocket,
   Sparkles,
   UserRound,
 } from "lucide-react";
@@ -215,10 +217,24 @@ export default function WorkspaceNavigator({ data, graph, selection, onSelect }:
 
       <div className="border-t border-slate-200 p-2.5">
         <TreeButton
+          active={isSelected(selection, "listings")}
+          icon={<ListChecks className="h-4 w-4" />}
+          title="Listings & drafts"
+          meta={`${data.exchanges.filter((exchange) => exchange.status === "draft").length} drafts · ${data.exchanges.length} total`}
+          onClick={() => onSelect({ type: "listings" })}
+        />
+        <TreeButton
+          active={isSelected(selection, "launchpad")}
+          icon={<Rocket className="h-4 w-4" />}
+          title="Launchpad progress"
+          meta={data.profile.launchpad_completed_at ? "Completion recorded" : "Onboarding in progress"}
+          onClick={() => onSelect({ type: "launchpad" })}
+        />
+        <TreeButton
           active={isSelected(selection, "activity")}
           icon={<Activity className="h-4 w-4" />}
           title="Activity & support"
-          meta={`${data.timeline.length + data.notifications.length} events`}
+          meta="Full timestamped history"
           onClick={() => onSelect({ type: "activity" })}
         />
         <TreeButton
@@ -249,7 +265,7 @@ function ClientBranch({ data, branch, collapsed, selection, onToggle, onSelect }
         </button>
         <button type="button" onClick={() => onSelect({ type: "client", id: branch.client.id })} className="min-w-0 flex-1 py-2 text-left">
           <span className="block truncate text-xs font-semibold text-slate-800">{branch.client.client_name}</span>
-          <span className="block text-[10px] text-slate-500">{branch.properties.length} {branch.properties.length === 1 ? "property" : "properties"}</span>
+          <span className="block text-[10px] text-slate-500">{branch.exchanges.length} {branch.exchanges.length === 1 ? "listing workspace" : "listing workspaces"}</span>
         </button>
         <span className={`h-1.5 w-1.5 rounded-full ${branch.client.status === "active" ? "bg-emerald-500" : "bg-slate-300"}`} />
       </div>
