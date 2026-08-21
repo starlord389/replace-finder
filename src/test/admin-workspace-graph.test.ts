@@ -48,6 +48,7 @@ function view(overrides: Partial<AdminUserScopedData>): AdminUserScopedData {
     assignments: [], contactRequests: [], recommendations: [], connectionIntents: [], connections: [],
     collaborationThreads: [], connectionMessageMetadata: [], collaborationMessageMetadata: [],
     savedProperties: [], listingInquiries: [], clientInvites: [], identificationList: [], timeline: [],
+    notifications: [], supportTickets: [],
     workflowEvents: [], ...overrides,
   };
 }

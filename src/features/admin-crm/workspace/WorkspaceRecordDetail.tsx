@@ -417,7 +417,7 @@ function PropertyRecord({ data, branch, onSelect }: Props & { branch: WorkspaceP
   );
 }
 
-function MatchRecord({ data, graph, match, onSelect }: Props & { match: CrmUserWorkspace["matches"][number] }) {
+function MatchRecord({ data, view, graph, match, onSelect }: Props & { match: CrmUserWorkspace["matches"][number] }) {
   const candidate = data.propertiesById[match.seller_property_id];
   const buyerPropertyBranch = Object.values(graph.propertyById).find((branch) => branch.exchange?.id === match.buyer_exchange_id) ?? null;
   const current = match.relinquished_property_id
@@ -461,7 +461,7 @@ function MatchRecord({ data, graph, match, onSelect }: Props & { match: CrmUserW
   );
 }
 
-function ExchangeRecord({ data, exchange, graph, onSelect }: Props & { exchange: CrmUserWorkspace["exchanges"][number] }) {
+function ExchangeRecord({ data, view, exchange, graph, onSelect }: Props & { exchange: CrmUserWorkspace["exchanges"][number] }) {
   const client = exchange.client_id ? graph.clientById[exchange.client_id]?.client : null;
   const propertyBranch = Object.values(graph.propertyById).find((branch) => branch.exchange?.id === exchange.id);
   const criteria = data.criteriaByExchange[exchange.id];
