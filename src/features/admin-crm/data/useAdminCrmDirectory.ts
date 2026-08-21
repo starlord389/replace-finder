@@ -46,8 +46,11 @@ export function useAdminCrmDirectory<TRecord, TContext>({
       const { data, error } = await supabase.rpc("admin_list_crm_records", {
         p_record_type: recordType,
         p_data_scope: dataScope,
-        p_search: search.trim() || undefined,
-        p_status: status === "all" ? undefined : status,
+        // Always send every named argument. PostgREST resolves RPC overloads
+        // from the submitted keys, so omitting these produces a four-argument
+        // signature even though the database function has six parameters.
+        p_search: search.trim(),
+        p_status: status === "all" ? "" : status,
         p_limit: pageSize,
         p_offset: (page - 1) * pageSize,
       });
@@ -63,4 +66,3 @@ export function useAdminCrmDirectory<TRecord, TContext>({
     },
   });
 }
-

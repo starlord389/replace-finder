@@ -16,6 +16,9 @@ describe("admin canonical record directory resilience", () => {
     expect(hook).toContain('rpc("admin_list_crm_records"');
     expect(hook).toContain("p_limit: pageSize");
     expect(hook).toContain("p_offset: (page - 1) * pageSize");
+    expect(hook).toContain("p_search: search.trim()");
+    expect(hook).toContain('p_status: status === "all" ? "" : status');
+    expect(hook).not.toContain("search.trim() || undefined");
     expect(page).not.toContain('.from("pledged_properties").select("*")');
     expect(page).not.toContain('.from("matches").select("*")');
   });
