@@ -40,8 +40,10 @@ interface AdminGlobalSearchProps {
 
 const destinations = [
   { title: "Command Center", href: "/admin", icon: LayoutDashboard },
-  { title: "Deal Oversight", href: "/admin/deals", icon: ArrowLeftRight },
   { title: "Users & Accounts", href: "/admin/users", icon: Users },
+  { title: "Properties", href: "/admin/properties", icon: Building2 },
+  { title: "Opportunities", href: "/admin/opportunities", icon: ArrowLeftRight },
+  { title: "Representation Requests", href: "/admin/representation-requests", icon: Handshake },
   { title: "Demo Requests", href: "/admin/demos", icon: CalendarClock },
   { title: "Growth & Intake", href: "/admin/intake", icon: Inbox },
   { title: "Support", href: "/admin/support", icon: HelpCircle },

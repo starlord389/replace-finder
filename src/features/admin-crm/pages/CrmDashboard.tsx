@@ -56,8 +56,8 @@ export default function CrmDashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <QuickLink title="Deal oversight" detail={`${data?.kpis.activeMatches ?? 0} active matches across ${data?.kpis.activeExchanges ?? 0} active exchanges`} href="/admin/deals" />
-        <QuickLink title="Representation" detail={`${data?.kpis.activeRepresentations ?? 0} active relationships and ${data?.kpis.awaitingRepresentation ?? 0} awaiting an agent`} href="/admin/representations" />
+        <QuickLink title="Opportunities" detail={`${data?.kpis.activeMatches ?? 0} active matches across ${data?.kpis.activeExchanges ?? 0} active exchanges`} href="/admin/opportunities" />
+        <QuickLink title="Representation requests" detail={`${data?.kpis.activeRepresentations ?? 0} active relationships and ${data?.kpis.awaitingRepresentation ?? 0} awaiting an agent`} href="/admin/representation-requests" />
         <QuickLink title="Support & intake" detail={`${data?.kpis.openTickets ?? 0} open tickets and ${data?.kpis.newLeads ?? 0} new requests`} href="/admin/support" />
       </div>
     </div>

@@ -236,8 +236,8 @@ function ParticipantLink({ id, name }: { id: string; name: string }) {
 
 function BackLink() {
   return (
-    <Link to="/admin/deals" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-      <ArrowLeft className="h-4 w-4" /> Back to Deal Oversight
+    <Link to="/admin/opportunities" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <ArrowLeft className="h-4 w-4" /> Back to Opportunities
     </Link>
   );
 }

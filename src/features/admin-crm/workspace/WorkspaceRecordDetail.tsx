@@ -132,6 +132,7 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
                   return <div key={representation.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><ProfileAvatar photoUrl={agent?.profile_photo_url} name={agent?.full_name || agent?.email || representation.agent_name} className="h-10 w-10" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{agent?.full_name || agent?.email || representation.agent_name || "Representing agent"}</p><p className="text-xs text-slate-500">{representation.is_default ? "Preferred agent" : "Representation relationship"}</p></div><Status value={representation.status} />{agent && <Button asChild variant="ghost" size="sm"><Link to={`/admin/users/${agent.id}`}>Open</Link></Button>}</div>;
                 })}
               </div>
+              <Button asChild variant="outline" size="sm" className="mt-4 w-full"><Link to="/admin/representation-requests">Open representation requests<ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button>
             </Panel>
           )}
         </div>
@@ -228,7 +229,7 @@ function PropertyRecord({ data, branch, onSelect }: Props & { branch: WorkspaceP
             <div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight text-slate-950">{resolveListingName(property, true)}</h1><Status value={property.status} />{property.is_demo && <Badge className="bg-amber-100 text-amber-800">Demo</Badge>}</div>
             <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500"><MapPin className="h-3.5 w-3.5" />{[property.city, property.state, property.zip].filter(Boolean).join(", ") || "Location not provided"}</p>
           </div>
-          <div className="flex flex-wrap gap-2">{exchange && <Button asChild variant="outline" size="sm"><Link to={`/admin/deals/exchanges/${exchange.id}`}>Open exchange workspace<ExternalLink className="ml-2 h-3.5 w-3.5" /></Link></Button>}</div>
+          <div className="flex flex-wrap gap-2">{exchange && <Button asChild variant="outline" size="sm"><Link to={`/admin/opportunities/exchanges/${exchange.id}`}>Open exchange workspace<ExternalLink className="ml-2 h-3.5 w-3.5" /></Link></Button>}</div>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-6">
           <HeroFact label="Price / value" value={formatCurrency(finance?.asking_price ?? finance?.appraised_value)} />
@@ -337,7 +338,7 @@ function MatchRecord({ data, graph, match, onSelect }: Props & { match: CrmUserW
           </Panel>
           <Panel title="Deal workflow" detail="Where this match stands and where to continue.">
             <div className="grid grid-cols-2 gap-4"><Fact label="Classification" value={sentence(match.match_classification)} /><Fact label="Workflow stage" value={sentence(workflow?.current_stage)} /><Fact label="Buyer viewed" value={match.buyer_agent_viewed ? "Yes" : "No"} /><Fact label="Listing side viewed" value={match.seller_agent_viewed ? "Yes" : "No"} /><Fact label="Created" value={formatDate(match.created_at, true)} /><Fact label="Updated" value={formatDate(match.updated_at, true)} /></div>
-            <div className="mt-5 space-y-2 border-t border-slate-100 pt-4">{currentBranch && <Button variant="outline" className="w-full" onClick={() => onSelect({ type: "property", id: currentBranch.property.id })}>Return to current property</Button>}<Button asChild variant="outline" className="w-full"><Link to={`/admin/deals/exchanges/${match.buyer_exchange_id}`}>Open buyer exchange<ExternalLink className="ml-2 h-3.5 w-3.5" /></Link></Button>{connection && <Button asChild className="w-full"><Link to={`/admin/deals/connections/${connection.id}`}><MessageSquare className="mr-2 h-4 w-4" />Open agent conversation</Link></Button>}</div>
+            <div className="mt-5 space-y-2 border-t border-slate-100 pt-4">{currentBranch && <Button variant="outline" className="w-full" onClick={() => onSelect({ type: "property", id: currentBranch.property.id })}>Return to current property</Button>}<Button asChild variant="outline" className="w-full"><Link to={`/admin/opportunities/exchanges/${match.buyer_exchange_id}`}>Open buyer exchange<ExternalLink className="ml-2 h-3.5 w-3.5" /></Link></Button>{connection && <Button asChild className="w-full"><Link to={`/admin/opportunities/connections/${connection.id}`}><MessageSquare className="mr-2 h-4 w-4" />Open agent conversation</Link></Button>}</div>
           </Panel>
         </div>
       </div>

@@ -698,8 +698,8 @@ export default function AdminExchangeDetail() {
 
 function BackLink() {
   return (
-    <Link to="/admin/deals" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-      <ArrowLeft className="h-4 w-4" /> Back to Deal Oversight
+    <Link to="/admin/opportunities" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <ArrowLeft className="h-4 w-4" /> Back to Opportunities
     </Link>
   );
 }
@@ -1104,9 +1104,9 @@ function MatchesSection({
                 <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-4">
                   {request && <Badge variant="outline">Contact request: {pretty(request.status)}</Badge>}
                   {intent && <Badge variant="outline">Connection intent: {pretty(intent.status)}</Badge>}
-                  {connection && <Button asChild size="sm" variant="outline"><Link to={`/admin/deals/connections/${connection.id}`}><MessageSquare className="mr-1.5 h-3.5 w-3.5" />Open conversation</Link></Button>}
-                  {sellerExchange && sellerExchange.id !== exchange.id && <Button asChild size="sm" variant="outline"><Link to={`/admin/deals/exchanges/${sellerExchange.id}`}>Open seller exchange <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link></Button>}
-                  {match.buyer_exchange_id !== exchange.id && <Button asChild size="sm" variant="outline"><Link to={`/admin/deals/exchanges/${match.buyer_exchange_id}`}>Open buyer exchange <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link></Button>}
+                  {connection && <Button asChild size="sm" variant="outline"><Link to={`/admin/opportunities/connections/${connection.id}`}><MessageSquare className="mr-1.5 h-3.5 w-3.5" />Open conversation</Link></Button>}
+                  {sellerExchange && sellerExchange.id !== exchange.id && <Button asChild size="sm" variant="outline"><Link to={`/admin/opportunities/exchanges/${sellerExchange.id}`}>Open seller exchange <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link></Button>}
+                  {match.buyer_exchange_id !== exchange.id && <Button asChild size="sm" variant="outline"><Link to={`/admin/opportunities/exchanges/${match.buyer_exchange_id}`}>Open buyer exchange <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link></Button>}
                 </div>
               </CardContent>
             </div>
@@ -1128,7 +1128,7 @@ function ConnectionsCard({ connections, profilesById }: { connections: Tables<"e
       <CardContent>
         {connections.length === 0 ? <p className="text-sm text-muted-foreground">No agent-to-agent conversation has been created for this exchange.</p> : <div className="grid gap-3 lg:grid-cols-2">{connections.map((connection) => (
           <div key={connection.id} className="rounded-lg border p-4">
-            <div className="flex items-center justify-between gap-3"><StatusPill status={connection.status} /><Button asChild size="sm" variant="ghost"><Link to={`/admin/deals/connections/${connection.id}`}>Open <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link></Button></div>
+            <div className="flex items-center justify-between gap-3"><StatusPill status={connection.status} /><Button asChild size="sm" variant="ghost"><Link to={`/admin/opportunities/connections/${connection.id}`}>Open <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link></Button></div>
             <p className="mt-3 text-sm"><UserLink id={connection.buyer_agent_id} profile={profilesById[connection.buyer_agent_id]} fallback="Buyer agent" /> <span className="text-muted-foreground">with</span> <UserLink id={connection.seller_agent_id} profile={profilesById[connection.seller_agent_id]} fallback="Listing agent" /></p>
             <p className="mt-1 text-xs text-muted-foreground">Started {fmtDateTime(connection.initiated_at)} · Accepted {fmtDateTime(connection.accepted_at)}</p>
           </div>

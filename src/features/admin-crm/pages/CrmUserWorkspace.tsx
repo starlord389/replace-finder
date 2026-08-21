@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, RefreshCw, UserRound } from "lucide-react";
-import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AdminUserNotFoundError } from "@/features/admin/hooks/useAdminUser360";
@@ -22,6 +22,7 @@ import {
 export default function CrmUserWorkspace() {
   const { userId } = useParams<{ userId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [scope, setScope] = useState<CrmWorkspaceScope>(
     params.get("scope") === "live" || params.get("scope") === "demo"
@@ -43,7 +44,26 @@ export default function CrmUserWorkspace() {
     [query.data, view],
   );
 
+  useEffect(() => {
+    if (!selection.id) return;
+    if (selection.type === "property") navigate(`/admin/properties/${selection.id}`, { replace: true });
+    if (selection.type === "match") navigate(`/admin/opportunities/matches/${selection.id}`, { replace: true });
+    if (selection.type === "exchange") navigate(`/admin/opportunities/exchanges/${selection.id}`, { replace: true });
+  }, [navigate, selection.id, selection.type]);
+
   function selectRecord(next: WorkspaceSelection) {
+    if (next.type === "property" && next.id) {
+      navigate(`/admin/properties/${next.id}`);
+      return;
+    }
+    if (next.type === "match" && next.id) {
+      navigate(`/admin/opportunities/matches/${next.id}`);
+      return;
+    }
+    if (next.type === "exchange" && next.id) {
+      navigate(`/admin/opportunities/exchanges/${next.id}`);
+      return;
+    }
     const updated = new URLSearchParams(params);
     if (next.type === "account") updated.delete("record");
     else updated.set("record", serializeWorkspaceSelection(next));

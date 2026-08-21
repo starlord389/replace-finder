@@ -30,6 +30,7 @@ const SupportTickets = lazy(() => import("@/pages/admin/SupportTickets"));
 const CrmUsersIndex = lazy(() => import("@/features/admin-crm/pages/CrmUsersIndex"));
 const CrmUserWorkspace = lazy(() => import("@/features/admin-crm/pages/CrmUserWorkspace"));
 const AdminDeals = lazy(() => import("@/pages/admin/AdminDeals"));
+const AdminCanonicalRecord = lazy(() => import("@/features/admin-crm/pages/AdminCanonicalRecord"));
 const AdminExchangeDetail = lazy(() => import("@/pages/admin/AdminExchangeDetail"));
 const AdminConnectionDetail = lazy(() => import("@/pages/admin/AdminConnectionDetail"));
 const AdminDemos = lazy(() => import("@/pages/admin/AdminDemos"));
@@ -196,12 +197,19 @@ const App = () => (
               <Route path="/admin" element={<CrmDashboard />} />
               <Route path="/admin/users" element={<CrmUsersIndex />} />
               <Route path="/admin/users/:userId" element={<CrmUserWorkspace />} />
-              <Route path="/admin/deals" element={<AdminDeals />} />
+              <Route path="/admin/properties" element={<AdminDeals mode="properties" />} />
+              <Route path="/admin/properties/:id" element={<AdminCanonicalRecord recordType="property" />} />
+              <Route path="/admin/opportunities" element={<AdminDeals mode="opportunities" />} />
+              <Route path="/admin/opportunities/matches/:id" element={<AdminCanonicalRecord recordType="match" />} />
+              <Route path="/admin/opportunities/exchanges/:id" element={<AdminExchangeDetail />} />
+              <Route path="/admin/opportunities/connections/:id" element={<AdminConnectionDetail />} />
+              <Route path="/admin/deals" element={<Navigate to="/admin/opportunities" replace />} />
               <Route path="/admin/deals/exchanges/:id" element={<AdminExchangeDetail />} />
               <Route path="/admin/deals/connections/:id" element={<AdminConnectionDetail />} />
               <Route path="/admin/demos" element={<AdminDemos />} />
               <Route path="/admin/intake" element={<AdminIntake />} />
-              <Route path="/admin/representations" element={<AdminRepresentations />} />
+              <Route path="/admin/representation-requests" element={<AdminRepresentations />} />
+              <Route path="/admin/representations" element={<Navigate to="/admin/representation-requests" replace />} />
               <Route path="/admin/support" element={<SupportTickets />} />
               <Route path="/admin/feedback" element={<ArticleFeedback />} />
               <Route path="/admin/reports" element={<AdminReports />} />

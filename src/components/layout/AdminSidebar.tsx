@@ -1,4 +1,4 @@
-import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users, Inbox, ThumbsUp, Briefcase, CalendarClock, ServerCog, ChartNoAxesCombined, Handshake } from "lucide-react";
+import { LayoutDashboard, HelpCircle, LogOut, ArrowLeftRight, Settings, Users, Inbox, ThumbsUp, Briefcase, CalendarClock, ServerCog, ChartNoAxesCombined, Handshake, Building2 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,12 +19,13 @@ import { Button } from "@/components/ui/button";
 
 const overviewItems = [
   { title: "Command Center", url: "/admin", icon: LayoutDashboard, end: true },
-  { title: "Deal Oversight", url: "/admin/deals", icon: Briefcase },
+  { title: "Properties", url: "/admin/properties", icon: Building2 },
+  { title: "Opportunities", url: "/admin/opportunities", icon: Briefcase },
 ];
 
 const peopleItems = [
   { title: "Users & Accounts", url: "/admin/users", icon: Users },
-  { title: "Representations", url: "/admin/representations", icon: Handshake },
+  { title: "Representation Requests", url: "/admin/representation-requests", icon: Handshake },
 ];
 
 const operationsItems = [

@@ -1,6 +1,7 @@
 import { NavLink, Link } from "react-router-dom";
 import {
   BarChart3,
+  Building2,
   BriefcaseBusiness,
   CalendarClock,
   Gauge,
@@ -22,11 +23,12 @@ type NavItem = { label: string; href: string; icon: LucideIcon; end?: boolean };
 const workspace: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: Gauge, end: true },
   { label: "Users", href: "/admin/users", icon: Users },
-  { label: "Deals", href: "/admin/deals", icon: BriefcaseBusiness },
-  { label: "Relationships", href: "/admin/representations", icon: Handshake },
+  { label: "Properties", href: "/admin/properties", icon: Building2 },
+  { label: "Opportunities", href: "/admin/opportunities", icon: BriefcaseBusiness },
 ];
 
 const operations: NavItem[] = [
+  { label: "Representation Requests", href: "/admin/representation-requests", icon: Handshake },
   { label: "Leads & Requests", href: "/admin/intake", icon: Inbox },
   { label: "Demo Requests", href: "/admin/demos", icon: CalendarClock },
   { label: "Support", href: "/admin/support", icon: Headphones },

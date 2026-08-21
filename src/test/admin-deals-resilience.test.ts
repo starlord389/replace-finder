@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const source = readFileSync(resolve(process.cwd(), "src/pages/admin/AdminDeals.tsx"), "utf8");
 
-describe("admin deal oversight load resilience", () => {
+describe("admin canonical record lists load resilience", () => {
   it("tracks every dataset and prevents stale requests from replacing a newer snapshot", () => {
     for (const dataset of ["exchanges", "properties", "matches", "connections", "profiles", "clients"]) {
       expect(source).toContain(`${dataset}:`);
@@ -21,8 +21,8 @@ describe("admin deal oversight load resilience", () => {
     expect(source).toContain('return "Unavailable"');
     expect(source).toContain('status === "partial" ? "Partial · "');
     expect(source).toContain("adminDealsHasTotalFailure");
-    expect(source).toContain("Deal oversight could not be loaded");
-    expect(source).toContain("Deal oversight is showing partial data");
+    expect(source).toContain("Admin records could not be loaded");
+    expect(source).toContain("Admin records are showing partial data");
     expect(source).toContain("no empty totals are being presented as authoritative");
     expect(source).toContain("Retry loading");
   });

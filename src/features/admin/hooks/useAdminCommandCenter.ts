@@ -157,7 +157,6 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
   const clientsById = new Map(source.clients.map((client) => [client.id, client.client_name]));
   const profilesById = new Map(source.profiles.map((profile) => [profile.id, clean(profile.full_name, profile.email ?? undefined)]));
   const exchangesById = new Map(source.exchanges.map((exchange) => [exchange.id, exchange]));
-  const representationsById = new Map(source.representations.map((representation) => [representation.id, representation]));
   const items: AdminAttentionItem[] = [];
 
   for (const exchange of source.exchanges) {
@@ -183,7 +182,7 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
         title: deadlineTitle(label, days),
         detail,
         timestamp: deadline,
-        href: `/admin/deals/exchanges/${exchange.id}`,
+        href: `/admin/opportunities/exchanges/${exchange.id}`,
       });
     }
   }
@@ -253,7 +252,7 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
       title: "Connection awaiting response",
       detail: `${clean(profilesById.get(connection.buyer_agent_id), "Buyer account")} (${buyerType}) → ${clean(profilesById.get(connection.seller_agent_id), "Seller account")} (${sellerType})`,
       timestamp: connection.created_at,
-      href: `/admin/deals/connections/${connection.id}`,
+      href: `/admin/opportunities/connections/${connection.id}`,
     });
   }
 
@@ -271,9 +270,7 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
       title,
       detail: `${representation.investor_email} · ${representation.agent_email || "No agent assigned"}`,
       timestamp: representation.updated_at,
-      href: representation.investor_id
-        ? `/admin/users/${representation.investor_id}?tab=relationships`
-        : `/admin/representations?q=${encodeURIComponent(representation.investor_email)}`,
+      href: `/admin/representation-requests?q=${encodeURIComponent(representation.investor_email)}`,
     });
   }
 
@@ -302,13 +299,12 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
       title: intent.status === "conflict" ? "Agent connection conflict needs review" : "Listing interest is waiting on representation",
       detail: `${owner} · ${intent.waiting_on_side === "seller" ? "listing side" : "buyer side"}`,
       timestamp: intent.updated_at,
-      href: `/admin/users/${intent.waiting_owner_id}?tab=relationships`,
+      href: `/admin/representation-requests?q=${encodeURIComponent(owner)}`,
     });
   }
 
   for (const invite of source.representationInvites) {
     if (invite.delivery_status !== "failed" || invite.status !== "pending") continue;
-    const representation = representationsById.get(invite.representation_id);
     items.push({
       id: `representation-invite-${invite.id}`,
       priority: "high",
@@ -316,9 +312,7 @@ export function buildAdminAttentionItems(source: CommandCenterSource): AdminAtte
       title: "Representation invitation failed to deliver",
       detail: `${invite.email} · ${invite.delivery_error_code || "delivery error"}`,
       timestamp: invite.updated_at,
-      href: representation?.investor_id
-        ? `/admin/users/${representation.investor_id}?tab=relationships`
-        : `/admin/representations?q=${encodeURIComponent(invite.email)}`,
+      href: `/admin/representation-requests?q=${encodeURIComponent(invite.email)}`,
     });
   }
 
@@ -372,7 +366,7 @@ export function buildAdminSearchItems(source: CommandCenterSource): AdminSearchI
       type: "Exchange",
       title: `${isInvestorOwned(exchange.owner_type) ? ownerName : managedFor} exchange`,
       subtitle: `${exchange.status.replace(/_/g, " ")} · ${exchangeOwnerTypeLabel(exchange.owner_type)} · ${ownerName}`,
-      href: `/admin/deals/exchanges/${exchange.id}`,
+      href: `/admin/opportunities/exchanges/${exchange.id}`,
     });
   }
 
@@ -383,7 +377,7 @@ export function buildAdminSearchItems(source: CommandCenterSource): AdminSearchI
       type: "Property",
       title: propertyLabel(property),
       subtitle: `${fullLocation(property)} · ${exchangeOwnerTypeLabel(exchange?.owner_type)} · ${clean(profilesById.get(property.agent_id), "Account owner")}`,
-      href: `/admin/deals?tab=properties&property=${property.id}&q=${encodeURIComponent(propertyLabel(property))}`,
+      href: `/admin/properties/${property.id}`,
     });
   }
 
@@ -397,7 +391,7 @@ export function buildAdminSearchItems(source: CommandCenterSource): AdminSearchI
       type: "Connection",
       title: `${clean(profilesById.get(connection.buyer_agent_id), "Buyer account")} ↔ ${clean(profilesById.get(connection.seller_agent_id), "Seller account")}`,
       subtitle: `${connection.status.replace(/_/g, " ")} · ${buyerType} ↔ ${sellerType}`,
-      href: `/admin/deals/connections/${connection.id}`,
+      href: `/admin/opportunities/connections/${connection.id}`,
     });
   }
 

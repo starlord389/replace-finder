@@ -178,7 +178,7 @@ describe("admin command center", () => {
         expect.objectContaining({
           type: "Exchange",
           title: "Main Street Partners exchange",
-          href: "/admin/deals/exchanges/exchange-1",
+          href: "/admin/opportunities/exchanges/exchange-1",
         }),
         expect.objectContaining({
           type: "Event",
@@ -263,12 +263,12 @@ describe("admin command center", () => {
         id: "representation-rep-1",
         category: "representation",
         priority: "high",
-        href: "/admin/users/owner-1?tab=relationships",
+        href: "/admin/representation-requests?q=taylor%40example.com",
       }),
       expect.objectContaining({
         id: "connection-intent-intent-1",
         title: "Listing interest is waiting on representation",
-        href: "/admin/users/owner-1?tab=relationships",
+        href: "/admin/representation-requests?q=Taylor%20Owner",
       }),
     ]));
   });

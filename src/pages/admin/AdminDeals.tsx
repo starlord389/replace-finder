@@ -93,7 +93,7 @@ function StatusPill({ value }: { value: string }) {
   );
 }
 
-export default function AdminDeals() {
+export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportunities" | "properties" }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestSequence = useRef(0);
@@ -200,19 +200,34 @@ export default function AdminDeals() {
     () => new Map(exchanges.map((exchange) => [exchange.id, exchange])),
     [exchanges],
   );
+  const propertyById = useMemo(
+    () => new Map(properties.map((property) => [property.id, property])),
+    [properties],
+  );
+  const currentPropertyByExchange = useMemo(() => {
+    const map = new Map<string, Property>();
+    for (const exchange of exchanges) {
+      const property = (exchange.relinquished_property_id ? propertyById.get(exchange.relinquished_property_id) : null)
+        ?? properties.find((item) => item.exchange_id === exchange.id);
+      if (property) map.set(exchange.id, property);
+    }
+    return map;
+  }, [exchanges, properties, propertyById]);
 
   const term = search.trim().toLowerCase();
-  const selectedPropertyId = searchParams.get("property");
+  const selectedPropertyId = mode === "properties" ? searchParams.get("property") : null;
   const requestedTab = searchParams.get("tab");
-  const activeTab = ["exchanges", "properties", "matches", "connections"].includes(requestedTab ?? "")
+  const activeTab = mode === "properties"
+    ? "properties"
+    : ["exchanges", "matches", "connections"].includes(requestedTab ?? "")
     ? requestedTab!
-    : "exchanges";
+    : "matches";
 
   function changeTab(tab: string) {
     const next = new URLSearchParams(searchParams);
-    if (tab === "exchanges") next.delete("tab");
+    if (tab === "matches") next.delete("tab");
     else next.set("tab", tab);
-    if (tab !== "properties") next.delete("property");
+    next.delete("property");
     setSearchParams(next, { replace: true });
   }
   const fExchanges = useMemo(
@@ -232,8 +247,20 @@ export default function AdminDeals() {
     [connections, term, agent, exchangeById],
   );
   const fMatches = useMemo(
-    () => matches.filter((m) => !term || (m.status ?? "").toLowerCase().includes(term) || (m.boot_status ?? "").toLowerCase().includes(term) || (m.match_classification ?? "").toLowerCase().includes(term) || exchangeOwnerTypeLabel(exchangeById.get(m.buyer_exchange_id)?.owner_type).toLowerCase().includes(term)),
-    [matches, term, exchangeById],
+    () => matches.filter((m) => {
+      const exchange = exchangeById.get(m.buyer_exchange_id);
+      const currentProperty = currentPropertyByExchange.get(m.buyer_exchange_id);
+      const candidate = propertyById.get(m.seller_property_id);
+      return !term
+        || (m.status ?? "").toLowerCase().includes(term)
+        || (m.boot_status ?? "").toLowerCase().includes(term)
+        || (m.match_classification ?? "").toLowerCase().includes(term)
+        || exchangeOwnerTypeLabel(exchange?.owner_type).toLowerCase().includes(term)
+        || agent(exchange?.agent_id ?? null).toLowerCase().includes(term)
+        || resolveListingName(currentProperty ?? null, true).toLowerCase().includes(term)
+        || resolveListingName(candidate ?? null, true).toLowerCase().includes(term);
+    }),
+    [matches, term, exchangeById, currentPropertyByExchange, propertyById, agent],
   );
 
   if (loading) {
@@ -251,12 +278,14 @@ export default function AdminDeals() {
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Deal Oversight</h1>
+          <h1 className="text-2xl font-bold text-foreground">{mode === "properties" ? "Properties" : "Opportunities"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Every live exchange, property, match, and connection across agents and self-managed investors/property owners (demo data excluded).
+            {mode === "properties"
+              ? "The canonical listing directory across agent-managed clients and self-managed property owners. Open any property for photos, financials, exchange context, and matched opportunities."
+              : "Track every active exchange, matched opportunity, and agent conversation from one operating queue (demo data excluded)."}
           </p>
         </div>
-        <ReseedStagingButton />
+        {mode === "opportunities" && <ReseedStagingButton />}
       </div>
 
       {loadIssues.length > 0 && (
@@ -266,16 +295,15 @@ export default function AdminDeals() {
       {!totalFailure && <>
       <div className="relative mb-4 max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => { setSearch(e.target.value); if (selectedPropertyId) { const next = new URLSearchParams(searchParams); next.delete("property"); setSearchParams(next, { replace: true }); } }} placeholder="Search by account owner, client, property, account type, or status…" className="pl-9" aria-label="Search deals" />
+        <Input value={search} onChange={(e) => { setSearch(e.target.value); if (selectedPropertyId) { const next = new URLSearchParams(searchParams); next.delete("property"); setSearchParams(next, { replace: true }); } }} placeholder={mode === "properties" ? "Search address, owner, location, asset type, or status…" : "Search account owner, client, account type, or status…"} className="pl-9" aria-label={mode === "properties" ? "Search properties" : "Search opportunities"} />
       </div>
 
       <Tabs value={activeTab} onValueChange={changeTab}>
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-          <TabsTrigger value="exchanges">Exchanges ({adminDealsCountLabel(datasetStatuses.exchanges, fExchanges.length, exchanges.length)})</TabsTrigger>
-          <TabsTrigger value="properties">Properties ({adminDealsCountLabel(datasetStatuses.properties, fProperties.length, properties.length)})</TabsTrigger>
+        {mode === "opportunities" && <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="matches">Matches ({adminDealsCountLabel(datasetStatuses.matches, fMatches.length, matches.length)})</TabsTrigger>
-          <TabsTrigger value="connections">Connections ({adminDealsCountLabel(datasetStatuses.connections, fConnections.length, connections.length)})</TabsTrigger>
-        </TabsList>
+          <TabsTrigger value="exchanges">Exchanges ({adminDealsCountLabel(datasetStatuses.exchanges, fExchanges.length, exchanges.length)})</TabsTrigger>
+          <TabsTrigger value="connections">Conversations ({adminDealsCountLabel(datasetStatuses.connections, fConnections.length, connections.length)})</TabsTrigger>
+        </TabsList>}
 
         {/* Exchanges */}
         <TabsContent value="exchanges" className="mt-4">
@@ -293,7 +321,7 @@ export default function AdminDeals() {
               </TableHeader>
               <TableBody>
                 {fExchanges.map((e) => (
-                  <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/deals/exchanges/${e.id}`)}>
+                  <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/opportunities/exchanges/${e.id}`)}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(e.created_at)}</TableCell>
                     <TableCell className="text-xs font-medium">{exchangeOwnerTypeLabel(e.owner_type)}</TableCell>
                     <TableCell className="text-sm">{agent(e.agent_id)}</TableCell>
@@ -326,7 +354,7 @@ export default function AdminDeals() {
                 {fProperties.map((p) => {
                   const ownerType = exchangeById.get(p.exchange_id ?? "")?.owner_type;
                   return (
-                  <TableRow key={p.id}>
+                  <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/properties/${p.id}`)}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(p.created_at)}</TableCell>
                     <TableCell className="text-sm font-medium">{resolveListingName(p, true)}</TableCell>
                     <TableCell className="text-sm">{[p.city, p.state].filter(Boolean).join(", ") || "-"}</TableCell>
@@ -349,33 +377,34 @@ export default function AdminDeals() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[110px]">Created</TableHead>
-                  <TableHead>Buyer account</TableHead>
-                  <TableHead className="w-[110px]">Total score</TableHead>
-                  <TableHead>Score breakdown</TableHead>
+                  <TableHead>Account / client</TableHead>
+                  <TableHead>Current property</TableHead>
+                  <TableHead>Matched property</TableHead>
+                  <TableHead className="w-[100px]">Score</TableHead>
                   <TableHead className="w-[140px]">Boot</TableHead>
                   <TableHead className="w-[110px]">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {fMatches.map((m) => (
-                  <TableRow key={m.id}>
+                {fMatches.map((m) => {
+                  const exchange = exchangeById.get(m.buyer_exchange_id);
+                  const currentProperty = currentPropertyByExchange.get(m.buyer_exchange_id);
+                  const candidate = propertyById.get(m.seller_property_id);
+                  return <TableRow key={m.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/opportunities/matches/${m.id}`)}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(m.created_at)}</TableCell>
-                    <TableCell className="text-xs font-medium">
-                      {exchangeOwnerTypeLabel(exchangeById.get(m.buyer_exchange_id)?.owner_type)}
+                    <TableCell className="text-sm">
+                      <div className="font-medium">{agent(exchange?.agent_id ?? null)}</div>
+                      <div className="text-xs text-muted-foreground">{exchangeManagedForLabel(exchange?.owner_type, exchange?.client_id ? clientName.get(exchange.client_id) : null)}</div>
                     </TableCell>
+                    <TableCell className="text-sm font-medium">{currentProperty ? resolveListingName(currentProperty, true) : "Property unavailable"}</TableCell>
+                    <TableCell className="text-sm font-medium">{candidate ? resolveListingName(candidate, true) : "Property unavailable"}</TableCell>
                     <TableCell>
-                      <span className="text-sm font-semibold">{Math.round(m.total_score)}</span>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {/* Only the dimensions the live matching engine actually writes.
-                          timing/scale_fit/debt_fit are reserved columns it never
-                          populates, so showing them here would read a misleading 0. */}
-                      asset {Math.round(m.asset_score)} · fin {Math.round(m.financial_score)} · geo {Math.round(m.geo_score)} · price {Math.round(m.price_score)} · strategy {Math.round(m.strategy_score)}
+                      <span className="inline-flex min-w-10 items-center justify-center rounded-md bg-slate-950 px-2 py-1 text-sm font-semibold text-white">{Math.round(m.total_score)}</span>
                     </TableCell>
                     <TableCell className="text-xs capitalize">{pretty(m.boot_status)}</TableCell>
                     <TableCell><StatusPill value={m.status} /></TableCell>
-                  </TableRow>
-                ))}
+                  </TableRow>;
+                })}
               </TableBody>
             </Table>
           </TableCard>
@@ -396,7 +425,7 @@ export default function AdminDeals() {
               </TableHeader>
               <TableBody>
                 {fConnections.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/deals/connections/${c.id}`)}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/opportunities/connections/${c.id}`)}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(c.created_at)}</TableCell>
                     <TableCell className="text-sm">
                       <div>{agent(c.buyer_agent_id)}</div>
@@ -472,11 +501,11 @@ function LoadHealthNotice({
           <AlertTriangle className={`mt-0.5 h-5 w-5 shrink-0 ${totalFailure ? "text-red-700" : "text-amber-700"}`} />
           <div>
             <p className={`font-semibold ${totalFailure ? "text-red-950" : "text-amber-950"}`}>
-              {totalFailure ? "Deal oversight could not be loaded" : "Deal oversight is showing partial data"}
+              {totalFailure ? "Admin records could not be loaded" : "Admin records are showing partial data"}
             </p>
             <p className={`mt-1 text-sm ${totalFailure ? "text-red-800" : "text-amber-800"}`}>
               {totalFailure
-                ? "The primary deal datasets are unavailable, so no empty totals are being presented as authoritative."
+                ? "The primary datasets are unavailable, so no empty totals are being presented as authoritative."
                 : "Available records are shown below, but counts and names may be incomplete until every dataset loads successfully."}
             </p>
             <ul className={`mt-2 space-y-1 text-xs ${totalFailure ? "text-red-800" : "text-amber-800"}`}>
