@@ -31,5 +31,6 @@ describe("admin canonical record directory resilience", () => {
     expect(page).toContain("The server-backed directory could not be loaded.");
     expect(page).toContain("directory.refetch()");
     expect(page).toContain("Retry");
+    expect(page).toContain('!directory.isError && <Tabs value={activeTab}');
   });
 });
