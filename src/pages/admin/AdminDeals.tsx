@@ -19,7 +19,8 @@ type Exchange = Tables<"exchanges">;
 type Property = Tables<"pledged_properties">;
 type Match = Tables<"matches">;
 type Connection = Tables<"exchange_connections">;
-type DatasetKey = "exchanges" | "properties" | "matches" | "connections" | "profiles" | "clients";
+type Message = Tables<"messages">;
+type DatasetKey = "exchanges" | "properties" | "matches" | "connections" | "messages" | "profiles" | "clients";
 type DatasetStatus = "loading" | "loaded" | "partial" | "failed";
 type DatasetStatuses = Record<DatasetKey, DatasetStatus>;
 type DatasetErrors = Partial<Record<DatasetKey, string>>;
@@ -33,6 +34,7 @@ const DATASET_LABELS: Record<DatasetKey, string> = {
   properties: "Properties",
   matches: "Matches",
   connections: "Connections",
+  messages: "Conversation messages",
   profiles: "User profiles",
   clients: "Client records",
 };
@@ -42,6 +44,7 @@ const INITIAL_DATASET_STATUSES: DatasetStatuses = {
   properties: "loading",
   matches: "loading",
   connections: "loading",
+  messages: "loading",
   profiles: "loading",
   clients: "loading",
 };
@@ -104,6 +107,7 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
   const [properties, setProperties] = useState<Property[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [agentName, setAgentName] = useState<Map<string, string>>(new Map());
   const [clientName, setClientName] = useState<Map<string, string>>(new Map());
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
@@ -119,6 +123,7 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     setProperties([]);
     setMatches([]);
     setConnections([]);
+    setMessages([]);
     setAgentName(new Map());
     setClientName(new Map());
 
@@ -149,11 +154,19 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     ]);
     if (requestId !== requestSequence.current) return;
 
+    const connectionRows = connectionResult.error ? [] : (connectionResult.data ?? []) as Connection[];
+    const connectionIds = connectionRows.map((connection) => connection.id);
+    const messageResult = connectionIds.length
+      ? await supabase.from("messages").select("*").in("connection_id", connectionIds).order("created_at", { ascending: false })
+      : { data: [] as Message[], error: null };
+    if (requestId !== requestSequence.current) return;
+
     const statuses: DatasetStatuses = {
       exchanges: exchangeResult.error ? "failed" : "loaded",
       properties: propertyResult.error ? "failed" : "loaded",
       matches: matchResult.error ? "failed" : exchangeResult.error || propertyResult.error ? "partial" : "loaded",
       connections: connectionResult.error ? "failed" : "loaded",
+      messages: connectionResult.error || messageResult.error ? "failed" : "loaded",
       profiles: profileResult.error ? "failed" : "loaded",
       clients: clientResult.error ? "failed" : "loaded",
     };
@@ -167,13 +180,16 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
         : "Listing-side matches are unavailable because properties failed to load; buyer-side results may still be shown.";
     }
     if (connectionResult.error) errors.connections = connectionResult.error.message;
+    if (connectionResult.error) errors.messages = "Messages were not queried because conversations failed to load.";
+    else if (messageResult.error) errors.messages = messageResult.error.message;
     if (profileResult.error) errors.profiles = profileResult.error.message;
     if (clientResult.error) errors.clients = clientResult.error.message;
 
     setExchanges(liveExchanges);
     setProperties(liveProperties);
     setMatches(matchResult.error ? [] : (matchResult.data ?? []) as Match[]);
-    setConnections(connectionResult.error ? [] : (connectionResult.data ?? []) as Connection[]);
+    setConnections(connectionRows);
+    setMessages(messageResult.error ? [] : (messageResult.data ?? []) as Message[]);
     setAgentName(new Map(profileResult.error ? [] : (profileResult.data ?? []).map((profile) => [profile.id, profile.full_name || profile.email || "Unknown"])));
     setClientName(new Map(clientResult.error ? [] : (clientResult.data ?? []).map((client) => [client.id, client.client_name])));
     setDatasetStatuses(statuses);
@@ -204,6 +220,19 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     () => new Map(properties.map((property) => [property.id, property])),
     [properties],
   );
+  const matchById = useMemo(
+    () => new Map(matches.map((match) => [match.id, match])),
+    [matches],
+  );
+  const messagesByConnection = useMemo(() => {
+    const map = new Map<string, Message[]>();
+    for (const message of messages) {
+      const rows = map.get(message.connection_id) ?? [];
+      rows.push(message);
+      map.set(message.connection_id, rows);
+    }
+    return map;
+  }, [messages]);
   const currentPropertyByExchange = useMemo(() => {
     const map = new Map<string, Property>();
     for (const exchange of exchanges) {
@@ -243,8 +272,22 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     [properties, selectedPropertyId, term, agent, exchangeById],
   );
   const fConnections = useMemo(
-    () => connections.filter((c) => !term || agent(c.buyer_agent_id).toLowerCase().includes(term) || agent(c.seller_agent_id).toLowerCase().includes(term) || exchangeOwnerTypeLabel(exchangeById.get(c.buyer_exchange_id)?.owner_type).toLowerCase().includes(term) || exchangeOwnerTypeLabel(c.seller_exchange_id ? exchangeById.get(c.seller_exchange_id)?.owner_type : null).toLowerCase().includes(term) || c.status.toLowerCase().includes(term)),
-    [connections, term, agent, exchangeById],
+    () => connections.filter((c) => {
+      const linkedMatch = c.match_id ? matchById.get(c.match_id) : null;
+      const currentProperty = linkedMatch ? currentPropertyByExchange.get(linkedMatch.buyer_exchange_id) : null;
+      const candidate = linkedMatch ? propertyById.get(linkedMatch.seller_property_id) : null;
+      const conversationMessages = messagesByConnection.get(c.id) ?? [];
+      return !term
+        || agent(c.buyer_agent_id).toLowerCase().includes(term)
+        || agent(c.seller_agent_id).toLowerCase().includes(term)
+        || exchangeOwnerTypeLabel(exchangeById.get(c.buyer_exchange_id)?.owner_type).toLowerCase().includes(term)
+        || exchangeOwnerTypeLabel(c.seller_exchange_id ? exchangeById.get(c.seller_exchange_id)?.owner_type : null).toLowerCase().includes(term)
+        || c.status.toLowerCase().includes(term)
+        || resolveListingName(currentProperty ?? null, true).toLowerCase().includes(term)
+        || resolveListingName(candidate ?? null, true).toLowerCase().includes(term)
+        || conversationMessages.some((message) => message.content.toLowerCase().includes(term));
+    }),
+    [connections, term, agent, exchangeById, matchById, currentPropertyByExchange, propertyById, messagesByConnection],
   );
   const fMatches = useMemo(
     () => matches.filter((m) => {
@@ -262,6 +305,11 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
     }),
     [matches, term, exchangeById, currentPropertyByExchange, propertyById, agent],
   );
+  const conversationDatasetStatus: DatasetStatus = datasetStatuses.connections === "failed"
+    ? "failed"
+    : datasetStatuses.messages === "failed"
+      ? "partial"
+      : datasetStatuses.connections;
 
   if (loading) {
     return (
@@ -302,7 +350,7 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
         {mode === "opportunities" && <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="matches">Matches ({adminDealsCountLabel(datasetStatuses.matches, fMatches.length, matches.length)})</TabsTrigger>
           <TabsTrigger value="exchanges">Exchanges ({adminDealsCountLabel(datasetStatuses.exchanges, fExchanges.length, exchanges.length)})</TabsTrigger>
-          <TabsTrigger value="connections">Conversations ({adminDealsCountLabel(datasetStatuses.connections, fConnections.length, connections.length)})</TabsTrigger>
+          <TabsTrigger value="connections">Conversations ({adminDealsCountLabel(conversationDatasetStatus, fConnections.length, connections.length)})</TabsTrigger>
         </TabsList>}
 
         {/* Exchanges */}
@@ -412,38 +460,42 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
 
         {/* Connections */}
         <TabsContent value="connections" className="mt-4">
-          <TableCard empty={fConnections.length === 0} emptyLabel="No connections found." status={datasetStatuses.connections} error={datasetErrors.connections} onRetry={loadDeals}>
+          <TableCard empty={fConnections.length === 0} emptyLabel="No conversations found." status={conversationDatasetStatus} error={datasetErrors.connections ?? datasetErrors.messages} onRetry={loadDeals}>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">Started</TableHead>
-                  <TableHead>Buyer account</TableHead>
-                  <TableHead>Seller account</TableHead>
+                  <TableHead>Agents</TableHead>
+                  <TableHead>Property opportunity</TableHead>
+                  <TableHead>Latest message</TableHead>
                   <TableHead className="w-[140px]">Status</TableHead>
-                  <TableHead className="w-[140px]">Facilitation fee</TableHead>
+                  <TableHead className="w-[95px] text-right">Messages</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {fConnections.map((c) => (
+                {fConnections.map((c) => {
+                  const linkedMatch = c.match_id ? matchById.get(c.match_id) : null;
+                  const currentProperty = linkedMatch ? currentPropertyByExchange.get(linkedMatch.buyer_exchange_id) : null;
+                  const candidate = linkedMatch ? propertyById.get(linkedMatch.seller_property_id) : null;
+                  const conversationMessages = messagesByConnection.get(c.id) ?? [];
+                  const latest = conversationMessages[0];
+                  return (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/opportunities/connections/${c.id}`)}>
                     <TableCell className="text-xs text-muted-foreground">{fmtDate(c.created_at)}</TableCell>
                     <TableCell className="text-sm">
-                      <div>{agent(c.buyer_agent_id)}</div>
-                      <div className="text-xs text-muted-foreground">{exchangeOwnerTypeLabel(exchangeById.get(c.buyer_exchange_id)?.owner_type)}</div>
+                      <div className="font-medium">{agent(c.buyer_agent_id)}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">with {agent(c.seller_agent_id)}</div>
                     </TableCell>
                     <TableCell className="text-sm">
-                      <div>{agent(c.seller_agent_id)}</div>
-                      <div className="text-xs text-muted-foreground">{exchangeOwnerTypeLabel(c.seller_exchange_id ? exchangeById.get(c.seller_exchange_id)?.owner_type : null)}</div>
+                      <div className="font-medium">{currentProperty ? resolveListingName(currentProperty, true) : "Current property unavailable"}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">→ {candidate ? resolveListingName(candidate, true) : "Matched property unavailable"}</div>
                     </TableCell>
+                    <TableCell className="max-w-[330px] text-sm"><div className="truncate">{latest?.content || "No messages yet"}</div>{latest && <div className="mt-0.5 text-xs text-muted-foreground">{agent(latest.sender_id)} · {fmtDate(latest.created_at)}</div>}</TableCell>
                     <TableCell><StatusPill value={c.status} /></TableCell>
-                    <TableCell className="text-sm">
-                      {c.facilitation_fee_amount != null ? money(c.facilitation_fee_amount) : "-"}
-                      {c.facilitation_fee_status && (
-                        <span className="ml-1 text-xs text-muted-foreground capitalize">({pretty(c.facilitation_fee_status)})</span>
-                      )}
-                    </TableCell>
+                    <TableCell className="text-right text-sm font-semibold">{conversationMessages.length}</TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </TableCard>

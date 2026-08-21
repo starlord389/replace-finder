@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Activity,
   Building2,
@@ -8,6 +9,7 @@ import {
   FileLock2,
   Home,
   Layers3,
+  MessageSquare,
   Sparkles,
   UserRound,
 } from "lucide-react";
@@ -33,9 +35,10 @@ function isSelected(selection: WorkspaceSelection, type: WorkspaceSelection["typ
 }
 
 export default function WorkspaceNavigator({ data, graph, selection, onSelect }: Props) {
-  const [collapsedClients, setCollapsedClients] = useState<Set<string>>(() => new Set());
+  const [collapsedClients, setCollapsedClients] = useState<Set<string>>(() => new Set(graph.clients.map((branch) => branch.client.id)));
   const [clientsCollapsed, setClientsCollapsed] = useState(false);
   const [inventoryCollapsed, setInventoryCollapsed] = useState(false);
+  const [conversationsCollapsed, setConversationsCollapsed] = useState(true);
   const accountName = data.profile.full_name || data.profile.email || "Account";
   const roleLabel = data.roles.includes("agent")
     ? "Agent account"
@@ -49,6 +52,21 @@ export default function WorkspaceNavigator({ data, graph, selection, onSelect }:
     properties: graph.clients.reduce((sum, branch) => sum + branch.properties.length, 0) + graph.directProperties.length,
     matches: Object.keys(graph.matchById).length,
   }), [graph]);
+
+  useEffect(() => {
+    const activeClientId = selection.type === "client"
+      ? selection.id
+      : selection.type === "property" && selection.id
+        ? graph.clients.find((client) => client.properties.some((property) => property.property.id === selection.id))?.client.id
+        : null;
+    if (!activeClientId) return;
+    setCollapsedClients((current) => {
+      if (!current.has(activeClientId)) return current;
+      const next = new Set(current);
+      next.delete(activeClientId);
+      return next;
+    });
+  }, [graph, selection]);
 
   function toggleClient(id: string) {
     setCollapsedClients((current) => {
@@ -135,6 +153,48 @@ export default function WorkspaceNavigator({ data, graph, selection, onSelect }:
             {!graph.directProperties.length && <EmptyBranch text="No separate property inventory" />}
           </div>
         )}
+
+        {data.connections.length > 0 && <>
+          <SectionButton
+            icon={MessageSquare}
+            label="Agent conversations"
+            count={data.connections.length}
+            collapsed={conversationsCollapsed}
+            onClick={() => setConversationsCollapsed((value) => !value)}
+          />
+          {!conversationsCollapsed && (
+            <div className="mb-3 space-y-1 pl-2">
+              {data.connections.map((connection) => {
+                const counterpartId = connection.buyer_agent_id === data.profile.id
+                  ? connection.seller_agent_id
+                  : connection.buyer_agent_id;
+                const counterpart = data.profilesById[counterpartId];
+                const match = connection.match_id ? graph.matchById[connection.match_id] : null;
+                const currentBranch = match
+                  ? Object.values(graph.propertyById).find((branch) => branch.exchange?.id === match.buyer_exchange_id)
+                  : null;
+                const candidate = match ? data.propertiesById[match.seller_property_id] : null;
+                const messageCount = data.connectionMessageMetadata.filter((message) => message.parentId === connection.id).length;
+                return (
+                  <Link
+                    key={connection.id}
+                    to={`/admin/opportunities/connections/${connection.id}`}
+                    className="block rounded-lg border border-transparent p-2.5 text-slate-700 transition hover:border-slate-200 hover:bg-white"
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="truncate text-[11px] font-semibold">{counterpart?.full_name || counterpart?.email || "Agent conversation"}</span>
+                      <span className="shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-medium text-emerald-800">{messageCount}</span>
+                    </span>
+                    <span className="mt-1 block truncate text-[9px] text-slate-500">
+                      {currentBranch ? resolveListingName(currentBranch.property, true) : "Current property"} → {candidate ? resolveListingName(candidate, true) : "Matched property"}
+                    </span>
+                    <span className="mt-0.5 block text-[9px] capitalize text-slate-400">{connection.status.replace(/_/g, " ")} · {messageCount === 1 ? "1 message" : `${messageCount} messages`}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </>}
 
         {graph.unlinkedExchanges.length > 0 && (
           <div className="mb-3">

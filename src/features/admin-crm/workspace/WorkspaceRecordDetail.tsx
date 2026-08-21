@@ -22,6 +22,7 @@ import {
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { PropertyPhotoPlaceholder } from "@/components/property/PropertyPhotoPlaceholder";
 import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
@@ -73,6 +74,7 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
   const managedPropertyCount = graph.clients.reduce((sum, client) => sum + client.properties.length, 0);
   const isAgent = data.roles.includes("agent");
   const activeAgentRelationships = view.representations.filter((item) => item.status === "active").length;
+  const representedOwners = view.representations.filter((item) => item.agent_id === data.profile.id);
   const recentActivity = buildEvents(data, view).slice(0, 7);
   return (
     <div>
@@ -135,6 +137,31 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
               <Button asChild variant="outline" size="sm" className="mt-4 w-full"><Link to="/admin/representation-requests">Open representation requests<ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button>
             </Panel>
           )}
+          {isAgent && representedOwners.length > 0 && (
+            <Panel title="Represented property owners" detail="Property owners who selected this agent, with a direct route into each client workspace.">
+              <div className="divide-y divide-slate-100">
+                {representedOwners.map((representation) => {
+                  const owner = data.profilesById[representation.investor_id];
+                  return <div key={representation.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><ProfileAvatar photoUrl={owner?.profile_photo_url} name={owner?.full_name || owner?.email || representation.investor_email} className="h-10 w-10" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{owner?.full_name || owner?.email || representation.investor_email || "Property owner"}</p><p className="text-xs text-slate-500">{representation.is_default ? "Preferred-agent relationship" : "Active representation relationship"}</p></div><Status value={representation.status} />{owner && <Button asChild variant="ghost" size="sm"><Link to={`/admin/users/${owner.id}`}>Open</Link></Button>}</div>;
+                })}
+              </div>
+            </Panel>
+          )}
+          {data.connections.length > 0 && (
+            <Panel title="Agent conversations" detail="Every agent-to-agent conversation connected to this account, with the property pair and message activity kept together.">
+              <div className="divide-y divide-slate-100">
+                {data.connections.map((connection) => {
+                  const counterpartId = connection.buyer_agent_id === data.profile.id ? connection.seller_agent_id : connection.buyer_agent_id;
+                  const counterpart = data.profilesById[counterpartId];
+                  const match = connection.match_id ? graph.matchById[connection.match_id] : null;
+                  const currentBranch = match ? Object.values(graph.propertyById).find((branch) => branch.exchange?.id === match.buyer_exchange_id) : null;
+                  const candidate = match ? data.propertiesById[match.seller_property_id] : null;
+                  const messages = data.connectionMessageMetadata.filter((message) => message.parentId === connection.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+                  return <Link key={connection.id} to={`/admin/opportunities/connections/${connection.id}`} className="group flex items-center gap-3 py-4 first:pt-0 last:pb-0"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-950 text-white"><MessageSquare className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">Conversation with {counterpart?.full_name || counterpart?.email || "the other agent"}</span><span className="mt-1 block truncate text-xs text-slate-500">{currentBranch ? resolveListingName(currentBranch.property, true) : "Current property"} → {candidate ? resolveListingName(candidate, true) : "Matched property"}</span><span className="mt-1 block text-[10px] text-slate-400">{messages.length === 1 ? "1 message" : `${messages.length} messages`}{messages[0] ? ` · Last activity ${formatDate(messages[0].createdAt, true)}` : " · No messages yet"}</span></span><Status value={connection.status} /><ArrowRight className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-emerald-600" /></Link>;
+                })}
+              </div>
+            </Panel>
+          )}
         </div>
 
         <div className="space-y-5">
@@ -171,6 +198,12 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
 function ClientRecord({ data, branch, onSelect }: Props & { branch: WorkspaceClientBranch }) {
   const client = branch.client;
   const matchCount = branch.properties.reduce((sum, property) => sum + property.matches.length, 0);
+  const exchangeIds = new Set(branch.exchanges.map((exchange) => exchange.id));
+  const matchIds = new Set(branch.properties.flatMap((property) => property.matches.map((match) => match.id)));
+  const clientEvents: EventItem[] = [
+    ...data.timeline.filter((event) => exchangeIds.has(event.exchange_id)).map((event) => ({ id: `timeline-${event.id}`, title: event.description, detail: `Exchange · ${sentence(event.event_type)}`, date: event.created_at, icon: ArrowRight })),
+    ...data.workflowEvents.filter((event) => matchIds.has(event.match_id)).map((event) => ({ id: `workflow-${event.id}`, title: `Match moved to ${sentence(event.to_stage)}`, detail: `Opportunity · ${sentence(event.source)}`, date: event.created_at, icon: Sparkles })),
+  ].sort((a, b) => b.date.localeCompare(a.date));
   return (
     <div>
       <RecordHeader
@@ -179,35 +212,51 @@ function ClientRecord({ data, branch, onSelect }: Props & { branch: WorkspaceCli
         description={client.client_company || "Client relationship, property portfolio, and exchange workspaces"}
         actions={<Status value={client.status} />}
       />
-      <div className="grid gap-5 p-5 2xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,.65fr)]">
-        <div className="space-y-5">
-          <section className="grid gap-3 sm:grid-cols-3">
-            <Kpi label="Properties" value={branch.properties.length} detail="Current property records" icon={Home} />
-            <Kpi label="Active exchanges" value={branch.exchanges.filter((exchange) => !["closed", "cancelled"].includes(exchange.status)).length} detail="In progress" icon={CircleDollarSign} />
-            <Kpi label="Matches" value={matchCount} detail="Across client properties" icon={Sparkles} />
-          </section>
-          <Panel title="Properties and exchanges" detail="Each listing remains attached to this client, with its matches directly underneath.">
-            {branch.properties.length ? (
-              <div className="grid gap-4 lg:grid-cols-2">
-                {branch.properties.map((property) => (
-                  <ClientPropertyCard key={property.property.id} data={data} branch={property} onSelect={onSelect} />
-                ))}
+      <div className="p-5">
+        <section className="mb-5 grid gap-3 sm:grid-cols-3">
+          <Kpi label="Properties" value={branch.properties.length} detail="Attached to this client" icon={Home} />
+          <Kpi label="Active exchanges" value={branch.exchanges.filter((exchange) => !["closed", "cancelled"].includes(exchange.status)).length} detail="Currently being managed" icon={CircleDollarSign} />
+          <Kpi label="Matched opportunities" value={matchCount} detail="Grouped by current property" icon={Sparkles} />
+        </section>
+
+        <Tabs defaultValue="overview" className="space-y-5">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-slate-100 p-1 sm:grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="properties">Properties ({branch.properties.length})</TabsTrigger>
+            <TabsTrigger value="matches">Matches ({matchCount})</TabsTrigger>
+            <TabsTrigger value="activity">Activity ({clientEvents.length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-0">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(300px,.85fr)]">
+              <Panel title="Relationship map" detail="The client, their current properties, and every opportunity connected to each property.">
+                {branch.properties.length ? <div className="space-y-3">{branch.properties.map((property) => <ClientRelationshipRow key={property.property.id} data={data} branch={property} onSelect={onSelect} />)}</div> : <EmptyState icon={Home} title="No properties for this client" detail="No exchange or listing record is connected to this client." />}
+              </Panel>
+              <div className="space-y-5">
+                <Panel title="Client information" detail="The contact record used by this agent.">
+                  <div className="space-y-3"><ContactLine icon={Mail} value={client.client_email} /><ContactLine icon={Phone} value={client.client_phone} /><ContactLine icon={Building2} value={client.client_company} /></div>
+                  <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4"><Fact label="Created" value={formatDate(client.created_at)} /><Fact label="Updated" value={formatDate(client.updated_at, true)} /><Fact label="Platform account" value={client.client_user_id ? "Connected" : "Not connected"} /><Fact label="Platform referral" value={client.referred_by_platform ? "Yes" : "No"} /></div>
+                </Panel>
+                <Panel title="Internal notes" detail="Agent-entered CRM context."><p className="whitespace-pre-wrap text-sm leading-6 text-slate-600">{client.notes || "No internal client notes have been added."}</p></Panel>
+                {client.client_user_id && data.profilesById[client.client_user_id] && <Button asChild variant="outline" className="w-full"><Link to={`/admin/users/${client.client_user_id}`}>Open connected property-owner account<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>}
               </div>
-            ) : <EmptyState icon={Home} title="No properties for this client" detail="No exchange or listing record is connected to this client." />}
-          </Panel>
-        </div>
-        <div className="space-y-5">
-          <Panel title="Client information" detail="The contact record used by this agent.">
-            <div className="space-y-3"><ContactLine icon={Mail} value={client.client_email} /><ContactLine icon={Phone} value={client.client_phone} /><ContactLine icon={Building2} value={client.client_company} /></div>
-            <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4"><Fact label="Created" value={formatDate(client.created_at)} /><Fact label="Updated" value={formatDate(client.updated_at, true)} /><Fact label="Platform account" value={client.client_user_id ? "Connected" : "Not connected"} /><Fact label="Platform referral" value={client.referred_by_platform ? "Yes" : "No"} /></div>
-          </Panel>
-          <Panel title="Internal notes" detail="Agent-entered CRM context.">
-            <p className="whitespace-pre-wrap text-sm leading-6 text-slate-600">{client.notes || "No internal client notes have been added."}</p>
-          </Panel>
-          {client.client_user_id && data.profilesById[client.client_user_id] && (
-            <Button asChild variant="outline" className="w-full"><Link to={`/admin/users/${client.client_user_id}`}>Open connected property-owner account<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
-          )}
-        </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="properties" className="mt-0">
+            <Panel title="Client properties" detail="The same listings and current-property records visible in the live agent workspace.">
+              {branch.properties.length ? <div className="grid gap-4 lg:grid-cols-2">{branch.properties.map((property) => <ClientPropertyCard key={property.property.id} data={data} branch={property} onSelect={onSelect} />)}</div> : <EmptyState icon={Home} title="No properties for this client" detail="No exchange or listing record is connected to this client." />}
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="matches" className="mt-0 space-y-4">
+            {branch.properties.length ? branch.properties.map((property) => <ClientMatchGroup key={property.property.id} data={data} branch={property} onSelect={onSelect} />) : <EmptyState icon={Sparkles} title="No matched opportunities" detail="This client has no property search to match against." />}
+          </TabsContent>
+
+          <TabsContent value="activity" className="mt-0">
+            <Panel title="Client activity" detail="Exchange and match events limited to this client’s properties.">{clientEvents.length ? <EventList events={clientEvents} /> : <EmptyState icon={Activity} title="No client activity" detail="No workflow events have been recorded for this client." />}</Panel>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
@@ -369,6 +418,15 @@ function ClientPropertyCard({ data, branch, onSelect }: { data: CrmUserWorkspace
   const finance = data.financialsByProperty[property.id];
   const image = data.imagesByProperty[property.id]?.[0];
   return <article className="overflow-hidden rounded-xl border border-slate-200 bg-white"><button type="button" onClick={() => onSelect({ type: "property", id: property.id })} className="group block w-full text-left"><div className="relative h-44 bg-slate-100">{image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full w-full" />}<div className="absolute left-3 top-3 flex gap-2"><Status value={property.status} />{property.is_demo && <Badge className="bg-amber-100 text-amber-800">Demo</Badge>}</div></div><div className="p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">{resolveListingName(property, true)}</p><p className="mt-1 truncate text-xs text-slate-500">{[property.city, property.state].filter(Boolean).join(", ")} · {sentence(property.asset_type)}</p></div><ArrowRight className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-emerald-600" /></div><div className="mt-4 grid grid-cols-3 gap-3"><Fact label="Value" value={formatCurrency(finance?.asking_price ?? finance?.appraised_value)} /><Fact label="NOI" value={formatCurrency(finance?.noi)} /><Fact label="Cap rate" value={percent(finance?.cap_rate)} /></div><div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3"><span className="text-xs text-slate-500">{branch.matches.length} {branch.matches.length === 1 ? "match" : "matches"}</span><span className="text-xs font-medium text-emerald-700">View listing record</span></div></div></button></article>;
+}
+
+function ClientRelationshipRow({ data, branch, onSelect }: { data: CrmUserWorkspace; branch: WorkspacePropertyBranch; onSelect: (selection: WorkspaceSelection) => void }) {
+  const image = data.imagesByProperty[branch.property.id]?.[0];
+  return <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/60"><button type="button" onClick={() => onSelect({ type: "property", id: branch.property.id })} className="flex w-full items-center gap-3 bg-white p-3 text-left hover:bg-slate-50"><div className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">{image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full w-full" />}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-950">{resolveListingName(branch.property, true)}</p><p className="mt-1 text-xs text-slate-500">{sentence(branch.property.asset_type)} · {sentence(branch.property.status)} · {branch.matches.length} {branch.matches.length === 1 ? "match" : "matches"}</p></div><ArrowRight className="h-4 w-4 text-slate-400" /></button>{branch.matches.length > 0 && <div className="border-t border-slate-200 px-3 py-2"><p className="mb-2 text-[9px] font-semibold uppercase tracking-wide text-slate-400">Matched replacement properties</p><div className="space-y-1">{branch.matches.slice(0, 3).map((match) => { const candidate = data.propertiesById[match.seller_property_id]; return <button key={match.id} type="button" onClick={() => onSelect({ type: "match", id: match.id })} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-white"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-slate-950 text-[10px] font-semibold text-white">{Math.round(match.total_score)}</span><span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700">{candidate ? resolveListingName(candidate, true) : "Matched property"}</span><Status value={data.workflowStatesByMatch[match.id]?.current_stage ?? match.status} /></button>; })}</div>{branch.matches.length > 3 && <p className="mt-2 px-2 text-[10px] text-slate-500">+{branch.matches.length - 3} more opportunities</p>}</div>}</div>;
+}
+
+function ClientMatchGroup({ data, branch, onSelect }: { data: CrmUserWorkspace; branch: WorkspacePropertyBranch; onSelect: (selection: WorkspaceSelection) => void }) {
+  return <section className="overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3"><button type="button" onClick={() => onSelect({ type: "property", id: branch.property.id })} className="min-w-0 text-left"><p className="truncate text-sm font-semibold text-slate-950">{resolveListingName(branch.property, true)}</p><p className="mt-0.5 text-xs text-slate-500">Current property · {branch.matches.length} {branch.matches.length === 1 ? "matched opportunity" : "matched opportunities"}</p></button><Button variant="outline" size="sm" onClick={() => onSelect({ type: "property", id: branch.property.id })}>Open property</Button></div>{branch.matches.length ? <div className="divide-y divide-slate-100">{branch.matches.map((match) => { const candidate = data.propertiesById[match.seller_property_id]; const finance = candidate ? data.financialsByProperty[candidate.id] : null; const image = candidate ? data.imagesByProperty[candidate.id]?.[0] : null; const workflow = data.workflowStatesByMatch[match.id]; const connection = data.connections.find((item) => item.match_id === match.id); const messageCount = connection ? data.connectionMessageMetadata.filter((item) => item.parentId === connection.id).length : 0; return <div key={match.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><button type="button" onClick={() => onSelect({ type: "match", id: match.id })} className="flex min-w-0 flex-1 items-center gap-3 text-left"><div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">{image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full w-full" />}</div><div className="min-w-0 flex-1"><div className="flex items-center gap-2"><p className="truncate text-sm font-semibold text-slate-950">{candidate ? resolveListingName(candidate, true) : "Matched property"}</p><span className="rounded-md bg-slate-950 px-1.5 py-0.5 text-[10px] font-semibold text-white">{Math.round(match.total_score)}</span></div><p className="mt-1 text-xs text-slate-500">{formatCurrency(finance?.asking_price)} · {percent(finance?.cap_rate)} cap · {formatCurrency(finance?.noi)} NOI</p><div className="mt-2 flex flex-wrap gap-2"><Status value={workflow?.current_stage ?? match.status} />{connection && <Status value={connection.status} />}</div></div></button><div className="flex shrink-0 gap-2 sm:flex-col"><Button variant="outline" size="sm" className="flex-1" onClick={() => onSelect({ type: "match", id: match.id })}>Open match</Button>{connection && <Button asChild size="sm" className="flex-1"><Link to={`/admin/opportunities/connections/${connection.id}`}><MessageSquare className="mr-1.5 h-3.5 w-3.5" />{messageCount} {messageCount === 1 ? "message" : "messages"}</Link></Button>}</div></div>; })}</div> : <div className="p-6"><EmptyState icon={Sparkles} title="No matches yet" detail="ExchangeUp has not found a replacement opportunity for this property." /></div>}</section>;
 }
 
 function CompactPropertyCard({ data, branch, onClick }: { data: CrmUserWorkspace; branch: WorkspacePropertyBranch; onClick: () => void }) {

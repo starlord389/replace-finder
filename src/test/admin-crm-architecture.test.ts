@@ -13,6 +13,9 @@ describe("admin CRM architecture", () => {
   const detail = read("src/features/admin-crm/workspace/WorkspaceRecordDetail.tsx");
   const canonicalRecord = read("src/features/admin-crm/pages/AdminCanonicalRecord.tsx");
   const sidebar = read("src/features/admin-crm/layout/AdminCrmSidebar.tsx");
+  const opportunities = read("src/pages/admin/AdminDeals.tsx");
+  const conversation = read("src/pages/admin/AdminConnectionDetail.tsx");
+  const representations = read("src/pages/admin/AdminRepresentations.tsx");
 
   it("uses the CRM shell and CRM-owned pages as the primary admin routes", () => {
     expect(app).toContain('import AdminCrmShell from "@/features/admin-crm/layout/AdminCrmShell"');
@@ -38,6 +41,10 @@ describe("admin CRM architecture", () => {
     expect(detail).toContain("Client portfolio");
     expect(detail).toContain("Matched replacement properties");
     expect(detail).toContain("Detailed financials");
+    expect(detail).toContain('TabsTrigger value="properties"');
+    expect(detail).toContain('TabsTrigger value="matches"');
+    expect(detail).toContain("ClientMatchGroup");
+    expect(navigator).toContain("Agent conversations");
     expect(detail).toContain("CrmAccountControls");
   });
 
@@ -51,5 +58,18 @@ describe("admin CRM architecture", () => {
     expect(workspace).toContain('navigate(`/admin/opportunities/exchanges/${next.id}`)');
     expect(canonicalRecord).toContain("WorkspaceRecordDetail");
     expect(canonicalRecord).toContain('data-testid={`admin-canonical-${recordType}`}');
+  });
+
+  it("keeps opportunity context attached to conversations and representation work", () => {
+    expect(opportunities).toContain("Latest message");
+    expect(opportunities).toContain("Property opportunity");
+    expect(opportunities).toContain('from("messages")');
+    expect(conversation).toContain("Agent conversation");
+    expect(conversation).toContain("Client’s current property");
+    expect(conversation).toContain("Matched replacement property");
+    expect(conversation).toContain("Conversation history");
+    expect(representations).toContain("Needs action");
+    expect(representations).toContain("Requested exchange");
+    expect(representations).not.toContain("Run multi-account test");
   });
 });

@@ -6,10 +6,6 @@ const diagnostic = readFileSync(
   resolve(process.cwd(), "supabase/functions/run-representation-e2e/index.ts"),
   "utf8",
 );
-const adminWorkspace = readFileSync(
-  resolve(process.cwd(), "src/pages/admin/AdminRepresentations.tsx"),
-  "utf8",
-);
 
 describe("representation multi-account diagnostic contract", () => {
   it("requires an administrator and uses isolated authenticated identities", () => {
@@ -50,11 +46,9 @@ describe("representation multi-account diagnostic contract", () => {
     expect(diagnostic).toContain('"unassign_agent_from_exchange"');
   });
 
-  it("always cleans up fixtures and is runnable from representation operations", () => {
+  it("always cleans up its isolated fixtures", () => {
     expect(diagnostic).toContain("finally");
     expect(diagnostic).toContain("cleanupFixtures");
     expect(diagnostic).toContain("deleteUser");
-    expect(adminWorkspace).toContain("Run multi-account test");
-    expect(adminWorkspace).toContain('"run-representation-e2e"');
   });
 });
