@@ -32,7 +32,9 @@ describe("admin CRM architecture", () => {
 
   it("treats users as CRM contacts that open a relationship-aware workspace", () => {
     expect(directory).toContain('title="People"');
-    expect(directory).toContain("follow every client, property, opportunity, conversation, and activity record in context");
+    expect(directory).toContain("Every real signup appears here");
+    expect(directory).toContain("getAdminOnboardingStage");
+    expect(directory).toContain("Journey stage");
     expect(directory).toContain('to={`/admin/users/${user.id}`}');
     expect(directory).toContain("const USER_DIRECTORY_GRID");
     expect(directory).toContain('<tr className={`grid ${USER_DIRECTORY_GRID}`}>');

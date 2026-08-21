@@ -69,6 +69,55 @@ export interface AdminUserDirectoryRow extends Profile {
   isTestAccount: boolean;
 }
 
+export type AdminOnboardingStageId =
+  | "awaiting_confirmation"
+  | "profile_missing"
+  | "never_signed_in"
+  | "signed_in_no_setup"
+  | "client_added"
+  | "property_started"
+  | "matching_active"
+  | "admin_account";
+
+export interface AdminOnboardingStage {
+  id: AdminOnboardingStageId;
+  label: string;
+  detail: string;
+  tone: "slate" | "blue" | "green" | "amber" | "red";
+}
+
+/**
+ * Turns the auth lifecycle and the user's first meaningful product records into
+ * a plain-language journey stage. This intentionally includes zero-activity
+ * accounts so administrators can see where onboarding stopped.
+ */
+export function getAdminOnboardingStage(user: AdminUserDirectoryRow): AdminOnboardingStage {
+  if (!user.email_confirmed_at) {
+    return { id: "awaiting_confirmation", label: "Awaiting confirmation", detail: "Signed up, but email is not confirmed", tone: "amber" };
+  }
+  if (!user.profileExists) {
+    return { id: "profile_missing", label: "Profile missing", detail: "Auth account exists without a profile", tone: "red" };
+  }
+  if (!user.last_sign_in_at) {
+    return { id: "never_signed_in", label: "Never signed in", detail: "Email confirmed, but no sign-in recorded", tone: "amber" };
+  }
+
+  const workspaceRecords = user.clients.total + user.exchanges.total + user.properties.total + user.matches.total;
+  if (user.roles.includes("admin") && workspaceRecords === 0) {
+    return { id: "admin_account", label: "Administrator", detail: "Administrative account", tone: "blue" };
+  }
+  if (user.matches.total > 0) {
+    return { id: "matching_active", label: "Matching active", detail: `${user.matches.total} matched ${user.matches.total === 1 ? "opportunity" : "opportunities"}`, tone: "green" };
+  }
+  if (user.properties.total > 0 || user.exchanges.total > 0) {
+    return { id: "property_started", label: "Property started", detail: "Property or exchange created; no matches yet", tone: "blue" };
+  }
+  if (user.clients.total > 0) {
+    return { id: "client_added", label: "Client added", detail: "Client created; no property started", tone: "blue" };
+  }
+  return { id: "signed_in_no_setup", label: "Signed in, no setup", detail: "No client, property, exchange, or match", tone: "amber" };
+}
+
 export interface AdminUserDirectorySource {
   profiles: Profile[];
   roles: Role[];

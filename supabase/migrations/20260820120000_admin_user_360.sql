@@ -336,7 +336,7 @@ DECLARE
   v_search text := lower(btrim(COALESCE(p_search, '')));
   v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
   v_offset integer := GREATEST(COALESCE(p_offset, 0), 0);
-  v_fast_path boolean := p_data_scope IS NULL
+  v_fast_path boolean := (p_data_scope IS NULL OR p_data_scope = 'live')
     AND COALESCE(p_sort, 'recent') IN ('recent', 'name');
 BEGIN
   IF v_uid IS NULL THEN
@@ -468,6 +468,10 @@ BEGIN
       AND (
         p_account_status IS NULL
         OR e.effective_account_status = p_account_status
+      )
+      AND (
+        p_data_scope IS DISTINCT FROM 'live'
+        OR NOT e.test_account
       )
   ), fast_candidates AS (
     SELECT f.*
@@ -621,7 +625,10 @@ BEGIN
     FROM enriched_raw e
     WHERE (
         p_data_scope IS NULL
-        OR (p_data_scope = 'live' AND e.has_live_data)
+        -- Live is the real-account directory, not merely the subset that has
+        -- already created workspace records. Keeping zero-activity signups in
+        -- this scope is essential for onboarding and drop-off analysis.
+        OR (p_data_scope = 'live' AND NOT e.test_account)
         OR (p_data_scope = 'demo' AND e.has_demo_data)
       )
   ), paged AS (

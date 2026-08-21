@@ -14,6 +14,14 @@ describe("admin CRM operating UX", () => {
     expect(dashboard).toContain('href="/admin/representation-requests"');
   });
 
+  it("keeps zero-activity signups visible with a plain-language journey stage", () => {
+    const people = read("src/features/admin-crm/pages/CrmUsersIndex.tsx");
+    expect(people).toContain("Every real signup appears here");
+    expect(people).toContain("Journey stage");
+    expect(people).toContain("getAdminOnboardingStage");
+    expect(people).toContain("Includes zero-activity accounts");
+  });
+
   it("presents properties and matches as relationship-rich CRM records", () => {
     const deals = read("src/pages/admin/AdminDeals.tsx");
     expect(deals).toContain('label="Missing photos"');

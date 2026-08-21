@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   buildAdminUserDirectory,
+  getAdminOnboardingStage,
   mapAdminListUsersRow,
   normalizeAdminUserDirectoryParams,
   type AdminUserDirectorySource,
@@ -147,6 +148,28 @@ describe("admin user directory aggregation", () => {
       isTestAccount: true,
       hasDemoData: true,
     });
+  });
+
+  it("turns zero-activity signups into explicit onboarding drop-off stages", () => {
+    const [directoryUser] = buildAdminUserDirectory(source({
+      profiles: [profile],
+      roles: [{ user_id: profile.id, role: "agent" }],
+    }));
+
+    expect(getAdminOnboardingStage(directoryUser).id).toBe("awaiting_confirmation");
+    const signedIn = {
+      ...directoryUser,
+      email_confirmed_at: "2026-01-01T01:00:00Z",
+      last_sign_in_at: "2026-01-01T01:05:00Z",
+    };
+    expect(getAdminOnboardingStage(signedIn)).toMatchObject({
+      id: "signed_in_no_setup",
+      label: "Signed in, no setup",
+    });
+    expect(getAdminOnboardingStage({
+      ...signedIn,
+      matches: { ...signedIn.matches, total: 2, live: 2 },
+    })).toMatchObject({ id: "matching_active" });
   });
 
   it("maps auth-only users and server-computed relationship counts", () => {
@@ -311,12 +334,13 @@ describe("admin user directory RPC contract", () => {
     expect(migration).toContain("COALESCE(p.verification_status, 'pending') AS profile_verification_status");
     expect(migration).toContain("'agent'::public.app_role = ANY(e.user_roles)");
     expect(migration).toContain("AND e.profile_verification_status = p_verification_status");
-    expect(migration).toContain("p_data_scope = 'live' AND e.has_live_data");
+    expect(migration).toContain("p_data_scope = 'live' AND NOT e.test_account");
     expect(migration).toContain("p_data_scope = 'demo' AND e.has_demo_data");
     expect(migration).toContain("COALESCE(p_sort, 'recent') = 'activity'");
-    expect(migration).toContain("v_fast_path boolean := p_data_scope IS NULL");
+    expect(migration).toContain("v_fast_path boolean := (p_data_scope IS NULL OR p_data_scope = 'live')");
     expect(migration).toContain("AND COALESCE(p_sort, 'recent') IN ('recent', 'name')");
     expect(migration).toContain("WHERE NOT v_fast_path");
+    expect(migration).toContain("p_data_scope IS DISTINCT FROM 'live'");
 
     const identityFilter = migration.indexOf("), identity_filtered AS (");
     const fastCandidates = migration.indexOf("), fast_candidates AS (");
@@ -328,6 +352,16 @@ describe("admin user directory RPC contract", () => {
     expect(fastCandidates).toBeLessThan(relationshipGraph);
     expect(fastCandidateSql).toContain("LIMIT v_limit OFFSET v_offset");
     expect(migration).toContain("OFFSET CASE WHEN v_fast_path THEN 0 ELSE v_offset END");
+  });
+
+  it("ships the same signup-visibility correction for already-deployed environments", () => {
+    const followUp = readFileSync(
+      resolve(process.cwd(), "supabase/migrations/20260821190000_admin_signup_visibility.sql"),
+      "utf8",
+    );
+    expect(followUp).toContain("p_data_scope = ''live'' AND NOT e.test_account");
+    expect(followUp).toContain("p_data_scope IS DISTINCT FROM ''live''");
+    expect(followUp).toContain("NOTIFY pgrst, 'reload schema'");
   });
 
   it("returns exact filtered and platform totals with deleted account state", () => {
