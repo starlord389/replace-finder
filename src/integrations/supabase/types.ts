@@ -3095,6 +3095,16 @@ export type Database = {
           years_experience: number
         }[]
       }
+      admin_search_crm: {
+        Args: { p_data_scope: string; p_limit?: number; p_search: string }
+        Returns: {
+          href: string
+          id: string
+          result_type: string
+          subtitle: string
+          title: string
+        }[]
+      }
       admin_set_user_account_status: {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: {
@@ -3111,16 +3121,6 @@ export type Database = {
           p_user_id: string
         }
         Returns: Database["public"]["Enums"]["app_role"][]
-      }
-      admin_search_crm: {
-        Args: { p_data_scope: string; p_limit?: number; p_search: string }
-        Returns: {
-          href: string
-          id: string
-          result_type: string
-          subtitle: string
-          title: string
-        }[]
       }
       admin_system_health: { Args: never; Returns: Json }
       apply_match_workflow_stage: {
