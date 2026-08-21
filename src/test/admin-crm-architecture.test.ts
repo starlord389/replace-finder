@@ -32,6 +32,9 @@ describe("admin CRM architecture", () => {
   it("treats users as CRM contacts that open a relationship-aware workspace", () => {
     expect(directory).toContain("A contacts-style directory for every registered account");
     expect(directory).toContain('to={`/admin/users/${user.id}`}');
+    expect(directory).toContain("const USER_DIRECTORY_GRID");
+    expect(directory).toContain('<tr className={`grid ${USER_DIRECTORY_GRID}`}>');
+    expect(directory).toContain('className={`grid ${USER_DIRECTORY_GRID} items-center`}');
     expect(workspace).toContain("WorkspaceNavigator");
     expect(workspace).toContain("WorkspaceRecordDetail");
     expect(workspace).toContain("buildAdminWorkspaceGraph");
