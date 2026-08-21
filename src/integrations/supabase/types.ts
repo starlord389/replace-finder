@@ -92,7 +92,6 @@ export type Database = {
           created_by: string | null
           id: string
           idempotency_key: string
-          is_demo: boolean
           message_text: string
           provider_message_id: string | null
           recipient_email: string
@@ -110,7 +109,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           idempotency_key: string
-          is_demo?: boolean
           message_text: string
           provider_message_id?: string | null
           recipient_email: string
@@ -128,7 +126,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           idempotency_key?: string
-          is_demo?: boolean
           message_text?: string
           provider_message_id?: string | null
           recipient_email?: string
@@ -887,7 +884,6 @@ export type Database = {
           created_at: string
           error_message: string | null
           id: string
-          is_demo: boolean
           message_id: string | null
           metadata: Json | null
           recipient_email: string
@@ -898,7 +894,6 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
-          is_demo?: boolean
           message_id?: string | null
           metadata?: Json | null
           recipient_email: string
@@ -909,7 +904,6 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
-          is_demo?: boolean
           message_id?: string | null
           metadata?: Json | null
           recipient_email?: string
@@ -1829,7 +1823,6 @@ export type Database = {
           email_status: string | null
           emailed_at: string | null
           id: string
-          is_demo: boolean
           link_to: string | null
           message: string
           metadata: Json | null
@@ -1843,7 +1836,6 @@ export type Database = {
           email_status?: string | null
           emailed_at?: string | null
           id?: string
-          is_demo?: boolean
           link_to?: string | null
           message: string
           metadata?: Json | null
@@ -1857,7 +1849,6 @@ export type Database = {
           email_status?: string | null
           emailed_at?: string | null
           id?: string
-          is_demo?: boolean
           link_to?: string | null
           message?: string
           metadata?: Json | null
@@ -2579,7 +2570,6 @@ export type Database = {
           error_message: string | null
           from_number: string | null
           id: string
-          is_demo: boolean
           message_sid: string | null
           purpose: string | null
           status: string
@@ -2595,7 +2585,6 @@ export type Database = {
           error_message?: string | null
           from_number?: string | null
           id?: string
-          is_demo?: boolean
           message_sid?: string | null
           purpose?: string | null
           status?: string
@@ -2611,7 +2600,6 @@ export type Database = {
           error_message?: string | null
           from_number?: string | null
           id?: string
-          is_demo?: boolean
           message_sid?: string | null
           purpose?: string | null
           status?: string
@@ -2657,7 +2645,6 @@ export type Database = {
           category: string
           created_at: string
           id: string
-          is_demo: boolean
           message: string
           resolved_by: string | null
           status: Database["public"]["Enums"]["ticket_status"]
@@ -2670,7 +2657,6 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
-          is_demo?: boolean
           message: string
           resolved_by?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
@@ -2683,7 +2669,6 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
-          is_demo?: boolean
           message?: string
           resolved_by?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
