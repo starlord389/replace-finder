@@ -37,8 +37,9 @@ import { resolvePropertyImageUrl } from "@/features/dev/imageUrl";
 import { resolveListingName } from "@/lib/listingDisplay";
 import type { Tables } from "@/integrations/supabase/types";
 import CrmAccountControls from "../components/CrmAccountControls";
+import CommunicationsCenter from "../components/CommunicationsCenter";
 import { AccountStatusBadge, RoleBadge } from "../components/CrmPrimitives";
-import type { CrmUserWorkspace, CrmUserWorkspaceView } from "../data/useCrmUserWorkspace";
+import type { CrmUserWorkspace, CrmUserWorkspaceView, CrmWorkspaceScope } from "../data/useCrmUserWorkspace";
 import { formatCurrency, formatDate, sentence } from "../lib/crmFormat";
 import type {
   AdminWorkspaceGraph,
@@ -54,6 +55,7 @@ type Props = {
   selection: WorkspaceSelection;
   onSelect: (selection: WorkspaceSelection) => void;
   onRefetch: () => Promise<unknown>;
+  scope: CrmWorkspaceScope;
 };
 
 export default function WorkspaceRecordDetail(props: Props) {
@@ -72,6 +74,7 @@ export default function WorkspaceRecordDetail(props: Props) {
   }
   if (selection.type === "listings") return <ListingsRecord {...props} />;
   if (selection.type === "launchpad") return <LaunchpadRecord {...props} />;
+  if (selection.type === "communications") return <CommunicationsRecord {...props} />;
   if (selection.type === "activity") return <ActivityRecord {...props} />;
   if (selection.type === "access") return <AccessRecord {...props} />;
   return <AccountRecord {...props} />;
@@ -180,10 +183,10 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
           )}
           <Panel title="Relationship operations" detail="Invitations, representation work, private collaboration, and messages that still need attention.">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <button type="button" onClick={() => onSelect({ type: "activity" })} className="rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/30"><Mail className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{pendingRepresentationInvites + pendingClientInvites}</p><p className="mt-1 text-xs font-medium text-slate-700">Pending invitations</p><p className="mt-1 text-[10px] text-slate-400">{pendingRepresentationInvites} representation · {pendingClientInvites} client</p></button>
+              <button type="button" onClick={() => onSelect({ type: "communications" })} className="rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/30"><Mail className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{pendingRepresentationInvites + pendingClientInvites}</p><p className="mt-1 text-xs font-medium text-slate-700">Pending invitations</p><p className="mt-1 text-[10px] text-slate-400">{pendingRepresentationInvites} representation · {pendingClientInvites} client</p></button>
               <Button asChild variant="outline" className="h-auto justify-start rounded-xl p-4 text-left"><Link to="/admin/representation-requests"><span><Users className="h-4 w-4 text-emerald-700" /><span className="mt-3 block text-xl font-semibold text-slate-950">{openContactRequests}</span><span className="mt-1 block text-xs font-medium text-slate-700">Open representation requests</span><span className="mt-1 block text-[10px] font-normal text-slate-400">Review and route agent coverage</span></span></Link></Button>
-              <button type="button" onClick={() => onSelect({ type: "activity" })} className="rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/30"><MessageSquare className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{view.collaborationThreads.length}</p><p className="mt-1 text-xs font-medium text-slate-700">Client-agent threads</p><p className="mt-1 text-[10px] text-slate-400">{view.collaborationMessageMetadata.length} recorded messages</p></button>
-              <button type="button" onClick={() => onSelect({ type: "activity" })} className={`rounded-xl border p-4 text-left transition hover:border-emerald-300 ${unreadIncomingMessages ? "border-amber-200 bg-amber-50" : "border-slate-200 hover:bg-emerald-50/30"}`}><Inbox className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{unreadIncomingMessages}</p><p className="mt-1 text-xs font-medium text-slate-700">Unread incoming messages</p><p className="mt-1 text-[10px] text-slate-400">Across agent and client conversations</p></button>
+              <button type="button" onClick={() => onSelect({ type: "communications" })} className="rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/30"><MessageSquare className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{view.collaborationThreads.length}</p><p className="mt-1 text-xs font-medium text-slate-700">Client-agent threads</p><p className="mt-1 text-[10px] text-slate-400">{view.collaborationMessageMetadata.length} recorded messages</p></button>
+              <button type="button" onClick={() => onSelect({ type: "communications" })} className={`rounded-xl border p-4 text-left transition hover:border-emerald-300 ${unreadIncomingMessages ? "border-amber-200 bg-amber-50" : "border-slate-200 hover:bg-emerald-50/30"}`}><Inbox className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{unreadIncomingMessages}</p><p className="mt-1 text-xs font-medium text-slate-700">Unread incoming messages</p><p className="mt-1 text-[10px] text-slate-400">Across agent and client conversations</p></button>
             </div>
           </Panel>
         </div>
@@ -305,6 +308,23 @@ function LaunchpadRecord({ data, view }: Props) {
   const progress = buildLaunchpadProgress(data, view);
   const currentComplete = progress.completed === progress.steps.length;
   return <div><RecordHeader eyebrow="Onboarding audit" title="Launchpad progress" description="The same completion signals used by the live workspace, with the stored or inferred timestamp behind every step." actions={<Badge className={currentComplete ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}>{currentComplete ? "Current steps complete" : data.profile.launchpad_completed_at ? "Previously completed" : "In progress"}</Badge>} /><div className="space-y-5 p-5"><Panel title={`${progress.completed} of ${progress.steps.length} current steps complete`} detail={`${progress.percent}% of the ${progress.audience} onboarding workflow has recorded activity. A stored completion timestamp is preserved separately so changes between launchpad versions remain visible.`}><div className="h-2.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${progress.percent}%` }} /></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><Fact label="Recorded completion" value={formatDate(data.profile.launchpad_completed_at, true)} /><Fact label="Launchpad version" value={data.profile.launchpad_version} /></div></Panel><div className="space-y-3">{progress.steps.map((step, index) => <section key={step.id} className={`rounded-xl border bg-white p-4 ${step.complete ? "border-emerald-200" : step.inProgress ? "border-amber-200" : "border-slate-200"}`}><div className="flex items-start gap-3"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-semibold ${step.complete ? "bg-emerald-100 text-emerald-700" : step.inProgress ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"}`}>{step.complete ? <CheckCircle2 className="h-4 w-4" /> : index + 1}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-2"><div><h2 className="text-sm font-semibold text-slate-950">{step.title}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{step.detail}</p></div><Status value={step.complete ? "completed" : step.inProgress ? "in_progress" : "not_started"} /></div><div className="mt-3 grid gap-3 border-t border-slate-100 pt-3 sm:grid-cols-2"><Fact label="Evidence" value={step.evidence} /><Fact label="Recorded at" value={formatDate(step.completedAt, true)} /></div></div></div></section>)}</div><Panel title="Launchpad timestamps" detail="Raw profile acknowledgements and completion records used by this onboarding audit."><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"><Fact label="Profile updated" value={formatDate(data.profile.updated_at, true)} /><Fact label="Matching walkthrough" value={formatDate(data.profile.launchpad_matching_ack_at, true)} /><Fact label="Matches opened" value={formatDate(data.profile.launchpad_matches_ack_at, true)} /><Fact label="Client requests walkthrough" value={formatDate(data.profile.launchpad_client_requests_ack_at, true)} /><Fact label="Pipeline opened" value={formatDate(data.profile.launchpad_pipeline_ack_at, true)} /><Fact label="Launchpad completed" value={formatDate(data.profile.launchpad_completed_at, true)} /></div></Panel></div></div>;
+}
+
+function CommunicationsRecord({ data, scope }: Props) {
+  const name = data.profile.full_name || data.profile.email || data.authAccount?.email || "Account";
+  return (
+    <div>
+      <RecordHeader
+        eyebrow="Account communications"
+        title={`Communication history for ${name}`}
+        description="Every conversation and delivery record related to this account, without leaving the user workspace."
+        actions={<Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Read only</Badge>}
+      />
+      <div className="p-5">
+        <CommunicationsCenter userId={data.profile.id} accountName={name} embedded dataScope={scope} />
+      </div>
+    </div>
+  );
 }
 
 function PropertyRecord({ data, branch, onSelect }: Props & { branch: WorkspacePropertyBranch }) {

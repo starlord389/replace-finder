@@ -29,6 +29,7 @@ const CrmDashboard = lazy(() => import("@/features/admin-crm/pages/CrmDashboard"
 const SupportTickets = lazy(() => import("@/pages/admin/SupportTickets"));
 const CrmUsersIndex = lazy(() => import("@/features/admin-crm/pages/CrmUsersIndex"));
 const CrmUserWorkspace = lazy(() => import("@/features/admin-crm/pages/CrmUserWorkspace"));
+const CrmCommunications = lazy(() => import("@/features/admin-crm/pages/CrmCommunications"));
 const AdminDeals = lazy(() => import("@/pages/admin/AdminDeals"));
 const AdminCanonicalRecord = lazy(() => import("@/features/admin-crm/pages/AdminCanonicalRecord"));
 const AdminExchangeDetail = lazy(() => import("@/pages/admin/AdminExchangeDetail"));
@@ -197,6 +198,7 @@ const App = () => (
               <Route path="/admin" element={<CrmDashboard />} />
               <Route path="/admin/users" element={<CrmUsersIndex />} />
               <Route path="/admin/users/:userId" element={<CrmUserWorkspace />} />
+              <Route path="/admin/communications" element={<CrmCommunications />} />
               <Route path="/admin/properties" element={<AdminDeals mode="properties" />} />
               <Route path="/admin/properties/:id" element={<AdminCanonicalRecord recordType="property" />} />
               <Route path="/admin/opportunities" element={<AdminDeals mode="opportunities" />} />

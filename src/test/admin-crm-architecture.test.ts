@@ -22,6 +22,7 @@ describe("admin CRM architecture", () => {
     expect(app).toContain('<Route element={<AdminCrmShell />}>');
     expect(app).toContain('<Route path="/admin/users" element={<CrmUsersIndex />} />');
     expect(app).toContain('<Route path="/admin/users/:userId" element={<CrmUserWorkspace />} />');
+    expect(app).toContain('<Route path="/admin/communications" element={<CrmCommunications />} />');
     expect(app).toContain('<Route path="/admin/properties/:id" element={<AdminCanonicalRecord recordType="property" />} />');
     expect(app).toContain('<Route path="/admin/opportunities/matches/:id" element={<AdminCanonicalRecord recordType="match" />} />');
     expect(app).toContain('<Route path="/admin/representation-requests" element={<AdminRepresentations />} />');
@@ -50,6 +51,7 @@ describe("admin CRM architecture", () => {
     expect(navigator).toContain("Agent conversations");
     expect(navigator).toContain("Listings & drafts");
     expect(navigator).toContain("Launchpad progress");
+    expect(navigator).toContain("Communications");
     expect(detail).toContain("Draft workspaces");
     expect(detail).toContain("Launchpad timestamps");
     expect(detail).toContain("Full timestamped history");

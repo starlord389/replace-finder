@@ -9,6 +9,7 @@ import {
   Headphones,
   Inbox,
   LogOut,
+  MessageSquareText,
   Settings,
   ShieldCheck,
   Users,
@@ -28,6 +29,7 @@ const workspace: NavItem[] = [
 ];
 
 const operations: NavItem[] = [
+  { label: "Communications", href: "/admin/communications", icon: MessageSquareText },
   { label: "Representation Requests", href: "/admin/representation-requests", icon: Handshake },
   { label: "Leads & Requests", href: "/admin/intake", icon: Inbox },
   { label: "Demo Requests", href: "/admin/demos", icon: CalendarClock },

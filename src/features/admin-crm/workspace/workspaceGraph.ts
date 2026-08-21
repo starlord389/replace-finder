@@ -15,6 +15,7 @@ export type WorkspaceRecordType =
   | "match"
   | "listings"
   | "launchpad"
+  | "communications"
   | "activity"
   | "access";
 
@@ -158,7 +159,7 @@ export function buildAdminWorkspaceGraph(
 
 export function parseWorkspaceSelection(value: string | null): WorkspaceSelection {
   if (!value) return { type: "account" };
-  if (["listings", "launchpad", "activity", "access"].includes(value)) return { type: value as WorkspaceRecordType };
+  if (["listings", "launchpad", "communications", "activity", "access"].includes(value)) return { type: value as WorkspaceRecordType };
   const separator = value.indexOf(":");
   if (separator === -1) return { type: "account" };
   const type = value.slice(0, separator) as WorkspaceRecordType;

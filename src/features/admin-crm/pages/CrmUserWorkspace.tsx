@@ -114,7 +114,7 @@ export default function CrmUserWorkspace() {
           <WorkspaceNavigator data={data} graph={graph} selection={selection} onSelect={selectRecord} />
         </div>
         <main className="min-w-0 bg-slate-50/40">
-          <WorkspaceRecordDetail data={data} view={view} graph={graph} selection={selection} onSelect={selectRecord} onRefetch={query.refetch} />
+          <WorkspaceRecordDetail data={data} view={view} graph={graph} selection={selection} onSelect={selectRecord} onRefetch={query.refetch} scope={scope} />
         </main>
       </div>
     </div>

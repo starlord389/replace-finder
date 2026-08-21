@@ -122,7 +122,7 @@ export default function AdminCanonicalRecord({ recordType }: { recordType: Canon
         </div>
       </div>
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/40 shadow-sm">
-        <WorkspaceRecordDetail data={workspace.data} view={view} graph={graph} selection={selection} onSelect={openRecord} onRefetch={workspace.refetch} />
+        <WorkspaceRecordDetail data={workspace.data} view={view} graph={graph} selection={selection} onSelect={openRecord} onRefetch={workspace.refetch} scope="all" />
       </div>
     </div>
   );

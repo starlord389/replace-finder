@@ -11,6 +11,7 @@ import {
   Inbox,
   LayoutDashboard,
   Loader2,
+  MessagesSquare,
   RefreshCw,
   Search,
   TicketCheck,
@@ -41,6 +42,7 @@ interface AdminGlobalSearchProps {
 const destinations = [
   { title: "Command Center", href: "/admin", icon: LayoutDashboard },
   { title: "Users & Accounts", href: "/admin/users", icon: Users },
+  { title: "Communications", href: "/admin/communications", icon: MessagesSquare },
   { title: "Properties", href: "/admin/properties", icon: Building2 },
   { title: "Opportunities", href: "/admin/opportunities", icon: ArrowLeftRight },
   { title: "Representation Requests", href: "/admin/representation-requests", icon: Handshake },

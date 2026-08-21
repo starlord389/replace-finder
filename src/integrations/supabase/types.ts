@@ -2912,6 +2912,27 @@ export type Database = {
           total_accounts: number
         }[]
       }
+      admin_get_communication_items: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_record_id: string
+          p_record_type: string
+        }
+        Returns: {
+          body: string
+          created_at: string
+          item_key: string
+          metadata: Json
+          read_at: string
+          sender_id: string
+          sender_name: string
+          sender_role: string
+          status: string
+          subject: string
+          total_count: number
+        }[]
+      }
       admin_get_user_overview: {
         Args: { p_user_id: string }
         Returns: {
@@ -2920,6 +2941,34 @@ export type Database = {
           counts: Json
           profile: Json
           roles: Database["public"]["Enums"]["app_role"][]
+        }[]
+      }
+      admin_list_communications: {
+        Args: {
+          p_channel?: string
+          p_data_scope?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+          p_user_id?: string
+        }
+        Returns: {
+          channel: string
+          context: Json
+          is_demo: boolean
+          message_count: number
+          occurred_at: string
+          participant_summary: string
+          preview: string
+          primary_user_id: string
+          record_id: string
+          record_type: string
+          secondary_user_id: string
+          status: string
+          title: string
+          total_count: number
+          unread_count: number
         }[]
       }
       admin_list_user_resources: {

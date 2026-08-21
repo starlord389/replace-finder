@@ -11,6 +11,7 @@ import {
   Layers3,
   ListChecks,
   MessageSquare,
+  MessagesSquare,
   Rocket,
   Sparkles,
   UserRound,
@@ -229,6 +230,13 @@ export default function WorkspaceNavigator({ data, graph, selection, onSelect }:
           title="Launchpad progress"
           meta={data.profile.launchpad_completed_at ? "Completion recorded" : "Onboarding in progress"}
           onClick={() => onSelect({ type: "launchpad" })}
+        />
+        <TreeButton
+          active={isSelected(selection, "communications")}
+          icon={<MessagesSquare className="h-4 w-4" />}
+          title="Communications"
+          meta={`${data.connections.length + data.collaborationThreads.length} conversations · ${data.notifications.length} notifications`}
+          onClick={() => onSelect({ type: "communications" })}
         />
         <TreeButton
           active={isSelected(selection, "activity")}
