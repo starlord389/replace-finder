@@ -12,7 +12,6 @@ export const PREF_KEYS = [
   "notify_connection_accepted",
   "notify_new_message",
   "notify_listing_inquiry",
-  "notify_deadline_reminder",
   "notify_weekly_digest",
   "notify_account_updates",
   "notify_product_updates",

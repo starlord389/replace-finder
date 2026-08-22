@@ -37,6 +37,7 @@ describe("admin relationship workspace graph", () => {
   it("uses stable deep links for records", () => {
     expect(parseWorkspaceSelection("property:abc")).toEqual({ type: "property", id: "abc" });
     expect(parseWorkspaceSelection("activity")).toEqual({ type: "activity" });
+    expect(parseWorkspaceSelection("relationships")).toEqual({ type: "relationships" });
     expect(parseWorkspaceSelection("unknown:abc")).toEqual({ type: "account" });
     expect(serializeWorkspaceSelection({ type: "match", id: "match-1" })).toBe("match:match-1");
   });

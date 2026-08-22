@@ -135,7 +135,7 @@ export default function Terms() {
         If you separately opt in, you authorize MFPX LLC, d/b/a 1031 Exchange Up, to send recurring
         automated SMS messages to the mobile number you provided. Messages may concern your account,
         demo or referral request, exchange activity, property matches, inquiries, connection requests,
-        deadline reminders, and related service notices. Message frequency varies based on your account
+        and related service notices. Message frequency varies based on your account
         or request activity. Message and data rates may apply. Consent is optional and is not a condition
         of purchase or use of the Service.
       </p>

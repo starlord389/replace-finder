@@ -32,5 +32,8 @@ describe("admin canonical record directory resilience", () => {
     expect(page).toContain("directory.refetch()");
     expect(page).toContain("Retry");
     expect(page).toContain('!directory.isError && <Tabs value={activeTab}');
+    expect(page).toContain('function pretty(value: string | null | undefined)');
+    expect(page).toContain('activeTab === "matches"');
+    expect(page).not.toContain("activeTab.slice(0, -1)");
   });
 });

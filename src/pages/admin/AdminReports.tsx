@@ -328,8 +328,6 @@ function buildExportDefinitions(data: AdminReportData, range: AdminReportRange):
       connectionCountByExchange.get(exchange.id) ?? 0,
       exchange.estimated_equity,
       exchange.exchange_proceeds,
-      exchange.identification_deadline,
-      exchange.closing_deadline,
       exchange.created_at,
     ];
   });
@@ -377,9 +375,9 @@ function buildExportDefinitions(data: AdminReportData, range: AdminReportRange):
     {
       key: "deals",
       title: "Exchanges & deals",
-      description: "Exchange status, account-owner type, agent or self-managed ownership, property summary, economics, and deadlines.",
+      description: "Exchange status, account-owner type, agent or self-managed ownership, property summary, and economics.",
       filename: `1031-exchange-up-deals-${stamp}.csv`,
-      headers: ["Exchange ID", "Account Type", "Account Owner", "Account Email", "Managed For", "Status", "Property", "City", "State", "Asset Type", "Connections", "Estimated Equity", "Exchange Proceeds", "Identification Deadline", "Closing Deadline", "Created At"],
+      headers: ["Exchange ID", "Account Type", "Account Owner", "Account Email", "Managed For", "Status", "Property", "City", "State", "Asset Type", "Connections", "Estimated Equity", "Exchange Proceeds", "Created At"],
       rows: dealRows,
     },
     {

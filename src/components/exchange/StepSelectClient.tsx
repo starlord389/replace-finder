@@ -22,6 +22,7 @@ interface Client {
   client_name: string;
   client_email: string | null;
   client_phone: string | null;
+  client_user_id: string | null;
   status: string;
 }
 
@@ -46,7 +47,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
       setLoading(true);
       const { data, error } = await supabase
         .from("agent_clients")
-        .select("id, client_name, client_email, client_phone, status")
+        .select("id, client_name, client_email, client_phone, client_user_id, status")
         .eq("agent_id", user.id)
         .eq("is_demo", isDemo)
         .order("client_name", { ascending: true });
@@ -88,8 +89,9 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
       client_name: newClient.name.trim(),
       client_email: newClient.email.trim() || null,
       client_phone: newClient.phone.trim() || null,
+      client_user_id: null,
       is_demo: isDemo,
-    }).select("id, client_name, client_email, client_phone, status").single();
+    }).select("id, client_name, client_email, client_phone, client_user_id, status").single();
     setSaving(false);
     if (error || !data) {
       console.error("Failed to add client:", error);
@@ -179,6 +181,7 @@ export default function StepSelectClient({ selectedClientId, onChange, onNext, l
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-foreground truncate">{c.client_name}</p>
+                      {c.client_user_id === user?.id && <Badge className="border-0 bg-violet-100 text-[10px] text-violet-800">Self-owned</Badge>}
                       {isInactive && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground truncate">

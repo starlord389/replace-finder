@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Activity,
   Building2,
@@ -10,7 +9,6 @@ import {
   Home,
   Layers3,
   ListChecks,
-  MessageSquare,
   MessagesSquare,
   Rocket,
   Sparkles,
@@ -26,6 +24,9 @@ import type {
   WorkspacePropertyBranch,
   WorkspaceSelection,
 } from "./workspaceGraph";
+import {
+  getClientWorkspaceAccess,
+} from "./workspaceRelationshipState";
 
 type Props = {
   data: CrmUserWorkspace;
@@ -40,14 +41,13 @@ function isSelected(selection: WorkspaceSelection, type: WorkspaceSelection["typ
 }
 
 export default function WorkspaceNavigator({ data, view, graph, selection, onSelect }: Props) {
-  const [collapsedClients, setCollapsedClients] = useState<Set<string>>(() => new Set(graph.clients.slice(1).map((branch) => branch.client.id)));
+  const [collapsedClients, setCollapsedClients] = useState<Set<string>>(() => new Set(graph.clients.map((branch) => branch.client.id)));
   const [collapsedProperties, setCollapsedProperties] = useState<Set<string>>(() => {
     const properties = [...graph.clients.flatMap((branch) => branch.properties), ...graph.directProperties];
-    return new Set(properties.slice(1).map((branch) => branch.property.id));
+    return new Set(properties.map((branch) => branch.property.id));
   });
   const [clientsCollapsed, setClientsCollapsed] = useState(false);
-  const [inventoryCollapsed, setInventoryCollapsed] = useState(false);
-  const [conversationsCollapsed, setConversationsCollapsed] = useState(true);
+  const [inventoryCollapsed, setInventoryCollapsed] = useState(true);
   const accountName = data.profile.full_name || data.profile.email || "Account";
   const roleLabel = data.roles.includes("agent")
     ? "Agent account"
@@ -56,7 +56,6 @@ export default function WorkspaceNavigator({ data, view, graph, selection, onSel
       : "User account";
   const isAgent = data.roles.includes("agent");
   const agentRelationshipCount = view.representations.filter((item) => item.status === "active").length;
-
   const totals = useMemo(() => ({
     properties: graph.clients.reduce((sum, branch) => sum + branch.properties.length, 0) + graph.directProperties.length,
     matches: Object.keys(graph.matchById).length,
@@ -138,11 +137,59 @@ export default function WorkspaceNavigator({ data, view, graph, selection, onSel
         </button>
       </div>
 
+      <div className="border-b border-slate-200 p-2.5">
+        <p className="px-1 pb-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">Workspace views</p>
+        <div className="grid grid-cols-2 gap-1.5">
+          <QuickViewButton
+            active={isSelected(selection, "relationships")}
+            icon={<ContactRound className="h-3.5 w-3.5" />}
+            title={isAgent ? "Relationships" : "Representation"}
+            meta={isAgent ? graph.clients.length : agentRelationshipCount}
+            onClick={() => onSelect({ type: "relationships" })}
+          />
+          <QuickViewButton
+            active={isSelected(selection, "listings")}
+            icon={<ListChecks className="h-3.5 w-3.5" />}
+            title="Listings"
+            meta={view.exchanges.filter((exchange) => exchange.status === "draft").length}
+            onClick={() => onSelect({ type: "listings" })}
+          />
+          <QuickViewButton
+            active={isSelected(selection, "launchpad")}
+            icon={<Rocket className="h-3.5 w-3.5" />}
+            title="Launchpad"
+            meta={data.profile.launchpad_completed_at ? "Done" : "Open"}
+            onClick={() => onSelect({ type: "launchpad" })}
+          />
+          <QuickViewButton
+            active={isSelected(selection, "communications")}
+            icon={<MessagesSquare className="h-3.5 w-3.5" />}
+            title="Inbox"
+            meta={view.connections.length + view.collaborationThreads.length}
+            onClick={() => onSelect({ type: "communications" })}
+          />
+          <QuickViewButton
+            active={isSelected(selection, "activity")}
+            icon={<Activity className="h-3.5 w-3.5" />}
+            title="Activity"
+            onClick={() => onSelect({ type: "activity" })}
+          />
+          <QuickViewButton
+            active={isSelected(selection, "access")}
+            icon={<FileLock2 className="h-3.5 w-3.5" />}
+            title="Audit"
+            meta={data.auditLog.length}
+            onClick={() => onSelect({ type: "access" })}
+          />
+        </div>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-2.5">
+        <p className="px-2 pb-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">Relationship map</p>
         {(isAgent || graph.clients.length > 0) && <>
           <SectionButton
             icon={ContactRound}
-            label={isAgent ? "Clients" : "Managed properties"}
+            label={isAgent ? "Client workspaces" : "Agent-managed properties"}
             count={graph.clients.length}
             collapsed={clientsCollapsed}
             onClick={() => setClientsCollapsed((value) => !value)}
@@ -169,7 +216,7 @@ export default function WorkspaceNavigator({ data, view, graph, selection, onSel
 
         <SectionButton
           icon={Layers3}
-          label={data.roles.includes("agent") ? "Properties & listings" : "Properties"}
+          label={data.roles.includes("agent") ? "Personal owner workspace" : "Owned properties"}
           count={graph.directProperties.length}
           collapsed={inventoryCollapsed}
           onClick={() => setInventoryCollapsed((value) => !value)}
@@ -187,51 +234,9 @@ export default function WorkspaceNavigator({ data, view, graph, selection, onSel
                 onSelect={onSelect}
               />
             ))}
-            {!graph.directProperties.length && <EmptyBranch text="No separate property inventory" />}
+            {!graph.directProperties.length && <EmptyBranch text={data.roles.includes("agent") ? "No personal owner properties" : "No owned properties"} />}
           </div>
         )}
-
-        {view.connections.length > 0 && <>
-          <SectionButton
-            icon={MessageSquare}
-            label="Conversations"
-            count={view.connections.length}
-            collapsed={conversationsCollapsed}
-            onClick={() => setConversationsCollapsed((value) => !value)}
-          />
-          {!conversationsCollapsed && (
-            <div className="mb-3 space-y-1 pl-2">
-              {view.connections.map((connection) => {
-                const counterpartId = connection.buyer_agent_id === data.profile.id
-                  ? connection.seller_agent_id
-                  : connection.buyer_agent_id;
-                const counterpart = data.profilesById[counterpartId];
-                const match = connection.match_id ? graph.matchById[connection.match_id] : null;
-                const currentBranch = match
-                  ? Object.values(graph.propertyById).find((branch) => branch.exchange?.id === match.buyer_exchange_id)
-                  : null;
-                const candidate = match ? data.propertiesById[match.seller_property_id] : null;
-                const messageCount = view.connectionMessageMetadata.filter((message) => message.parentId === connection.id).length;
-                return (
-                  <Link
-                    key={connection.id}
-                    to={`/admin/opportunities/connections/${connection.id}`}
-                    className="block rounded-lg border border-transparent p-2.5 text-slate-700 transition hover:border-slate-200 hover:bg-white"
-                  >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="truncate text-[11px] font-semibold">{counterpart?.full_name || counterpart?.email || "Agent conversation"}</span>
-                      <span className="shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-medium text-emerald-800">{messageCount}</span>
-                    </span>
-                    <span className="mt-1 block truncate text-[9px] text-slate-500">
-                      {currentBranch ? resolveListingName(currentBranch.property, true) : "Current property"} → {candidate ? resolveListingName(candidate, true) : "Matched property"}
-                    </span>
-                    <span className="mt-0.5 block text-[9px] capitalize text-slate-400">{connection.status.replace(/_/g, " ")} · {messageCount === 1 ? "1 message" : `${messageCount} messages`}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </>}
 
         {graph.unlinkedExchanges.length > 0 && (
           <div className="mb-3">
@@ -250,44 +255,6 @@ export default function WorkspaceNavigator({ data, view, graph, selection, onSel
         )}
       </div>
 
-      <div className="border-t border-slate-200 p-2.5">
-        <p className="px-2 pb-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">Account views</p>
-        <TreeButton
-          active={isSelected(selection, "listings")}
-          icon={<ListChecks className="h-4 w-4" />}
-          title="Property inventory"
-          meta={`${view.exchanges.filter((exchange) => exchange.status === "draft").length} drafts · ${view.exchanges.length} total`}
-          onClick={() => onSelect({ type: "listings" })}
-        />
-        <TreeButton
-          active={isSelected(selection, "launchpad")}
-          icon={<Rocket className="h-4 w-4" />}
-          title="Launchpad progress"
-          meta={data.profile.launchpad_completed_at ? "Completion recorded" : "Onboarding in progress"}
-          onClick={() => onSelect({ type: "launchpad" })}
-        />
-        <TreeButton
-          active={isSelected(selection, "communications")}
-          icon={<MessagesSquare className="h-4 w-4" />}
-          title="Inbox"
-          meta={`${view.connections.length + view.collaborationThreads.length} conversations · ${view.notifications.length} notifications`}
-          onClick={() => onSelect({ type: "communications" })}
-        />
-        <TreeButton
-          active={isSelected(selection, "activity")}
-          icon={<Activity className="h-4 w-4" />}
-          title="Activity"
-          meta="Full timestamped history"
-          onClick={() => onSelect({ type: "activity" })}
-        />
-        <TreeButton
-          active={isSelected(selection, "access")}
-          icon={<FileLock2 className="h-4 w-4" />}
-          title="Access & audit"
-          meta={`${data.auditLog.length} audit records`}
-          onClick={() => onSelect({ type: "access" })}
-        />
-      </div>
     </nav>
   );
 }
@@ -302,6 +269,7 @@ function ClientBranch({ data, branch, collapsed, collapsedProperties, selection,
   onToggleProperty: (id: string) => void;
   onSelect: (selection: WorkspaceSelection) => void;
 }) {
+  const access = getClientWorkspaceAccess(branch.client, data.clientInvites);
   return (
     <div>
       <div className={`group flex items-center rounded-lg pr-1 ${isSelected(selection, "client", branch.client.id) ? "bg-emerald-50" : "hover:bg-white"}`}>
@@ -312,7 +280,15 @@ function ClientBranch({ data, branch, collapsed, collapsedProperties, selection,
           <span className="block truncate text-xs font-semibold text-slate-800">{branch.client.client_name}</span>
           <span className="block text-[10px] text-slate-500">{branch.properties.length} {branch.properties.length === 1 ? "property" : "properties"} · {branch.exchanges.length} {branch.exchanges.length === 1 ? "exchange" : "exchanges"}</span>
         </button>
-        <span className={`h-1.5 w-1.5 rounded-full ${branch.client.status === "active" ? "bg-emerald-500" : "bg-slate-300"}`} />
+        <span className={`mr-1 shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${
+          access.state === "self"
+            ? "bg-violet-100 text-violet-700"
+            : access.state === "connected"
+            ? "bg-emerald-100 text-emerald-700"
+            : access.state === "invited"
+              ? "bg-amber-100 text-amber-700"
+              : "bg-slate-200 text-slate-600"
+        }`}>{access.state === "self" ? "Self-owned" : access.state === "connected" ? "Joined" : access.state === "invited" ? "Invited" : "CRM only"}</span>
       </div>
       {!collapsed && (
         <div className="ml-4 space-y-1 border-l border-slate-200 pl-2">
@@ -349,7 +325,7 @@ function PropertyBranch({ data, branch, collapsed, selection, onToggle, onSelect
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[11px] font-semibold">{resolveListingName(branch.property, true)}</span>
             <span className={`block text-[9px] ${isSelected(selection, "property", branch.property.id) ? "text-slate-300" : "text-slate-500"}`}>
-              {branch.side === "current" ? "Current property" : "Listing"} · {branch.property.status}
+              {branch.side === "current" ? "Current property" : "Listing"} · {propertyState(branch)}
             </span>
           </span>
           {branch.matches.length > 0 && <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${isSelected(selection, "property", branch.property.id) ? "bg-white/10 text-emerald-200" : "bg-emerald-50 text-emerald-700"}`}>{branch.matches.length}</span>}
@@ -394,6 +370,24 @@ function TreeButton({ active, icon, title, meta, onClick }: { active: boolean; i
       <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium">{title}</span><span className={`block text-[9px] ${active ? "text-slate-300" : "text-slate-500"}`}>{meta}</span></span>
     </button>
   );
+}
+
+function QuickViewButton({ active, icon, title, meta, onClick }: { active: boolean; icon: React.ReactNode; title: string; meta?: string | number; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className={`flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition ${active ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}>
+      <span className={active ? "text-emerald-300" : "text-slate-400"}>{icon}</span>
+      <span className="min-w-0 flex-1 truncate text-[10px] font-semibold">{title}</span>
+      {meta !== undefined && <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${active ? "bg-white/10 text-white" : "bg-slate-100 text-slate-500"}`}>{meta}</span>}
+    </button>
+  );
+}
+
+function propertyState(branch: WorkspacePropertyBranch) {
+  const exchangeStatus = branch.exchange?.status;
+  if (exchangeStatus === "draft") return "draft";
+  if (["active", "in_identification", "in_closing"].includes(exchangeStatus ?? "")) return "active";
+  if (exchangeStatus) return "historical";
+  return ["active", "listed", "published"].includes(branch.property.status) ? "active" : branch.property.status;
 }
 
 function MiniMetric({ label, value }: { label: string; value: number }) {

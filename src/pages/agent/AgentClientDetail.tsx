@@ -55,6 +55,7 @@ export default function AgentClientDetail() {
         client_name: name.trim(),
         client_email: email.trim() || null,
         client_phone: phone.trim() || null,
+        client_user_id: null,
         notes: notes.trim() || null,
         is_demo: isDemo,
       })

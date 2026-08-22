@@ -101,7 +101,7 @@ export default function PrivacyPolicy() {
       </p>
       <p>
         If you opt in, messages from 1031 Exchange Up may concern your account, demo or referral request,
-        exchange activity, property matches, inquiries, connection requests, deadline reminders, and
+        exchange activity, property matches, inquiries, connection requests, and
         related service notices. Message frequency varies based on your account or request activity.
         Message and data rates may apply. Reply <strong>STOP</strong> to opt out at any time or{" "}
         <strong>HELP</strong> for help. You may also contact{" "}

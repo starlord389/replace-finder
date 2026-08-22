@@ -48,6 +48,12 @@ import type {
   WorkspacePropertyBranch,
   WorkspaceSelection,
 } from "./workspaceGraph";
+import {
+  getActiveOwnerRepresentation,
+  getClientWorkspaceAccess,
+  getOwnerRepresentations,
+  type ClientWorkspaceAccess,
+} from "./workspaceRelationshipState";
 
 type Props = {
   data: CrmUserWorkspace;
@@ -73,6 +79,7 @@ export default function WorkspaceRecordDetail(props: Props) {
   if (selection.type === "exchange" && selection.id && graph.exchangeById[selection.id]) {
     return <ExchangeRecord {...props} exchange={graph.exchangeById[selection.id]} />;
   }
+  if (selection.type === "relationships") return <RelationshipsRecord {...props} />;
   if (selection.type === "listings") return <ListingsRecord {...props} />;
   if (selection.type === "launchpad") return <LaunchpadRecord {...props} />;
   if (selection.type === "communications") return <CommunicationsRecord {...props} />;
@@ -85,17 +92,35 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
   const name = data.profile.full_name || data.profile.email || "Unnamed user";
   const status = data.accountState?.account_status
     ?? (data.authAccount?.deleted_at ? "deleted" : data.profile.verification_status === "suspended" ? "suspended" : "active");
-  const managedPropertyCount = graph.clients.reduce((sum, client) => sum + client.properties.length, 0);
   const isAgent = data.roles.includes("agent");
-  const activeAgentRelationships = view.representations.filter((item) => item.status === "active").length;
-  const representedOwners = view.representations.filter((item) => item.agent_id === data.profile.id);
-  const recentActivity = buildEvents(data, view).slice(0, 7);
+  const ownerRepresentations = getOwnerRepresentations(data.profile.id, view.representations);
+  const activeOwnerRepresentation = getActiveOwnerRepresentation(data.profile.id, view.representations);
+  const activeAgentRelationships = ownerRepresentations.filter((item) => item.status === "active").length;
+  const activeAgentName = activeOwnerRepresentation
+    ? data.profilesById[activeOwnerRepresentation.agent_id ?? ""]?.full_name
+      || data.profilesById[activeOwnerRepresentation.agent_id ?? ""]?.email
+      || activeOwnerRepresentation.agent_name
+      || activeOwnerRepresentation.agent_email
+      || null
+    : null;
+  const recentActivity = buildEvents(data, view).slice(0, 4);
   const launchpad = buildLaunchpadProgress(data, view);
   const draftCount = view.exchanges.filter((exchange) => exchange.status === "draft").length;
+  const allPropertyBranches = [...graph.clients.flatMap((client) => client.properties), ...graph.directProperties];
+  const activePropertyCount = allPropertyBranches.filter((branch) => propertyOperatingState(branch) === "active").length;
+  const inactivePropertyCount = allPropertyBranches.filter((branch) => propertyOperatingState(branch) === "historical").length;
+  const activeMatchCount = view.matches.filter((match) => isActiveMatch(data, match)).length;
+  const connectedClientCount = graph.clients.filter((branch) => getClientWorkspaceAccess(branch.client, view.clientInvites).state === "connected").length;
+  const invitedClientCount = graph.clients.filter((branch) => getClientWorkspaceAccess(branch.client, view.clientInvites).state === "invited").length;
+  const selfClientCount = graph.clients.filter((branch) => getClientWorkspaceAccess(branch.client, view.clientInvites).state === "self").length;
   const pendingRepresentationInvites = view.representationInvites.filter((invite) => invite.status === "pending").length;
   const pendingClientInvites = view.clientInvites.filter((invite) => invite.status === "pending").length;
   const openContactRequests = view.contactRequests.filter((request) => !["contacted", "declined", "cancelled"].includes(request.status)).length;
   const unreadIncomingMessages = [...view.connectionMessageMetadata, ...view.collaborationMessageMetadata].filter((message) => message.senderId !== data.profile.id && !message.readAt).length;
+  const attentionCount = pendingRepresentationInvites + pendingClientInvites + openContactRequests + unreadIncomingMessages;
+  const launchpadIncomplete = launchpad.completed < launchpad.steps.length;
+  const needsAttentionCount = attentionCount + draftCount + (launchpadIncomplete ? 1 : 0);
+  const clientPreview = graph.clients.slice(0, 4);
   return (
     <div>
       <RecordHeader
@@ -105,99 +130,104 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
         actions={<div className="flex flex-wrap gap-2">{data.roles.map((role) => <RoleBadge key={role} role={role} />)}<AccountStatusBadge status={status} /></div>}
       />
 
-      <div className="grid gap-5 p-5 2xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,.65fr)]">
-        <div className="space-y-5">
-          <section className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
-            {isAgent ? <>
-              <Kpi label="Clients" value={graph.clients.length} detail="Managed or linked" icon={Users} />
-              <Kpi label="Client properties" value={managedPropertyCount} detail="Nested under clients" icon={Home} />
-              <Kpi label="Other inventory" value={graph.directProperties.length} detail="Owned or represented" icon={Building2} />
-            </> : <>
-              <Kpi label="Agent relationships" value={activeAgentRelationships} detail="Active representation" icon={Users} />
-              <Kpi label="Owned properties" value={graph.directProperties.length} detail="Current property records" icon={Home} />
-              <Kpi label="Exchanges" value={view.exchanges.length} detail="Owner workspaces" icon={Building2} />
-            </>}
-            <Kpi label="Matches" value={Object.keys(graph.matchById).length} detail="Across this workspace" icon={Sparkles} />
-          </section>
+      <div className="p-5 pb-0">
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="flex flex-col gap-4 p-5 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-700">Workspace summary</p>
+              <h2 className="mt-1 text-lg font-semibold text-slate-950">
+                {isAgent
+                  ? `${graph.clients.length} client ${graph.clients.length === 1 ? "relationship" : "relationships"}`
+                  : activeAgentName
+                    ? `Represented by ${activeAgentName}`
+                    : "Self-managed property owner"}
+              </h2>
+              <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-600">
+                {isAgent
+                  ? `${connectedClientCount} clients use the platform, ${invitedClientCount} are invited, and ${Math.max(0, graph.clients.length - connectedClientCount - invitedClientCount - selfClientCount)} are managed only in the agent CRM.${selfClientCount ? ` ${selfClientCount} client record is explicitly self-owned.` : ""}${graph.directProperties.length ? ` ${graph.directProperties.length} separate property exists in this person’s owner workspace.` : ""}`
+                  : activeAgentName
+                    ? "The owner uses the platform while the assigned agent manages agent-to-agent deal conversations."
+                    : "No agent is currently assigned. Representation is required before another agent can begin a deal conversation."}
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Button size="sm" onClick={() => onSelect({ type: "relationships" })}>{isAgent ? "Open relationships" : "Open representation"}</Button>
+              <Button size="sm" variant="outline" onClick={() => onSelect({ type: "listings" })}>Listings & drafts</Button>
+              <Button size="sm" variant="outline" onClick={() => onSelect({ type: "communications" })}>Inbox</Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 border-t border-slate-200 bg-slate-50/70 lg:grid-cols-4">
+            <WorkspaceMetric label={isAgent ? "Clients" : "Representation"} value={isAgent ? graph.clients.length : activeAgentRelationships ? "Assigned" : "None"} detail={isAgent ? `${connectedClientCount} joined · ${invitedClientCount} invited` : activeAgentName || "Agent needed"} />
+            <WorkspaceMetric label="Current work" value={activePropertyCount + draftCount} detail={`${activePropertyCount} active · ${draftCount} ${draftCount === 1 ? "draft" : "drafts"} · ${inactivePropertyCount} historical`} />
+            <WorkspaceMetric label="Active matches" value={activeMatchCount} detail={`${Object.keys(graph.matchById).length} total including history`} />
+            <WorkspaceMetric label="Needs attention" value={needsAttentionCount} detail={needsAttentionCount ? "Open tasks across this workspace" : "No unresolved work"} tone={needsAttentionCount ? "amber" : "green"} />
+          </div>
+        </section>
+      </div>
 
-          {(isAgent || graph.clients.length > 0) && <Panel title={isAgent ? "Client portfolio" : "Agent-managed workspaces"} detail={isAgent ? "Every client stays connected to their properties, exchanges, and matches." : "Property records managed through an agent relationship."}>
-            {graph.clients.length ? (
-              <div className="divide-y divide-slate-100">
-                {graph.clients.map((branch) => (
+      <div className="grid gap-5 p-5 2xl:grid-cols-[minmax(0,1.45fr)_minmax(300px,.55fr)]">
+        <div className="space-y-5">
+          {isAgent ? <Panel title="Client relationships" detail="A concise view of who this agent represents. Open the relationship workspace for invitation, platform-access, and representation history.">
+            <div className="mb-3 flex flex-wrap gap-2">
+              <RelationshipCount label="Platform joined" value={connectedClientCount} tone="green" />
+              <RelationshipCount label="Invited" value={invitedClientCount} tone="amber" />
+              <RelationshipCount label="CRM only" value={Math.max(0, graph.clients.length - connectedClientCount - invitedClientCount - selfClientCount)} />
+              {selfClientCount > 0 && <RelationshipCount label="Self-owned" value={selfClientCount} tone="violet" />}
+            </div>
+            {clientPreview.length ? (
+              <div className="divide-y divide-slate-100 border-y border-slate-100">
+                {clientPreview.map((branch) => (
                   <button key={branch.client.id} type="button" onClick={() => onSelect({ type: "client", id: branch.client.id })} className="group flex w-full items-center gap-4 py-4 text-left first:pt-0 last:pb-0">
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-50 text-sm font-semibold text-emerald-700">{initials(branch.client.client_name)}</span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">{branch.client.client_name}</span>
+                      <span className="flex flex-wrap items-center gap-2"><span className="truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">{branch.client.client_name}</span><ClientAccessBadge access={getClientWorkspaceAccess(branch.client, view.clientInvites)} /></span>
                       <span className="mt-0.5 block truncate text-xs text-slate-500">{branch.client.client_email || branch.client.client_company || "No contact details"}</span>
                     </span>
                     <span className="hidden text-right sm:block"><span className="block text-sm font-semibold text-slate-900">{branch.properties.length}</span><span className="block text-[10px] uppercase tracking-wide text-slate-400">Properties</span></span>
-                    <span className="hidden text-right sm:block"><span className="block text-sm font-semibold text-slate-900">{branch.properties.reduce((sum, item) => sum + item.matches.length, 0)}</span><span className="block text-[10px] uppercase tracking-wide text-slate-400">Matches</span></span>
+                    <span className="hidden text-right sm:block"><span className="block text-sm font-semibold text-slate-900">{branch.exchanges.filter((exchange) => exchange.status === "draft").length}</span><span className="block text-[10px] uppercase tracking-wide text-slate-400">Drafts</span></span>
+                    <span className="hidden text-right sm:block"><span className="block text-sm font-semibold text-slate-900">{branch.properties.reduce((sum, item) => sum + item.matches.filter((match) => isActiveMatch(data, match)).length, 0)}</span><span className="block text-[10px] uppercase tracking-wide text-slate-400">Active matches</span></span>
                     <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-emerald-600" />
                   </button>
                 ))}
               </div>
             ) : <EmptyState icon={Users} title="No client records" detail="Client relationships will appear here when they are connected to this account." />}
+            <Button variant="ghost" size="sm" className="mt-3 w-full" onClick={() => onSelect({ type: "relationships" })}>View all client relationships<ArrowRight className="ml-2 h-3.5 w-3.5" /></Button>
+          </Panel> : <Panel title="Agent relationship" detail="The person responsible for agent-to-agent activity on this owner’s exchanges.">
+            <OwnerRepresentationSummary data={data} view={view} onOpen={() => onSelect({ type: "relationships" })} />
+            <Button variant="ghost" size="sm" className="mt-3 w-full" onClick={() => onSelect({ type: "relationships" })}>View representation history<ArrowRight className="ml-2 h-3.5 w-3.5" /></Button>
           </Panel>}
 
-          {graph.directProperties.length > 0 && (
-            <Panel title={data.roles.includes("agent") ? "Separate listing inventory" : "Directly owned properties"} detail="Properties related to this account but not nested beneath a managed client.">
-              <div className="grid gap-3 md:grid-cols-2">
-                {graph.directProperties.map((branch) => <CompactPropertyCard key={branch.property.id} data={data} branch={branch} onClick={() => onSelect({ type: "property", id: branch.property.id })} />)}
-              </div>
-            </Panel>
-          )}
-          {!isAgent && view.representations.length > 0 && (
-            <Panel title="Agent relationships" detail="Agents connected to this property owner and the current representation status.">
-              <div className="divide-y divide-slate-100">
-                {view.representations.map((representation) => {
-                  const agent = data.profilesById[representation.agent_id];
-                  return <div key={representation.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><ProfileAvatar photoUrl={agent?.profile_photo_url} name={agent?.full_name || agent?.email || representation.agent_name} className="h-10 w-10" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{agent?.full_name || agent?.email || representation.agent_name || "Representing agent"}</p><p className="text-xs text-slate-500">{representation.is_default ? "Preferred agent" : "Representation relationship"}</p></div><Status value={representation.status} />{agent && <Button asChild variant="ghost" size="sm"><Link to={`/admin/users/${agent.id}`}>Open</Link></Button>}</div>;
-                })}
-              </div>
-              <Button asChild variant="outline" size="sm" className="mt-4 w-full"><Link to="/admin/representation-requests">Open representation requests<ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button>
-            </Panel>
-          )}
-          {isAgent && representedOwners.length > 0 && (
-            <Panel title="Represented property owners" detail="Property owners who selected this agent, with a direct route into each client workspace.">
-              <div className="divide-y divide-slate-100">
-                {representedOwners.map((representation) => {
-                  const owner = data.profilesById[representation.investor_id];
-                  return <div key={representation.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><ProfileAvatar photoUrl={owner?.profile_photo_url} name={owner?.full_name || owner?.email || representation.investor_email} className="h-10 w-10" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{owner?.full_name || owner?.email || representation.investor_email || "Property owner"}</p><p className="text-xs text-slate-500">{representation.is_default ? "Preferred-agent relationship" : "Active representation relationship"}</p></div><Status value={representation.status} />{owner && <Button asChild variant="ghost" size="sm"><Link to={`/admin/users/${owner.id}`}>Open</Link></Button>}</div>;
-                })}
-              </div>
-            </Panel>
-          )}
-          {view.connections.length > 0 && (
-            <Panel title="Agent conversations" detail="Every agent-to-agent conversation connected to this account, with the property pair and message activity kept together.">
-              <div className="divide-y divide-slate-100">
-                {view.connections.map((connection) => {
-                  const counterpartId = connection.buyer_agent_id === data.profile.id ? connection.seller_agent_id : connection.buyer_agent_id;
-                  const counterpart = data.profilesById[counterpartId];
-                  const match = connection.match_id ? graph.matchById[connection.match_id] : null;
-                  const currentBranch = match ? Object.values(graph.propertyById).find((branch) => branch.exchange?.id === match.buyer_exchange_id) : null;
-                  const candidate = match ? data.propertiesById[match.seller_property_id] : null;
-                  const messages = view.connectionMessageMetadata.filter((message) => message.parentId === connection.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-                  return <Link key={connection.id} to={`/admin/opportunities/connections/${connection.id}`} className="group flex items-center gap-3 py-4 first:pt-0 last:pb-0"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-950 text-white"><MessageSquare className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">Conversation with {counterpart?.full_name || counterpart?.email || "the other agent"}</span><span className="mt-1 block truncate text-xs text-slate-500">{currentBranch ? resolveListingName(currentBranch.property, true) : "Current property"} → {candidate ? resolveListingName(candidate, true) : "Matched property"}</span><span className="mt-1 block text-[10px] text-slate-400">{messages.length === 1 ? "1 message" : `${messages.length} messages`}{messages[0] ? ` · Last activity ${formatDate(messages[0].createdAt, true)}` : " · No messages yet"}</span></span><Status value={connection.status} /><ArrowRight className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-emerald-600" /></Link>;
-                })}
-              </div>
-            </Panel>
-          )}
-          <Panel title="Relationship operations" detail="Invitations, representation work, private collaboration, and messages that still need attention.">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <button type="button" onClick={() => onSelect({ type: "communications" })} className="rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/30"><Mail className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{pendingRepresentationInvites + pendingClientInvites}</p><p className="mt-1 text-xs font-medium text-slate-700">Pending invitations</p><p className="mt-1 text-[10px] text-slate-400">{pendingRepresentationInvites} representation · {pendingClientInvites} client</p></button>
-              <Button asChild variant="outline" className="h-auto justify-start rounded-xl p-4 text-left"><Link to="/admin/representation-requests"><span><Users className="h-4 w-4 text-emerald-700" /><span className="mt-3 block text-xl font-semibold text-slate-950">{openContactRequests}</span><span className="mt-1 block text-xs font-medium text-slate-700">Open representation requests</span><span className="mt-1 block text-[10px] font-normal text-slate-400">Review and route agent coverage</span></span></Link></Button>
-              <button type="button" onClick={() => onSelect({ type: "communications" })} className="rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/30"><MessageSquare className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{view.collaborationThreads.length}</p><p className="mt-1 text-xs font-medium text-slate-700">Client-agent threads</p><p className="mt-1 text-[10px] text-slate-400">{view.collaborationMessageMetadata.length} recorded messages</p></button>
-              <button type="button" onClick={() => onSelect({ type: "communications" })} className={`rounded-xl border p-4 text-left transition hover:border-emerald-300 ${unreadIncomingMessages ? "border-amber-200 bg-amber-50" : "border-slate-200 hover:bg-emerald-50/30"}`}><Inbox className="h-4 w-4 text-emerald-700" /><p className="mt-3 text-xl font-semibold text-slate-950">{unreadIncomingMessages}</p><p className="mt-1 text-xs font-medium text-slate-700">Unread incoming messages</p><p className="mt-1 text-[10px] text-slate-400">Across agent and client conversations</p></button>
+          <Panel title="Current work" detail="Active listings and unfinished drafts are kept together. Historical records stay available in Listings & drafts without crowding this overview.">
+            <CurrentWorkOverview data={data} view={view} graph={graph} branches={allPropertyBranches} onSelect={onSelect} />
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+              <p className="text-xs text-slate-500">{inactivePropertyCount} historical {inactivePropertyCount === 1 ? "record" : "records"} hidden from this overview</p>
+              <Button variant="outline" size="sm" onClick={() => onSelect({ type: "listings" })}>Open complete listing history</Button>
             </div>
           </Panel>
         </div>
 
         <div className="space-y-5">
+          <Panel title="Needs attention" detail="One queue for unfinished work and incoming requests.">
+            <div className="space-y-2">
+              {(pendingRepresentationInvites + pendingClientInvites) > 0 && <AttentionRow icon={Mail} count={pendingRepresentationInvites + pendingClientInvites} label="Pending invitations" detail={`${pendingRepresentationInvites} representation · ${pendingClientInvites} client`} onClick={() => onSelect({ type: "communications" })} />}
+              {openContactRequests > 0 && <AttentionRow icon={Users} count={openContactRequests} label="Representation requests" detail="Owner coverage is waiting" href="/admin/representation-requests" />}
+              {unreadIncomingMessages > 0 && <AttentionRow icon={Inbox} count={unreadIncomingMessages} label="Unread messages" detail="Across account conversations" onClick={() => onSelect({ type: "communications" })} />}
+              {draftCount > 0 && <AttentionRow icon={ListChecks} count={draftCount} label={draftCount === 1 ? "Draft listing" : "Draft listings"} detail="Saved but not activated" onClick={() => onSelect({ type: "listings" })} />}
+              {launchpadIncomplete && <AttentionRow icon={Rocket} count={launchpad.steps.length - launchpad.completed} label="Onboarding steps remaining" detail={`${launchpad.percent}% complete`} onClick={() => onSelect({ type: "launchpad" })} />}
+              {needsAttentionCount === 0 && <div className="flex items-start gap-3 rounded-lg bg-emerald-50 p-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-700" /><div><p className="text-xs font-semibold text-emerald-900">Nothing is waiting</p><p className="mt-0.5 text-[11px] text-emerald-700">No unread messages, invitations, requests, drafts, or onboarding tasks.</p></div></div>}
+            </div>
+          </Panel>
+
           <button type="button" onClick={() => onSelect({ type: "launchpad" })} className="w-full rounded-xl border border-slate-200 bg-white p-5 text-left transition hover:border-emerald-300 hover:shadow-sm">
             <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Launchpad progress</p><p className="mt-1 text-sm font-semibold text-slate-950">{launchpad.completed} of {launchpad.steps.length} current steps complete</p><p className="mt-1 text-xs text-slate-500">{launchpad.completed === launchpad.steps.length ? `Completed ${formatDate(data.profile.launchpad_completed_at, true)}` : data.profile.launchpad_completed_at ? `A prior completion was recorded ${formatDate(data.profile.launchpad_completed_at, true)}` : "Onboarding is still in progress"}</p></div><span className="text-xl font-semibold text-slate-950">{launchpad.percent}%</span></div><div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${launchpad.percent}%` }} /></div><p className="mt-3 text-xs font-medium text-emerald-700">Open detailed launchpad audit →</p>
           </button>
-          {draftCount > 0 && <button type="button" onClick={() => onSelect({ type: "listings" })} className="flex w-full items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left transition hover:border-amber-300"><span className="grid h-10 w-10 place-items-center rounded-lg bg-amber-100 text-amber-700"><ListChecks className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-amber-950">{draftCount} {draftCount === 1 ? "draft listing" : "draft listings"} in progress</span><span className="mt-0.5 block text-xs text-amber-800">Open the saved property and exchange data, completion state, and timestamps.</span></span><ArrowRight className="h-4 w-4 shrink-0 text-amber-700" /></button>}
-          <Panel title="Account information" detail="Identity and operating context.">
+
+          <Panel title="Recent activity" detail="The four newest events. Open Activity for the full timestamped history.">
+            {recentActivity.length ? <EventList events={recentActivity} compact /> : <EmptyState icon={Activity} title="No activity" detail="No account events are available." />}
+            {recentActivity.length > 0 && <Button variant="ghost" size="sm" className="mt-3 w-full" onClick={() => onSelect({ type: "activity" })}>View complete activity<ArrowRight className="ml-2 h-3.5 w-3.5" /></Button>}
+          </Panel>
+
+          <Panel title="Account details" detail="Identity and contact information only.">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
               <ProfileAvatar photoUrl={data.profile.profile_photo_url} name={name} className="h-12 w-12" />
               <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-950">{name}</p><p className="truncate text-xs text-slate-500">{data.profile.email || data.authAccount?.email || "No email"}</p></div>
@@ -217,18 +247,205 @@ function AccountRecord({ data, view, graph, onSelect }: Props) {
               <Fact label="MLS" value={data.profile.mls_number} />
             </div>
           </Panel>
-          <Panel title="Recent activity" detail="Newest events across this account.">
-            {recentActivity.length ? <EventList events={recentActivity} compact /> : <EmptyState icon={Activity} title="No activity" detail="No account events are available." />}
-            {recentActivity.length > 0 && <Button variant="ghost" size="sm" className="mt-3 w-full" onClick={() => onSelect({ type: "activity" })}>View complete activity<ArrowRight className="ml-2 h-3.5 w-3.5" /></Button>}
-          </Panel>
         </div>
       </div>
     </div>
   );
 }
 
+function WorkspaceMetric({ label, value, detail, tone = "neutral" }: { label: string; value: string | number; detail: string; tone?: "neutral" | "green" | "amber" }) {
+  const valueColor = tone === "green" ? "text-emerald-700" : tone === "amber" ? "text-amber-700" : "text-slate-950";
+  return (
+    <div className="border-b border-r border-slate-200 p-4 last:border-r-0 lg:border-b-0">
+      <p className="text-[9px] font-semibold uppercase tracking-[0.13em] text-slate-400">{label}</p>
+      <p className={`mt-1 text-lg font-semibold ${valueColor}`}>{value}</p>
+      <p className="mt-0.5 truncate text-[10px] text-slate-500">{detail}</p>
+    </div>
+  );
+}
+
+function RelationshipCount({ label, value, tone = "slate" }: { label: string; value: number; tone?: "slate" | "green" | "amber" | "violet" }) {
+  const color = tone === "green"
+    ? "bg-emerald-50 text-emerald-800"
+    : tone === "amber"
+      ? "bg-amber-50 text-amber-800"
+      : tone === "violet"
+        ? "bg-violet-50 text-violet-800"
+        : "bg-slate-100 text-slate-600";
+  return <span className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${color}`}><strong className="mr-1">{value}</strong>{label}</span>;
+}
+
+function CurrentWorkOverview({ data, view, graph, branches, onSelect }: {
+  data: CrmUserWorkspace;
+  view: CrmUserWorkspaceView;
+  graph: AdminWorkspaceGraph;
+  branches: WorkspacePropertyBranch[];
+  onSelect: (selection: WorkspaceSelection) => void;
+}) {
+  const representedExchangeIds = new Set(branches.flatMap((branch) => branch.exchange ? [branch.exchange.id] : []));
+  const propertyRows = branches
+    .filter((branch) => propertyOperatingState(branch) !== "historical")
+    .map((branch) => {
+      const state = propertyOperatingState(branch);
+      const client = graph.clients.find((item) => item.properties.some((property) => property.property.id === branch.property.id))?.client;
+      const image = data.imagesByProperty[branch.property.id]?.[0];
+      return {
+        id: branch.property.id,
+        title: resolveListingName(branch.property, true),
+        detail: client?.client_name || (data.roles.includes("agent") ? "Personal owner workspace" : "Owned by this account"),
+        state,
+        matchCount: branch.matches.filter((match) => isActiveMatch(data, match)).length,
+        updatedAt: branch.exchange?.updated_at || branch.property.updated_at || branch.property.created_at,
+        imageUrl: image ? resolvePropertyImageUrl(image.storage_path) : null,
+        selection: { type: "property", id: branch.property.id } as WorkspaceSelection,
+      };
+    });
+  const draftRows = view.exchanges
+    .filter((exchange) => exchange.status === "draft" && !representedExchangeIds.has(exchange.id))
+    .map((exchange) => ({
+      id: exchange.id,
+      title: "Untitled listing draft",
+      detail: exchange.client_id ? data.clientsById[exchange.client_id]?.client_name || "Client record" : "Owner workspace",
+      state: "draft" as const,
+      matchCount: 0,
+      updatedAt: exchange.updated_at || exchange.created_at,
+      imageUrl: null,
+      selection: { type: "exchange", id: exchange.id } as WorkspaceSelection,
+    }));
+  const rows = [...propertyRows, ...draftRows].sort((a, b) => {
+    if (a.state !== b.state) return a.state === "active" ? -1 : 1;
+    return b.updatedAt.localeCompare(a.updatedAt);
+  });
+
+  if (!rows.length) return <EmptyState icon={Home} title="No current work" detail="This account has no active listings or unfinished drafts." />;
+
+  return (
+    <div>
+      <div className="divide-y divide-slate-100">
+        {rows.slice(0, 6).map((row) => (
+          <button key={`${row.selection.type}-${row.id}`} type="button" onClick={() => onSelect(row.selection)} className="group flex w-full items-center gap-3 py-3 text-left first:pt-0 last:pb-0">
+            <span className="grid h-11 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-slate-100">
+              {row.imageUrl ? <img src={row.imageUrl} alt="" className="h-full w-full object-cover" /> : <Home className="h-4 w-4 text-slate-400" />}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">{row.title}</span>
+              <span className="mt-0.5 block truncate text-xs text-slate-500">{row.detail}</span>
+            </span>
+            <span className="hidden text-right sm:block">
+              <span className="block text-sm font-semibold text-slate-900">{row.matchCount}</span>
+              <span className="block text-[9px] uppercase tracking-wide text-slate-400">Active matches</span>
+            </span>
+            <Status value={row.state} />
+            <ArrowRight className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-emerald-600" />
+          </button>
+        ))}
+      </div>
+      {rows.length > 6 && <p className="mt-3 border-t border-slate-100 pt-3 text-center text-[11px] text-slate-500">{rows.length - 6} more current {rows.length - 6 === 1 ? "record" : "records"} in Listings & drafts</p>}
+    </div>
+  );
+}
+
+function AttentionRow({ icon: Icon, count, label, detail, href, onClick }: {
+  icon: typeof Users;
+  count: number;
+  label: string;
+  detail: string;
+  href?: string;
+  onClick?: () => void;
+}) {
+  const content = <><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber-100 text-amber-700"><Icon className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block text-xs font-semibold text-slate-900">{label}</span><span className="mt-0.5 block truncate text-[10px] text-slate-500">{detail}</span></span><span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-semibold text-amber-800">{count}</span><ArrowRight className="h-3.5 w-3.5 text-slate-300" /></>;
+  const className = "flex w-full items-center gap-3 rounded-lg border border-slate-100 p-3 text-left transition hover:border-amber-200 hover:bg-amber-50/60";
+  if (href) return <Link to={href} className={className}>{content}</Link>;
+  return <button type="button" onClick={onClick} className={className}>{content}</button>;
+}
+
+function ClientAccessBadge({ access }: { access: ClientWorkspaceAccess }) {
+  const color = access.state === "self"
+    ? "bg-violet-100 text-violet-800"
+    : access.state === "connected"
+    ? "bg-emerald-100 text-emerald-800"
+    : access.state === "invited"
+      ? "bg-amber-100 text-amber-800"
+      : "bg-slate-100 text-slate-600";
+  return <Badge className={`${color} border-0 text-[9px]`}>{access.label}</Badge>;
+}
+
+function RelationshipStep({ label, state, detail }: { label: string; state: "complete" | "pending" | "inactive"; detail: string }) {
+  const dot = state === "complete" ? "bg-emerald-500" : state === "pending" ? "bg-amber-400" : "bg-slate-300";
+  return <div className="rounded-lg bg-slate-50 p-3"><div className="flex items-center gap-2"><span className={`h-2 w-2 rounded-full ${dot}`} /><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">{label}</p></div><p className="mt-1.5 text-xs text-slate-500">{detail}</p></div>;
+}
+
+type PropertyOperatingState = "active" | "draft" | "historical";
+
+function propertyOperatingState(branch: WorkspacePropertyBranch): PropertyOperatingState {
+  if (branch.exchange) {
+    if (branch.exchange.status === "draft") return "draft";
+    if (["active", "in_identification", "in_closing"].includes(branch.exchange.status)) return "active";
+    return "historical";
+  }
+  if (branch.property.status === "draft") return "draft";
+  if (["active", "listed"].includes(branch.property.status)) return "active";
+  return "historical";
+}
+
+function isActiveMatch(data: CrmUserWorkspace, match: CrmUserWorkspaceView["matches"][number]) {
+  const stage = data.workflowStatesByMatch[match.id]?.current_stage;
+  if (stage && ["archived", "closed"].includes(stage)) return false;
+  return !["archived", "rejected", "withdrawn", "closed"].includes(match.status);
+}
+
+function PropertyPortfolio({ data, branches, onSelect }: { data: CrmUserWorkspace; branches: WorkspacePropertyBranch[]; onSelect: (selection: WorkspaceSelection) => void }) {
+  const groups: Array<{ state: PropertyOperatingState; title: string; detail: string }> = [
+    { state: "active", title: "Active", detail: "Published listings and exchanges currently in progress" },
+    { state: "draft", title: "Drafts", detail: "Started but not yet activated" },
+    { state: "historical", title: "Inactive & historical", detail: "Completed, withdrawn, cancelled, or archived records" },
+  ];
+  return <div className="space-y-5">{groups.map((group) => {
+    const rows = branches.filter((branch) => propertyOperatingState(branch) === group.state);
+    if (!rows.length) return null;
+    return <section key={group.state}><div className="mb-2.5 flex items-center justify-between gap-3"><div><h3 className="text-xs font-semibold text-slate-900">{group.title}</h3><p className="mt-0.5 text-[10px] text-slate-500">{group.detail}</p></div><span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-600">{rows.length}</span></div><div className="grid gap-3 md:grid-cols-2">{rows.map((branch) => <CompactPropertyCard key={branch.property.id} data={data} branch={branch} onClick={() => onSelect({ type: "property", id: branch.property.id })} />)}</div></section>;
+  })}</div>;
+}
+
+function OwnerRepresentationSummary({ data, view }: { data: CrmUserWorkspace; view: CrmUserWorkspaceView; onOpen?: () => void }) {
+  const relationships = getOwnerRepresentations(data.profile.id, view.representations);
+  const active = relationships.find((row) => row.status === "active") ?? null;
+  const pendingInvites = view.representationInvites.filter((row) => row.status === "pending").length;
+  const openRequests = view.contactRequests.filter((row) => !["contacted", "declined", "cancelled"].includes(row.status)).length;
+  if (!active) {
+    return <div><div className="rounded-xl border border-amber-200 bg-amber-50 p-4"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700"><UserRound className="h-4 w-4" /></span><div><p className="text-sm font-semibold text-amber-950">No active agent</p><p className="mt-1 text-xs leading-5 text-amber-800">The owner is self-managed and cannot begin an agent-to-agent conversation until representation is assigned.</p></div></div><div className="mt-3 flex flex-wrap gap-2 text-[10px]"><span className="rounded bg-white px-2 py-1 text-amber-800">{pendingInvites} pending invitations</span><span className="rounded bg-white px-2 py-1 text-amber-800">{openRequests} open requests</span><span className="rounded bg-white px-2 py-1 text-amber-800">{relationships.length} historical relationships</span></div></div></div>;
+  }
+  const agent = data.profilesById[active.agent_id ?? ""];
+  const agentName = agent?.full_name || agent?.email || active.agent_name || active.agent_email || "Representing agent";
+  return <div><div className="flex items-center gap-3"><ProfileAvatar photoUrl={agent?.profile_photo_url} name={agentName} className="h-11 w-11" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-950">{agentName}</p><p className="mt-0.5 text-xs text-slate-500">{active.is_default ? "Preferred agent" : "Active representing agent"} · Since {formatDate(active.accepted_at ?? active.created_at)}</p></div><Status value="active" /></div><div className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs leading-5 text-emerald-800">This agent can manage assigned exchanges and conduct agent-to-agent conversations for the owner.</div>{agent && <div className="mt-3"><Button asChild variant="outline" size="sm" className="w-full"><Link to={`/admin/users/${agent.id}`}>Open agent workspace</Link></Button></div>}</div>;
+}
+
+function RelationshipsRecord({ data, view, graph, onSelect }: Props) {
+  const isAgent = data.roles.includes("agent");
+  if (isAgent) {
+    const accessRows = graph.clients.map((branch) => ({ branch, access: getClientWorkspaceAccess(branch.client, view.clientInvites) }));
+    const connected = accessRows.filter((row) => row.access.state === "connected").length;
+    const invited = accessRows.filter((row) => row.access.state === "invited").length;
+    const crmOnly = accessRows.filter((row) => row.access.state === "crm_only").length;
+    const selfOwned = accessRows.filter((row) => row.access.state === "self").length;
+    return <div><RecordHeader eyebrow="Relationship map" title="Client access & representation" description="See which listings belong to regular clients, which clients use the platform, and when the agent is recorded as their own client." /><div className="space-y-5 p-5"><section className="grid gap-3 sm:grid-cols-5"><Kpi label="Total clients" value={graph.clients.length} detail="Agent CRM records" icon={Users} /><Kpi label="Self-owned" value={selfOwned} detail="Agent is the owner" icon={Home} /><Kpi label="Platform connected" value={connected} detail="Client has a workspace" icon={CheckCircle2} /><Kpi label="Invite pending" value={invited} detail="Waiting for signup" icon={Mail} /><Kpi label="CRM only" value={crmOnly} detail="Managed by agent only" icon={UserRound} /></section><Panel title="Client workspace sequence" detail="Every agent-created listing is attached to a client. Self-owned records are explicitly tagged so they cannot be mistaken for unassigned listings."><div className="divide-y divide-slate-100">{accessRows.map(({ branch, access }) => {
+      const activeRepresentation = view.representations.find((row) => row.agent_id === data.profile.id && row.status === "active" && ((branch.client.client_user_id && row.investor_id === branch.client.client_user_id) || row.investor_email.toLowerCase() === (branch.client.client_email ?? "").toLowerCase()));
+      const drafts = branch.exchanges.filter((exchange) => exchange.status === "draft").length;
+      const matches = branch.properties.reduce((sum, property) => sum + property.matches.length, 0);
+      return <div key={branch.client.id} className="py-4 first:pt-0 last:pb-0"><div className="flex flex-col gap-3 lg:flex-row lg:items-center"><button type="button" onClick={() => onSelect({ type: "client", id: branch.client.id })} className="flex min-w-0 flex-1 items-center gap-3 text-left"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-50 text-sm font-semibold text-emerald-700">{initials(branch.client.client_name)}</span><span className="min-w-0"><span className="flex flex-wrap items-center gap-2"><span className="truncate text-sm font-semibold text-slate-950">{branch.client.client_name}</span><ClientAccessBadge access={access} /></span><span className="mt-1 block truncate text-xs text-slate-500">{branch.client.client_email || "No email"}</span></span></button><div className="grid grid-cols-3 gap-4 text-center lg:w-64"><Fact label="Properties" value={branch.properties.length} /><Fact label="Drafts" value={drafts} /><Fact label="Matches" value={matches} /></div><div className="lg:w-44"><p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">Agent relationship</p><p className="mt-1 text-xs font-medium text-slate-700">{access.state === "self" ? "Agent is the property owner" : activeRepresentation ? "Representation active" : "Agent-managed CRM client"}</p></div><div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => onSelect({ type: "client", id: branch.client.id })}>Open client</Button>{branch.client.client_user_id && branch.client.client_user_id !== data.profile.id && <Button asChild size="sm"><Link to={`/admin/users/${branch.client.client_user_id}`}>Owner account</Link></Button>}</div></div><p className="mt-2 pl-[52px] text-[10px] text-slate-500">{access.detail}</p></div>;
+    })}</div></Panel></div></div>;
+  }
+
+  const relationships = getOwnerRepresentations(data.profile.id, view.representations);
+  const active = relationships.find((row) => row.status === "active") ?? null;
+  return <div><RecordHeader eyebrow="Relationship map" title="Agent & representation" description="See whether this owner is self-managed or represented, which agent can manage each exchange, and the full invitation and assignment history." actions={<Status value={active ? "active" : "needs_agent"} />} /><div className="space-y-5 p-5"><OwnerRepresentationSummary data={data} view={view} onOpen={() => undefined} /><div className="grid gap-5 xl:grid-cols-2"><Panel title="Representation history" detail="Current and former agent relationships are preserved.">{relationships.length ? <div className="divide-y divide-slate-100">{relationships.map((row) => { const agent = data.profilesById[row.agent_id ?? ""]; const agentName = agent?.full_name || agent?.email || row.agent_name || row.agent_email || "Agent"; return <div key={row.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><ProfileAvatar photoUrl={agent?.profile_photo_url} name={agentName} className="h-10 w-10" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{agentName}</p><p className="mt-0.5 text-xs text-slate-500">{row.is_default ? "Preferred agent" : "Representation"} · Created {formatDate(row.created_at)}</p>{row.revoked_at && <p className="mt-0.5 text-[10px] text-slate-400">Ended {formatDate(row.revoked_at)}{row.ended_reason ? ` · ${row.ended_reason}` : ""}</p>}</div><Status value={row.status} />{agent && <Button asChild variant="ghost" size="sm"><Link to={`/admin/users/${agent.id}`}>Open</Link></Button>}</div>; })}</div> : <EmptyState icon={Users} title="No representation history" detail="This owner has never connected an agent." />}</Panel><Panel title="Exchange assignments" detail="The agent assigned to each owner exchange, including revoked history.">{view.assignments.length ? <div className="divide-y divide-slate-100">{view.assignments.map((assignment) => { const agent = data.profilesById[assignment.agent_id]; const exchange = graph.exchangeById[assignment.exchange_id]; const property = exchange ? Object.values(graph.propertyById).find((branch) => branch.exchange?.id === exchange.id)?.property : null; return <div key={assignment.id} className="py-3 first:pt-0 last:pb-0"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-semibold text-slate-900">{property ? resolveListingName(property, true) : "Exchange workspace"}</p><p className="mt-1 text-xs text-slate-500">{agent?.full_name || agent?.email || "Agent"} · {assignment.is_primary ? "Primary" : "Additional"} assignment</p></div><Status value={assignment.status} /></div></div>; })}</div> : <EmptyState icon={Building2} title="No exchange assignments" detail="No agent has been assigned to an exchange for this owner." />}</Panel></div></div></div>;
+}
+
 function ClientRecord({ data, view, branch, onSelect }: Props & { branch: WorkspaceClientBranch }) {
   const client = branch.client;
+  const access = getClientWorkspaceAccess(client, view.clientInvites);
+  const connectedProfile = client.client_user_id ? data.profilesById[client.client_user_id] : null;
+  const activeRepresentation = view.representations.find((row) => row.agent_id === data.profile.id && row.status === "active" && ((client.client_user_id && row.investor_id === client.client_user_id) || row.investor_email.toLowerCase() === (client.client_email ?? "").toLowerCase()));
   const matchCount = branch.properties.reduce((sum, property) => sum + property.matches.length, 0);
   const exchangeIds = new Set(branch.exchanges.map((exchange) => exchange.id));
   const propertyIds = new Set(branch.properties.map((property) => property.property.id));
@@ -241,12 +458,12 @@ function ClientRecord({ data, view, branch, onSelect }: Props & { branch: Worksp
         eyebrow="Client record"
         title={client.client_name}
         description={client.client_company || "Client relationship, property portfolio, and exchange workspaces"}
-        actions={<Status value={client.status} />}
+        actions={<div className="flex flex-wrap items-center gap-2"><ClientAccessBadge access={access} /><Status value={client.status} /></div>}
       />
       <div className="p-5">
         <section className="mb-5 grid gap-3 sm:grid-cols-3">
           <Kpi label="Properties" value={branch.properties.length} detail="Attached to this client" icon={Home} />
-          <Kpi label="Active exchanges" value={branch.exchanges.filter((exchange) => !["closed", "cancelled"].includes(exchange.status)).length} detail="Currently being managed" icon={CircleDollarSign} />
+          <Kpi label="Active exchanges" value={branch.exchanges.filter((exchange) => ["active", "in_identification", "in_closing"].includes(exchange.status)).length} detail="Currently being managed" icon={CircleDollarSign} />
           <Kpi label="Matched opportunities" value={matchCount} detail="Grouped by current property" icon={Sparkles} />
         </section>
 
@@ -259,6 +476,15 @@ function ClientRecord({ data, view, branch, onSelect }: Props & { branch: Worksp
           </TabsList>
 
           <TabsContent value="overview" className="mt-0">
+            <section className="mb-5 rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-700">How this client is connected</p><h2 className="mt-1 text-base font-semibold text-slate-950">{access.label}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{access.detail}</p></div>{client.client_user_id && client.client_user_id !== data.profile.id && <Button asChild size="sm"><Link to={`/admin/users/${client.client_user_id}`}>Open property-owner workspace<ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button>}</div>
+              <div className="mt-4 grid gap-2 border-t border-slate-100 pt-4 sm:grid-cols-4">
+                <RelationshipStep label="Agent CRM record" state="complete" detail={`Added ${formatDate(client.created_at)}`} />
+                <RelationshipStep label="Workspace invitation" state={access.state === "self" ? "inactive" : access.state === "crm_only" ? "inactive" : "complete"} detail={access.state === "self" ? "Not needed for self-owned property" : access.invite ? `${sentence(access.invite.status)} · ${formatDate(access.invite.updated_at)}` : "Not sent"} />
+                <RelationshipStep label="Owner workspace" state={["self", "connected"].includes(access.state) ? "complete" : access.state === "invited" ? "pending" : "inactive"} detail={access.state === "self" ? "Same person as the agent" : connectedProfile?.full_name || connectedProfile?.email || (access.state === "connected" ? "Connected account" : "Not connected")} />
+                <RelationshipStep label="Agent representation" state={access.state === "self" || activeRepresentation ? "complete" : "pending"} detail={access.state === "self" ? "Agent is the owner" : activeRepresentation ? "Active representation" : "Managed through the agent CRM"} />
+              </div>
+            </section>
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(300px,.85fr)]">
               <Panel title="Relationship map" detail="The client, their current properties, and every opportunity connected to each property.">
                 {branch.properties.length ? <div className="space-y-3">{branch.properties.map((property) => <ClientRelationshipRow key={property.property.id} data={data} branch={property} onSelect={onSelect} />)}</div> : <EmptyState icon={Home} title="No properties for this client" detail="No exchange or listing record is connected to this client." />}
@@ -266,10 +492,10 @@ function ClientRecord({ data, view, branch, onSelect }: Props & { branch: Worksp
               <div className="space-y-5">
                 <Panel title="Client information" detail="The contact record used by this agent.">
                   <div className="space-y-3"><ContactLine icon={Mail} value={client.client_email} /><ContactLine icon={Phone} value={client.client_phone} /><ContactLine icon={Building2} value={client.client_company} /></div>
-                  <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4"><Fact label="Created" value={formatDate(client.created_at)} /><Fact label="Updated" value={formatDate(client.updated_at, true)} /><Fact label="Platform account" value={client.client_user_id ? "Connected" : "Not connected"} /><Fact label="Platform referral" value={client.referred_by_platform ? "Yes" : "No"} /></div>
+                  <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4"><Fact label="Created" value={formatDate(client.created_at)} /><Fact label="Updated" value={formatDate(client.updated_at, true)} /><Fact label="Platform access" value={access.label} /><Fact label="Platform referral" value={client.referred_by_platform ? "Yes" : "No"} /></div>
                 </Panel>
                 <Panel title="Internal notes" detail="Agent-entered CRM context."><p className="whitespace-pre-wrap text-sm leading-6 text-slate-600">{client.notes || "No internal client notes have been added."}</p></Panel>
-                {client.client_user_id && data.profilesById[client.client_user_id] && <Button asChild variant="outline" className="w-full"><Link to={`/admin/users/${client.client_user_id}`}>Open connected property-owner account<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>}
+                {client.client_user_id && client.client_user_id !== data.profile.id && data.profilesById[client.client_user_id] && <Button asChild variant="outline" className="w-full"><Link to={`/admin/users/${client.client_user_id}`}>Open connected property-owner account<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>}
               </div>
             </div>
           </TabsContent>
@@ -407,7 +633,7 @@ function PropertyRecord({ data, branch, onSelect }: Props & { branch: WorkspaceP
             </Panel>
           </div>
           <div className="space-y-5">
-            {exchange && <Panel title="Exchange context" detail="The workflow this property belongs to."><div className="grid grid-cols-2 gap-4"><Fact label="Status" value={sentence(exchange.status)} /><Fact label="Owner type" value={sentence(exchange.owner_type)} /><Fact label="Estimated equity" value={formatCurrency(exchange.estimated_equity)} /><Fact label="Exchange proceeds" value={formatCurrency(exchange.exchange_proceeds)} /><Fact label="Identification deadline" value={formatDate(exchange.identification_deadline)} /><Fact label="Closing deadline" value={formatDate(exchange.closing_deadline)} /></div><Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => onSelect({ type: "exchange", id: exchange.id })}>View exchange criteria and assignments</Button></Panel>}
+            {exchange && <Panel title="Exchange context" detail="The workflow this property belongs to."><div className="grid grid-cols-2 gap-4"><Fact label="Status" value={sentence(exchange.status)} /><Fact label="Owner type" value={sentence(exchange.owner_type)} /><Fact label="Estimated equity" value={formatCurrency(exchange.estimated_equity)} /><Fact label="Exchange proceeds" value={formatCurrency(exchange.exchange_proceeds)} /></div><Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => onSelect({ type: "exchange", id: exchange.id })}>View exchange criteria and assignments</Button></Panel>}
             {criteria && <Panel title="Replacement criteria" detail="Optional preferences guiding this property’s search."><div className="grid grid-cols-2 gap-4"><Fact label="Target states" value={criteria.target_states?.join(", ")} /><Fact label="Asset types" value={criteria.target_asset_types?.map(sentence).join(", ")} /><Fact label="Additional cash" value={formatCurrency(criteria.additional_cash_available)} /><Fact label="Maximum LTV" value={percentRatio(criteria.max_ltv)} /><Fact label="Minimum ROE" value={percent(criteria.min_projected_roe)} /><Fact label="Monthly cash flow" value={formatCurrency(criteria.preferred_monthly_cash_flow)} /></div></Panel>}
             <Panel title="Listing assets" detail="Photos and documents attached to this listing."><div className="flex items-center justify-between py-2"><span className="flex items-center gap-2 text-sm text-slate-700"><ImageIcon className="h-4 w-4 text-slate-400" />Property photos</span><strong className="text-sm text-slate-950">{images.length}</strong></div><div className="flex items-center justify-between border-t border-slate-100 py-2"><span className="flex items-center gap-2 text-sm text-slate-700"><FileText className="h-4 w-4 text-slate-400" />Documents</span><strong className="text-sm text-slate-950">{documents.length}</strong></div>{documents.length > 0 && <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">{documents.map((doc) => <div key={doc.id} className="rounded-lg bg-slate-50 p-2 text-xs text-slate-600">{doc.file_name || sentence(doc.document_type)}</div>)}</div>}</Panel>
           </div>
@@ -466,7 +692,7 @@ function ExchangeRecord({ data, view, exchange, graph, onSelect }: Props & { exc
   const propertyBranch = Object.values(graph.propertyById).find((branch) => branch.exchange?.id === exchange.id);
   const criteria = data.criteriaByExchange[exchange.id];
   const assignments = view.assignments.filter((item) => item.exchange_id === exchange.id);
-  return <div><RecordHeader eyebrow="Exchange workspace" title={propertyBranch ? resolveListingName(propertyBranch.property, true) : client?.client_name || "Exchange record"} description={client ? `Managed for ${client.client_name}` : `${sentence(exchange.owner_type)}-owned exchange`} actions={<Status value={exchange.status} />} /><div className="space-y-5 p-5"><section className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4"><Kpi label="Estimated equity" value={formatCurrency(exchange.estimated_equity)} detail="Current position" icon={CircleDollarSign} /><Kpi label="Exchange proceeds" value={formatCurrency(exchange.exchange_proceeds)} detail="Estimated proceeds" icon={Building2} /><Kpi label="Matches" value={propertyBranch?.matches.length ?? 0} detail="Current opportunities" icon={Sparkles} /><Kpi label="Assignments" value={assignments.length} detail="Agent relationships" icon={Users} /></section><div className="grid gap-5 2xl:grid-cols-2"><Panel title="Exchange details" detail="Deadlines, tax estimates, and property relationship."><div className="grid grid-cols-2 gap-5"><Fact label="Owner type" value={sentence(exchange.owner_type)} /><Fact label="Client" value={client?.client_name} /><Fact label="Sale close date" value={formatDate(exchange.sale_close_date)} /><Fact label="Identification deadline" value={formatDate(exchange.identification_deadline)} /><Fact label="Closing deadline" value={formatDate(exchange.closing_deadline)} /><Fact label="Actual close" value={formatDate(exchange.actual_close_date)} /><Fact label="Estimated basis" value={formatCurrency(exchange.estimated_basis)} /><Fact label="Estimated gain" value={formatCurrency(exchange.estimated_gain)} /><Fact label="Estimated tax" value={formatCurrency(exchange.estimated_tax_liability)} /></div>{propertyBranch && <Button className="mt-5 w-full" onClick={() => onSelect({ type: "property", id: propertyBranch.property.id })}>Open current property and matches</Button>}</Panel><Panel title="Replacement criteria" detail="Preferences used to focus the automated search."><div className="grid grid-cols-2 gap-5"><Fact label="Target states" value={criteria?.target_states?.join(", ")} /><Fact label="Asset types" value={criteria?.target_asset_types?.map(sentence).join(", ")} /><Fact label="Additional cash" value={formatCurrency(criteria?.additional_cash_available)} /><Fact label="Maximum LTV" value={percentRatio(criteria?.max_ltv)} /><Fact label="Minimum ROE" value={percent(criteria?.min_projected_roe)} /><Fact label="Monthly cash flow" value={formatCurrency(criteria?.preferred_monthly_cash_flow)} /><Fact label="Location required" value={criteria?.require_location_match ? "Yes" : "No"} /><Fact label="Asset type required" value={criteria?.require_asset_type_match ? "Yes" : "No"} /></div></Panel></div><Panel title="Agent assignments" detail="Current and historical representation attached to this exchange.">{assignments.length ? <div className="divide-y divide-slate-100">{assignments.map((assignment) => <div key={assignment.id} className="flex items-center justify-between gap-3 py-3"><div><p className="text-sm font-medium text-slate-900">{data.profilesById[assignment.agent_id]?.full_name || data.profilesById[assignment.agent_id]?.email || "Agent"}</p><p className="text-xs text-slate-500">{assignment.can_manage_exchange ? "Managing assignment" : "Limited assignment"} · assigned {formatDate(assignment.assigned_at, true)}</p></div><Status value={assignment.status} /></div>)}</div> : <EmptyState icon={Users} title="No agent assignments" detail="No assignment history is attached to this exchange." />}</Panel></div></div>;
+  return <div><RecordHeader eyebrow="Exchange workspace" title={propertyBranch ? resolveListingName(propertyBranch.property, true) : client?.client_name || "Exchange record"} description={client ? `Managed for ${client.client_name}` : `${sentence(exchange.owner_type)}-owned exchange`} actions={<Status value={exchange.status} />} /><div className="space-y-5 p-5"><section className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4"><Kpi label="Estimated equity" value={formatCurrency(exchange.estimated_equity)} detail="Current position" icon={CircleDollarSign} /><Kpi label="Exchange proceeds" value={formatCurrency(exchange.exchange_proceeds)} detail="Estimated proceeds" icon={Building2} /><Kpi label="Matches" value={propertyBranch?.matches.length ?? 0} detail="Current opportunities" icon={Sparkles} /><Kpi label="Assignments" value={assignments.length} detail="Agent relationships" icon={Users} /></section><div className="grid gap-5 2xl:grid-cols-2"><Panel title="Exchange details" detail="Economics, close dates, and property relationship."><div className="grid grid-cols-2 gap-5"><Fact label="Owner type" value={sentence(exchange.owner_type)} /><Fact label="Client" value={client?.client_name} /><Fact label="Expected sale close" value={formatDate(exchange.sale_close_date)} /><Fact label="Actual sale close" value={formatDate(exchange.actual_close_date)} /><Fact label="Estimated basis" value={formatCurrency(exchange.estimated_basis)} /><Fact label="Estimated gain" value={formatCurrency(exchange.estimated_gain)} /><Fact label="Estimated tax" value={formatCurrency(exchange.estimated_tax_liability)} /></div>{propertyBranch && <Button className="mt-5 w-full" onClick={() => onSelect({ type: "property", id: propertyBranch.property.id })}>Open current property and matches</Button>}</Panel><Panel title="Replacement criteria" detail="Preferences used to focus the automated search."><div className="grid grid-cols-2 gap-5"><Fact label="Target states" value={criteria?.target_states?.join(", ")} /><Fact label="Asset types" value={criteria?.target_asset_types?.map(sentence).join(", ")} /><Fact label="Additional cash" value={formatCurrency(criteria?.additional_cash_available)} /><Fact label="Maximum LTV" value={percentRatio(criteria?.max_ltv)} /><Fact label="Minimum ROE" value={percent(criteria?.min_projected_roe)} /><Fact label="Monthly cash flow" value={formatCurrency(criteria?.preferred_monthly_cash_flow)} /><Fact label="Location required" value={criteria?.require_location_match ? "Yes" : "No"} /><Fact label="Asset type required" value={criteria?.require_asset_type_match ? "Yes" : "No"} /></div></Panel></div><Panel title="Agent assignments" detail="Current and historical representation attached to this exchange.">{assignments.length ? <div className="divide-y divide-slate-100">{assignments.map((assignment) => <div key={assignment.id} className="flex items-center justify-between gap-3 py-3"><div><p className="text-sm font-medium text-slate-900">{data.profilesById[assignment.agent_id]?.full_name || data.profilesById[assignment.agent_id]?.email || "Agent"}</p><p className="text-xs text-slate-500">{assignment.can_manage_exchange ? "Managing assignment" : "Limited assignment"} · assigned {formatDate(assignment.assigned_at, true)}</p></div><Status value={assignment.status} /></div>)}</div> : <EmptyState icon={Users} title="No agent assignments" detail="No assignment history is attached to this exchange." />}</Panel></div></div>;
 }
 
 function ActivityRecord({ data, view }: Props) {
@@ -492,7 +718,7 @@ function ClientPropertyCard({ data, branch, onSelect }: { data: CrmUserWorkspace
 
 function ClientRelationshipRow({ data, branch, onSelect }: { data: CrmUserWorkspace; branch: WorkspacePropertyBranch; onSelect: (selection: WorkspaceSelection) => void }) {
   const image = data.imagesByProperty[branch.property.id]?.[0];
-  return <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/60"><button type="button" onClick={() => onSelect({ type: "property", id: branch.property.id })} className="flex w-full items-center gap-3 bg-white p-3 text-left hover:bg-slate-50"><div className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">{image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full w-full" />}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-950">{resolveListingName(branch.property, true)}</p><p className="mt-1 text-xs text-slate-500">{sentence(branch.property.asset_type)} · {sentence(branch.property.status)} · {branch.matches.length} {branch.matches.length === 1 ? "match" : "matches"}</p></div><ArrowRight className="h-4 w-4 text-slate-400" /></button>{branch.matches.length > 0 && <div className="border-t border-slate-200 px-3 py-2"><p className="mb-2 text-[9px] font-semibold uppercase tracking-wide text-slate-400">Matched replacement properties</p><div className="space-y-1">{branch.matches.slice(0, 3).map((match) => { const candidate = data.propertiesById[match.seller_property_id]; return <button key={match.id} type="button" onClick={() => onSelect({ type: "match", id: match.id })} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-white"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-slate-950 text-[10px] font-semibold text-white">{Math.round(match.total_score)}</span><span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700">{candidate ? resolveListingName(candidate, true) : "Matched property"}</span><Status value={data.workflowStatesByMatch[match.id]?.current_stage ?? match.status} /></button>; })}</div>{branch.matches.length > 3 && <p className="mt-2 px-2 text-[10px] text-slate-500">+{branch.matches.length - 3} more opportunities</p>}</div>}</div>;
+  return <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/60"><button type="button" onClick={() => onSelect({ type: "property", id: branch.property.id })} className="flex w-full items-center gap-3 bg-white p-3 text-left hover:bg-slate-50"><div className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">{image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full w-full" />}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-950">{resolveListingName(branch.property, true)}</p><p className="mt-1 text-xs text-slate-500">{sentence(branch.property.asset_type)} · {sentence(propertyOperatingState(branch))} · {branch.matches.length} {branch.matches.length === 1 ? "match" : "matches"}</p></div><ArrowRight className="h-4 w-4 text-slate-400" /></button>{branch.matches.length > 0 && <div className="border-t border-slate-200 px-3 py-2"><p className="mb-2 text-[9px] font-semibold uppercase tracking-wide text-slate-400">Matched replacement properties</p><div className="space-y-1">{branch.matches.slice(0, 3).map((match) => { const candidate = data.propertiesById[match.seller_property_id]; return <button key={match.id} type="button" onClick={() => onSelect({ type: "match", id: match.id })} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-white"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-slate-950 text-[10px] font-semibold text-white">{Math.round(match.total_score)}</span><span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700">{candidate ? resolveListingName(candidate, true) : "Matched property"}</span><Status value={data.workflowStatesByMatch[match.id]?.current_stage ?? match.status} /></button>; })}</div>{branch.matches.length > 3 && <p className="mt-2 px-2 text-[10px] text-slate-500">+{branch.matches.length - 3} more opportunities</p>}</div>}</div>;
 }
 
 function ClientMatchGroup({ data, branch, onSelect }: { data: CrmUserWorkspace; branch: WorkspacePropertyBranch; onSelect: (selection: WorkspaceSelection) => void }) {
@@ -563,7 +789,7 @@ function buildLaunchpadProgress(data: CrmUserWorkspace, view: CrmUserWorkspaceVi
 function CompactPropertyCard({ data, branch, onClick }: { data: CrmUserWorkspace; branch: WorkspacePropertyBranch; onClick: () => void }) {
   const finance = data.financialsByProperty[branch.property.id];
   const image = data.imagesByProperty[branch.property.id]?.[0];
-  return <button type="button" onClick={onClick} className="group flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-left hover:border-emerald-300 hover:shadow-sm"><div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">{image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full w-full" />}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">{resolveListingName(branch.property, true)}</p><p className="mt-1 text-xs text-slate-500">{formatCurrency(finance?.asking_price ?? finance?.appraised_value)} · {branch.matches.length} matches</p><p className="mt-1 text-[10px] text-slate-400">{sentence(branch.property.asset_type)} · {sentence(branch.property.status)}</p></div><ArrowRight className="h-4 w-4 text-slate-300" /></button>;
+  return <button type="button" onClick={onClick} className="group flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-left hover:border-emerald-300 hover:shadow-sm"><div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">{image ? <img src={resolvePropertyImageUrl(image.storage_path)} alt="" className="h-full w-full object-cover" /> : <PropertyPhotoPlaceholder className="h-full w-full" />}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-950 group-hover:text-emerald-700">{resolveListingName(branch.property, true)}</p><p className="mt-1 text-xs text-slate-500">{formatCurrency(finance?.asking_price ?? finance?.appraised_value)} · {branch.matches.length} matches</p><p className="mt-1 text-[10px] text-slate-400">{sentence(branch.property.asset_type)} · {sentence(propertyOperatingState(branch))}</p></div><ArrowRight className="h-4 w-4 text-slate-300" /></button>;
 }
 
 function PropertyGallery({ property, images, compact = false }: { property: Tables<"pledged_properties">; images: Tables<"property_images">[]; compact?: boolean }) {
@@ -577,7 +803,7 @@ function Kpi({ label, value, detail, icon: Icon }: { label: string; value: strin
 function HeroFact({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) { return <div className={`rounded-lg border px-3 py-2.5 ${accent ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}><p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{label}</p><p className={`mt-1 truncate text-sm font-semibold ${accent ? "text-emerald-800" : "text-slate-900"}`}>{value || "—"}</p></div>; }
 function Fact({ label, value, mono = false }: { label: string; value: string | number | null | undefined; mono?: boolean }) { return <div className="min-w-0"><dt className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{label}</dt><dd className={`mt-1 break-words text-sm font-medium text-slate-800 ${mono ? "font-mono text-xs" : ""}`}>{value === null || value === undefined || value === "" ? "—" : value}</dd></div>; }
 function ContactLine({ icon: Icon, value }: { icon: typeof Mail; value: string | null | undefined }) { return <div className="flex items-start gap-2.5 text-sm text-slate-600"><Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" /><span className="min-w-0 break-words">{value || "Not provided"}</span></div>; }
-function Status({ value }: { value: string }) { const normalized = value.toLowerCase(); const color = ["active", "accepted", "verified", "published", "connected", "completed"].includes(normalized) ? "bg-emerald-100 text-emerald-800" : ["pending", "requested", "draft", "awaiting_representation"].includes(normalized) ? "bg-amber-100 text-amber-800" : ["declined", "cancelled", "suspended", "failed"].includes(normalized) ? "bg-rose-100 text-rose-800" : "bg-slate-100 text-slate-700"; return <Badge className={`${color} border-0 text-[10px]`}>{sentence(value)}</Badge>; }
+function Status({ value }: { value: string }) { const normalized = value.toLowerCase(); const color = ["active", "accepted", "verified", "published", "connected", "completed"].includes(normalized) ? "bg-emerald-100 text-emerald-800" : ["pending", "requested", "draft", "awaiting_representation", "needs_agent", "not_started"].includes(normalized) ? "bg-amber-100 text-amber-800" : ["declined", "cancelled", "suspended", "failed"].includes(normalized) ? "bg-rose-100 text-rose-800" : "bg-slate-100 text-slate-700"; return <Badge className={`${color} border-0 text-[10px]`}>{sentence(value)}</Badge>; }
 function TextBlock({ title, value }: { title: string; value: string | null }) { return <div><h3 className="text-xs font-semibold text-slate-900">{title}</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{value || "Not provided"}</p></div>; }
 function Comparison({ label, current, candidate, highlight = false }: { label: string; current: string; candidate: string; highlight?: boolean }) { return <div className="grid grid-cols-[minmax(130px,.7fr)_minmax(150px,1fr)_minmax(150px,1fr)] border-t border-slate-100 px-4 py-3 text-sm"><span className="text-slate-500">{label}</span><span className="font-medium text-slate-800">{current || "—"}</span><span className={`font-semibold ${highlight ? "text-emerald-700" : "text-slate-950"}`}>{candidate || "—"}</span></div>; }
 function Score({ label, value }: { label: string; value: number }) { return <div><div className="flex items-center justify-between text-xs"><span className="text-slate-500">{label}</span><strong className="text-slate-900">{Math.round(value)}</strong></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} /></div></div>; }

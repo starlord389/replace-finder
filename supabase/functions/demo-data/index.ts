@@ -5,7 +5,7 @@
 // clients in varied states, listings across every status, a counterparty
 // network, engine-verified matches, an inbound match on the caller's own
 // listing, connections at different lifecycle stages, message threads,
-// notifications, an identification list, and urgent/overdue deadlines.
+// notifications and an identification list.
 // EVERYTHING is is_demo=true.
 //
 // SAFETY: a reset wipes ONLY the caller's own demo rows (agent_id = caller) plus
@@ -312,8 +312,6 @@ async function buildOwnerDemo(db: any, ownerId: string) {
     exchange_proceeds: investorEquity,
     estimated_equity: investorEquity,
     sale_close_date: dFrom(-10),
-    identification_deadline: dFrom(35),
-    closing_deadline: dFrom(170),
   }, "id");
   const investorCrit = await insertOne(db, "replacement_criteria", { exchange_id: investorEx.id, ...INVESTOR_CRITERIA }, "id");
   await db.from("exchanges").update({ criteria_id: investorCrit.id }).eq("id", investorEx.id);
@@ -418,7 +416,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   await mustInsert(db, "agent_representations", {
     investor_id: ownerId, investor_email: ownerProfile.email, agent_id: null, agent_email: "",
     status: "awaiting_agent", source: "platform_referral", is_demo: true, invited_by: ownerId,
-    request_context: { location: "Worcester, MA", property_type: "Multifamily", timing: "Identifying within 35 days", notes: "Demo referral awaiting administrator assignment" },
+    request_context: { location: "Worcester, MA", property_type: "Multifamily", timing: "Actively reviewing replacements", notes: "Demo referral awaiting administrator assignment" },
   });
 
   // Inbound (seller-side) match: Natalie Foster, represented by a counterparty
@@ -429,7 +427,7 @@ async function buildOwnerDemo(db: any, ownerId: string) {
   const inboundRelProp = await insertProperty(db, jordan, INBOUND_PROPERTY, true);
   prop[INBOUND_PROPERTY.key] = inboundRelProp;
   const inboundEquity = INBOUND_PROPERTY.f.asking_price - INBOUND_PROPERTY.f.loan_balance;
-  const inboundEx = await insertOne(db, "exchanges", { agent_id: jordan, client_id: inboundClient.id, relinquished_property_id: inboundRelProp, is_demo: true, status: "active", exchange_proceeds: inboundEquity, estimated_equity: inboundEquity, identification_deadline: dFrom(40), closing_deadline: dFrom(175) }, "id");
+  const inboundEx = await insertOne(db, "exchanges", { agent_id: jordan, client_id: inboundClient.id, relinquished_property_id: inboundRelProp, is_demo: true, status: "active", exchange_proceeds: inboundEquity, estimated_equity: inboundEquity }, "id");
   const inboundCrit = await insertOne(db, "replacement_criteria", { exchange_id: inboundEx.id, ...INBOUND_CRITERIA }, "id");
   await db.from("exchanges").update({ criteria_id: inboundCrit.id }).eq("id", inboundEx.id);
   await db.from("pledged_properties").update({ exchange_id: inboundEx.id }).eq("id", inboundRelProp);

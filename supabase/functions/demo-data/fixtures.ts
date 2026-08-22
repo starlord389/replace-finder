@@ -363,7 +363,7 @@ export const OWN: DemoOwnRecord[] = [
     exchange: {
       status: "active", exchange_proceeds: 750_000, estimated_equity: 750_000, estimated_basis: 420_000,
       estimated_gain: 330_000, estimated_tax_liability: 82_500,
-      sale_close_date: dFrom(-20), identification_deadline: dFrom(25), closing_deadline: dFrom(160),
+      sale_close_date: dFrom(-20),
     },
     criteria: {
       target_asset_types: ["multifamily", "mixed_use"], target_states: ["MA"], target_metros: ["Boston", "Brockton", "Worcester"],
@@ -396,7 +396,7 @@ export const OWN: DemoOwnRecord[] = [
     exchange: {
       status: "active", exchange_proceeds: 680_000, estimated_equity: 680_000, estimated_basis: 390_000,
       estimated_gain: 290_000, estimated_tax_liability: 72_500,
-      sale_close_date: dFrom(-10), identification_deadline: dFrom(35), closing_deadline: dFrom(170),
+      sale_close_date: dFrom(-10),
     },
     criteria: {
       target_asset_types: ["industrial", "mixed_use", "retail"], target_states: ["MA"], target_metros: ["Chelmsford", "Brockton", "Lowell"],
@@ -409,7 +409,7 @@ export const OWN: DemoOwnRecord[] = [
     key: "james_wilson",
     client: {
       client_name: "James Wilson", client_company: null, client_email: "james.wilson@example.com", client_phone: "(978) 555-0144",
-      notes: "Selling a Haverhill warehouse he has owned since the 90s. Wants small flex or multifamily within an hour of home. ID window closing fast - only actionable Massachusetts deals.",
+      notes: "Considering an exchange from a Haverhill warehouse he has owned since the 90s. Wants small flex or multifamily within an hour of home and only actionable Massachusetts deals.",
       status: "active",
     },
     property: {
@@ -429,7 +429,7 @@ export const OWN: DemoOwnRecord[] = [
     exchange: {
       status: "in_identification", exchange_proceeds: 800_000, estimated_equity: 800_000, estimated_basis: 430_000,
       estimated_gain: 370_000, estimated_tax_liability: 92_500,
-      sale_close_date: dFrom(-36), identification_deadline: dFrom(9), closing_deadline: dFrom(144),
+      sale_close_date: dFrom(-36),
     },
     criteria: {
       target_asset_types: ["industrial", "multifamily"], target_states: ["MA"], target_metros: ["Chelmsford", "Lowell", "Haverhill"],
@@ -462,7 +462,7 @@ export const OWN: DemoOwnRecord[] = [
     exchange: {
       status: "in_closing", exchange_proceeds: 900_000, estimated_equity: 900_000, estimated_basis: 520_000,
       estimated_gain: 380_000, estimated_tax_liability: 95_000,
-      sale_close_date: dFrom(-60), identification_deadline: dFrom(-15), closing_deadline: dFrom(12),
+      sale_close_date: dFrom(-60),
     },
     criteria: {
       target_asset_types: ["medical_office", "office"], target_states: ["MA"], target_metros: ["Framingham", "Natick", "Brookline"],
@@ -495,7 +495,7 @@ export const OWN: DemoOwnRecord[] = [
     exchange: {
       status: "completed", exchange_proceeds: 800_000, estimated_equity: 800_000, estimated_basis: 450_000,
       estimated_gain: 350_000, estimated_tax_liability: 87_500,
-      sale_close_date: dFrom(-180), identification_deadline: dFrom(-135), closing_deadline: dFrom(-8), actual_close_date: dFrom(-8),
+      sale_close_date: dFrom(-180), actual_close_date: dFrom(-8),
     },
     criteria: {
       target_asset_types: ["industrial"], target_states: ["MA"], target_metros: ["Fall River", "New Bedford"],

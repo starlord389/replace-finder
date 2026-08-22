@@ -435,7 +435,7 @@ BEGIN
     UNION ALL
     SELECT concat('support-', st.id), CASE WHEN st.status = 'open' AND st.created_at < now() - interval '2 days' THEN 0 ELSE 1 END,
       CASE WHEN st.status = 'open' AND st.created_at < now() - interval '2 days' THEN 'critical' ELSE 'high' END,
-      'support', st.subject, concat(replace(st.category, '_', ' '), ' support ticket · ', replace(st.status, '_', ' ')),
+      'support', st.subject, concat(replace(st.category, '_', ' '), ' support ticket · ', replace(st.status::text, '_', ' ')),
       st.created_at, concat('/admin/support?ticket=', st.id)
     FROM public.support_tickets st WHERE st.is_demo = v_demo AND st.status IN ('open', 'in_progress')
     UNION ALL
@@ -651,12 +651,12 @@ BEGIN
       AND concat_ws(' ', c.status, bp.full_name, bp.email, sp.full_name, sp.email) ILIKE '%' || v_search || '%'
     UNION ALL
     SELECT concat('ticket-', st.id), 'Ticket', st.subject,
-      concat_ws(' · ', replace(st.category, '_', ' '), replace(st.status, '_', ' ')),
+      concat_ws(' · ', replace(st.category, '_', ' '), replace(st.status::text, '_', ' ')),
       concat('/admin/support?ticket=', st.id), 4
     FROM public.support_tickets st
     LEFT JOIN public.profiles p ON p.id = st.user_id
     WHERE st.is_demo = v_demo AND concat_ws(' ', st.subject, st.message, st.admin_notes,
-      st.category, st.status, p.full_name, p.email) ILIKE '%' || v_search || '%'
+      st.category, st.status::text, p.full_name, p.email) ILIKE '%' || v_search || '%'
     UNION ALL
     SELECT concat('demo-', dr.id), 'Demo', dr.full_name,
       concat_ws(' · ', dr.company, dr.work_email, dr.status),

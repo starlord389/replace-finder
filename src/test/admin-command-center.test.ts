@@ -80,6 +80,9 @@ describe("admin command center", () => {
     const migration = read("supabase/migrations/20260821213000_admin_crm_scalability.sql");
     expect(migration).toContain("LIMIT 100");
     expect(migration).toContain("'attentionTruncated'");
+    expect(migration).toContain("replace(st.status::text, '_', ' ')");
+    expect(migration).toContain("st.category, st.status::text, p.full_name");
+    expect(migration).not.toContain("replace(st.status, '_', ' ')");
   });
 
   it("keeps auth-only accounts discoverable and exposes command-center retry states", () => {
@@ -108,7 +111,7 @@ describe("admin command center", () => {
     expect(formatAdminRelativeTime("2026-08-22T12:00:00Z")).toBe("in 2d");
   });
 
-  it("prioritizes imminent exchange deadlines and unresolved support", () => {
+  it("does not treat legacy exchange deadline fields as operational alerts", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-24T12:00:00Z"));
 
@@ -141,10 +144,13 @@ describe("admin command center", () => {
 
     const items = buildAdminAttentionItems(source);
 
-    expect(items).toHaveLength(2);
-    expect(items.every((item) => item.priority === "critical")).toBe(true);
-    expect(items.some((item) => item.title === "Identification deadline in 1 day")).toBe(true);
-    expect(items.some((item) => item.href === "/admin/support?ticket=ticket-1")).toBe(true);
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      priority: "critical",
+      category: "support",
+      href: "/admin/support?ticket=ticket-1",
+    });
+    expect(items.some((item) => item.title.includes("deadline"))).toBe(false);
   });
 
   it("builds searchable links for core business records", () => {
@@ -223,10 +229,8 @@ describe("admin command center", () => {
       }),
     ];
 
-    const attention = buildAdminAttentionItems(source);
     const search = buildAdminSearchItems(source);
 
-    expect(attention[0].detail).toBe("Taylor Owner · Investor / Property Owner · Self-managed");
     expect(search).toEqual(expect.arrayContaining([
       expect.objectContaining({
         type: "User",

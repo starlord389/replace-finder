@@ -22,14 +22,12 @@ const REASONS: Record<string, string> = {
   connection_accepted: "You're getting this because connection update alerts are on in your notification settings.",
   message: "You're getting this because message alerts are on in your notification settings.",
   listing_inquiry: "You're getting this because listing inquiry alerts are on in your notification settings.",
-  deadline: "You're getting this because deadline reminders are on in your notification settings.",
 }
 
 function reasonFor(type: string): string {
   if (type.includes('match')) return REASONS.new_match
   if (type.includes('message')) return REASONS.message
   if (type.includes('inquiry')) return REASONS.listing_inquiry
-  if (type.includes('deadline')) return REASONS.deadline
   if (type.includes('accept') || type.includes('assigned') || type.includes('started')) {
     return REASONS.connection_accepted
   }

@@ -53,13 +53,8 @@ const GROUPS: Group[] = [
   },
   {
     title: "Account & summaries",
-    description: "Deadlines, weekly recaps, and account notices.",
+    description: "Weekly recaps and account notices.",
     items: [
-      {
-        key: "notify_deadline_reminder",
-        label: "Deadline reminders",
-        description: "45-day and 180-day exchange deadline reminders.",
-      },
       {
         key: "notify_weekly_digest",
         label: "Weekly summary",

@@ -63,6 +63,16 @@ describe("agent client onboarding workflow", () => {
     expect(exchangeClientStep).toContain("client_email: newClient.email.trim() || null");
   });
 
+  it("keeps an agent-owned property in the normal manual client-entry workflow", () => {
+    for (const clientForm of [addClientPage, exchangeClientStep]) {
+      expect(clientForm).not.toContain("I am the property owner");
+      expect(clientForm).not.toContain("self-owned");
+      expect(clientForm).toContain("client_user_id: null");
+    }
+    expect(addClientPage).not.toContain("Add Myself as Client");
+    expect(exchangeClientStep).not.toContain("Your self-owned client workspace is already available");
+  });
+
   it("keeps inline Launchpad education complete after its panel is closed", () => {
     expect(launchpadPage).toContain("matchingViewed");
     expect(launchpadPage).toContain("clientRequestsViewed");

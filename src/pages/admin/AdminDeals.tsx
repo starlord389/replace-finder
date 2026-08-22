@@ -52,7 +52,7 @@ const PAGE_SIZE = 25;
 
 function fmtDate(value: string | null) { return value ? new Date(value).toLocaleDateString() : "—"; }
 function money(value: number | null | undefined) { return value != null ? `$${Math.round(value).toLocaleString()}` : "—"; }
-function pretty(value: string) { return value.replace(/_/g, " "); }
+function pretty(value: string | null | undefined) { return value ? value.replace(/_/g, " ") : "—"; }
 function formatPercent(value: number | null | undefined) { return value == null ? "—" : `${value.toFixed(2)}%`; }
 
 const statusColor: Record<string, string> = {
@@ -75,7 +75,13 @@ export default function AdminDeals({ mode = "opportunities" }: { mode?: "opportu
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const activeTab = mode === "properties" ? "properties" : ["exchanges", "matches", "connections"].includes(requestedTab ?? "") ? requestedTab! : "matches";
-  const recordType: AdminCrmRecordType = mode === "properties" ? "property" : activeTab.slice(0, -1) as AdminCrmRecordType;
+  const recordType: AdminCrmRecordType = mode === "properties"
+    ? "property"
+    : activeTab === "matches"
+      ? "match"
+      : activeTab === "exchanges"
+        ? "exchange"
+        : "connection";
   const selectedPropertyId = mode === "properties" ? searchParams.get("property") : null;
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [recordStatus, setRecordStatus] = useState(searchParams.get("status") ?? "all");

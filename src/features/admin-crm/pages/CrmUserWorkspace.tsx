@@ -113,6 +113,7 @@ function workspaceContext(
   }
   const labels: Partial<Record<WorkspaceSelection["type"], string>> = {
     account: "Overview",
+    relationships: data.roles.includes("agent") ? "Client access" : "Agent & representation",
     listings: "Property inventory",
     launchpad: "Launchpad progress",
     communications: "Inbox",

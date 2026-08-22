@@ -48,8 +48,8 @@ describe("admin CRM live/demo boundary", () => {
     expect(workspace).toContain("<WorkspaceNavigator data={data} view={view}");
     expect(workspace).not.toContain("ScopeSwitch");
     expect(workspaceNavigator).toContain("view.connections.length");
-    expect(workspaceNavigator).toContain("view.exchanges.length");
-    expect(workspaceNavigator).toContain("view.notifications.length");
+    expect(workspaceNavigator).toContain("view.exchanges.filter");
+    expect(workspaceNavigator).toContain("view.representations.filter");
     expect(workspaceDetail).toContain("view.supportTickets");
     expect(workspaceDetail).toContain("view.notifications.forEach");
     expect(communications).toContain('dataScope: "live" | "demo"');

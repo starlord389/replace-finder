@@ -42,7 +42,7 @@ export type AdminAttentionPriority = "critical" | "high" | "medium";
 export interface AdminAttentionItem {
   id: string;
   priority: AdminAttentionPriority;
-  category: "deadline" | "support" | "lead" | "demo" | "connection" | "account" | "representation";
+  category: "support" | "lead" | "demo" | "connection" | "account" | "representation";
   title: string;
   detail: string;
   timestamp: string;
@@ -78,7 +78,6 @@ export interface CommandCenterSource {
   connectionIntents: AgentConnectionIntent[];
 }
 
-const ACTIVE_EXCHANGE_STATUSES = new Set(["active", "in_identification", "in_closing"]);
 const PRIORITY_ORDER: Record<AdminAttentionPriority, number> = {
   critical: 0,
   high: 1,
@@ -101,7 +100,6 @@ type AdminCommandCenterSnapshot = {
   recentActivity: TimelineEvent[];
   eventRegistrations: EventRegistration[];
   lastUpdatedAt: string;
-  overdueDeadlineCount: number;
   kpis: {
     activeExchanges: number;
     activeMatches: number;
@@ -127,16 +125,22 @@ function parseCommandCenterSnapshot(value: unknown): AdminCommandCenterSnapshot 
     throw new Error("The Command Center returned an invalid response.");
   }
   const row = value as Partial<AdminCommandCenterSnapshot>;
+  const rawAttentionItems = Array.isArray(row.attentionItems) ? row.attentionItems : [];
+  // During a rolling deployment the frontend may briefly talk to the previous
+  // command-center RPC. Never re-surface its retired deadline rows.
+  const attentionItems = rawAttentionItems.filter(
+    (item) => (item as { category?: string }).category !== "deadline",
+  );
+  const removedLegacyDeadlines = attentionItems.length !== rawAttentionItems.length;
   return {
-    attentionItems: Array.isArray(row.attentionItems) ? row.attentionItems : [],
-    attentionTotal: Number(row.attentionTotal ?? 0),
-    attentionTruncated: Boolean(row.attentionTruncated),
+    attentionItems,
+    attentionTotal: removedLegacyDeadlines ? attentionItems.length : Number(row.attentionTotal ?? 0),
+    attentionTruncated: removedLegacyDeadlines ? false : Boolean(row.attentionTruncated),
     pipeline: row.pipeline && typeof row.pipeline === "object" ? row.pipeline : {},
     upcomingDemos: Array.isArray(row.upcomingDemos) ? row.upcomingDemos : [],
     recentActivity: Array.isArray(row.recentActivity) ? row.recentActivity : [],
     eventRegistrations: Array.isArray(row.eventRegistrations) ? row.eventRegistrations : [],
     lastUpdatedAt: String(row.lastUpdatedAt ?? new Date().toISOString()),
-    overdueDeadlineCount: Number(row.overdueDeadlineCount ?? 0),
     kpis: {
       activeExchanges: Number(row.kpis?.activeExchanges ?? 0),
       activeMatches: Number(row.kpis?.activeMatches ?? 0),
@@ -197,61 +201,14 @@ function propertyLabel(property: Property) {
   return resolveListingName(property, true);
 }
 
-function daysUntil(iso: string) {
-  const day = 24 * 60 * 60 * 1000;
-  return Math.ceil((new Date(iso).getTime() - Date.now()) / day);
-}
-
-function deadlineTitle(label: string, days: number) {
-  if (days < 0) return `${label} overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}`;
-  if (days === 0) return `${label} is due today`;
-  return `${label} in ${days} day${days === 1 ? "" : "s"}`;
-}
-
-function deadlinePriority(days: number): AdminAttentionPriority | null {
-  if (days <= 2) return "critical";
-  if (days <= 7) return "high";
-  if (days <= 14) return "medium";
-  return null;
-}
-
 function ageInDays(iso: string) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / (24 * 60 * 60 * 1000));
 }
 
 export function buildAdminAttentionItems(source: CommandCenterSource): AdminAttentionItem[] {
-  const clientsById = new Map(source.clients.map((client) => [client.id, client.client_name]));
   const profilesById = new Map(source.profiles.map((profile) => [profile.id, clean(profile.full_name, profile.email ?? undefined)]));
   const exchangesById = new Map(source.exchanges.map((exchange) => [exchange.id, exchange]));
   const items: AdminAttentionItem[] = [];
-
-  for (const exchange of source.exchanges) {
-    if (!ACTIVE_EXCHANGE_STATUSES.has(exchange.status)) continue;
-    const ownerName = clean(profilesById.get(exchange.agent_id), "Account owner");
-    const detail = isInvestorOwned(exchange.owner_type)
-      ? `${ownerName} · ${exchangeOwnerTypeLabel(exchange.owner_type)} · Self-managed`
-      : `${exchangeManagedForLabel(exchange.owner_type, clientsById.get(exchange.client_id))} · Agent ${ownerName}`;
-    const deadlines = [
-      ["Identification deadline", exchange.identification_deadline],
-      ["Closing deadline", exchange.closing_deadline],
-    ] as const;
-
-    for (const [label, deadline] of deadlines) {
-      if (!deadline) continue;
-      const days = daysUntil(deadline);
-      const priority = deadlinePriority(days);
-      if (!priority) continue;
-      items.push({
-        id: `deadline-${exchange.id}-${label}`,
-        priority,
-        category: "deadline",
-        title: deadlineTitle(label, days),
-        detail,
-        timestamp: deadline,
-        href: `/admin/opportunities/exchanges/${exchange.id}`,
-      });
-    }
-  }
 
   for (const ticket of source.tickets) {
     if (!["open", "in_progress"].includes(ticket.status)) continue;
